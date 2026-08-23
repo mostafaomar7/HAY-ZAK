@@ -30,6 +30,21 @@ npm start          # http://localhost:4200
 | `npm run format` / `format:check` | Prettier                                       |
 | `npm run analyze`                 | Production build with `stats.json`             |
 
+## Deploying to Apache
+
+`npm run build`, then upload the **contents** of `dist/hayzaq/browser/` to the
+document root. `public/.htaccess` is copied into that folder by the build, so
+the rewrite rules, caching and security headers travel with it.
+
+Two things have to agree if the app is served from a subfolder rather than a
+domain root: `<base href>` in `src/index.html` and `RewriteBase` in the
+`.htaccess`. Set both to the same path, or every asset request resolves against
+the wrong root and the page comes up blank.
+
+The `Content-Security-Policy` line names `environment.ts`'s `apiUrl`. Change one
+and change the other, and add whatever host ends up serving unit photos to
+`img-src` before the first upload lands.
+
 ## Structure
 
 ```

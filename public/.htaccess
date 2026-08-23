@@ -1,0 +1,182 @@
+# HAY-ZAK — Apache configuration for the built SPA.
+#
+# Copied verbatim into the build output (see angular.json > assets), so it ships
+# beside index.html and needs no separate deployment step. Upload the contents
+# of dist/hayzaq/browser/ to the document root.
+#
+# Every block is wrapped in <IfModule> so a host missing one of these modules
+# serves the site rather than returning 500. If mod_rewrite is the one missing,
+# though, deep links will 404 — that block is the only one that is not optional.
+#
+# If the server answers 500 on every request, the host is refusing a directive
+# rather than failing to run it: AllowOverride is too narrow. The usual culprit
+# is the `Options` line below (needs AllowOverride Options) — comment it out and
+# retry before touching anything else.
+
+# The whole site is Arabic. Without this, a host defaulting to ISO-8859-1
+# mojibakes every response that does not carry its own charset.
+AddDefaultCharset UTF-8
+
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+
+# ── Client-side routing ──────────────────────────────────────────────────
+# Angular owns the URL space: /units/m-1 and /admin/dashboard are not files, and
+# the server must hand back index.html so the router can resolve them. Anything
+# that does exist on disk is served as itself, so hashed bundles and favicon.ico
+# never reach this rule.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Deploying under a subfolder? Set this to that path and match <base href>
+  # in index.html, or every asset request will resolve against the wrong root.
+  RewriteBase /
+
+  # Force HTTPS. The session token lives in localStorage and the API is
+  # HTTPS-only; a plaintext hop is an unnecessary window. Localhost is exempt so
+  # the build can be tested under XAMPP or Laragon without a certificate, and
+  # the X-Forwarded-Proto check keeps this from looping behind a proxy that
+  # terminates TLS itself.
+  RewriteCond %{HTTP_HOST} !^localhost [NC]
+  RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Never rewrite a real file or directory.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # A missing asset must stay a 404. Returning index.html for a missing .js is
+  # how a deploy that dropped a chunk turns into a blank page with no error:
+  # the browser is handed HTML where it expected a module.
+  RewriteRule \.(js|mjs|css|map|json|txt|xml|ico|png|jpe?g|gif|svg|webp|avif|woff2?|ttf|eot|pdf)$ - [L]
+
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# ── MIME types ───────────────────────────────────────────────────────────
+# Older Apache builds do not know these, and a bundle served as text/plain is
+# refused by the browser's module loader.
+<IfModule mod_mime.c>
+  AddType text/javascript                 .js .mjs
+  AddType text/css                        .css
+  AddType application/json                .json
+  AddType application/manifest+json       .webmanifest
+  AddType image/svg+xml                   .svg
+  AddType image/webp                      .webp
+  AddType image/avif                      .avif
+  AddType font/woff2                      .woff2
+  AddType font/woff                       .woff
+  AddType application/wasm                .wasm
+</IfModule>
+
+# ── Compression ──────────────────────────────────────────────────────────
+# Brotli when the host has it, gzip otherwise. Both skip what is already
+# compressed — re-compressing a woff2 or a jpeg costs CPU and saves nothing.
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml application/xml
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml application/xml
+</IfModule>
+
+# ── Caching ──────────────────────────────────────────────────────────────
+# The production build sets outputHashing: "all", so every bundle, stylesheet
+# and copied asset carries a content hash in its name. Those can be cached
+# forever: a change produces a new filename, never a stale hit.
+#
+# index.html is the one file whose name never changes, and it is what points at
+# the hashed bundles. Cache it and a browser keeps loading yesterday's app
+# against today's API — so it revalidates on every navigation.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|mjs|css|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|avif)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "\.(html|json|webmanifest)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  # favicon.ico has no hash in its name, so it gets a day rather than a year.
+  <FilesMatch "^favicon\.ico$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# ── Security headers ─────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # No MIME sniffing: a response typed text/plain must not be executed as a
+  # script because its bytes happen to look like one.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # The console can suspend an account and execute a payout in one click, and
+  # the session lives in localStorage. Nothing here belongs in a frame.
+  Header always set X-Frame-Options "DENY"
+
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Nothing in the product asks for these. Denying them means a compromised
+  # dependency cannot ask either.
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()"
+
+  # HSTS, and only over TLS — sending it on a plaintext response is ignored at
+  # best. Add ; preload once the domain is genuinely ready for it: the list is
+  # slow to leave.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # Content Security Policy.
+  #
+  #   style-src 'unsafe-inline'  — Angular writes component styles into <style>
+  #                                elements at runtime. Removing this needs the
+  #                                CSP_NONCE provider wired through the server.
+  #   fonts.googleapis / gstatic — the IBM Plex Sans Arabic link in index.html.
+  #   connect-src api.hayzak.sa  — environment.ts apiUrl. Change both together.
+  #   img-src data: blob:        — inline SVG icons and object URLs for photo
+  #                                previews before upload.
+  #
+  # Add the CDN that serves unit photos to img-src before the first upload
+  # lands, or the marketplace renders every card without its picture.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://api.hayzak.sa; connect-src 'self' https://api.hayzak.sa; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+  # The server's own version is nobody's business.
+  Header always unset X-Powered-By
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Fonts are fetched cross-origin when the site is served from a CDN alias.
+  <FilesMatch "\.(woff2?|ttf|eot)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
+
+# ── Do not serve source ──────────────────────────────────────────────────
+# A build should not contain these at all; this is the second lock.
+<FilesMatch "(^\.|\.(map|ts|scss|json5|log|md|yml|yaml|lock)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# .htaccess itself, and anything else dot-prefixed, stays unreadable.
+<Files ".htaccess">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
