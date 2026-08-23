@@ -7,6 +7,13 @@ export interface ReferenceItem {
   nameAr: string;
   nameEn: string;
   sortOrder?: number;
+  /**
+   * How many published units sit under this entry, for the landing page's
+   * category tiles. The server counts it — a client that fetched every unit to
+   * count them would be paging the whole catalogue to render four numbers.
+   * Absent means "not counted", and the tile simply omits the line.
+   */
+  unitCount?: number;
 }
 
 export interface District extends ReferenceItem {

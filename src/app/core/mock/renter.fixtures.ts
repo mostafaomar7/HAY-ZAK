@@ -46,6 +46,18 @@ const GARAGE = category('garage', 'قراج', 'Garage');
 // it "مكان مكشوف". The designer's wording is used here; see docs/design/renter-plan.md.
 const OPEN_SPACE = category('open_space', 'مكان مكشوف', 'Open space');
 
+/**
+ * The stock photographs the design's prototype used, by their Unsplash id.
+ *
+ * They are placeholders standing in for what lessors will upload, and they are
+ * here so a demo shows the catalogue the way the design draws it rather than a
+ * grid of empty grey boxes. `images.unsplash.com` is allowed by the CSP in
+ * public/.htaccess for the same reason — take both out together once real
+ * photographs are being served.
+ */
+const photo = (unsplashId: string, width = 900): string =>
+  `https://images.unsplash.com/${unsplashId}?auto=format&fit=crop&w=${width}&q=75`;
+
 function marketUnit(
   id: string,
   title: string,
@@ -57,6 +69,7 @@ function marketUnit(
   latitude: number,
   longitude: number,
   perks: string[],
+  photos: string[],
   status: UnitStatus = UnitStatus.Published,
 ): Unit {
   return {
@@ -90,7 +103,13 @@ function marketUnit(
     maxDays: 90,
     floor: 'ground',
     perks,
-    images: [],
+    images: photos.map((unsplashId, index) => ({
+      id: `${id}-img-${index + 1}`,
+      url: photo(unsplashId),
+      sortOrder: index + 1,
+      // The real figure comes from the upload; nothing on screen reads it.
+      sizeBytes: 0,
+    })),
     status,
     createdAt: '2026-07-28T09:00:00Z',
   };
@@ -109,6 +128,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.83,
     46.64,
     ['مكيّفة', 'مدخل واسع'],
+    [
+      'photo-1553413077-190dd305871c',
+      'photo-1586528116311-ad8dd3c8310d',
+      'photo-1601598851547-4302969d0614',
+    ],
   ),
   marketUnit(
     'm-2',
@@ -121,6 +145,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.81,
     46.66,
     ['مدخل مستقل', 'إضاءة داخلية'],
+    [
+      'photo-1493809842364-78817add7ffb',
+      'photo-1558618666-fcd25c85cd64',
+      'photo-1553413077-190dd305871c',
+    ],
   ),
   marketUnit(
     'm-3',
@@ -133,6 +162,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.79,
     46.61,
     ['باب أوتوماتيكي', 'قريبة من الشارع'],
+    [
+      'photo-1667878604760-ea68d0fd321f',
+      'photo-1553413077-190dd305871c',
+      'photo-1601598851547-4302969d0614',
+    ],
   ),
   marketUnit(
     'm-4',
@@ -145,6 +179,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.82,
     46.68,
     ['أرضية إسمنتية', 'مدخل واسع'],
+    [
+      'photo-1586528116311-ad8dd3c8310d',
+      'photo-1553413077-190dd305871c',
+      'photo-1601598851547-4302969d0614',
+    ],
   ),
   marketUnit(
     'm-5',
@@ -157,6 +196,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.77,
     46.59,
     ['أرضية إسمنتية', 'إضاءة داخلية'],
+    [
+      'photo-1587293852726-70cdb56c2866',
+      'photo-1586528116311-ad8dd3c8310d',
+      'photo-1553413077-190dd305871c',
+    ],
   ),
   marketUnit(
     'm-6',
@@ -169,6 +213,11 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.88,
     46.71,
     ['قريبة من الشارع', 'أرضية إسمنتية'],
+    [
+      'photo-1524230572899-a752b3835840',
+      'photo-1487958449943-2429e8be8625',
+      'photo-1586528116311-ad8dd3c8310d',
+    ],
   ),
   marketUnit(
     'm-7',
@@ -181,6 +230,7 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     24.85,
     46.62,
     ['مكيّفة'],
+    ['photo-1587293852726-70cdb56c2866', 'photo-1553413077-190dd305871c'],
     // FR-MKT-10 — a booked unit is still listed but cannot be booked now.
     UnitStatus.FullyBooked,
   ),

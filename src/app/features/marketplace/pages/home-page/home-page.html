@@ -1,73 +1,100 @@
 <!-- ── Hero + search ─────────────────────────────────────────────────── -->
 <section class="hero">
+  <!-- Decorative: the heading beneath already says what the page is, and a
+       photograph of shelving adds nothing a screen reader needs. -->
+  <img class="hero__photo" [src]="heroPhoto" alt="" aria-hidden="true" />
+  <div class="hero__veil" aria-hidden="true"></div>
+
   <div class="hero__inner">
     <h1 class="hero__title">{{ i18n.t('home.heroTitle') }}</h1>
     <p class="hero__sub">{{ i18n.t('home.heroSub') }}</p>
 
-    <form class="search" [formGroup]="form" (ngSubmit)="search()" novalidate>
-      <h2 class="search__title">{{ i18n.t('home.searchTitle') }}</h2>
+    <form class="bar" [formGroup]="form" (ngSubmit)="search()" novalidate>
+      <h2 class="sr-only">{{ i18n.t('home.searchTitle') }}</h2>
 
-      <div class="search__grid">
-        <app-ui-field [label]="i18n.t('home.city')" for="h-city">
-          <select id="h-city" formControlName="cityId">
-            <option value="">{{ i18n.t('earnings.allUnits') }}</option>
-            @for (city of cities(); track city.id) {
-              <option [value]="city.id">{{ i18n.pick(city) }}</option>
-            }
-          </select>
-        </app-ui-field>
+      <div class="bar__field bar__field--wide">
+        <label class="bar__label" for="h-city">{{ i18n.t('home.city') }}</label>
+        <select id="h-city" class="bar__control" formControlName="cityId">
+          <option value="">{{ i18n.t('home.anyCity') }}</option>
+          @for (city of cities(); track city.id) {
+            <option [value]="city.id">{{ i18n.pick(city) }}</option>
+          }
+        </select>
+      </div>
 
-        <app-ui-field [label]="i18n.t('home.category')" for="h-category">
-          <select id="h-category" formControlName="categoryId">
-            <option value="">{{ i18n.t('units.all') }}</option>
-            @for (category of categories(); track category.id) {
-              <option [value]="category.id">{{ i18n.pick(category) }}</option>
-            }
-          </select>
-        </app-ui-field>
+      <span class="bar__rule" aria-hidden="true"></span>
 
-        <app-ui-field
-          [label]="i18n.t('home.startDate')"
-          for="h-start"
-          [control]="form.controls.startDate"
-          [hint]="calendar() === 'hijri' ? hijriDate() : undefined"
-        >
-          <div class="calendar">
-            <input id="h-start" type="date" formControlName="startDate" [min]="minDate" />
+      <div class="bar__field">
+        <label class="bar__label" for="h-category">{{ i18n.t('home.category') }}</label>
+        <select id="h-category" class="bar__control" formControlName="categoryId">
+          <option value="">{{ i18n.t('home.anyCategory') }}</option>
+          @for (category of categories(); track category.id) {
+            <option [value]="category.id">{{ i18n.pick(category) }}</option>
+          }
+        </select>
+      </div>
 
-            <!-- The native date control is Gregorian everywhere, so the toggle
-                 switches the reading of the same value rather than the input. -->
-            <div class="calendar__toggle" role="group" [attr.aria-label]="i18n.t('home.startDate')">
-              <button
-                type="button"
-                [class.calendar__opt--on]="calendar() === 'gregorian'"
-                class="calendar__opt"
-                [attr.aria-pressed]="calendar() === 'gregorian'"
-                (click)="setCalendar('gregorian')"
-              >
-                {{ i18n.t('home.gregorian') }}
-              </button>
-              <button
-                type="button"
-                class="calendar__opt"
-                [class.calendar__opt--on]="calendar() === 'hijri'"
-                [attr.aria-pressed]="calendar() === 'hijri'"
-                (click)="setCalendar('hijri')"
-              >
-                {{ i18n.t('home.hijri') }}
-              </button>
-            </div>
+      <span class="bar__rule" aria-hidden="true"></span>
+
+      <div class="bar__field bar__field--wide">
+        <div class="bar__head">
+          <label class="bar__label" for="h-start">{{ i18n.t('home.startDate') }}</label>
+
+          <!-- The native date control is Gregorian everywhere, so the toggle
+               switches the reading of the same value rather than the input. -->
+          <div class="cal" role="group" [attr.aria-label]="i18n.t('home.startDate')">
+            <button
+              type="button"
+              class="cal__opt"
+              [class.cal__opt--on]="calendar() === 'gregorian'"
+              [attr.aria-pressed]="calendar() === 'gregorian'"
+              (click)="setCalendar('gregorian')"
+            >
+              {{ i18n.t('home.gregorian') }}
+            </button>
+            <button
+              type="button"
+              class="cal__opt"
+              [class.cal__opt--on]="calendar() === 'hijri'"
+              [attr.aria-pressed]="calendar() === 'hijri'"
+              (click)="setCalendar('hijri')"
+            >
+              {{ i18n.t('home.hijri') }}
+            </button>
           </div>
-        </app-ui-field>
+        </div>
 
-        <app-ui-field
-          [label]="i18n.t('home.duration')"
-          for="h-days"
-          [control]="form.controls.days"
-          [hint]="i18n.t('home.days')"
-        >
+        <input
+          id="h-start"
+          class="bar__control"
+          type="date"
+          formControlName="startDate"
+          [min]="minDate"
+        />
+
+        @if (calendar() === 'hijri' && hijriDate()) {
+          <p class="bar__hint">{{ hijriDate() }}</p>
+        }
+      </div>
+
+      <span class="bar__rule" aria-hidden="true"></span>
+
+      <div class="bar__field">
+        <label class="bar__label" for="h-days">{{ i18n.t('home.duration') }}</label>
+
+        <div class="days">
+          <button
+            type="button"
+            class="days__step"
+            [attr.aria-label]="i18n.t('home.fewerDays')"
+            (click)="stepDays(-1)"
+          >
+            −
+          </button>
+
           <input
             id="h-days"
+            class="days__input num"
             type="number"
             inputmode="numeric"
             min="1"
@@ -75,27 +102,31 @@
             formControlName="days"
             dir="ltr"
           />
-        </app-ui-field>
+
+          <span class="days__unit">{{ i18n.t('home.days') }}</span>
+
+          <button
+            type="button"
+            class="days__step"
+            [attr.aria-label]="i18n.t('home.moreDays')"
+            (click)="stepDays(1)"
+          >
+            +
+          </button>
+        </div>
       </div>
 
-      <button appUiButton variant="accent" size="lg" class="search__submit">
-        {{ i18n.t('home.searchAction') }}
+      <button class="bar__submit" type="submit">
+        <app-ui-icon name="search" [size]="20" />
+        <span>{{ i18n.t('home.searchAction') }}</span>
       </button>
     </form>
-  </div>
-</section>
 
-<!-- ── Categories ────────────────────────────────────────────────────── -->
-<section class="section">
-  <div class="section__inner">
-    <h2 class="section__title">{{ i18n.t('home.categoriesTitle') }}</h2>
-    <p class="section__sub">{{ i18n.t('home.categoriesSub') }}</p>
-
-    <ul class="cats">
-      @for (category of categories(); track category.id) {
+    <ul class="chips">
+      @for (category of chips(); track category.id) {
         <li>
-          <a class="cat" [routerLink]="['/units']" [queryParams]="{ categoryId: category.id }">
-            <span class="cat__name">{{ i18n.pick(category) }}</span>
+          <a class="chip" [routerLink]="['/units']" [queryParams]="{ categoryId: category.id }">
+            {{ i18n.pick(category) }}
           </a>
         </li>
       }
@@ -103,27 +134,94 @@
   </div>
 </section>
 
-<!-- ── How it works (FR-MKT-01: a three-step explainer) ──────────────── -->
-<section class="section section--alt">
-  <div class="section__inner">
+<div class="page">
+  <!-- ── Categories ──────────────────────────────────────────────────── -->
+  <section class="cats">
+    <h2 class="cats__title">{{ i18n.t('home.categoriesTitle') }}</h2>
+    <p class="cats__sub">{{ i18n.t('home.categoriesSub') }}</p>
+
+    <ul class="cats__grid">
+      @for (category of categories(); track category.id) {
+        <li>
+          <a class="cat" [routerLink]="['/units']" [queryParams]="{ categoryId: category.id }">
+            <app-ui-icon [name]="iconFor(category.id)" [size]="32" />
+            <span class="cat__name">{{ i18n.pick(category) }}</span>
+            @if (category.unitCount !== undefined) {
+              <span class="cat__count">
+                {{ i18n.t('home.spacesCount', { count: category.unitCount }) }}
+              </span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <!-- ── How it works (FR-MKT-01: a three-step explainer) ─────────────── -->
+  <section class="section">
     <h2 class="section__title">{{ i18n.t('home.howTitle') }}</h2>
 
     <ol class="steps">
-      <li class="step">
-        <span class="step__num num" dir="ltr">1</span>
-        <h3 class="step__title">{{ i18n.t('home.step1') }}</h3>
-        <p class="step__text">{{ i18n.t('home.step1Text') }}</p>
-      </li>
-      <li class="step">
-        <span class="step__num num" dir="ltr">2</span>
-        <h3 class="step__title">{{ i18n.t('home.step2') }}</h3>
-        <p class="step__text">{{ i18n.t('home.step2Text') }}</p>
-      </li>
-      <li class="step">
-        <span class="step__num num" dir="ltr">3</span>
-        <h3 class="step__title">{{ i18n.t('home.step3') }}</h3>
-        <p class="step__text">{{ i18n.t('home.step3Text') }}</p>
-      </li>
+      @for (step of howSteps; track step.num) {
+        <li class="step">
+          <div class="step__head">
+            <span class="step__icon" aria-hidden="true">
+              <app-ui-icon [name]="step.icon" [size]="20" />
+            </span>
+            <span class="step__num" dir="ltr" aria-hidden="true">{{ step.num }}</span>
+          </div>
+          <h3 class="step__title">{{ i18n.t(step.titleKey) }}</h3>
+          <p class="step__text">{{ i18n.t(step.textKey) }}</p>
+        </li>
+      }
     </ol>
-  </div>
-</section>
+  </section>
+
+  <!-- ── Why the platform ────────────────────────────────────────────── -->
+  <ul class="why">
+    @for (feature of features; track feature.titleKey) {
+      <li class="feat">
+        <span class="feat__icon" aria-hidden="true">
+          <app-ui-icon [name]="feature.icon" [size]="18" />
+        </span>
+        <h3 class="feat__title">{{ i18n.t(feature.titleKey) }}</h3>
+        <p class="feat__text">{{ i18n.t(feature.textKey) }}</p>
+      </li>
+    }
+  </ul>
+
+  <!-- ── Newest spaces ───────────────────────────────────────────────── -->
+  @if (latest().length > 0) {
+    <section class="section">
+      <div class="section__head">
+        <h2 class="section__title">{{ i18n.t('home.latestTitle') }}</h2>
+        <a class="section__more" routerLink="/units">{{ i18n.t('home.viewMore') }}</a>
+      </div>
+
+      <ul class="latest">
+        @for (unit of latest(); track unit.id) {
+          <li>
+            <app-unit-result-card [unit]="unit" layout="tile" />
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <!-- ── Closing call to action ──────────────────────────────────────── -->
+  <section class="cta">
+    <div class="cta__text">
+      <h2 class="cta__title">{{ i18n.t('home.ctaTitle') }}</h2>
+      <p class="cta__sub">{{ i18n.t('home.ctaText') }}</p>
+    </div>
+
+    <div class="cta__actions">
+      <a appUiButton variant="outline" class="cta__ghost" routerLink="/units">
+        {{ i18n.t('home.ctaExplore') }}
+      </a>
+      <a appUiButton variant="accent" routerLink="/auth/account-type">
+        {{ i18n.t('home.ctaAddSpace') }}
+      </a>
+    </div>
+  </section>
+</div>

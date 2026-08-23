@@ -226,11 +226,14 @@ export const MOCK_BOOKINGS: Booking[] = [
 ];
 
 // ── Reference data (FR-ADM-05) ───────────────────────────────────────────
+// The counts are what the landing page's tiles read. "مكان مكشوف" is the
+// designer's wording in both renter files; the lessor form said "مساحة مفتوحة"
+// and the two are now one row — see docs/design/renter-plan.md.
 export const MOCK_CATEGORIES: ReferenceItem[] = [
-  { id: 'warehouse', nameAr: 'مستودع', nameEn: 'Warehouse', sortOrder: 1 },
-  { id: 'room', nameAr: 'غرفة', nameEn: 'Room', sortOrder: 2 },
-  { id: 'open_space', nameAr: 'مساحة مفتوحة', nameEn: 'Open space', sortOrder: 3 },
-  { id: 'garage', nameAr: 'قراج', nameEn: 'Garage', sortOrder: 4 },
+  { id: 'warehouse', nameAr: 'مستودع', nameEn: 'Warehouse', sortOrder: 1, unitCount: 19 },
+  { id: 'room', nameAr: 'غرفة', nameEn: 'Room', sortOrder: 2, unitCount: 14 },
+  { id: 'open_space', nameAr: 'مكان مكشوف', nameEn: 'Open space', sortOrder: 3, unitCount: 8 },
+  { id: 'garage', nameAr: 'قراج', nameEn: 'Garage', sortOrder: 4, unitCount: 7 },
 ];
 
 export const MOCK_CITIES: ReferenceItem[] = [

@@ -22,6 +22,9 @@ export type IconName =
   | 'phone'
   | 'mail'
   | 'warehouse'
+  | 'room'
+  | 'garage'
+  | 'open-space'
   | 'filter';
 
 /**
@@ -149,6 +152,31 @@ export type IconName =
           <path d="M3 20V9l9-5 9 5v11" />
           <path d="M7 20v-7h10v7" />
           <path d="M7 16h10" />
+        }
+        <!-- The four unit categories, transcribed from the prototype's 32px
+             grid onto this one. They read as a set: same weight, same corner
+             radius, each recognisable at the 32px the landing tiles use. -->
+        @case ('room') {
+          <path d="M4.5 20V5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v15" />
+          <rect x="8.5" y="7.5" width="7" height="12.5" rx="1" />
+          <circle cx="10.3" cy="14" r="0.8" />
+          <path d="M3 20h18" />
+        }
+        @case ('garage') {
+          <path d="M2.5 10.5 12 4.5l9.5 6" />
+          <path d="M4.5 20V10.5h15V20" />
+          <path d="M7.5 14h9" />
+          <path d="M7.5 17.2h9" />
+          <path d="M2.5 20.2h19" />
+        }
+        @case ('open-space') {
+          <path d="M7 4h10" />
+          <path d="M4.5 7h15" />
+          <path d="M6 10.5V21" />
+          <path d="M12 10.5V21" />
+          <path d="M18 10.5V21" />
+          <path d="M3 15h18" />
+          <path d="M3 18.2h18" />
         }
         @case ('filter') {
           <path d="M4 5h16l-6 7v6l-4 2v-8z" />

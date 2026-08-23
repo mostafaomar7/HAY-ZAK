@@ -25,6 +25,7 @@ npm start          # http://localhost:4200
 | --------------------------------- | ---------------------------------------------- |
 | `npm start`                       | Dev server (uses `environment.development.ts`) |
 | `npm run build`                   | Production build                               |
+| `npm run build:demo`              | Production build served from the fixtures      |
 | `npm test` / `npm run test:ci`    | Unit tests (Karma + Jasmine)                   |
 | `npm run lint` / `lint:fix`       | ESLint                                         |
 | `npm run format` / `format:check` | Prettier                                       |
@@ -33,7 +34,8 @@ npm start          # http://localhost:4200
 ## Deploying to Apache
 
 `npm run build`, then upload the **contents** of `dist/hayzaq/browser/` to the
-document root. `public/.htaccess` is copied into that folder by the build, so
+document root. For a demo host with no backend behind it, build with
+`npm run build:demo` instead — see [docs/demo-accounts.md](docs/demo-accounts.md). `public/.htaccess` is copied into that folder by the build, so
 the rewrite rules, caching and security headers travel with it.
 
 Two things have to agree if the app is served from a subfolder rather than a

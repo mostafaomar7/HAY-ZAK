@@ -1,5 +1,20 @@
 # Demo accounts and screen map
 
+## Build the demo, not production
+
+```
+npm run build:demo
+```
+
+`npm run build` produces the **production** bundle, which calls
+`https://api.hayzak.sa` — a host that does not exist yet. Uploaded to a demo
+domain it looks broken rather than unfinished: every list fails to load, every
+sign-in is refused, and the static pages show "الصفحة غير متاحة". The demo
+configuration is the same optimised build with the fixtures switched on.
+
+Never put the demo build on the real domain. `useMockApi` makes the app answer
+itself, so nothing a visitor types is ever saved.
+
 Everything below works against the mock API (`environment.useMockApi`), before
 any backend exists. **The password is not checked** — type anything. What
 decides which account you get is the email or the mobile you sign in with.

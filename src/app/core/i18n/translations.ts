@@ -61,23 +61,46 @@ const ar = {
   'home.heroSub': 'مساحة قريبة منك، بسعر واضح، ودفع محفوظ حتى اعتماد الطلب.',
   'home.searchTitle': 'ابحث عن مساحة',
   'home.city': 'المدينة أو الحي',
+  'home.anyCity': 'كل المدن',
   'home.category': 'الفئة',
+  'home.anyCategory': 'كل الفئات',
   'home.startDate': 'تاريخ البداية',
   'home.gregorian': 'ميلادي',
   'home.hijri': 'هجري',
   'home.duration': 'المدة',
   'home.days': 'يومًا',
+  'home.fewerDays': 'إنقاص المدة يومًا',
+  'home.moreDays': 'زيادة المدة يومًا',
   'home.searchAction': 'ابحث',
   'home.categoriesTitle': 'ما الذي ترغب في تخزينه؟',
   'home.categoriesSub': 'اختر نوع المساحة التي تناسبك',
   'home.spacesCount': '{count} مساحة',
   'home.howTitle': 'كيف تعمل المنصة',
-  'home.step1': 'ابحث واختر المساحة',
-  'home.step1Text': 'قارن المساحات القريبة منك بالسعر والمساحة والمدة.',
-  'home.step2': 'احجز وادفع',
-  'home.step2Text': 'يُحفظ المبلغ لدى المنصة حتى يُعتمد الطلب.',
-  'home.step3': 'استلم المساحة',
-  'home.step3Text': 'بعد الاعتماد تظهر بيانات المؤجر والعنوان الدقيق.',
+  'home.step1': 'البحث والاختيار',
+  'home.step1Text':
+    'حدّد المدينة أو الحي والفئة وتاريخ البداية والمدة، ثم قارن بين المساحات بالسعر اليومي والمسافة والمساحة التقريبية.',
+  'home.step2': 'تعبئة بيانات الحجز',
+  'home.step2Text':
+    'اختر التواريخ، واكتب وصف البضاعة، وأقرّ بقائمة الممنوعات، ثم راجع تفصيل السعر كاملًا قبل الدفع.',
+  'home.step3': 'الاعتماد وبداية المدة',
+  'home.step3Text':
+    'تراجع إدارة المنصة الطلب. عند الاعتماد يظهر العنوان الدقيق وتبدأ المدة، وعند الرفض يُستَرد المبلغ كاملًا.',
+  'home.why1': 'مساحات متنوعة',
+  'home.why1Text': 'أربع فئات تغطي احتياجات التخزين المختلفة.',
+  'home.why2': 'تعامل موثوق',
+  'home.why2Text': 'الحجز والدفع والفاتورة داخل المنصة.',
+  'home.why3': 'سهولة التعامل',
+  'home.why3Text': 'ثلاث خطوات من البحث إلى الدفع.',
+  'home.why4': 'مواقع مميزة',
+  'home.why4Text': 'أحياء قريبة في اثنتي عشرة مدينة.',
+  'home.why5': 'أسعار مرنة',
+  'home.why5Text': 'سعر يومي معروض، والمدة تبدأ من ثلاثة أيام.',
+  'home.latestTitle': 'أحدث المساحات',
+  'home.viewMore': 'عرض المزيد',
+  'home.ctaTitle': 'كل مساحة لها قيمة',
+  'home.ctaText': 'ابحث عن المساحة المناسبة لبضاعتك، أو اعرض مساحتك غير المستغلة على المنصة.',
+  'home.ctaExplore': 'استكشاف المساحات',
+  'home.ctaAddSpace': 'إضافة مساحتك الآن',
 
   // ── Units (LSR-02) ─────────────────────────────────────────────────────
   'units.search': 'البحث باسم المساحة',
@@ -893,7 +916,8 @@ const ar = {
   'listings.empty': 'لا توجد إعلانات بانتظار المراجعة',
   'listings.emptyHint': 'اكتملت مراجعة كل الإعلانات المطابقة للفلاتر الحالية.',
   'listings.error': 'تعذّر تحميل الإعلانات',
-  'listings.errorHint': 'انقطع الاتصال بخدمة الإعلانات. لم يُفقد أي إجراء، ويمكن إعادة المحاولة الآن.',
+  'listings.errorHint':
+    'انقطع الاتصال بخدمة الإعلانات. لم يُفقد أي إجراء، ويمكن إعادة المحاولة الآن.',
   'listings.panelEyebrow': 'مراجعة إعلان',
   'listings.unitData': 'بيانات الوحدة',
   'listings.ownerData': 'بيانات المؤجر',
@@ -910,7 +934,8 @@ const ar = {
 
   'bkq.title': 'حجوزات مدفوعة بانتظار المراجعة',
   'bkq.searchPlaceholder': 'رقم الحجز أو المستأجر أو المؤجر',
-  'bkq.slaBanner': 'تجاوز {count} من الحجوزات مدة المراجعة المحددة وهي {hours} ساعة من وقت الدفع. الترتيب الافتراضي بالأقدم أولًا.',
+  'bkq.slaBanner':
+    'تجاوز {count} من الحجوزات مدة المراجعة المحددة وهي {hours} ساعة من وقت الدفع. الترتيب الافتراضي بالأقدم أولًا.',
   'bkq.waitingFilter': 'مدة الانتظار',
   'bkq.allWaits': 'كل المدد',
   'bkq.lateOnly': 'المتأخرة فقط',
@@ -925,7 +950,8 @@ const ar = {
   'bkq.error': 'تعذّر تحميل الحجوزات',
   'bkq.errorHint': 'انقطع الاتصال بخدمة الحجوزات. لم يُفقد أي إجراء، ويمكن إعادة المحاولة الآن.',
   'bkq.panelEyebrow': 'مراجعة حجز مدفوع',
-  'bkq.lateNotice': 'تجاوز هذا الحجز مدة المراجعة المحددة بـ {hours} ساعة من وقت الدفع، ويستحق معالجة فورية.',
+  'bkq.lateNotice':
+    'تجاوز هذا الحجز مدة المراجعة المحددة بـ {hours} ساعة من وقت الدفع، ويستحق معالجة فورية.',
   'bkq.data': 'بيانات الحجز',
   'bkq.goods': 'وصف البضاعة المقدّم من المستأجر',
   'bkq.approve': 'اعتماد الحجز',
@@ -970,7 +996,8 @@ const ar = {
   'transfers.bank': 'البنك',
   'transfers.holder': 'اسم صاحب الحساب',
   'transfers.iban': 'الآيبان',
-  'transfers.bankMissing': 'بيانات الحساب البنكي غير مكتملة، ولا يمكن تنفيذ أي تحويل قبل استكمالها من المؤجر.',
+  'transfers.bankMissing':
+    'بيانات الحساب البنكي غير مكتملة، ولا يمكن تنفيذ أي تحويل قبل استكمالها من المؤجر.',
   'transfers.reference': 'رقم الحجز',
   'transfers.unit': 'الوحدة',
   'transfers.dueDate': 'تاريخ الاستحقاق',
@@ -984,7 +1011,8 @@ const ar = {
   'transfers.empty': 'لا توجد مستحقات في هذه الدورة',
   'transfers.emptyHint': 'نُفّذت كل التحويلات المستحقة، ولا يوجد مبلغ منتظر أو مجمّد حاليًا.',
   'transfers.error': 'تعذّر تحميل المستحقات',
-  'transfers.errorHint': 'انقطع الاتصال بخدمة التحويلات البنكية. لم يُنفَّذ أي تحويل مزدوج، ويمكن إعادة المحاولة الآن.',
+  'transfers.errorHint':
+    'انقطع الاتصال بخدمة التحويلات البنكية. لم يُنفَّذ أي تحويل مزدوج، ويمكن إعادة المحاولة الآن.',
   'transfers.executeTitle': 'تنفيذ التحويل',
   'transfers.netToTransfer': 'المبلغ الصافي للتحويل',
   'transfers.lessorAccount': 'الحساب البنكي للمؤجر',
@@ -1004,10 +1032,12 @@ const ar = {
   'transfers.demandTitle': 'مطالبة المؤجر باستكمال البيانات البنكية',
   'transfers.demandNote': 'يبقى المبلغ محتجزًا لدى المنصة حتى استكمال البيانات.',
   'transfers.demandBody': 'نص المطالبة',
-  'transfers.demandDefault': 'يرجى استكمال رقم الآيبان واسم صاحب الحساب في صفحة الحساب البنكي لتمكين تنفيذ التحويل.',
+  'transfers.demandDefault':
+    'يرجى استكمال رقم الآيبان واسم صاحب الحساب في صفحة الحساب البنكي لتمكين تنفيذ التحويل.',
   'transfers.demandSend': 'إرسال المطالبة',
   'transfers.demandSent': 'أُرسلت المطالبة إلى المؤجر.',
-  'transfers.frozenNote': 'يبقى المبلغ مجمّدًا حتى إغلاق الشكوى في شاشة الشكاوى، ثم يعود التحويل تلقائيًا إلى حالة الاستحقاق.',
+  'transfers.frozenNote':
+    'يبقى المبلغ مجمّدًا حتى إغلاق الشكوى في شاشة الشكاوى، ثم يعود التحويل تلقائيًا إلى حالة الاستحقاق.',
 
   'reports.bookings': 'الحجوزات',
   'reports.revenue': 'الإيرادات',
@@ -1044,7 +1074,8 @@ const ar = {
   'reports.exportFailed': 'تعذّر تصدير التقرير.',
   'reports.last5Months': 'آخر 5 أشهر',
 
-  'finset.auditNote': 'كل تعديل في هذه الشاشة يفتح نافذة تأكيد تعرض القيمة القديمة والقيمة الجديدة قبل الحفظ، ويُسجّل في سجل التدقيق باسم المستخدم ووقت التنفيذ.',
+  'finset.auditNote':
+    'كل تعديل في هذه الشاشة يفتح نافذة تأكيد تعرض القيمة القديمة والقيمة الجديدة قبل الحفظ، ويُسجّل في سجل التدقيق باسم المستخدم ووقت التنفيذ.',
   'finset.commission': 'نسبة العمولة العامة',
   'finset.commissionHint': 'تُطبّق على كل الحجوزات ما لم يوجد استثناء للمؤجر أو للوحدة.',
   'finset.editRate': 'تعديل النسبة',
@@ -1066,13 +1097,15 @@ const ar = {
   'finset.editRefund': 'تعديل السياسة',
   'finset.refundTier': 'الإلغاء قبل {days} يوم أو أكثر يسترد {percent}% من قيمة الحجز.',
   'finset.autoApprove': 'الموافقة التلقائية على الحجوزات',
-  'finset.autoApproveBody': 'عند التشغيل تُعتمد الحجوزات المدفوعة فورًا دون مراجعة بشرية، ويتوقف ورود عناصر جديدة إلى طابور مراجعة الحجوزات. عند الإيقاف يعود كل حجز مدفوع إلى الطابور بانتظار قرار مشرف العمليات.',
+  'finset.autoApproveBody':
+    'عند التشغيل تُعتمد الحجوزات المدفوعة فورًا دون مراجعة بشرية، ويتوقف ورود عناصر جديدة إلى طابور مراجعة الحجوزات. عند الإيقاف يعود كل حجز مدفوع إلى الطابور بانتظار قرار مشرف العمليات.',
   'finset.autoApproveOn': 'الحالة الآن: مفعّلة — طابور مراجعة الحجوزات لا يستقبل عناصر جديدة.',
   'finset.autoApproveOff': 'الحالة الآن: معطّلة — كل حجز مدفوع يمر بمراجعة بشرية.',
   'finset.confirmTitle': 'تأكيد التعديل',
   'finset.oldValue': 'القيمة القديمة',
   'finset.newValue': 'القيمة الجديدة',
-  'finset.confirmNote': 'يُطبّق التعديل على الحجوزات الجديدة فقط، ولا يمس الحجوزات القائمة أو التحويلات المنفَّذة. يُسجّل الإجراء في سجل التدقيق بالقيمة قبل التعديل والقيمة بعده.',
+  'finset.confirmNote':
+    'يُطبّق التعديل على الحجوزات الجديدة فقط، ولا يمس الحجوزات القائمة أو التحويلات المنفَّذة. يُسجّل الإجراء في سجل التدقيق بالقيمة قبل التعديل والقيمة بعده.',
   'finset.confirmSave': 'تأكيد الحفظ',
   'finset.exceptionTitle': 'إضافة استثناء عمولة',
   'finset.exceptionHint': 'يعلو الاستثناء على النسبة العامة عند تطابق النطاق.',
@@ -1104,7 +1137,8 @@ const ar = {
   'users.verify': 'توثيق',
   'users.statusChanged': 'حُدّثت حالة الحساب وسُجّل الإجراء في سجل التدقيق.',
   'users.suspendTitle': 'إيقاف الحساب',
-  'users.suspendBody': 'يفقد صاحب الحساب القدرة على الدخول وعلى إنشاء أي حجز أو إعلان جديد. لا تتأثر الحجوزات القائمة ولا التحويلات المستحقة.',
+  'users.suspendBody':
+    'يفقد صاحب الحساب القدرة على الدخول وعلى إنشاء أي حجز أو إعلان جديد. لا تتأثر الحجوزات القائمة ولا التحويلات المستحقة.',
 
   'ref.categories': 'التصنيفات',
   'ref.cities': 'المدن',
@@ -1170,13 +1204,16 @@ const ar = {
   'terms.approvalRole': 'الدور',
   'terms.approvalDate': 'تاريخ الموافقة',
   'terms.publishTitle': 'نشر الإصدار',
-  'terms.publishBody': 'يصبح هذا الإصدار ساريًا فور نشره، ويُطلب من كل مستخدم الموافقة عليه عند الدخول التالي. الإصدار المنشور الحالي يُؤرشف تلقائيًا.',
+  'terms.publishBody':
+    'يصبح هذا الإصدار ساريًا فور نشره، ويُطلب من كل مستخدم الموافقة عليه عند الدخول التالي. الإصدار المنشور الحالي يُؤرشف تلقائيًا.',
   'terms.published': 'نُشر الإصدار.',
   'terms.archived': 'أُرشف الإصدار.',
   'terms.archiveTitle': 'أرشفة الإصدار',
-  'terms.archiveBody': 'لن يُعرض هذا الإصدار على المستخدمين الجدد. تبقى الموافقات المسجّلة عليه محفوظة كما هي.',
+  'terms.archiveBody':
+    'لن يُعرض هذا الإصدار على المستخدمين الجدد. تبقى الموافقات المسجّلة عليه محفوظة كما هي.',
 
-  'audit.readOnly': 'سجل التدقيق للقراءة فقط، ولا يقبل التعديل أو الحذف من أي دور. تُحفظ القيود مدة عشر سنوات وتُصدَّر عند الطلب النظامي.',
+  'audit.readOnly':
+    'سجل التدقيق للقراءة فقط، ولا يقبل التعديل أو الحذف من أي دور. تُحفظ القيود مدة عشر سنوات وتُصدَّر عند الطلب النظامي.',
   'audit.title': 'قيود التدقيق',
   'audit.searchPlaceholder': 'العنصر المستهدف أو القيمة',
   'audit.user': 'المستخدم',
@@ -1196,7 +1233,8 @@ const ar = {
   'audit.entityId': 'معرّف العنصر',
   'audit.ip': 'عنوان الشبكة',
   'audit.device': 'الجهاز',
-  'audit.immutable': 'هذا القيد غير قابل للتعديل أو الحذف من أي دور، وأي محاولة وصول غير مصرّح بها تُسجّل قيدًا جديدًا.',
+  'audit.immutable':
+    'هذا القيد غير قابل للتعديل أو الحذف من أي دور، وأي محاولة وصول غير مصرّح بها تُسجّل قيدًا جديدًا.',
 
   'complaints.title': 'الشكاوى والنزاعات',
   'complaints.searchPlaceholder': 'رقم الشكوى أو رقم الحجز أو مقدّم الشكوى',
@@ -1226,7 +1264,8 @@ const ar = {
   'reject.title': 'سبب الرفض',
   'reject.lead': 'اختيار السبب إلزامي، ويُدرج في سجل التدقيق ويُرسل إلى صاحب الطلب.',
   'reject.refundWarningBefore': 'يترتب على رفض الحجز استرداد كامل تلقائي للمستأجر بمبلغ',
-  'reject.refundWarningAfter': 'شاملًا ضريبة القيمة المضافة، وإلغاء استحقاق المؤجر لهذا الحجز. الإجراء غير قابل للتراجع ويُسجّل في سجل التدقيق.',
+  'reject.refundWarningAfter':
+    'شاملًا ضريبة القيمة المضافة، وإلغاء استحقاق المؤجر لهذا الحجز. الإجراء غير قابل للتراجع ويُسجّل في سجل التدقيق.',
   'reject.noteLabel': 'ملاحظة موجهة إلى صاحب الطلب',
   'reject.noteRequired': 'مطلوبة مع «سبب آخر»',
   'reject.notePlaceholder': 'تفصيل السبب بصيغة رسمية',
@@ -1239,15 +1278,18 @@ const ar = {
   'reject.other': 'سبب آخر يُوضّح في الملاحظة',
 
   'session.title': 'الجلسة على وشك الانتهاء',
-  'session.body': 'لم يُسجّل أي نشاط منذ مدة. تُقفل الجلسة تلقائيًا حماية للبيانات، وسيُحفظ ما لم يُرسل من نماذج مفتوحة كمسودة.',
+  'session.body':
+    'لم يُسجّل أي نشاط منذ مدة. تُقفل الجلسة تلقائيًا حماية للبيانات، وسيُحفظ ما لم يُرسل من نماذج مفتوحة كمسودة.',
   'session.stay': 'متابعة الجلسة',
   'logout.title': 'تأكيد تسجيل الخروج',
-  'logout.body': 'سيُنهى الاتصال بالجلسة الحالية، وتُغلق كل الشاشات المفتوحة. لن يُفقد أي إجراء محفوظ، ويلزم إدخال بيانات الدخول ورمز التحقق مرة أخرى للعودة إلى اللوحة.',
+  'logout.body':
+    'سيُنهى الاتصال بالجلسة الحالية، وتُغلق كل الشاشات المفتوحة. لن يُفقد أي إجراء محفوظ، ويلزم إدخال بيانات الدخول ورمز التحقق مرة أخرى للعودة إلى اللوحة.',
 
   'adminAuth.title': 'تسجيل دخول الإدارة',
   'adminAuth.subtitle': 'هذا المدخل مخصص لفريق التشغيل، وهو منفصل عن دخول المؤجرين والمستأجرين.',
   'adminAuth.heroTitle': 'لوحة إدارة المنصة',
-  'adminAuth.heroBody': 'بيئة تشغيل مخصصة لفريق العمليات: اعتماد الإعلانات ومراجعة الحجوزات وتنفيذ التحويلات المالية ومتابعة سجل التدقيق.',
+  'adminAuth.heroBody':
+    'بيئة تشغيل مخصصة لفريق العمليات: اعتماد الإعلانات ومراجعة الحجوزات وتنفيذ التحويلات المالية ومتابعة سجل التدقيق.',
   'adminAuth.sessionLabel': 'مدة الجلسة',
   'adminAuth.sessionValue': '30 دقيقة خمول',
   'adminAuth.mfaLabel': 'التحقق',
@@ -1257,10 +1299,12 @@ const ar = {
   'adminAuth.password': 'كلمة المرور',
   'adminAuth.remember': 'تذكر هذا الجهاز لمدة 30 يومًا',
   'adminAuth.submit': 'تسجيل الدخول',
-  'adminAuth.mfaNote': 'يُطلب رمز التحقق من تطبيق المصادقة بعد إدخال كلمة المرور. تُقفل الحسابات مؤقتًا بعد خمس محاولات فاشلة.',
+  'adminAuth.mfaNote':
+    'يُطلب رمز التحقق من تطبيق المصادقة بعد إدخال كلمة المرور. تُقفل الحسابات مؤقتًا بعد خمس محاولات فاشلة.',
   'adminAuth.failed': 'بيانات الدخول غير صحيحة.',
 
-  'library.lead': 'المكوّنات الموحّدة التي تُبنى مرة واحدة وتُعاد في كل شاشات اللوحة. تعرض الأمثلة أدناه حالاتها الكاملة.',
+  'library.lead':
+    'المكوّنات الموحّدة التي تُبنى مرة واحدة وتُعاد في كل شاشات اللوحة. تعرض الأمثلة أدناه حالاتها الكاملة.',
   'library.kpi': 'بطاقة المؤشر',
   'library.kpiHint': 'التسمية · الرقم الكبير · أيقونة خطية · مقارنة بالفترة السابقة',
   'library.badges': 'شارة الحالة',
@@ -1278,9 +1322,11 @@ const ar = {
   'library.stateLoading': 'تحميل',
   'library.stateEmpty': 'فارغ',
   'library.stateError': 'خطأ',
-  'library.stateNote': 'مبدّل الحالة هنا أداة مراجعة، ولا يظهر في أي شاشة تشغيل: الجدول هناك يعرض ما تقوله الخدمة.',
+  'library.stateNote':
+    'مبدّل الحالة هنا أداة مراجعة، ولا يظهر في أي شاشة تشغيل: الجدول هناك يعرض ما تقوله الخدمة.',
   'library.samplePanel': 'مثال على اللوحة الجانبية',
-  'library.sampleBody': 'كل لوحة جانبية في اللوحة تستخدم هذا الإطار نفسه: عنوان فرعي وعنوان، ومحتوى قابل للتمرير، وشريط إجراءات ثابت في الأسفل.',
+  'library.sampleBody':
+    'كل لوحة جانبية في اللوحة تستخدم هذا الإطار نفسه: عنوان فرعي وعنوان، ومحتوى قابل للتمرير، وشريط إجراءات ثابت في الأسفل.',
 } as const;
 
 export type TranslationKey = keyof typeof ar;
@@ -1330,23 +1376,46 @@ const en: Partial<Record<TranslationKey, string>> = {
     'A space near you, at a clear price, with payment held until the request is approved.',
   'home.searchTitle': 'Find a space',
   'home.city': 'City or district',
+  'home.anyCity': 'All cities',
   'home.category': 'Category',
+  'home.anyCategory': 'All categories',
   'home.startDate': 'Start date',
   'home.gregorian': 'Gregorian',
   'home.hijri': 'Hijri',
   'home.duration': 'Duration',
   'home.days': 'days',
+  'home.fewerDays': 'One day fewer',
+  'home.moreDays': 'One day more',
   'home.searchAction': 'Search',
   'home.categoriesTitle': 'What do you need to store?',
   'home.categoriesSub': 'Choose the kind of space that suits you',
   'home.spacesCount': '{count} spaces',
   'home.howTitle': 'How it works',
   'home.step1': 'Search and choose',
-  'home.step1Text': 'Compare nearby spaces by price, area and duration.',
-  'home.step2': 'Book and pay',
-  'home.step2Text': 'Your payment is held by the platform until the request is approved.',
-  'home.step3': 'Collect the space',
-  'home.step3Text': 'Once approved, the lessor details and exact address appear.',
+  'home.step1Text':
+    'Set the city or district, the category, the start date and the duration, then compare spaces by daily price, distance and approximate area.',
+  'home.step2': 'Fill in the booking',
+  'home.step2Text':
+    'Pick the dates, describe the goods, acknowledge the prohibited list, then review the full price breakdown before paying.',
+  'home.step3': 'Approval and start',
+  'home.step3Text':
+    'Operations review the request. On approval the exact address appears and the term begins; on rejection the amount is refunded in full.',
+  'home.why1': 'A range of spaces',
+  'home.why1Text': 'Four categories covering different storage needs.',
+  'home.why2': 'Dealings on the record',
+  'home.why2Text': 'Booking, payment and invoice all inside the platform.',
+  'home.why3': 'Straightforward',
+  'home.why3Text': 'Three steps from search to payment.',
+  'home.why4': 'Good locations',
+  'home.why4Text': 'Nearby districts across twelve cities.',
+  'home.why5': 'Flexible pricing',
+  'home.why5Text': 'A published daily price, from three days upward.',
+  'home.latestTitle': 'Newest spaces',
+  'home.viewMore': 'See more',
+  'home.ctaTitle': 'Every space has a value',
+  'home.ctaText': 'Find the right space for your goods, or list the space you are not using.',
+  'home.ctaExplore': 'Explore spaces',
+  'home.ctaAddSpace': 'List your space',
 
   'units.search': 'Search by space name',
   'units.filterLabel': 'Filter spaces by status',
@@ -2165,7 +2234,8 @@ const en: Partial<Record<TranslationKey, string>> = {
 
   'bkq.title': 'Paid bookings awaiting review',
   'bkq.searchPlaceholder': 'Booking reference, renter or lessor',
-  'bkq.slaBanner': '{count} bookings are past the {hours}-hour review window from payment. Oldest first by default.',
+  'bkq.slaBanner':
+    '{count} bookings are past the {hours}-hour review window from payment. Oldest first by default.',
   'bkq.waitingFilter': 'Waiting time',
   'bkq.allWaits': 'Any',
   'bkq.lateOnly': 'Overdue only',
@@ -2180,7 +2250,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'bkq.error': 'The bookings could not be loaded',
   'bkq.errorHint': 'The bookings service is unreachable. Nothing was lost; try again.',
   'bkq.panelEyebrow': 'Paid booking review',
-  'bkq.lateNotice': 'This booking is {hours} hours past the review window from payment and needs handling now.',
+  'bkq.lateNotice':
+    'This booking is {hours} hours past the review window from payment and needs handling now.',
   'bkq.data': 'Booking details',
   'bkq.goods': 'Goods description given by the renter',
   'bkq.approve': 'Approve booking',
@@ -2225,7 +2296,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'transfers.bank': 'Bank',
   'transfers.holder': 'Account holder',
   'transfers.iban': 'IBAN',
-  'transfers.bankMissing': 'The bank details are incomplete. No transfer can be executed until the lessor completes them.',
+  'transfers.bankMissing':
+    'The bank details are incomplete. No transfer can be executed until the lessor completes them.',
   'transfers.reference': 'Reference',
   'transfers.unit': 'Unit',
   'transfers.dueDate': 'Due date',
@@ -2239,7 +2311,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'transfers.empty': 'Nothing is due this cycle',
   'transfers.emptyHint': 'Every due transfer has been executed; nothing is pending or frozen.',
   'transfers.error': 'The dues could not be loaded',
-  'transfers.errorHint': 'The bank transfer service is unreachable. No double transfer was made; try again.',
+  'transfers.errorHint':
+    'The bank transfer service is unreachable. No double transfer was made; try again.',
   'transfers.executeTitle': 'Execute transfer',
   'transfers.netToTransfer': 'Net amount to transfer',
   'transfers.lessorAccount': 'Lessor bank account',
@@ -2254,15 +2327,18 @@ const en: Partial<Record<TranslationKey, string>> = {
   'transfers.rescheduledAmount': 'Amount rescheduled',
   'transfers.newDate': 'New execution date',
   'transfers.rescheduleReason': 'Reason for rescheduling',
-  'transfers.rescheduleReasonHint': 'Record what was done and where the corrected details came from',
+  'transfers.rescheduleReasonHint':
+    'Record what was done and where the corrected details came from',
   'transfers.rescheduled': 'The transfer was rescheduled.',
   'transfers.demandTitle': 'Ask the lessor to complete their bank details',
   'transfers.demandNote': 'The amount stays with the platform until the details are complete.',
   'transfers.demandBody': 'Message',
-  'transfers.demandDefault': 'Please complete the IBAN and account holder name on your bank account page so the transfer can be executed.',
+  'transfers.demandDefault':
+    'Please complete the IBAN and account holder name on your bank account page so the transfer can be executed.',
   'transfers.demandSend': 'Send request',
   'transfers.demandSent': 'The request was sent to the lessor.',
-  'transfers.frozenNote': 'The amount stays frozen until the complaint is closed, after which the transfer returns to due automatically.',
+  'transfers.frozenNote':
+    'The amount stays frozen until the complaint is closed, after which the transfer returns to due automatically.',
 
   'reports.bookings': 'Bookings',
   'reports.revenue': 'Revenue',
@@ -2299,7 +2375,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'reports.exportFailed': 'The export failed.',
   'reports.last5Months': 'Last 5 months',
 
-  'finset.auditNote': 'Every change here opens a confirmation showing the old and new value before it saves, and is written to the audit trail with the user and the time.',
+  'finset.auditNote':
+    'Every change here opens a confirmation showing the old and new value before it saves, and is written to the audit trail with the user and the time.',
   'finset.commission': 'General commission rate',
   'finset.commissionHint': 'Applies to every booking unless a lessor or unit exception matches.',
   'finset.editRate': 'Change rate',
@@ -2321,13 +2398,15 @@ const en: Partial<Record<TranslationKey, string>> = {
   'finset.editRefund': 'Change policy',
   'finset.refundTier': 'Cancelling {days} days or more ahead refunds {percent}% of the booking.',
   'finset.autoApprove': 'Automatic booking approval',
-  'finset.autoApproveBody': 'When on, paid bookings are approved immediately with no human review and nothing new reaches the booking queue. When off, every paid booking waits for an operations decision.',
+  'finset.autoApproveBody':
+    'When on, paid bookings are approved immediately with no human review and nothing new reaches the booking queue. When off, every paid booking waits for an operations decision.',
   'finset.autoApproveOn': 'Currently on — the booking review queue takes no new items.',
   'finset.autoApproveOff': 'Currently off — every paid booking passes through human review.',
   'finset.confirmTitle': 'Confirm the change',
   'finset.oldValue': 'Old value',
   'finset.newValue': 'New value',
-  'finset.confirmNote': 'The change applies to new bookings only; existing bookings and executed transfers are untouched. The action is written to the audit trail with both values.',
+  'finset.confirmNote':
+    'The change applies to new bookings only; existing bookings and executed transfers are untouched. The action is written to the audit trail with both values.',
   'finset.confirmSave': 'Confirm and save',
   'finset.exceptionTitle': 'Add a commission exception',
   'finset.exceptionHint': 'An exception overrides the general rate when its scope matches.',
@@ -2359,7 +2438,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'users.verify': 'Verify',
   'users.statusChanged': 'The account status was updated and recorded in the audit trail.',
   'users.suspendTitle': 'Suspend the account',
-  'users.suspendBody': 'The account holder loses the ability to sign in and to create any new booking or listing. Existing bookings and due transfers are unaffected.',
+  'users.suspendBody':
+    'The account holder loses the ability to sign in and to create any new booking or listing. Existing bookings and due transfers are unaffected.',
 
   'ref.categories': 'Categories',
   'ref.cities': 'Cities',
@@ -2425,13 +2505,16 @@ const en: Partial<Record<TranslationKey, string>> = {
   'terms.approvalRole': 'Role',
   'terms.approvalDate': 'Accepted',
   'terms.publishTitle': 'Publish the version',
-  'terms.publishBody': 'This version becomes binding as soon as it is published, and every user is asked to accept it on their next sign-in. The current published version is archived automatically.',
+  'terms.publishBody':
+    'This version becomes binding as soon as it is published, and every user is asked to accept it on their next sign-in. The current published version is archived automatically.',
   'terms.published': 'The version was published.',
   'terms.archived': 'The version was archived.',
   'terms.archiveTitle': 'Archive the version',
-  'terms.archiveBody': 'This version will no longer be shown to new users. The acceptances already recorded against it are kept.',
+  'terms.archiveBody':
+    'This version will no longer be shown to new users. The acceptances already recorded against it are kept.',
 
-  'audit.readOnly': 'The audit trail is read-only and accepts no edit or deletion from any role. Entries are kept for ten years and exported on lawful request.',
+  'audit.readOnly':
+    'The audit trail is read-only and accepts no edit or deletion from any role. Entries are kept for ten years and exported on lawful request.',
   'audit.title': 'Audit entries',
   'audit.searchPlaceholder': 'Target entity or value',
   'audit.user': 'User',
@@ -2451,7 +2534,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'audit.entityId': 'Entity id',
   'audit.ip': 'IP address',
   'audit.device': 'Device',
-  'audit.immutable': 'This entry cannot be edited or deleted by any role, and every unauthorised access attempt is itself written as a new entry.',
+  'audit.immutable':
+    'This entry cannot be edited or deleted by any role, and every unauthorised access attempt is itself written as a new entry.',
 
   'complaints.title': 'Complaints and disputes',
   'complaints.searchPlaceholder': 'Complaint reference, booking reference or complainant',
@@ -2472,16 +2556,20 @@ const en: Partial<Record<TranslationKey, string>> = {
   'complaints.bookingTransfer': 'The booking’s transfer',
   'complaints.thread': 'Correspondence',
   'complaints.resolution': 'Record the resolution',
-  'complaints.resolutionHint': 'The resolution is sent to both parties and written to the audit trail.',
+  'complaints.resolutionHint':
+    'The resolution is sent to both parties and written to the audit trail.',
   'complaints.resolutionPlaceholder': 'What was done and what the parties agreed',
   'complaints.close': 'Close complaint',
-  'complaints.closedNote': 'This complaint was closed and both parties notified. It cannot be reopened.',
+  'complaints.closedNote':
+    'This complaint was closed and both parties notified. It cannot be reopened.',
   'complaints.closed': 'The complaint was closed and any frozen transfer released.',
 
   'reject.title': 'Reason for rejection',
-  'reject.lead': 'A reason is required. It is written to the audit trail and sent to the applicant.',
+  'reject.lead':
+    'A reason is required. It is written to the audit trail and sent to the applicant.',
   'reject.refundWarningBefore': 'Rejecting the booking refunds the renter in full,',
-  'reject.refundWarningAfter': 'VAT included, and cancels the lessor’s entitlement for it. This cannot be undone and is written to the audit trail.',
+  'reject.refundWarningAfter':
+    'VAT included, and cancels the lessor’s entitlement for it. This cannot be undone and is written to the audit trail.',
   'reject.noteLabel': 'Note to the applicant',
   'reject.noteRequired': 'Required with “another reason”',
   'reject.notePlaceholder': 'Set out the reason formally',
@@ -2494,15 +2582,19 @@ const en: Partial<Record<TranslationKey, string>> = {
   'reject.other': 'Another reason, set out in the note',
 
   'session.title': 'Your session is about to end',
-  'session.body': 'There has been no activity for a while. The session closes automatically to protect the data, and anything unsent in an open form is kept as a draft.',
+  'session.body':
+    'There has been no activity for a while. The session closes automatically to protect the data, and anything unsent in an open form is kept as a draft.',
   'session.stay': 'Stay signed in',
   'logout.title': 'Confirm sign-out',
-  'logout.body': 'The current session ends and every open screen closes. Nothing saved is lost, and signing back in needs your credentials and a verification code again.',
+  'logout.body':
+    'The current session ends and every open screen closes. Nothing saved is lost, and signing back in needs your credentials and a verification code again.',
 
   'adminAuth.title': 'Administration sign-in',
-  'adminAuth.subtitle': 'This entrance is for the operations team and is separate from the lessor and renter sign-in.',
+  'adminAuth.subtitle':
+    'This entrance is for the operations team and is separate from the lessor and renter sign-in.',
   'adminAuth.heroTitle': 'Platform administration',
-  'adminAuth.heroBody': 'An operations environment: approving listings, reviewing bookings, executing transfers and following the audit trail.',
+  'adminAuth.heroBody':
+    'An operations environment: approving listings, reviewing bookings, executing transfers and following the audit trail.',
   'adminAuth.sessionLabel': 'Session',
   'adminAuth.sessionValue': '30 minutes idle',
   'adminAuth.mfaLabel': 'Verification',
@@ -2512,10 +2604,12 @@ const en: Partial<Record<TranslationKey, string>> = {
   'adminAuth.password': 'Password',
   'adminAuth.remember': 'Remember this device for 30 days',
   'adminAuth.submit': 'Sign in',
-  'adminAuth.mfaNote': 'A code from your authenticator app is requested after the password. Accounts lock temporarily after five failed attempts.',
+  'adminAuth.mfaNote':
+    'A code from your authenticator app is requested after the password. Accounts lock temporarily after five failed attempts.',
   'adminAuth.failed': 'Those credentials are not right.',
 
-  'library.lead': 'The unified components, built once and reused across every console screen. The examples below show their full range of states.',
+  'library.lead':
+    'The unified components, built once and reused across every console screen. The examples below show their full range of states.',
   'library.kpi': 'Indicator card',
   'library.kpiHint': 'Label · large figure · line icon · comparison with the previous period',
   'library.badges': 'Status badge',
@@ -2523,7 +2617,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'library.filters': 'Filter bar',
   'library.filtersHint': 'The same bar above every table',
   'library.table': 'Admin table',
-  'library.tableHint': 'Sticky header · sorting · multi-select · pagination · skeleton · empty · error',
+  'library.tableHint':
+    'Sticky header · sorting · multi-select · pagination · skeleton · empty · error',
   'library.overlays': 'Slide-over panel and mandatory-reason dialog',
   'library.overlaysHint': 'The panel opens from the inline-start edge and closes on Escape',
   'library.openPanel': 'Open the panel',
@@ -2533,9 +2628,11 @@ const en: Partial<Record<TranslationKey, string>> = {
   'library.stateLoading': 'Loading',
   'library.stateEmpty': 'Empty',
   'library.stateError': 'Error',
-  'library.stateNote': 'This state switch is a review tool and appears on no operational screen: there, the table shows what the service says.',
+  'library.stateNote':
+    'This state switch is a review tool and appears on no operational screen: there, the table shows what the service says.',
   'library.samplePanel': 'Panel example',
-  'library.sampleBody': 'Every slide-over in the console uses this same frame: an eyebrow and a title, scrollable content, and a pinned action bar.',
+  'library.sampleBody':
+    'Every slide-over in the console uses this same frame: an eyebrow and a title, scrollable content, and a pinned action bar.',
 };
 
 export const DICTIONARIES: Record<Lang, Partial<Record<TranslationKey, string>>> = {

@@ -142,10 +142,13 @@ DirectoryIndex index.html
   #   connect-src api.hayzak.sa  — environment.ts apiUrl. Change both together.
   #   img-src data: blob:        — inline SVG icons and object URLs for photo
   #                                previews before upload.
+  #   images.unsplash.com        — the design's placeholder photography, in the
+  #                                fixtures and the landing hero. Remove it with
+  #                                them once real photographs are served.
   #
   # Add the CDN that serves unit photos to img-src before the first upload
   # lands, or the marketplace renders every card without its picture.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://api.hayzak.sa; connect-src 'self' https://api.hayzak.sa; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://api.hayzak.sa https://images.unsplash.com; connect-src 'self' https://api.hayzak.sa; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
   # The server's own version is nobody's business.
   Header always unset X-Powered-By

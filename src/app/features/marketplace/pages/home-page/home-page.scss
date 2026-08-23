@@ -1,191 +1,394 @@
 @use 'abstracts' as a;
 
 // ── Hero ─────────────────────────────────────────────────────────────────
+// A photograph under a heavy teal veil, as the design draws it. The veil is a
+// separate layer rather than a gradient baked into the image so the tint stays
+// exactly the brand colour whatever photograph is swapped in behind it.
 .hero {
-  padding: a.$space-32 a.$space-16 a.$space-40;
+  position: relative;
+  isolation: isolate;
+  padding: a.$space-40 a.$space-16;
   background: var(--color-primary);
   color: var(--color-on-primary);
+  overflow: hidden;
 
-  @include a.up(lg) {
+  @include a.up(md) {
     padding: a.$space-56 a.$space-32;
   }
 }
 
-.hero__inner,
-.section__inner {
+.hero__photo,
+.hero__veil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.hero__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__veil {
+  background: rgb(18 54 66 / 66%);
+}
+
+.hero__inner {
+  @include a.flex(column, $align: center);
+
   width: 100%;
   max-width: a.$content-max-width;
   margin-inline: auto;
 }
 
 .hero__title {
-  margin: 0 0 a.$space-8;
-  font-size: clamp(#{a.$fs-3xl}, 5vw, #{a.$fs-4xl});
+  margin: 0;
+  font-size: clamp(#{a.$fs-2xl}, 5vw, #{a.$fs-4xl});
   font-weight: a.$fw-bold;
+  line-height: a.$lh-tight;
+  text-align: center;
   color: var(--color-on-primary);
+  text-shadow: 0 1px 12px rgb(18 54 66 / 35%);
 }
 
 .hero__sub {
-  margin: 0 0 a.$space-24;
-  max-width: 60ch;
-  font-size: a.$fs-lg;
-  color: color-mix(in srgb, var(--color-on-primary) 78%, transparent);
+  margin: a.$space-12 0 0;
+  max-width: 760px;
+  font-size: a.$fs-md;
+  text-align: center;
   text-wrap: pretty;
-}
-
-// ── Search card ──────────────────────────────────────────────────────────
-.search {
-  @include a.surface(a.$radius-2xl);
-
-  display: flex;
-  flex-direction: column;
-  gap: a.$space-16;
-  padding: a.$space-20;
-  box-shadow: var(--shadow-card);
-  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-on-primary) 88%, transparent);
+  text-shadow: 0 1px 10px rgb(18 54 66 / 35%);
 
   @include a.up(md) {
-    padding: a.$space-24;
+    font-size: a.$fs-lg;
   }
 }
 
-.search__title {
+// ── Search bar ───────────────────────────────────────────────────────────
+// One row on a desktop, a stacked card on a phone. The dividers disappear with
+// the row — a vertical rule between stacked fields reads as a stray line.
+.bar {
+  @include a.flex(column, $gap: a.$space-12);
+
+  margin-top: a.$space-32;
+  width: 100%;
+  max-width: 900px;
+  padding: a.$space-16;
+  border-radius: a.$radius-2xl;
+  background: var(--color-surface);
+  box-shadow: 0 14px 38px rgb(18 54 66 / 24%);
+
+  @include a.up(lg) {
+    flex-direction: row;
+    align-items: center;
+    gap: a.$space-4;
+    padding: a.$space-10;
+    border-radius: a.$radius-pill;
+  }
+}
+
+.bar__field {
+  @include a.stack(2px);
+
+  flex: 1;
+  min-width: 0;
+
+  @include a.up(lg) {
+    padding-inline: a.$space-16;
+  }
+}
+
+.bar__field--wide {
+  @include a.up(lg) {
+    flex: 1.25;
+  }
+}
+
+.bar__head {
+  @include a.flex(row, $align: center, $gap: a.$space-8);
+}
+
+.bar__label {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+// Borderless by design: the bar itself is the field, and four bordered inputs
+// inside one rounded card is the look this replaced.
+.bar__control {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  appearance: none;
+
+  &:focus-visible {
+    @include a.focus-ring;
+
+    border-radius: a.$radius-sm;
+  }
+}
+
+.bar__hint {
   margin: 0;
-  font-size: a.$fs-2xl;
-  font-weight: a.$fw-bold;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-subtle);
+}
+
+.bar__rule {
+  display: none;
+
+  @include a.up(lg) {
+    display: block;
+    flex: none;
+    width: 1px;
+    height: 38px;
+    background: var(--color-border-divider);
+  }
+}
+
+.bar__submit {
+  @include a.button-base;
+  @include a.flex(row, $align: center, $justify: center, $gap: a.$space-8);
+
+  flex: none;
+  height: a.$control-height-lg;
+  padding-inline: a.$space-24;
+  border-radius: a.$radius-pill;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+// ── Duration stepper ─────────────────────────────────────────────────────
+.days {
+  @include a.flex(row, $align: center, $gap: a.$space-8);
+}
+
+.days__step {
+  @include a.button-base;
+
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
   color: var(--color-primary);
+  font-size: a.$fs-sm;
+  line-height: 1;
 }
 
-.search__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: a.$space-16;
+.days__input {
+  @include a.numeric;
 
-  @include a.up(md) {
-    grid-template-columns: repeat(2, 1fr);
+  width: 3.5ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-align: center;
+  appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
   }
 
-  @include a.up(xl) {
-    grid-template-columns: repeat(4, 1fr);
-    align-items: start;
+  &:focus-visible {
+    @include a.focus-ring;
+
+    border-radius: a.$radius-sm;
   }
 }
 
-.search__submit {
-  align-self: stretch;
-
-  @include a.up(md) {
-    align-self: flex-start;
-    min-width: 200px;
-  }
+.days__unit {
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 // ── Calendar toggle ──────────────────────────────────────────────────────
-.calendar {
-  display: flex;
-  flex-direction: column;
-  gap: a.$space-8;
-}
+.cal {
+  @include a.flex(row);
 
-.calendar__toggle {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 3px;
+  padding: 2px;
   border-radius: a.$radius-pill;
-  background: var(--color-bg);
+  background: var(--color-surface-muted);
 }
 
-.calendar__opt {
-  @include a.focus-ring;
+.cal__opt {
+  @include a.button-base;
 
-  min-height: 32px;
-  padding: 0 a.$space-12;
-  border: 0;
+  padding: 2px a.$space-8;
   border-radius: a.$radius-pill;
   background: transparent;
   color: var(--color-text-muted);
-  font-family: inherit;
-  font-size: a.$fs-label;
+  font-size: a.$fs-2xs;
   font-weight: a.$fw-semibold;
-  cursor: pointer;
 }
 
-.calendar__opt--on {
+.cal__opt--on {
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
 
-// ── Sections ─────────────────────────────────────────────────────────────
-.section {
-  padding: a.$space-40 a.$space-16;
-  background: var(--color-surface);
+// ── Hero chips ───────────────────────────────────────────────────────────
+.chips {
+  @include a.flex(row, $align: center, $justify: center, $gap: a.$space-8);
 
-  @include a.up(lg) {
-    padding-inline: a.$space-32;
+  margin: a.$space-24 0 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-block;
+  padding: a.$space-6 a.$space-18;
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: a.$radius-pill;
+  color: var(--color-on-primary);
+  font-size: a.$fs-sm;
+  text-decoration: none;
+
+  &:hover {
+    background: rgb(255 255 255 / 16%);
   }
 }
 
-.section--alt {
-  background: var(--color-bg-shell);
+// ── Page body ────────────────────────────────────────────────────────────
+.page {
+  @include a.stack(a.$space-40);
+
+  width: 100%;
+  max-width: a.$content-max-width;
+  margin-inline: auto;
+  padding: a.$space-40 a.$space-16;
+
+  @include a.up(md) {
+    padding: a.$space-56 a.$space-32;
+  }
+}
+
+.section {
+  @include a.stack(a.$space-16);
+}
+
+.section__head {
+  @include a.flex(row, $align: baseline, $justify: space-between, $gap: a.$space-16);
 }
 
 .section__title {
-  margin: 0 0 a.$space-6;
-  font-size: a.$fs-3xl;
+  margin: 0;
+  font-size: a.$fs-xl;
   font-weight: a.$fw-bold;
-  color: var(--color-primary);
+  color: var(--color-text-heading);
 }
 
-.section__sub {
-  margin: 0 0 a.$space-24;
-  font-size: a.$fs-lg;
+.section__more {
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-link);
+  white-space: nowrap;
+}
+
+// ── Categories ───────────────────────────────────────────────────────────
+.cats {
+  @include a.stack(a.$space-8);
+
+  align-items: center;
+  text-align: center;
+}
+
+.cats__title {
+  margin: 0;
+  font-size: clamp(#{a.$fs-xl}, 3vw, #{a.$fs-2xl});
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.cats__sub {
+  margin: 0;
+  font-size: a.$fs-sm;
   color: var(--color-text-muted);
 }
 
-// ── Category tiles ───────────────────────────────────────────────────────
-.cats {
+.cats__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: a.$space-16;
-  margin: 0;
+  margin: a.$space-24 0 0;
   padding: 0;
   list-style: none;
+  width: 100%;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(4, minmax(0, 160px));
+    justify-content: center;
+  }
 }
 
 .cat {
-  @include a.surface(a.$radius-xl);
-  @include a.flex-center;
-  @include a.focus-ring;
+  @include a.flex(column, $align: center, $justify: center);
 
-  min-height: 96px;
-  padding: a.$space-16;
-  color: var(--color-text);
-  text-align: center;
+  height: 120px;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-xl;
+  background: var(--color-surface);
+  color: var(--color-primary);
   text-decoration: none;
   transition:
-    border-color a.$transition-fast,
-    transform a.$transition-fast;
+    transform a.$transition-fast,
+    box-shadow a.$transition-fast,
+    border-color a.$transition-fast;
 
   &:hover {
     border-color: var(--color-primary);
-    color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgb(18 54 66 / 12%);
   }
 }
 
 .cat__name {
-  font-size: a.$fs-lg;
+  margin-top: a.$space-12;
+  font-size: a.$fs-sm;
   font-weight: a.$fw-semibold;
+  color: currentcolor;
+}
+
+.cat__count {
+  @include a.numeric;
+
+  margin-top: a.$space-4;
+  font-size: a.$fs-2xs;
+  color: currentcolor;
+  opacity: 0.62;
 }
 
 // ── How it works ─────────────────────────────────────────────────────────
 .steps {
   display: grid;
   grid-template-columns: 1fr;
-  gap: a.$space-20;
+  gap: a.$space-18;
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: step;
 
   @include a.up(md) {
     grid-template-columns: repeat(3, 1fr);
@@ -193,36 +396,152 @@
 }
 
 .step {
-  @include a.surface(a.$radius-xl);
+  @include a.card;
+  @include a.stack(a.$space-12);
 
-  display: flex;
-  flex-direction: column;
-  gap: a.$space-8;
-  padding: a.$space-20;
+  padding: a.$space-24;
 }
 
-.step__num {
+.step__head {
+  @include a.flex(row, $align: center, $gap: a.$space-12);
+}
+
+.step__icon {
   @include a.flex-center;
 
-  width: 36px;
-  height: 36px;
-  border-radius: a.$radius-pill;
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font-size: a.$fs-lg;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-radius: a.$radius-lg;
+  color: var(--color-primary);
+}
+
+// Arabic-Indic numerals, so `dir="ltr"` alone is not enough — the Latin face
+// has no glyphs for them and would fall back mid-line.
+.step__num {
+  font-family: a.$font-latin;
+  font-size: a.$fs-sm;
   font-weight: a.$fw-bold;
+  color: var(--color-accent);
 }
 
 .step__title {
   margin: 0;
-  font-size: a.$fs-xl;
+  font-size: a.$fs-lg;
   font-weight: a.$fw-semibold;
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
 .step__text {
   margin: 0;
-  font-size: a.$fs-md;
+  font-size: a.$fs-sm;
+  line-height: 1.9;
   color: var(--color-text-muted);
-  text-wrap: pretty;
+}
+
+// ── Why the platform ─────────────────────────────────────────────────────
+.why {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: a.$space-20;
+  margin: 0;
+  padding: a.$space-24;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-xl;
+  background: var(--color-surface-muted);
+  list-style: none;
+}
+
+.feat {
+  @include a.stack(a.$space-8);
+
+  align-items: flex-start;
+}
+
+.feat__icon {
+  @include a.flex-center;
+
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.feat__title {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.feat__text {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+// ── Newest spaces ────────────────────────────────────────────────────────
+.latest {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: a.$space-16;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// ── Closing call to action ───────────────────────────────────────────────
+.cta {
+  @include a.flex(column, $gap: a.$space-18);
+
+  padding: a.$space-24;
+  border-radius: a.$radius-xl;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.cta__text {
+  @include a.stack(a.$space-8);
+}
+
+.cta__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-on-primary);
+}
+
+.cta__sub {
+  margin: 0;
+  max-width: 520px;
+  font-size: a.$fs-sm;
+  color: color-mix(in srgb, var(--color-on-primary) 72%, transparent);
+}
+
+.cta__actions {
+  @include a.flex(row, $gap: a.$space-12);
+
+  flex: none;
+  flex-wrap: wrap;
+}
+
+// The outline button's default border is the page border colour, which is
+// invisible on the teal band.
+.cta__ghost {
+  border-color: var(--color-on-primary);
+  color: var(--color-on-primary);
+
+  &:hover {
+    background: rgb(255 255 255 / 14%);
+  }
 }

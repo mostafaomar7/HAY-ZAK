@@ -26,11 +26,31 @@ describe('HomePage (renter landing)', () => {
     fixture.detectChanges();
   });
 
-  it('renders the hero, the search card and the three-step explainer', () => {
+  it('renders the hero, the search bar and the three-step explainer', () => {
     expect(el.querySelector('.hero__title')?.textContent).toContain('مساحاتك');
-    expect(el.querySelector('.search')).not.toBeNull();
+    expect(el.querySelector('.bar')).not.toBeNull();
     // FR-MKT-01 requires a three-step "how it works" section.
     expect(el.querySelectorAll('.step').length).toBe(3);
+  });
+
+  it('shows a tile per category, with how many spaces are in it', () => {
+    const tiles = el.querySelectorAll('.cat');
+
+    expect(tiles.length).toBe(4);
+    expect(tiles[0].textContent).toContain('مستودع');
+    expect(tiles[0].querySelector('.cat__count')?.textContent?.trim()).toContain('19');
+    expect(tiles[0].querySelector('svg')).withContext('category icon').not.toBeNull();
+  });
+
+  it('shows the newest spaces and a way through to the rest', () => {
+    expect(el.querySelectorAll('app-unit-result-card').length).toBe(4);
+    expect(el.querySelector('.section__more')?.getAttribute('href')).toBe('/units');
+  });
+
+  it('offers the closing call to action to both sides of the market', () => {
+    const links = Array.from(el.querySelectorAll<HTMLAnchorElement>('.cta a'));
+
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/units', '/auth/account-type']);
   });
 
   it('populates city and category options from reference data', () => {
@@ -71,7 +91,7 @@ describe('HomePage (renter landing)', () => {
   });
 
   it('offers both calendars and shows a Hijri reading of the chosen date', () => {
-    const toggles = el.querySelectorAll<HTMLButtonElement>('.calendar__opt');
+    const toggles = el.querySelectorAll<HTMLButtonElement>('.cal__opt');
     expect(toggles.length).toBe(2);
     expect(toggles[0].getAttribute('aria-pressed')).toBe('true');
 
