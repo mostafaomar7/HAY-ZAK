@@ -52,10 +52,13 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor, mockApiInterceptor]),
     ),
 
-    // Development only: signs a mock lessor in so the permission guards resolve
-    // before the auth screens and the backend exist. Spread away entirely in
-    // production, so neither the initializer nor the fixtures are referenced.
-    ...(environment.useMockApi ? [provideAppInitializer(seedDevSession)] : []),
+    // A developer's convenience, and nobody else's: signs a mock lessor in so
+    // the permission guards resolve without a login screen. Gated on its own
+    // flag rather than on useMockApi, because the demo build also runs on the
+    // fixtures and must start signed out — see environment.model.ts. Spread
+    // away entirely otherwise, so neither the initializer nor the fixtures it
+    // pulls in are referenced.
+    ...(environment.seedSession ? [provideAppInitializer(seedDevSession)] : []),
 
     // SRS §2.4 — SAR is the sole currency, Riyadh (UTC+3) the reference timezone.
     { provide: LOCALE_ID, useValue: 'ar-SA' },

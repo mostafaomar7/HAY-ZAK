@@ -25,4 +25,9 @@ export const environment: Environment = {
   tokenKey: 'hayzaq_token',
   pageSize: 10,
   useMockApi: true,
+  // The one line that separates this from the dev server. A demo host that
+  // seeded a session would greet its first visitor already signed in as a
+  // lessor, show them the wrong portal, and refuse every login screen they
+  // reached for — the session is live, so guestGuard sends them back to it.
+  seedSession: false,
 };

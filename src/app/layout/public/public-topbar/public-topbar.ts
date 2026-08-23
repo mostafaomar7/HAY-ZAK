@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
 import { AuthService } from '@core/services/auth.service';
@@ -37,6 +37,16 @@ export class PublicTopbar {
   protected readonly notifications = this.inbox.notifications;
 
   protected readonly notificationsOpen = signal(false);
+
+  /**
+   * "٦ إشعارات غير مقروءة" when there are any, the plain name otherwise — the
+   * whole meaning of the control in the one place a screen reader reads.
+   */
+  protected readonly bellLabel = computed(() =>
+    this.unreadCount() > 0
+      ? this.i18n.t('topbar.unread', { count: this.unreadCount() })
+      : this.i18n.t('topbar.notifications'),
+  );
 
   protected toggleNotifications(): void {
     this.notificationsOpen.update((open) => !open);

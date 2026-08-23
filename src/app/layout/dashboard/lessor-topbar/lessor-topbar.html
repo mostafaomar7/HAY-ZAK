@@ -28,17 +28,20 @@
     </button>
 
     <div class="topbar__bell" (appClickOutside)="closeNotifications()">
+      <!-- The count is announced through the label rather than a hidden span
+           beside the badge: one element carries the whole meaning, and there is
+           no stray text node for a translation extension or a missing global
+           stylesheet to spill into the bar. -->
       <button
         type="button"
         class="icon-btn"
-        [attr.aria-label]="i18n.t('topbar.notifications')"
+        [attr.aria-label]="bellLabel()"
         [attr.aria-expanded]="notificationsOpen()"
         (click)="toggleNotifications()"
       >
         <app-ui-icon name="bell" [size]="20" />
         @if (unreadCount() > 0) {
           <span class="topbar__count" dir="ltr" aria-hidden="true">{{ unreadCount() }}</span>
-          <span class="sr-only">{{ i18n.t('topbar.unread', { count: unreadCount() }) }}</span>
         }
       </button>
 

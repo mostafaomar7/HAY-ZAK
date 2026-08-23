@@ -10,4 +10,5 @@ export const environment: Environment = {
   tokenKey: 'hayzaq_token',
   pageSize: 10,
   useMockApi: false,
+  seedSession: false,
 };

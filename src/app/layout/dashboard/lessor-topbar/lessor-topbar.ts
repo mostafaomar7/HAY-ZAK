@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { AppNotification } from '@core/models/operations.model';
@@ -41,6 +49,16 @@ export class LessorTopbar {
   protected readonly theme = inject(ThemeService);
   protected readonly i18n = inject(LanguageService);
   protected readonly notificationsOpen = signal(false);
+
+  /**
+   * "٦ إشعارات غير مقروءة" when there are any, the plain name otherwise — the
+   * whole meaning of the control in the one place a screen reader reads.
+   */
+  protected readonly bellLabel = computed(() =>
+    this.unreadCount() > 0
+      ? this.i18n.t('topbar.unread', { count: this.unreadCount() })
+      : this.i18n.t('topbar.notifications'),
+  );
 
   protected toggleNotifications(): void {
     this.notificationsOpen.update((open) => !open);

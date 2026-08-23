@@ -26,7 +26,8 @@
 }
 
 .thumb__placeholder {
-  font-family: a.$font-mono;
-  font-size: 10px;
+  @include a.flex-center;
+
   color: var(--color-text-subtle);
+  opacity: 0.55;
 }

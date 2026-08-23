@@ -18,4 +18,14 @@ export interface Environment {
    * that reads it is a development aid, not a feature.
    */
   useMockApi: boolean;
+  /**
+   * Signs a mock account in on first load so a developer can open a guarded
+   * route without going through a login screen.
+   *
+   * Separate from `useMockApi`, and false wherever anyone but a developer will
+   * see the app. A hosted demo that seeds a session hands its first visitor
+   * somebody else's portal and bounces them off every login screen they try —
+   * the session is already live, so `guestGuard` sends them back to it.
+   */
+  seedSession: boolean;
 }

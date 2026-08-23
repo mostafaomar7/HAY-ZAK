@@ -41,17 +41,18 @@
 
     @if (isAuthenticated()) {
       <div class="bell" (appClickOutside)="closeNotifications()">
+        <!-- See the lessor topbar: the count rides on the label, not on a
+             hidden span next to the badge. -->
         <button
           type="button"
           class="icon-btn"
-          [attr.aria-label]="i18n.t('topbar.notifications')"
+          [attr.aria-label]="bellLabel()"
           [attr.aria-expanded]="notificationsOpen()"
           (click)="toggleNotifications()"
         >
           <app-ui-icon name="bell" [size]="20" />
           @if (unreadCount() > 0) {
             <span class="bell__count num" dir="ltr" aria-hidden="true">{{ unreadCount() }}</span>
-            <span class="sr-only">{{ i18n.t('topbar.unread', { count: unreadCount() }) }}</span>
           }
         </button>
 

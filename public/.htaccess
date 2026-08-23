@@ -142,13 +142,17 @@ DirectoryIndex index.html
   #   connect-src api.hayzak.sa  — environment.ts apiUrl. Change both together.
   #   img-src data: blob:        — inline SVG icons and object URLs for photo
   #                                previews before upload.
-  #   images.unsplash.com        — the design's placeholder photography, in the
-  #                                fixtures and the landing hero. Remove it with
-  #                                them once real photographs are served.
+  #   img-src https:             — unit photography, wherever it is served
+  #                                from. Deliberately not an allowlist yet: the
+  #                                host changes with every phase (placeholders
+  #                                today, a CDN later), and a blocked image is
+  #                                invisible except in the devtools console —
+  #                                it just renders as an empty card. Narrow it
+  #                                to the real photo host at launch.
   #
-  # Add the CDN that serves unit photos to img-src before the first upload
-  # lands, or the marketplace renders every card without its picture.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://api.hayzak.sa https://images.unsplash.com; connect-src 'self' https://api.hayzak.sa; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  # Nothing else is loosened: script-src stays 'self', so a page that cannot
+  # execute foreign code cannot use an image URL to carry anything out.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.hayzak.sa; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
   # The server's own version is nobody's business.
   Header always unset X-Powered-By
