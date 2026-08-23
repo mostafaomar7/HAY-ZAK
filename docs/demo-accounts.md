@@ -29,13 +29,28 @@ that rejected credentials would only be pretending to authenticate.
 These five are the same people the console's **المستخدمون** screen lists, so
 that screen doubles as the credential list.
 
-## Two things to know before demonstrating
+## Switching between them
 
-**Sign out before switching.** A development session is seeded on first load
-(`core/mock/dev-session.ts`) so the portals can be opened without a login at
-all. While any session is live, `/auth/login` and `/admin/login` redirect you to
-that session's portal — the same rule as production. Use تسجيل الخروج in the
-top bar first.
+**A login screen only opens when nobody is signed in.** `guestGuard` sends a
+signed-in visitor to their own portal instead — the production rule, and the
+reason `/admin/login` bounces you into the lessor portal while a lessor session
+is live. So switching account is always: sign out, then sign in.
+
+Sign out lives on the account screen of each portal, not in the top bar:
+
+| Signed in as   | Sign out at            |
+| -------------- | ---------------------- |
+| مستأجر / زائر  | `/account`             |
+| مؤجّر          | `/lessor/account`      |
+| any admin role | top bar of the console |
+
+**The first load of a fresh browser seeds a lessor session** so the portal can
+be walked before anyone types a password (`core/mock/dev-session.ts`). It fires
+**once** and records that it has. Sign out and you stay out — reloading does not
+hand the session back.
+
+To get all the way back to a blank slate: clear site data for the origin and
+reload. That removes the marker too, so the seeded lessor returns.
 
 **The console session expires after 30 minutes**, warned at 28
 (`AdminSessionService`). It is admin-only and intentional; if a demo is left

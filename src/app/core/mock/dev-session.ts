@@ -1,31 +1,46 @@
 import { inject } from '@angular/core';
 import { STORAGE_KEYS } from '../constants/storage-keys';
-import { UserRole } from '../enums/user-role.enum';
 import { AuthService } from '../services/auth.service';
 import { StorageService } from '../services/storage.service';
 import { MOCK_LESSOR } from './lessor.fixtures';
 
 /**
- * Signs a mock user in when `useMockApi` is set, so the guards on the lessor and
- * renter routes resolve and the screens can be opened directly.
+ * Marks that this browser has already been given its one free session.
  *
- * The seeded account carries both roles, which the product itself does not allow
- * (FR-AUTH-12 is one role per account in Phase 1). That is deliberate and local
- * to this file: it lets one development session walk both portals without
- * logging out, and nothing else in the application creates such a user. The
- * guards still enforce the real rule against whatever the API returns.
+ * Not in `STORAGE_KEYS`: that file is the application's vocabulary, and this
+ * key exists only while `useMockApi` does.
+ */
+const SEEDED_KEY = 'hayzaq.dev.seeded';
+
+/**
+ * Signs a lessor in the first time this browser opens the app, so the portal
+ * can be walked before anyone has typed a password.
  *
- * Development only, and it never overwrites a real session — if a token is
- * already stored it leaves it alone.
+ * **Once, and only once.** An initializer that re-seeds whenever no token is
+ * present makes signing out impossible: the next reload hands the session
+ * straight back, and every login screen bounces off `guestGuard` to the portal
+ * it just restored. So the marker survives `clearSession()` and the seed does
+ * not fire again — sign out, and you stay out.
+ *
+ * Clearing site data in the browser removes the marker too, which makes "clear
+ * storage, reload" the reset button back to a fresh lessor session.
+ *
+ * There is nothing special about the account it picks: `accounts.ts` holds one
+ * for every role, all reachable at `/auth/login` and `/admin/login` with any
+ * password. See `docs/demo-accounts.md`.
  */
 export function seedDevSession(): void {
   const storage = inject(StorageService);
   const auth = inject(AuthService);
 
   if (storage.get<string>(STORAGE_KEYS.accessToken)) return;
+  if (storage.get<boolean>(SEEDED_KEY)) return;
 
-  auth.setSession({
-    accessToken: 'dev-mock-token',
-    user: { ...MOCK_LESSOR, roles: [UserRole.Lessor, UserRole.Renter] },
-  });
+  storage.set(SEEDED_KEY, true);
+
+  // One role, like every other account: the product allows exactly one
+  // (FR-AUTH-12), and a seeded user holding two used to make the storefront
+  // look like a renter session and the portal like a lessor one — the same
+  // person, two portals, and no way to tell which account you were.
+  auth.setSession({ accessToken: 'dev-mock-token', user: MOCK_LESSOR });
 }

@@ -3,8 +3,7 @@ import { provideLocationMocks } from '@angular/common/testing';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
-import { UserRole } from '@core/enums/user-role.enum';
-import { MOCK_LESSOR } from '@core/mock/lessor.fixtures';
+import { MOCK_RENTER } from '@core/mock/accounts';
 import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
 import { AuthService } from '@core/services/auth.service';
 import { routes } from './app.routes';
@@ -39,10 +38,12 @@ describe('renter routing (smoke)', () => {
     sessionStorage.clear();
 
     if (signedIn) {
+      // A real renter account, one role, as `accounts.ts` defines it: a
+      // session holding both roles would prove the renter screens open for
+      // somebody who is also a lessor, which is not who uses them.
       TestBed.inject(AuthService).setSession({
         accessToken: 'test-token',
-        // The dev session carries both roles; see core/mock/dev-session.ts.
-        user: { ...MOCK_LESSOR, roles: [UserRole.Lessor, UserRole.Renter] },
+        user: MOCK_RENTER,
       });
     }
   }

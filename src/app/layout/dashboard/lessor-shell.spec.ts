@@ -20,6 +20,11 @@ import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
 describe('LessorShell (integration)', () => {
   let harness: RouterTestingHarness;
 
+  // The seed fires once per browser and records that it has (dev-session.ts),
+  // so a spec that leaves the marker behind would silently unseed this one.
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
   async function boot(url: string) {
     TestBed.configureTestingModule({
       providers: [
