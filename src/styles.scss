@@ -1,0 +1,18 @@
+// Global stylesheet — order matters.
+// Component-scoped styles belong in the component's own .scss file;
+// only cross-cutting rules go here.
+
+@use 'styles/themes/tokens';
+@use 'styles/base';
+
+html {
+  // Arabic is the default and the interface direction is RTL (SRS §2.5).
+  // LanguageService rewrites this pair when the user switches to English.
+  direction: rtl;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+}

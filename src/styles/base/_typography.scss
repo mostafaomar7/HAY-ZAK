@@ -1,0 +1,63 @@
+@use '../abstracts' as a;
+
+body {
+  font-family: a.$font-base;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-regular;
+  line-height: a.$lh-base;
+  color: var(--color-text);
+  background-color: var(--color-bg-shell);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-text-heading);
+  line-height: a.$lh-tight;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+}
+
+h2 {
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+}
+
+h3 {
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+}
+
+h4 {
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+small {
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+a {
+  color: var(--color-primary);
+
+  &:hover {
+    color: var(--color-primary-hover);
+  }
+}
+
+code,
+pre {
+  font-family: a.$font-mono;
+  font-size: a.$fs-sm;
+}

@@ -1,0 +1,99 @@
+@switch (state()) {
+  <!-- ── Attempts exhausted (FR-AUTH-11) ──────────────────────────────── -->
+  @case ('locked') {
+    <div class="authForm">
+      <header class="authForm__head">
+        <h1 class="authForm__title">إيقاف المحاولات مؤقتًا</h1>
+        <p class="authForm__sub">
+          تجاوزت عدد المحاولات المسموح. يمكنك إعادة المحاولة بعد انتهاء المدة.
+        </p>
+      </header>
+
+      <app-ui-notice tone="warning">
+        <span class="otpMeta__row">
+          يمكن إعادة المحاولة بعد
+          <app-ui-countdown [seconds]="lockSeconds()" (finished)="onUnlocked()" />
+        </span>
+      </app-ui-notice>
+
+      <a appUiButton variant="outline" [fullWidth]="true" routerLink="/auth/register">
+        تعديل رقم الجوال
+      </a>
+      <a class="authForm__link" routerLink="/pages/contact">التواصل مع الدعم</a>
+    </div>
+  }
+
+  <!-- ── Code expired ─────────────────────────────────────────────────── -->
+  @case ('expired') {
+    <div class="authForm">
+      <header class="authForm__head">
+        <h1 class="authForm__title">انتهت صلاحية الرمز</h1>
+        <p class="authForm__sub">
+          الرمز صالح لمدة
+          <span class="num" dir="ltr">{{ validityMinutes }}</span>
+          دقائق فقط. أرسل رمزًا جديدًا للمتابعة.
+        </p>
+      </header>
+
+      <button appUiButton variant="primary" size="lg" [fullWidth]="true" (click)="resend()">
+        إرسال رمز جديد
+      </button>
+
+      <a class="authForm__link" routerLink="/auth/register">تعديل رقم الجوال</a>
+    </div>
+  }
+
+  <!-- ── Entering ─────────────────────────────────────────────────────── -->
+  @default {
+    <form class="authForm" (ngSubmit)="verify()" novalidate>
+      <header class="authForm__head">
+        <h1 class="authForm__title">رمز التحقق</h1>
+        <p class="authForm__sub">
+          أُرسل رمز مكوّن من
+          <span class="num" dir="ltr">6</span>
+          أرقام إلى الرقم:
+        </p>
+      </header>
+
+      <p class="otpMeta">
+        <span class="otpMeta__target num" dir="ltr">{{ displayMobile() }}</span>
+      </p>
+
+      <app-ui-otp-input
+        [length]="6"
+        [disabled]="submitting()"
+        (valueChange)="onCode($event)"
+        (completed)="verify()"
+      />
+
+      @if (error()) {
+        <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
+      }
+
+      <div class="otpMeta">
+        <span class="otpMeta__row">
+          تنتهي صلاحية الرمز خلال
+          <app-ui-countdown [seconds]="expirySeconds()" (finished)="onExpired()" />
+        </span>
+
+        <span>
+          المحاولات المتبقية:
+          <span class="num" dir="ltr">{{ attemptsLeft() }}</span>
+        </span>
+      </div>
+
+      <button appUiButton variant="primary" size="lg" [fullWidth]="true" [disabled]="!canSubmit()">
+        {{ submitting() ? 'جارٍ التحقق...' : 'تأكيد الرمز' }}
+      </button>
+
+      <button appUiButton variant="ghost" type="button" [fullWidth]="true" (click)="resend()">
+        إعادة إرسال الرمز
+      </button>
+
+      <p class="authForm__foot">
+        الرقم غير صحيح؟
+        <a routerLink="/auth/register">تعديل رقم الجوال</a>
+      </p>
+    </form>
+  }
+}

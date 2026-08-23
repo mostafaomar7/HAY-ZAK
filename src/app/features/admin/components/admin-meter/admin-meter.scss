@@ -1,0 +1,100 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.meter {
+  @include a.surface(a.$radius-lg);
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-18;
+}
+
+.meter__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+}
+
+.meter__title {
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.meter__legend {
+  display: flex;
+  gap: a.$space-16;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.legend__swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--color-primary);
+}
+
+.legend__swatch--rest {
+  background: var(--color-border);
+}
+
+.row {
+  display: grid;
+  grid-template-areas:
+    'label value'
+    'track track';
+  grid-template-columns: 1fr auto;
+  gap: a.$space-6 a.$space-12;
+  align-items: center;
+}
+
+// Occupancy puts all three on one line; the payout report stacks the bar under
+// its label so the two figures sit at the ends of the same rule.
+.row--inline {
+  grid-template-areas: 'label track value';
+  grid-template-columns: 120px 1fr 74px;
+}
+
+.row__label {
+  grid-area: label;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.row__track {
+  grid-area: track;
+  display: block;
+  height: 16px;
+  overflow: hidden;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg-shell);
+}
+
+.row__fill {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.row__value {
+  @include a.numeric;
+
+  grid-area: value;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+  text-align: end;
+}

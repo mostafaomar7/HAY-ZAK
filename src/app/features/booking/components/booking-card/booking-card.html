@@ -1,0 +1,70 @@
+<article class="card">
+  <app-ui-thumbnail
+    class="card__thumb"
+    [src]="booking().unit?.images?.[0]?.url"
+    [alt]="booking().unit?.title ?? ''"
+  />
+
+  <div class="card__body">
+    <div class="card__main">
+      <app-ui-badge [tone]="tone()">{{ status() }}</app-ui-badge>
+
+      <h3 class="card__title">{{ booking().unit?.title }}</h3>
+
+      <p class="card__place num">
+        {{ i18n.pick(booking().unit?.district) }}
+        @if (booking().unit?.city) {
+          ، {{ i18n.pick(booking().unit?.city) }}
+        }
+      </p>
+
+      @if (past() && note()) {
+        <p class="card__note">{{ note() }}</p>
+      } @else {
+        <dl class="card__facts">
+          <div class="card__fact">
+            <dt class="card__factLabel">{{ i18n.t('booking.period') }}</dt>
+            <dd class="card__factValue num">{{ booking().startDate }} — {{ booking().endDate }}</dd>
+          </div>
+
+          <div class="card__fact">
+            <dt class="card__factLabel">{{ i18n.t('bookings.reference') }}</dt>
+            <dd class="card__factValue num" dir="ltr">{{ booking().referenceNo }}</dd>
+          </div>
+        </dl>
+      }
+    </div>
+
+    <div class="card__side">
+      <p class="card__amount">
+        <app-ui-money strong [amount]="booking().totalAmount" />
+      </p>
+
+      @if (!past()) {
+        <p class="card__hint">{{ i18n.t('bookings.value') }}</p>
+        <p class="card__hint num">
+          {{
+            i18n.t('bookings.dailyAndDays', {
+              price: booking().dailyPriceSnapshot,
+              days: booking().daysCount,
+            })
+          }}
+        </p>
+      } @else {
+        <p class="card__hint num" dir="ltr">{{ booking().referenceNo }}</p>
+      }
+
+      <div class="card__actions">
+        @if (action(); as primary) {
+          <a appUiButton variant="outline" [routerLink]="primary.link">
+            {{ i18n.t(actionLabel()!) }}
+          </a>
+        }
+
+        <a appUiButton variant="primary" [routerLink]="['/my-bookings', booking().id]">
+          {{ i18n.t('bookings.detailsAction') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</article>

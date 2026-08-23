@@ -1,0 +1,104 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.lead {
+  @include a.surface(a.$radius-lg);
+
+  margin: 0;
+  padding: a.$space-14 a.$space-18;
+  border-inline-start: 3px solid var(--color-primary);
+  font-size: a.$fs-xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+.demo {
+  @include a.stack(a.$space-12);
+}
+
+.demo__head {
+  @include a.stack(a.$space-2);
+}
+
+.demo__head--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+}
+
+.demo__title {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.demo__hint {
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.demo__note {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.demo__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: a.$space-14;
+}
+
+.demo__box {
+  @include a.surface(a.$radius-lg);
+
+  display: flex;
+  gap: a.$space-10;
+  padding: a.$space-18;
+}
+
+.demo__box--wrap {
+  flex-wrap: wrap;
+}
+
+// The state switch — a review tool, present only on this page.
+.switch {
+  display: flex;
+  gap: a.$space-4;
+  padding: 4px;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg-shell);
+}
+
+.switch__btn {
+  @include a.focus-ring;
+
+  min-height: 28px;
+  padding: 0 a.$space-12;
+  border: 0;
+  border-radius: a.$radius-sm;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  cursor: pointer;
+}
+
+.switch__btn--on {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: a.$fw-semibold;
+}
+
+.prose {
+  margin: 0;
+  font-size: a.$fs-label;
+  line-height: 1.9;
+}

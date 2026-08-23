@@ -1,0 +1,163 @@
+<header class="head">
+  <app-ui-tabs
+    [tabs]="tabs()"
+    [selected]="kind()"
+    [label]="i18n.t('adminNav.reports')"
+    (selectionChange)="setKind($event)"
+  />
+
+  <div class="head__exports">
+    <button appUiButton variant="outline" size="sm" type="button" (click)="export('xlsx')">
+      {{ i18n.t('reports.exportExcel') }}
+    </button>
+    <button appUiButton variant="outline" size="sm" type="button" (click)="export('pdf')">
+      {{ i18n.t('reports.exportPdf') }}
+    </button>
+  </div>
+</header>
+
+<app-admin-filter-bar
+  [selects]="selects()"
+  [values]="filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+@if (isLoading()) {
+  <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+} @else if (failed()) {
+  <app-ui-empty-state
+    tone="error"
+    [title]="i18n.t('reports.error')"
+    [hint]="i18n.t('reports.errorHint')"
+  >
+    <button appUiButton variant="primary" type="button" (click)="fetch()">
+      {{ i18n.t('common.retry') }}
+    </button>
+  </app-ui-empty-state>
+} @else if (isEmpty()) {
+  <app-ui-empty-state [title]="i18n.t('reports.empty')" [hint]="i18n.t('reports.emptyHint')">
+    <button appUiButton variant="outline" type="button" (click)="onReset()">
+      {{ i18n.t('admin.resetFilters') }}
+    </button>
+  </app-ui-empty-state>
+} @else {
+  @switch (kind()) {
+    @case ('revenue') {
+      <app-admin-bar-chart
+        [title]="i18n.t('reports.revenueChart')"
+        [series]="revenueSeries()"
+        [groups]="revenueGroups()"
+      />
+
+      <div class="table">
+        <div class="table__head">
+          <span>{{ i18n.t('reports.month') }}</span>
+          <span>{{ i18n.t('reports.revenueLegend') }}</span>
+          <span>{{ i18n.t('reports.commissionLegend') }}</span>
+          <span>{{ i18n.t('reports.vatColumn') }}</span>
+          <span>{{ i18n.t('reports.netColumn') }}</span>
+        </div>
+        @for (row of revenueRows(); track row.month) {
+          <div class="table__row table__row--5">
+            <span class="table__cell table__cell--stack">
+              <span class="cell--strong">{{ month(row.month) }}</span>
+              <span class="cell__sub num">{{ monthHijri(row.month) }}</span>
+            </span>
+            <span class="table__cell num">{{ row.revenue }}</span>
+            <span class="table__cell cell--muted num">{{ row.commission }}</span>
+            <span class="table__cell cell--muted num">{{ row.vat }}</span>
+            <span class="table__cell cell--strong num">
+              {{ row.netToLessors }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('payouts') {
+      <app-admin-meter
+        [title]="i18n.t('reports.payoutsChart')"
+        [rows]="payoutMeters()"
+        [legend]="[i18n.t('reports.sentLegend'), i18n.t('reports.restLegend')]"
+      />
+
+      <div class="table">
+        <div class="table__head table__head--4">
+          <span>{{ i18n.t('reports.lessor') }}</span>
+          <span>{{ i18n.t('reports.totalDue') }}</span>
+          <span>{{ i18n.t('reports.transferred') }}</span>
+          <span>{{ i18n.t('reports.remaining') }}</span>
+        </div>
+        @for (row of payoutRows(); track row.lessorId) {
+          <div class="table__row table__row--4">
+            <span class="table__cell cell--strong">{{ row.lessorName }}</span>
+            <span class="table__cell num">{{ row.totalDue }}</span>
+            <span class="table__cell table__cell--good num">{{ row.transferred }}</span>
+            <span class="table__cell cell--strong num">
+              {{ row.remaining }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('occupancy') {
+      <app-admin-meter
+        inline
+        [title]="i18n.t('reports.occupancyChart')"
+        [rows]="occupancyMeters()"
+      />
+
+      <div class="table">
+        <div class="table__head table__head--5">
+          <span>{{ i18n.t('reports.city') }}</span>
+          <span>{{ i18n.t('reports.category') }}</span>
+          <span>{{ i18n.t('reports.unitCount') }}</span>
+          <span>{{ i18n.t('reports.bookedDays') }}</span>
+          <span>{{ i18n.t('reports.rate') }}</span>
+        </div>
+        @for (row of occupancyRows(); track row.categoryName) {
+          <div class="table__row table__row--5">
+            <span class="table__cell">{{ row.cityName }}</span>
+            <span class="table__cell cell--strong">{{ row.categoryName }}</span>
+            <span class="table__cell num">{{ row.unitCount }}</span>
+            <span class="table__cell cell--muted num">{{ row.bookedDays }}</span>
+            <span class="table__cell cell--strong num">
+              {{ row.occupancyRate }} <span class="unit">{{ i18n.t('admin.percent') }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @default {
+      <app-admin-bar-chart
+        showValues
+        [title]="i18n.t('reports.bookingsChart')"
+        [series]="bookingSeries()"
+        [groups]="bookingGroups()"
+      />
+
+      <div class="table">
+        <div class="table__head table__head--3">
+          <span>{{ i18n.t('reports.month') }}</span>
+          <span>{{ i18n.t('reports.bookingCount') }}</span>
+          <span>{{ i18n.t('reports.bookingValue') }}</span>
+        </div>
+        @for (row of bookingRows(); track row.month) {
+          <div class="table__row table__row--3">
+            <span class="table__cell table__cell--stack">
+              <span class="cell--strong">{{ month(row.month) }}</span>
+              <span class="cell__sub num">{{ monthHijri(row.month) }}</span>
+            </span>
+            <span class="table__cell num">{{ row.count }}</span>
+            <span class="table__cell num">
+              {{ row.totalValue }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+  }
+}

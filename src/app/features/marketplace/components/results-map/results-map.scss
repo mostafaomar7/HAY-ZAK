@@ -1,0 +1,155 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+// A panel above the list, the width of the results column — not a side rail.
+// A fixed-width rail beside a fixed-width filter rail leaves the cards too
+// little to lay out in, which is why the design toggles the map instead.
+.map {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-2xl;
+  background: #e8ebe9;
+
+  @include a.up(md) {
+    height: 420px;
+  }
+}
+
+.map__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 75%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 75%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.map__road {
+  position: absolute;
+  background: #fff;
+  opacity: 0.85;
+}
+
+.map__road--v {
+  top: 0;
+  bottom: 0;
+  inset-inline-end: 34%;
+  width: 22px;
+}
+
+.map__road--h {
+  inset-inline: 0;
+  top: 44%;
+  height: 24px;
+}
+
+.map__badge {
+  @include a.stack(a.$space-2);
+
+  position: absolute;
+  top: a.$space-14;
+  inset-inline-end: a.$space-14;
+  padding: a.$space-10 a.$space-14;
+  border-radius: a.$radius-md;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(18 54 66 / 12%);
+}
+
+.map__city {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: #123642;
+}
+
+.map__hint {
+  font-size: a.$fs-2xs;
+  color: rgb(45 45 45 / 55%);
+}
+
+.map__status {
+  position: absolute;
+  bottom: a.$space-14;
+  inset-inline-end: a.$space-14;
+  max-width: calc(100% - #{a.$space-24 * 2});
+  margin: 0;
+  padding: a.$space-8 a.$space-12;
+  border-radius: a.$radius-md;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(18 54 66 / 12%);
+  font-size: a.$fs-2xs;
+  color: rgb(45 45 45 / 60%);
+}
+
+// ── Pins ─────────────────────────────────────────────────────────────────
+.pin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transform: translateX(50%);
+  transition: transform a.$transition-fast;
+
+  &:focus-visible {
+    outline: none;
+
+    .pin__bubble {
+      box-shadow: var(--focus-ring);
+    }
+  }
+}
+
+.pin--active {
+  z-index: 5;
+  transform: translateX(50%) scale(1.14);
+
+  .pin__bubble {
+    border-color: #123642;
+    background: #123642;
+    color: #fff;
+  }
+
+  .pin__stem {
+    background: #123642;
+  }
+}
+
+.pin__bubble {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: a.$space-6 a.$space-12;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-pill;
+  background: #fff;
+  color: #123642;
+  box-shadow: 0 2px 8px rgb(18 54 66 / 18%);
+  white-space: nowrap;
+}
+
+.pin__price {
+  @include a.numeric;
+
+  font-family: a.$font-latin;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-bold;
+}
+
+.pin__currency {
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+}
+
+.pin__stem {
+  width: 2px;
+  height: 8px;
+  background: #fff;
+}

@@ -1,0 +1,86 @@
+<div class="split">
+  <!-- The teal side states what this door is for, and what it costs to open. -->
+  <aside class="brand">
+    <div class="brand__mark">
+      <span class="brand__name">{{ i18n.t('nav.brand') }}</span>
+      <span class="brand__rule">
+        <span class="brand__line" aria-hidden="true"></span>
+        <span class="brand__latin">{{ i18n.t('public.brandLatin') }}</span>
+        <span class="brand__line" aria-hidden="true"></span>
+      </span>
+    </div>
+
+    <div class="brand__body">
+      <h1 class="brand__title">{{ i18n.t('adminAuth.heroTitle') }}</h1>
+      <p class="brand__text">{{ i18n.t('adminAuth.heroBody') }}</p>
+
+      <dl class="brand__facts">
+        <div class="brand__fact">
+          <dt>{{ i18n.t('adminAuth.sessionLabel') }}</dt>
+          <dd class="num">{{ i18n.t('adminAuth.sessionValue') }}</dd>
+        </div>
+        <div class="brand__fact">
+          <dt>{{ i18n.t('adminAuth.mfaLabel') }}</dt>
+          <dd>{{ i18n.t('adminAuth.mfaValue') }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <p class="brand__foot">{{ i18n.t('adminAuth.logged') }}</p>
+  </aside>
+
+  <main class="form">
+    <header class="form__head">
+      <h2 class="form__title">{{ i18n.t('adminAuth.title') }}</h2>
+      <p class="form__sub">{{ i18n.t('adminAuth.subtitle') }}</p>
+    </header>
+
+    @if (failed()) {
+      <app-ui-notice tone="danger">{{ i18n.t('adminAuth.failed') }}</app-ui-notice>
+    }
+
+    <form class="form__body" [formGroup]="form" (ngSubmit)="submit()">
+      <app-ui-field
+        [label]="i18n.t('adminAuth.email')"
+        for="adm-email"
+        [control]="form.controls.email"
+      >
+        <input
+          id="adm-email"
+          class="input num"
+          type="email"
+          dir="ltr"
+          autocomplete="username"
+          inputmode="email"
+          formControlName="email"
+        />
+      </app-ui-field>
+
+      <app-ui-field
+        [label]="i18n.t('adminAuth.password')"
+        for="adm-password"
+        [control]="form.controls.password"
+      >
+        <input
+          id="adm-password"
+          class="input"
+          type="password"
+          dir="ltr"
+          autocomplete="current-password"
+          formControlName="password"
+        />
+      </app-ui-field>
+
+      <label class="remember">
+        <input type="checkbox" formControlName="rememberDevice" />
+        {{ i18n.t('adminAuth.remember') }}
+      </label>
+
+      <button appUiButton variant="primary" type="submit" fullWidth [disabled]="submitting()">
+        {{ i18n.t('adminAuth.submit') }}
+      </button>
+    </form>
+
+    <app-ui-notice tone="info">{{ i18n.t('adminAuth.mfaNote') }}</app-ui-notice>
+  </main>
+</div>

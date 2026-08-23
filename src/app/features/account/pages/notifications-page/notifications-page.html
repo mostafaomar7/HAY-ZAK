@@ -1,0 +1,65 @@
+<section class="page">
+  <header class="page__head">
+    <div class="page__heading">
+      <h1 class="page__title">{{ i18n.t('notifications.title') }}</h1>
+      @if (unreadCount() > 0) {
+        <p class="page__sub num">
+          {{ i18n.t('notifications.unreadCount', { count: unreadCount() }) }}
+        </p>
+      }
+    </div>
+
+    @if (unreadCount() > 0) {
+      <button appUiButton variant="outline" type="button" (click)="markAllRead()">
+        {{ i18n.t('notifications.markAllRead') }}
+      </button>
+    }
+  </header>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+  } @else if (groups().length === 0) {
+    <app-ui-empty-state
+      [title]="i18n.t('notifications.empty')"
+      [hint]="i18n.t('notifications.emptyHint')"
+    >
+      <a appUiButton variant="accent" routerLink="/units">{{ i18n.t('result.exploreSpaces') }}</a>
+    </app-ui-empty-state>
+  } @else {
+    @for (group of groups(); track group.key) {
+      <section class="group">
+        <header class="group__head">
+          <h2 class="group__label num">{{ group.label }}</h2>
+          @if (group.hijri) {
+            <span class="group__hijri num">{{ group.hijri }}</span>
+          }
+          <span class="group__rule" aria-hidden="true"></span>
+        </header>
+
+        <ul class="list">
+          @for (item of group.items; track item.id) {
+            <li>
+              <a
+                class="item"
+                [class.item--unread]="!item.isRead"
+                [routerLink]="item.targetUrl ?? '/my-bookings'"
+                (click)="open(item)"
+              >
+                <span class="item__body">
+                  <span class="item__titleRow">
+                    <span class="item__title">{{ item.title }}</span>
+                    @if (!item.isRead) {
+                      <span class="item__dot" aria-hidden="true"></span>
+                    }
+                  </span>
+                  <span class="item__text">{{ item.body }}</span>
+                  <span class="item__time num">{{ item.createdAt }}</span>
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

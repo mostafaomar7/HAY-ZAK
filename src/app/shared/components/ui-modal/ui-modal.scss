@@ -1,0 +1,72 @@
+@use 'abstracts' as a;
+
+.modal {
+  width: min(460px, calc(100vw - #{a.$space-32}));
+  max-height: calc(100vh - #{a.$space-56});
+  padding: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: a.$radius-2xl;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-dropdown);
+
+  &::backdrop {
+    background: var(--color-overlay);
+  }
+}
+
+.modal__body {
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-24 a.$space-20 a.$space-20;
+  text-align: center;
+}
+
+.modal__icon {
+  @include a.flex-center;
+
+  width: 48px;
+  height: 48px;
+  margin-inline: auto;
+  border-radius: a.$radius-pill;
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+
+  .modal--danger & {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+  }
+}
+
+.modal__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.modal__content {
+  @include a.stack(a.$space-12);
+
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-align: start;
+  text-wrap: pretty;
+}
+
+.modal__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: a.$space-10;
+
+  @include a.up(sm) {
+    flex-direction: row;
+
+    > * {
+      flex: 1;
+    }
+  }
+}

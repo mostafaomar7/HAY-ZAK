@@ -1,0 +1,256 @@
+@use 'abstracts' as a;
+
+.page {
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: a.$space-16;
+
+  @include a.up(lg) {
+    padding: a.$space-24 a.$space-32 a.$space-40;
+  }
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-8;
+  margin-bottom: a.$space-14;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.crumbs__current {
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+  margin-bottom: a.$space-18;
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.head__text {
+  @include a.stack(a.$space-4);
+}
+
+.head__title {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.head__meta {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.head__actions {
+  display: flex;
+  gap: a.$space-10;
+}
+
+// ── The document ─────────────────────────────────────────────────────────
+.doc {
+  @include a.card;
+  @include a.stack(a.$space-20);
+
+  padding: a.$space-24 a.$space-20;
+}
+
+.doc__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-14;
+  padding-bottom: a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.doc__issuer {
+  display: flex;
+  align-items: center;
+  gap: a.$space-12;
+}
+
+.doc__mark {
+  @include a.flex-center;
+
+  width: 42px;
+  height: 42px;
+  border-radius: a.$radius-md;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-bold;
+}
+
+.doc__issuerText {
+  @include a.stack(a.$space-2);
+}
+
+.doc__issuerName {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.doc__tax {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.parties {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: a.$space-16;
+  margin: 0;
+}
+
+.party {
+  @include a.stack(a.$space-2);
+}
+
+.party__label {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.party__value {
+  @include a.stack(a.$space-2);
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: pretty;
+}
+
+.party__hint {
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-faint);
+}
+
+.refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-24;
+  margin: 0;
+  padding-top: a.$space-16;
+  border-top: 1px solid var(--color-border-divider);
+}
+
+.ref {
+  @include a.stack(a.$space-2);
+}
+
+.ref__label {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.ref__value {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+// ── Preview dialog ───────────────────────────────────────────────────────
+.preview {
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-16;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: a.$radius-lg;
+  background: var(--color-bg);
+}
+
+.preview__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.$space-12;
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.preview__rows {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+}
+
+.preview__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.$space-12;
+  font-size: a.$fs-xs;
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text-heading);
+  }
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.preview__row--total {
+  padding-top: a.$space-8;
+  border-top: 1px solid var(--color-border);
+  font-size: a.$fs-label;
+}
+
+.preview__qr {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+  text-align: center;
+}
+
+// The browser's own print dialog renders this page; strip the chrome so the
+// paper copy is the document alone.
+@media print {
+  .crumbs,
+  .head__actions {
+    display: none;
+  }
+
+  .doc {
+    border: 0;
+    box-shadow: none;
+  }
+}

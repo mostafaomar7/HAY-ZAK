@@ -1,0 +1,134 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.card {
+  @include a.card;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  @include a.up(md) {
+    flex-direction: row;
+  }
+}
+
+.card__thumb {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  flex: none;
+
+  @include a.up(md) {
+    width: 180px;
+    min-height: 100%;
+  }
+}
+
+.card__body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: a.$space-14;
+  padding: a.$space-16 a.$space-18;
+
+  @include a.up(lg) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: a.$space-20;
+  }
+}
+
+.card__main {
+  @include a.stack(a.$space-8);
+
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.card__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: pretty;
+}
+
+.card__place {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.card__note {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-18;
+  margin: 0;
+}
+
+.card__fact {
+  @include a.stack(a.$space-2);
+}
+
+.card__factLabel {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.card__factValue {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.card__side {
+  @include a.stack(a.$space-6);
+
+  flex: none;
+
+  @include a.up(lg) {
+    align-items: flex-end;
+    text-align: end;
+  }
+}
+
+.card__amount {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-accent);
+}
+
+.card__hint {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+  margin-top: a.$space-6;
+}

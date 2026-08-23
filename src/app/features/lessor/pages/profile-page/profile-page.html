@@ -1,0 +1,162 @@
+<section class="page">
+  @let u = user();
+
+  <header class="identity">
+    <div class="identity__avatar" aria-hidden="true">{{ u?.fullName?.charAt(0) }}</div>
+    <div>
+      <h2 class="identity__name">{{ u?.fullName }}</h2>
+      <p class="identity__role">مؤجر مساحة</p>
+    </div>
+  </header>
+
+  <!-- ── Identity ─────────────────────────────────────────────────────── -->
+  <section class="card">
+    <h3 class="card__heading">بياناتي</h3>
+
+    <dl class="facts">
+      <div class="facts__row">
+        <dt>الاسم الكامل</dt>
+        <dd>{{ u?.fullName }}</dd>
+      </div>
+      <div class="facts__row">
+        <dt>البريد الإلكتروني</dt>
+        <dd class="num" dir="ltr">{{ u?.email }}</dd>
+      </div>
+      <div class="facts__row">
+        <dt>رقم الجوال</dt>
+        <dd class="facts__value">
+          <span class="num" dir="ltr">{{ u?.mobile }}</span>
+          @if (mobileVerified()) {
+            <span class="tag tag--ok">مُفعّل</span>
+          } @else {
+            <a class="tag tag--warn" routerLink="/auth/verify">غير مُفعّل — فعّله</a>
+          }
+        </dd>
+      </div>
+    </dl>
+
+    <!-- Changing a verified mobile or an ID number requires re-verification
+         (FR-AUTH-04/10), so it is not an inline edit. -->
+    <p class="card__note">
+      لتعديل الاسم أو رقم الهوية أو الجوال، تواصل مع الدعم — تتطلّب إعادة تحقّق.
+    </p>
+  </section>
+
+  <!-- ── Password ─────────────────────────────────────────────────────── -->
+  <section class="card">
+    <h3 class="card__heading">تغيير كلمة المرور</h3>
+
+    <form class="stack" [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+      <app-ui-field
+        label="كلمة المرور الحالية"
+        for="p-current"
+        [control]="passwordForm.controls.currentPassword"
+      >
+        <input
+          id="p-current"
+          type="password"
+          formControlName="currentPassword"
+          autocomplete="current-password"
+        />
+      </app-ui-field>
+
+      <app-ui-field
+        label="كلمة المرور الجديدة"
+        for="p-new"
+        [control]="passwordForm.controls.newPassword"
+        hint="8 خانات على الأقل، بحرف كبير وصغير ورقم."
+      >
+        <input
+          id="p-new"
+          type="password"
+          formControlName="newPassword"
+          autocomplete="new-password"
+        />
+      </app-ui-field>
+
+      <app-ui-field
+        label="تأكيد كلمة المرور الجديدة"
+        for="p-confirm"
+        [control]="passwordForm.controls.confirmPassword"
+      >
+        <input
+          id="p-confirm"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+        />
+      </app-ui-field>
+
+      <button appUiButton variant="primary" [disabled]="changingPassword()">
+        {{ changingPassword() ? 'جارٍ التغيير...' : 'غيّر كلمة المرور' }}
+      </button>
+    </form>
+  </section>
+
+  <!-- ── Notification preferences ─────────────────────────────────────── -->
+  <section class="card">
+    <h3 class="card__heading">تفضيلات الإشعارات</h3>
+
+    <div class="stack">
+      @for (channel of channels; track channel.key) {
+        <app-ui-toggle
+          [label]="channel.label"
+          [hint]="channel.locked ? 'لا يمكن إيقافه' : channel.hint"
+          [checked]="isOn(channel.key)"
+          [disabled]="channel.locked"
+          (checkedChange)="toggleChannel(channel.key, $event)"
+        />
+      }
+    </div>
+  </section>
+
+  <!-- ── Legal + session ──────────────────────────────────────────────── -->
+  <section class="card">
+    <h3 class="card__heading">أخرى</h3>
+
+    <ul class="links">
+      <li><a routerLink="/pages/terms">الشروط والأحكام</a></li>
+      <li><a routerLink="/pages/privacy">سياسة الخصوصية</a></li>
+    </ul>
+
+    <button appUiButton variant="outline" (click)="logout()">تسجيل الخروج</button>
+  </section>
+
+  <!-- ── Deletion ─────────────────────────────────────────────────────── -->
+  <section class="card card--danger">
+    <h3 class="card__heading card__heading--danger">حذف الحساب</h3>
+    <p class="card__note">حذف الحساب نهائي ولا يمكن التراجع عنه.</p>
+
+    @if (!deleteOpen()) {
+      <button appUiButton variant="danger" (click)="deleteOpen.set(true)">حذف الحساب</button>
+    } @else {
+      <!-- Outstanding money must be settled first (SRS §10, UC-04). -->
+      @if (outstanding() > 0) {
+        <app-ui-notice tone="warning" title="مستحقاتك المتبقية">
+          <span class="num" dir="rtl">{{ outstandingLabel() }}</span>
+          — تُحوَّل مستحقاتك إلى حسابك البنكي قبل إتمام الحذف.
+        </app-ui-notice>
+      }
+
+      <form class="stack" [formGroup]="deleteForm" (ngSubmit)="requestDeletion()" novalidate>
+        <app-ui-field
+          label="اكتب كلمة «حذف» للتأكيد"
+          for="d-confirm"
+          [control]="deleteForm.controls.confirmation"
+          errorOverride="اكتب كلمة «حذف» بالعربية للتأكيد."
+        >
+          <input id="d-confirm" type="text" formControlName="confirmation" autocomplete="off" />
+        </app-ui-field>
+
+        <div class="card__actions">
+          <button appUiButton variant="danger" [disabled]="!canDelete()">
+            {{ deleting() ? 'جارٍ الحذف...' : 'احذف حسابي نهائيًا' }}
+          </button>
+          <button appUiButton variant="ghost" type="button" (click)="deleteOpen.set(false)">
+            رجوع
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</section>

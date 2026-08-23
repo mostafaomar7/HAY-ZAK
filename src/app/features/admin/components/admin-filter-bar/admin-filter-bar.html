@@ -1,0 +1,45 @@
+<form class="bar" (ngSubmit)="apply()">
+  @if (searchPlaceholder()) {
+    <div class="bar__field bar__field--grow">
+      <label class="bar__label" for="flt-search">{{ i18n.t('admin.search') }}</label>
+      <input
+        id="flt-search"
+        class="bar__input"
+        type="search"
+        [placeholder]="searchPlaceholder()"
+        [value]="valueOf('search')"
+        (input)="set('search', $any($event.target).value)"
+      />
+    </div>
+  }
+
+  @for (select of selects(); track select.key) {
+    <div class="bar__field">
+      <label class="bar__label" [attr.for]="'flt-' + select.key">{{ select.label }}</label>
+      <select
+        class="bar__input"
+        [id]="'flt-' + select.key"
+        [value]="valueOf(select.key)"
+        (change)="set(select.key, $any($event.target).value)"
+      >
+        @for (option of select.options; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <div class="bar__actions">
+    <button appUiButton variant="primary" size="sm" type="submit">
+      {{ i18n.t('admin.applyFilters') }}
+    </button>
+    <button appUiButton variant="outline" size="sm" type="button" (click)="reset()">
+      {{ i18n.t('admin.resetFilters') }}
+    </button>
+    @if (exportable()) {
+      <button appUiButton variant="outline" size="sm" type="button" (click)="exported.emit()">
+        {{ i18n.t('admin.exportReport') }}
+      </button>
+    }
+  </div>
+</form>

@@ -1,0 +1,128 @@
+@use 'abstracts' as a;
+
+.summary {
+  @include a.card;
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-18;
+}
+
+.summary__unit {
+  display: flex;
+  gap: a.$space-12;
+}
+
+.summary__thumb {
+  display: block;
+  width: 84px;
+  height: 68px;
+  flex: none;
+  overflow: hidden;
+  border-radius: a.$radius-md;
+}
+
+.summary__unitText {
+  @include a.stack(a.$space-4);
+
+  min-width: 0;
+}
+
+.summary__title {
+  margin: 0;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: pretty;
+}
+
+.summary__place {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.summary__rule {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border-divider);
+}
+
+.summary__price {
+  @include a.stack(a.$space-4);
+}
+
+.summary__daily {
+  display: flex;
+  align-items: baseline;
+  gap: a.$space-4;
+  margin: 0;
+}
+
+.summary__amount {
+  @include a.numeric;
+
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.summary__currency {
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-accent);
+}
+
+.summary__per {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.summary__hint {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.summary__facts {
+  @include a.stack(a.$space-10);
+
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: a.$space-12;
+}
+
+.fact__label {
+  font-size: a.$fs-label;
+  color: var(--color-text-muted);
+}
+
+.fact__value {
+  @include a.stack(a.$space-2);
+  @include a.numeric;
+
+  margin: 0;
+  flex: none;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-align: end;
+}
+
+.fact__sub {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-faint);
+}

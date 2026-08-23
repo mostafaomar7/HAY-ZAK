@@ -1,0 +1,66 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.kpi {
+  @include a.surface(a.$radius-lg);
+  @include a.stack(a.$space-10);
+
+  height: 100%;
+  padding: a.$space-16 a.$space-18;
+}
+
+.kpi__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: a.$space-10;
+}
+
+.kpi__label {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.kpi__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  color: var(--color-text-muted);
+}
+
+.kpi__figure {
+  display: flex;
+  align-items: baseline;
+  gap: a.$space-6;
+  margin: 0;
+}
+
+.kpi__value {
+  @include a.numeric;
+
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+  line-height: 1.2;
+  color: var(--color-primary);
+}
+
+.kpi__unit {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.kpi__delta {
+  margin: 0;
+  padding-top: a.$space-8;
+  border-top: 1px solid var(--color-border-divider);
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}

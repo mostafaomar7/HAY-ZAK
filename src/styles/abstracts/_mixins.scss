@@ -1,0 +1,272 @@
+@use 'sass:map';
+@use 'variables' as v;
+
+$breakpoints: (
+  sm: v.$bp-sm,
+  md: v.$bp-md,
+  lg: v.$bp-lg,
+  xl: v.$bp-xl,
+  xxl: v.$bp-xxl,
+);
+
+/// Mobile-first: applies from the given breakpoint upward.
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+/// Applies below the given breakpoint.
+@mixin down($name) {
+  @media (max-width: (map.get($breakpoints, $name) - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin flex($direction: row, $justify: flex-start, $align: stretch, $gap: 0) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+  gap: $gap;
+}
+
+@mixin flex-center {
+  @include flex(row, center, center);
+}
+
+/// Vertical stack — the design's single most repeated layout.
+@mixin stack($gap: v.$space-12) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+}
+
+@mixin line-clamp($lines: 1) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/// The design's focus treatment: border colour shift plus a soft ring.
+/// Applied on :focus-visible only, so mouse users never see it.
+@mixin focus-ring {
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/// Numbers inside RTL text.
+///
+/// Latin digits in an RTL run get reordered by the bidi algorithm, which turns
+/// "1,800.00 ر.س" into visual nonsense and splits date ranges. The design solves
+/// this on every numeric span with tabular-nums + unicode-bidi: isolate, and this
+/// mixin is the one place that knowledge lives. Use it on any element containing
+/// a figure, amount, date range, reference number or count.
+@mixin numeric {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+/// A standard container: white surface, hairline border, medium radius.
+@mixin surface($radius: v.$radius-xl) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: $radius;
+}
+
+@mixin card {
+  @include surface;
+
+  box-shadow: var(--shadow-card);
+}
+
+/// Shared geometry for every pill: status badges, filter chips, counters.
+@mixin pill($height: v.$badge-height, $padding: v.$space-12) {
+  display: inline-flex;
+  align-items: center;
+  height: $height;
+  padding: 0 $padding;
+  border-radius: v.$radius-pill;
+  font-size: v.$fs-label;
+  font-weight: v.$fw-semibold;
+  white-space: nowrap;
+}
+
+/// Shared geometry for every button. Colour comes from the variant.
+@mixin button-base($height: v.$control-height) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: v.$space-8;
+  min-height: $height;
+  padding: 0 v.$space-18;
+  border: 0;
+  border-radius: v.$radius-lg;
+  font-family: inherit;
+  font-size: v.$fs-md;
+  font-weight: v.$fw-semibold;
+  cursor: pointer;
+  transition:
+    background-color v.$transition-fast,
+    border-color v.$transition-fast;
+
+  @include focus-ring;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+/// Form control geometry shared by input, select and textarea.
+@mixin control {
+  width: 100%;
+  min-height: v.$control-height;
+  padding: 0 v.$space-14;
+  border: 1px solid var(--color-border-input);
+  border-radius: v.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: v.$fs-lg;
+  transition:
+    border-color v.$transition-fast,
+    box-shadow v.$transition-fast;
+
+  @include focus-ring;
+
+  &::placeholder {
+    color: var(--color-text-faint);
+  }
+}
+
+/// Image placeholder hatch used wherever a photo has not loaded.
+@mixin thumb-placeholder {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-border-divider) 0 8px,
+    var(--color-bg) 8px 16px
+  );
+}
+
+/// Two-column form-and-summary layout, shared by the booking wizard steps and
+/// the renter's cancellation screen. The summary sticks on desktop and drops
+/// beneath the form on a phone, where a sticky panel would eat the viewport.
+@mixin work-and-summary($side: 340px) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: v.$space-24;
+
+  @include up(lg) {
+    grid-template-columns: minmax(0, 1fr) $side;
+    align-items: start;
+  }
+}
+
+@mixin sticky-side {
+  @include up(lg) {
+    position: sticky;
+    top: calc(#{v.$topbar-height} + #{v.$space-20});
+  }
+}
+
+@mixin scrollbar($size: 8px) {
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: v.$radius-pill;
+  }
+}
+
+/// The inside of an admin slide-over: titled blocks of label/value pairs.
+///
+/// A mixin rather than a global class set, because unlike the projected table
+/// cells this markup lives inside the page's own template where its scoped
+/// stylesheet reaches it. Five console pages include it.
+@mixin admin-panel-blocks {
+  .block {
+    @include stack(v.$space-10);
+  }
+
+  .block__title {
+    margin: 0;
+    padding-bottom: v.$space-8;
+    border-bottom: 1px solid var(--color-border-divider);
+    font-size: v.$fs-xs;
+    font-weight: v.$fw-semibold;
+    color: var(--color-primary);
+  }
+
+  .block__prose {
+    margin: 0;
+    font-size: v.$fs-xs;
+    line-height: 1.9;
+    color: var(--color-text);
+    text-wrap: pretty;
+  }
+
+  .block__note {
+    margin: 0;
+    padding: v.$space-14;
+    border: 1px dashed var(--color-border);
+    border-radius: v.$radius-sm;
+    font-size: v.$fs-xs;
+    color: var(--color-text-muted);
+  }
+
+  .facts {
+    @include stack(v.$space-10);
+
+    margin: 0;
+  }
+
+  .fact {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: v.$space-16;
+
+    dt {
+      font-size: v.$fs-xs;
+      color: var(--color-text-muted);
+    }
+
+    dd {
+      margin: 0;
+      font-size: v.$fs-label;
+      font-weight: v.$fw-semibold;
+      color: var(--color-text);
+      text-align: end;
+    }
+
+    .num {
+      @include numeric;
+    }
+  }
+}

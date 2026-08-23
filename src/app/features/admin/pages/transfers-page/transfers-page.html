@@ -1,0 +1,320 @@
+<p class="cycle">{{ i18n.t('transfers.cycleNote', { hours: settings.payoutCycleHours() }) }}</p>
+
+@if (isLoading()) {
+  <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+} @else if (failed()) {
+  <app-ui-empty-state
+    tone="error"
+    [title]="i18n.t('transfers.error')"
+    [hint]="i18n.t('transfers.errorHint')"
+  >
+    <button appUiButton variant="primary" type="button" (click)="fetch()">
+      {{ i18n.t('common.retry') }}
+    </button>
+  </app-ui-empty-state>
+} @else if (isEmpty()) {
+  <app-ui-empty-state [title]="i18n.t('transfers.empty')" [hint]="i18n.t('transfers.emptyHint')" />
+} @else {
+  @for (group of groups(); track group.lessorId) {
+    <section class="group">
+      <header class="group__head">
+        <div class="group__who">
+          <h2 class="group__name">{{ group.lessorName }}</h2>
+          @if (group.bankName) {
+            <div class="group__bank">
+              <span
+                >{{ i18n.t('transfers.bank') }}: <b>{{ group.bankName }}</b></span
+              >
+              <span
+                >{{ i18n.t('transfers.holder') }}: <b>{{ group.accountHolder }}</b></span
+              >
+              <span class="num" dir="ltr">{{ group.ibanMasked }}</span>
+            </div>
+          }
+        </div>
+        <div class="group__total">
+          <span class="group__totalLabel">{{ i18n.t('transfers.totalDue') }}</span>
+          <app-ui-money class="group__totalValue" [amount]="group.totalDue" strong />
+          <span class="group__count num">
+            {{ i18n.t('transfers.rowCount', { count: group.rowCount }) }}
+          </span>
+        </div>
+      </header>
+
+      @if (group.bankDetailsMissing) {
+        <app-ui-notice tone="warning">{{ i18n.t('transfers.bankMissing') }}</app-ui-notice>
+      }
+
+      <div class="rows">
+        <div class="rows__head">
+          <span>{{ i18n.t('transfers.reference') }}</span>
+          <span>{{ i18n.t('transfers.unit') }}</span>
+          <span>{{ i18n.t('transfers.dueDate') }}</span>
+          <span>{{ i18n.t('transfers.net') }}</span>
+          <span>{{ i18n.t('transfers.status') }}</span>
+          <span>{{ i18n.t('admin.action') }}</span>
+        </div>
+
+        @for (row of group.rows; track row.id) {
+          <div class="rows__row">
+            <span class="rows__cell cell--strong num" dir="ltr">{{ row.bookingReferenceNo }}</span>
+            <span class="rows__cell">{{ row.unitTitle }}</span>
+            <span class="rows__cell num">{{ row.dueDate | date: 'd MMM y' }}</span>
+            <span class="rows__cell cell--strong num">
+              {{ row.netAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+            </span>
+            <span class="rows__cell rows__cell--stack">
+              <app-ui-badge [tone]="display(row.status).tone">{{ label(row.status) }}</app-ui-badge>
+              @if (row.bankReference) {
+                <span class="rows__ref num" dir="ltr">{{ row.bankReference }}</span>
+              }
+            </span>
+            <span class="rows__cell rows__cell--actions">
+              @if (isExecutable(group, row)) {
+                <button
+                  appUiButton
+                  variant="primary"
+                  size="sm"
+                  type="button"
+                  (click)="openExecute(group, row)"
+                >
+                  {{ i18n.t('transfers.execute') }}
+                </button>
+              } @else if (isBlocked(group, row)) {
+                <button
+                  appUiButton
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="openDemand(group, row)"
+                >
+                  {{ i18n.t('transfers.demand') }}
+                </button>
+              } @else if (isFailed(row)) {
+                <button
+                  appUiButton
+                  variant="danger"
+                  size="sm"
+                  type="button"
+                  (click)="openReschedule(group, row)"
+                >
+                  {{ i18n.t('transfers.reschedule') }}
+                </button>
+              } @else if (isFrozen(row)) {
+                <button
+                  appUiButton
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="openFrozen(group, row)"
+                >
+                  {{ i18n.t('transfers.viewComplaint') }}
+                </button>
+              } @else if (isPaid(row)) {
+                <span class="rows__done">{{ i18n.t('transfers.done') }}</span>
+              }
+            </span>
+
+            @if (row.note) {
+              <p class="rows__note">{{ row.note }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+}
+
+<!-- Execute a transfer -->
+<app-ui-modal
+  [open]="dialog() === 'execute'"
+  [title]="i18n.t('transfers.executeTitle')"
+  (dismissed)="close()"
+>
+  @if (target(); as t) {
+    <div class="amount">
+      <span>{{ i18n.t('transfers.netToTransfer') }}</span>
+      <app-ui-money class="amount__value" [amount]="t.row.netAmount" strong />
+    </div>
+
+    <section class="account">
+      <h3 class="account__title">{{ i18n.t('transfers.lessorAccount') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('transfers.bank') }}</dt>
+          <dd>{{ revealed()?.bankName ?? t.group.bankName }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('transfers.holder') }}</dt>
+          <dd>{{ revealed()?.accountHolder ?? t.group.accountHolder }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('transfers.iban') }}</dt>
+          <dd>
+            @if (revealed(); as details) {
+              <span class="num" dir="ltr">{{ details.iban }}</span>
+            } @else {
+              <span class="num" dir="ltr">{{ t.group.ibanMasked }}</span>
+              <button appUiButton variant="outline" size="sm" type="button" (click)="reveal()">
+                {{ i18n.t('transfers.reveal') }}
+              </button>
+            }
+          </dd>
+        </div>
+      </dl>
+      <p class="account__note">{{ i18n.t('transfers.revealNote') }}</p>
+    </section>
+
+    <div class="pair">
+      <label class="field">
+        <span class="field__label">{{ i18n.t('transfers.bankReference') }}</span>
+        <input
+          class="field__input num"
+          type="text"
+          dir="ltr"
+          placeholder="TRF-00000"
+          [value]="bankReference()"
+          (input)="bankReference.set($any($event.target).value)"
+        />
+      </label>
+      <label class="field">
+        <span class="field__label">{{ i18n.t('transfers.executedOn') }}</span>
+        <input
+          class="field__input num"
+          type="date"
+          [value]="executedOn()"
+          (input)="executedOn.set($any($event.target).value)"
+        />
+      </label>
+    </div>
+  }
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button
+      appUiButton
+      variant="primary"
+      type="button"
+      [disabled]="!canExecute() || submitting()"
+      (click)="execute()"
+    >
+      {{ i18n.t('transfers.confirmExecute') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<!-- Reschedule a failed transfer -->
+<app-ui-modal
+  tone="danger"
+  [open]="dialog() === 'reschedule'"
+  [title]="i18n.t('transfers.rescheduleTitle')"
+  (dismissed)="close()"
+>
+  @if (target(); as t) {
+    @if (t.row.note) {
+      <app-ui-notice tone="danger">
+        {{ i18n.t('transfers.previousFailure', { reason: t.row.note }) }}
+      </app-ui-notice>
+    }
+
+    <div class="amount">
+      <span>{{ i18n.t('transfers.rescheduledAmount') }}</span>
+      <app-ui-money class="amount__value" [amount]="t.row.netAmount" strong />
+    </div>
+
+    <label class="field">
+      <span class="field__label">{{ i18n.t('transfers.newDate') }}</span>
+      <input
+        class="field__input num"
+        type="date"
+        [value]="rescheduleDate()"
+        (input)="rescheduleDate.set($any($event.target).value)"
+      />
+    </label>
+
+    <label class="field">
+      <span class="field__label">{{ i18n.t('transfers.rescheduleReason') }}</span>
+      <textarea
+        class="field__input field__input--area"
+        rows="3"
+        [placeholder]="i18n.t('transfers.rescheduleReasonHint')"
+        [value]="rescheduleReason()"
+        (input)="rescheduleReason.set($any($event.target).value)"
+      ></textarea>
+    </label>
+  }
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button
+      appUiButton
+      variant="primary"
+      type="button"
+      [disabled]="!canReschedule() || submitting()"
+      (click)="reschedule()"
+    >
+      {{ i18n.t('transfers.reschedule') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<!-- Frozen by a dispute — read only, with the way through to it -->
+<app-ui-modal
+  [open]="dialog() === 'frozen'"
+  [title]="i18n.t('transfers.viewComplaint')"
+  (dismissed)="close()"
+>
+  @if (target(); as t) {
+    @if (t.row.note) {
+      <p class="prose">{{ t.row.note }}</p>
+    }
+    <p class="prose">{{ i18n.t('transfers.frozenNote') }}</p>
+  }
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.close') }}
+    </button>
+    <button appUiButton variant="primary" type="button" (click)="goToComplaints()">
+      {{ i18n.t('complaints.title') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<!-- Chase missing bank details -->
+<app-ui-modal
+  [open]="dialog() === 'demand'"
+  [title]="i18n.t('transfers.demandTitle')"
+  (dismissed)="close()"
+>
+  <app-ui-notice tone="warning">{{ i18n.t('transfers.demandNote') }}</app-ui-notice>
+
+  <label class="field">
+    <span class="field__label">{{ i18n.t('transfers.demandBody') }}</span>
+    <textarea
+      class="field__input field__input--area"
+      rows="3"
+      [value]="demandMessage()"
+      (input)="demandMessage.set($any($event.target).value)"
+    ></textarea>
+  </label>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button
+      appUiButton
+      variant="primary"
+      type="button"
+      [disabled]="submitting()"
+      (click)="demand()"
+    >
+      {{ i18n.t('transfers.demandSend') }}
+    </button>
+  </ng-container>
+</app-ui-modal>

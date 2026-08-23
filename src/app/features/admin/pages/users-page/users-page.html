@@ -1,0 +1,147 @@
+<app-admin-filter-bar
+  exportable
+  [searchPlaceholder]="i18n.t('users.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('users.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [sort]="list.sort()"
+  [emptyTitle]="i18n.t('users.empty')"
+  [emptyHint]="i18n.t('users.emptyHint')"
+  [errorTitle]="i18n.t('users.error')"
+  [errorHint]="i18n.t('users.errorHint')"
+  errorRef="ERR-5203"
+  (rowOpen)="openRow($any($event))"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-template #row let-row>
+    <span class="cell cell--strong">{{ row.fullName }}</span>
+    <span class="cell cell--muted">{{ roleLabel(row.role) }}</span>
+    <span class="cell num" dir="ltr">{{ row.mobile }}</span>
+    <span class="cell" dir="ltr">{{ row.email }}</span>
+    <span class="cell num">{{ row.registeredAt | date: 'd MMM y' }}</span>
+    <span class="cell">
+      <app-ui-badge [tone]="statusTone(row.status)">{{ statusLabel(row.status) }}</app-ui-badge>
+    </span>
+  </ng-template>
+</app-admin-table>
+
+@if (detail(); as user) {
+  <app-admin-panel
+    open
+    [eyebrow]="i18n.t('users.panelEyebrow')"
+    [title]="user.fullName"
+    (dismissed)="close()"
+  >
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('users.basics') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('users.role') }}</dt>
+          <dd>{{ roleLabel(user.role) }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('admin.status') }}</dt>
+          <dd>
+            <app-ui-badge [tone]="statusTone(user.status)">
+              {{ statusLabel(user.status) }}
+            </app-ui-badge>
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.mobile') }}</dt>
+          <dd class="num" dir="ltr">{{ user.mobile }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.email') }}</dt>
+          <dd dir="ltr">{{ user.email }}</dd>
+        </div>
+        @if (user.nationalId) {
+          <div class="fact">
+            <dt>{{ i18n.t('users.nationalId') }}</dt>
+            <dd class="num" dir="ltr">{{ user.nationalId }}</dd>
+          </div>
+        }
+        <div class="fact">
+          <dt>{{ i18n.t('users.registeredAt') }}</dt>
+          <dd class="num">{{ user.registeredAt | date: 'd MMMM y' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    @if (user.units.length > 0) {
+      <section class="block">
+        <h3 class="block__title">
+          {{ i18n.t('users.units') }} — <span class="num">{{ user.units.length }}</span>
+        </h3>
+        <ul class="links">
+          @for (unit of user.units; track unit.id) {
+            <li class="links__item">{{ unit.title }}</li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (user.bookings.length > 0) {
+      <section class="block">
+        <h3 class="block__title">
+          {{ i18n.t('users.bookings') }} — <span class="num">{{ user.bookings.length }}</span>
+        </h3>
+        <ul class="links">
+          @for (booking of user.bookings; track booking.id) {
+            <li class="links__item num">
+              <span dir="ltr">{{ booking.referenceNo }}</span> · {{ booking.unitTitle }}
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (hasNothing()) {
+      <p class="block__note">{{ i18n.t('users.nothing') }}</p>
+    }
+
+    <ng-container panelActions>
+      <button appUiButton variant="primary" type="button" fullWidth (click)="activate()">
+        {{ i18n.t('users.activate') }}
+      </button>
+      <button appUiButton variant="danger" type="button" fullWidth (click)="askSuspend()">
+        {{ i18n.t('users.suspend') }}
+      </button>
+      <button appUiButton variant="outline" type="button" fullWidth (click)="verify()">
+        {{ i18n.t('users.verify') }}
+      </button>
+    </ng-container>
+  </app-admin-panel>
+}
+
+<app-ui-modal
+  tone="danger"
+  [open]="confirmSuspend()"
+  [title]="i18n.t('users.suspendTitle')"
+  (dismissed)="confirmSuspend.set(false)"
+>
+  <p>{{ i18n.t('users.suspendBody') }}</p>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="confirmSuspend.set(false)">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button appUiButton variant="danger" type="button" (click)="suspend()">
+      {{ i18n.t('users.suspend') }}
+    </button>
+  </ng-container>
+</app-ui-modal>

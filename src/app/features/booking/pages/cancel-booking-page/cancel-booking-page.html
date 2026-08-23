@@ -1,0 +1,187 @@
+@if (isLoading()) {
+  <div class="page">
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  </div>
+} @else if (failed() || !booking()) {
+  <div class="page">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('bookingDetail.notFound')"
+      [hint]="i18n.t('bookingDetail.notFoundHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/my-bookings">{{ i18n.t('bookings.title') }}</a>
+    </app-ui-empty-state>
+  </div>
+} @else if (!cancellable()) {
+  <div class="page">
+    <app-ui-empty-state
+      [title]="i18n.t('cancel.notCancellable')"
+      [hint]="i18n.t('cancel.notCancellableHint')"
+    >
+      <a appUiButton variant="primary" [routerLink]="['/my-bookings', bookingId()]">
+        {{ i18n.t('bookings.detailsAction') }}
+      </a>
+    </app-ui-empty-state>
+  </div>
+} @else {
+  <article class="page">
+    <header class="head">
+      <h1 class="head__title">{{ i18n.t('cancel.title') }}</h1>
+      <p class="head__meta num">
+        {{ i18n.t('bookings.reference') }}
+        <span dir="ltr">{{ booking()!.referenceNo }}</span>
+        · {{ booking()!.unit?.title }}
+      </p>
+    </header>
+
+    <div class="layout">
+      <div class="content">
+        <section class="panel">
+          <h2 class="panel__title">{{ i18n.t('cancel.policyTitle') }}</h2>
+
+          <ul class="rules">
+            <li class="rule rule--ok">
+              <span class="rule__mark" aria-hidden="true">✓</span>
+              {{ i18n.t('cancel.ruleEarly') }}
+            </li>
+            <li class="rule rule--warn">
+              <span class="rule__mark" aria-hidden="true">•</span>
+              {{ i18n.t('cancel.ruleLate') }}
+            </li>
+            <li class="rule rule--bad">
+              <span class="rule__mark" aria-hidden="true">✕</span>
+              {{ i18n.t('cancel.ruleAfterStart') }}
+            </li>
+          </ul>
+
+          @if (appliedLabel()) {
+            <p class="applied">
+              <span class="applied__dot" aria-hidden="true"></span>
+              {{ appliedLabel() }}
+            </p>
+          }
+        </section>
+
+        <section class="panel">
+          <fieldset class="reasons">
+            <legend class="panel__title">
+              {{ i18n.t('cancel.reason') }}
+              <span class="reasons__optional">({{ i18n.t('common.optional') }})</span>
+            </legend>
+
+            <ul class="reasons__list">
+              @for (option of reasons; track option.code) {
+                <li>
+                  <label class="reason" [class.reason--on]="reason() === option.code">
+                    <input
+                      class="reason__input sr-only"
+                      type="radio"
+                      name="cancelReason"
+                      [checked]="reason() === option.code"
+                      (change)="setReason(option.code)"
+                    />
+                    {{ i18n.t(option.labelKey) }}
+                  </label>
+                </li>
+              }
+            </ul>
+
+            <label class="note">
+              <span class="note__label">{{ i18n.t('cancel.note') }}</span>
+              <textarea
+                class="note__input"
+                rows="3"
+                [value]="note()"
+                (change)="setNote($event)"
+              ></textarea>
+            </label>
+          </fieldset>
+        </section>
+      </div>
+
+      <aside class="side">
+        <div class="panel">
+          <h2 class="panel__title">{{ i18n.t('cancel.refundTitle') }}</h2>
+
+          @if (quote(); as refund) {
+            <dl class="refund">
+              <div class="refund__row">
+                <dt class="refund__label">{{ i18n.t('cancel.totalPaid') }}</dt>
+                <dd class="refund__value"><app-ui-money [amount]="refund.totalPaid" /></dd>
+              </div>
+
+              <div class="refund__row">
+                <dt class="refund__label">{{ i18n.t('cancel.commissionLabel') }}</dt>
+                <dd class="refund__value refund__value--muted">
+                  {{ i18n.t('cancel.commissionNote') }}
+                </dd>
+              </div>
+
+              <div class="refund__rule" aria-hidden="true"></div>
+
+              <div class="refund__row refund__row--total">
+                <dt class="refund__label">
+                  <span class="refund__totalLabel">{{ i18n.t('cancel.refundToYou') }}</span>
+                  <span class="refund__hint num">
+                    {{
+                      i18n.t('cancel.refundDestination', {
+                        destination: refund.refundDestination,
+                        days: refund.refundEtaBusinessDays,
+                      })
+                    }}
+                  </span>
+                </dt>
+                <dd class="refund__value">
+                  <app-ui-money strong class="refund__amount" [amount]="refund.refundAmount" />
+                </dd>
+              </div>
+            </dl>
+          }
+
+          <button appUiButton variant="danger" type="button" fullWidth (click)="openDialog()">
+            {{ i18n.t('cancel.confirmAction') }}
+          </button>
+
+          <a
+            appUiButton
+            variant="ghost"
+            class="side__back"
+            [routerLink]="['/my-bookings', bookingId()]"
+          >
+            {{ i18n.t('cancel.backToBooking') }}
+          </a>
+        </div>
+      </aside>
+    </div>
+  </article>
+
+  <app-ui-modal
+    tone="danger"
+    [open]="dialogOpen()"
+    [title]="i18n.t('cancel.dialogTitle')"
+    (dismissed)="closeDialog()"
+  >
+    <p>{{ i18n.t('cancel.dialogBody', { reference: booking()!.referenceNo }) }}</p>
+
+    @if (quote(); as refund) {
+      <p class="dialogRefund">
+        <span>{{ i18n.t('cancel.refundTitle') }}</span>
+        <app-ui-money strong [amount]="refund.refundAmount" />
+      </p>
+    }
+
+    <button
+      slot="actions"
+      appUiButton
+      variant="danger"
+      type="button"
+      [disabled]="submitting()"
+      (click)="confirm()"
+    >
+      {{ i18n.t('cancel.dialogConfirm') }}
+    </button>
+    <button slot="actions" appUiButton variant="outline" type="button" (click)="closeDialog()">
+      {{ i18n.t('cancel.dialogDismiss') }}
+    </button>
+  </app-ui-modal>
+}

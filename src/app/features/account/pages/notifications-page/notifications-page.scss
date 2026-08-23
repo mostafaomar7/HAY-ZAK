@@ -1,0 +1,153 @@
+@use 'abstracts' as a;
+
+.page {
+  @include a.stack(a.$space-20);
+
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: a.$space-16;
+
+  @include a.up(lg) {
+    padding: a.$space-24 a.$space-32 a.$space-40;
+  }
+}
+
+.page__head {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.page__heading {
+  @include a.stack(a.$space-4);
+}
+
+.page__title {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.page__sub {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  color: var(--color-text-muted);
+}
+
+// ── Day group ────────────────────────────────────────────────────────────
+.group {
+  @include a.stack(a.$space-10);
+}
+
+.group__head {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+}
+
+.group__label {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.group__hijri {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+.group__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-divider);
+}
+
+.list {
+  @include a.stack(a.$space-10);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  @include a.surface(a.$radius-lg);
+
+  display: block;
+  padding: a.$space-14 a.$space-16;
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.item--unread {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+
+  .item__title {
+    font-weight: a.$fw-bold;
+  }
+}
+
+.item__body {
+  @include a.stack(a.$space-4);
+}
+
+.item__titleRow {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+}
+
+.item__title {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: pretty;
+}
+
+.item__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-accent);
+}
+
+.item__text {
+  font-size: a.$fs-label;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.item__time {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}

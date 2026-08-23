@@ -1,0 +1,113 @@
+@use 'abstracts' as a;
+
+.choose {
+  @include a.stack(a.$space-24);
+}
+
+.choose__head {
+  @include a.stack(a.$space-8);
+}
+
+.choose__title {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.choose__sub {
+  margin: 0;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.choose__cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: a.$space-16;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.option {
+  @include a.surface(a.$radius-xl);
+  @include a.stack(a.$space-12);
+
+  padding: a.$space-20;
+  transition: border-color a.$transition-fast;
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.option__mark {
+  @include a.flex-center;
+
+  width: 44px;
+  height: 44px;
+  border-radius: a.$radius-lg;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: a.$fs-2xl;
+}
+
+.option__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.option__body {
+  margin: 0;
+  font-size: a.$fs-label;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.option__points {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option__point {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  font-size: a.$fs-label;
+  color: var(--color-text);
+}
+
+.option__tick {
+  @include a.flex-center;
+
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-bold;
+}
+
+.option__action {
+  width: 100%;
+  margin-top: auto;
+}
+
+.choose__foot {
+  margin: 0;
+  font-size: a.$fs-label;
+  color: var(--color-text-muted);
+  text-align: center;
+}

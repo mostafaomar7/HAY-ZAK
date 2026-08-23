@@ -1,0 +1,82 @@
+@use '../abstracts' as a;
+
+/// The vocabulary of a projected admin-table cell.
+///
+/// These live in the global layer, not in `admin-table.scss`, for a reason worth
+/// knowing: a row's cells are declared in the *page's* template and projected
+/// into the table, so under emulated encapsulation they carry the page's
+/// attribute and the table's stylesheet cannot reach them. The alternatives were
+/// `::ng-deep` (deprecated, and it leaks) or the same forty lines copied into six
+/// page stylesheets. One documented global vocabulary beats both.
+///
+/// Nothing outside the admin console uses these classes.
+
+.cell {
+  padding: a.$space-12 a.$space-14;
+  min-width: 0;
+  font-size: a.$fs-label;
+
+  @include a.truncate;
+}
+
+.cell--strong {
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.cell--muted {
+  color: var(--color-text-muted);
+}
+
+.cell--link {
+  color: var(--color-link);
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+/// Two lines in one cell: a date over its Hijri equivalent, a name over a
+/// reference number.
+.cell--stack {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.cell__sub {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+/// The currency or unit that follows a figure — never the same weight as it.
+.unit {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-muted);
+}
+
+/// An inline qualifier beside a title: "إعلان معدّل".
+.tag {
+  display: inline-block;
+  margin-inline-start: a.$space-6;
+  padding: 1px a.$space-8;
+  border-radius: a.$radius-sm;
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-fg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+}
+
+/// Waiting time, tinted once it passes the review window.
+.wait {
+  @include a.numeric;
+
+  color: var(--color-text-muted);
+}
+
+.wait--late {
+  padding: a.$space-2 a.$space-10;
+  border-radius: a.$radius-sm;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-weight: a.$fw-semibold;
+}

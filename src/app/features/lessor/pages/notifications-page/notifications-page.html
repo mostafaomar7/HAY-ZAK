@@ -1,0 +1,61 @@
+<section class="page">
+  @if (unreadCount() > 0) {
+    <div class="page__toolbar">
+      <p class="page__count">
+        <span class="num" dir="ltr">{{ unreadCount() }}</span>
+        إشعارات غير مقروءة
+      </p>
+      <button appUiButton variant="ghost" (click)="markAllRead()">تحديد الكل كمقروء</button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <p class="page__loading" role="status">جارٍ تحميل الإشعارات...</p>
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      title="تعذّر تحميل الإشعارات"
+      hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+    >
+      <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+    </app-ui-empty-state>
+  } @else if (isEmpty()) {
+    <app-ui-empty-state
+      title="لا توجد إشعارات"
+      hint="يصلك إشعار هنا عند وصول طلب حجز، أو صدور قرار على مساحة، أو تحويل مستحقاتك."
+    />
+  } @else {
+    @for (group of groups(); track group.label) {
+      <section class="group">
+        <h2 class="group__label">{{ group.label }}</h2>
+
+        <ul class="list">
+          @for (item of group.items; track item.id) {
+            <li>
+              <button
+                type="button"
+                class="row"
+                [class.row--unread]="!item.isRead"
+                (click)="open(item)"
+              >
+                <span class="row__dot" aria-hidden="true"></span>
+
+                <span class="row__body">
+                  <span class="row__title">{{ item.title }}</span>
+                  @if (item.body) {
+                    <span class="row__text">{{ item.body }}</span>
+                  }
+                  <span class="row__time num">{{ timeLabel(item) }}</span>
+                </span>
+
+                @if (!item.isRead) {
+                  <span class="sr-only">(غير مقروء)</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

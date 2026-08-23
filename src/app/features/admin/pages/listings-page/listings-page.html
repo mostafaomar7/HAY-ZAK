@@ -1,0 +1,194 @@
+<app-admin-filter-bar
+  [searchPlaceholder]="i18n.t('listings.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  selectable
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('listings.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [selected]="list.selected()"
+  [sort]="list.sort()"
+  [rowTone]="tone()"
+  [emptyTitle]="i18n.t('listings.empty')"
+  [emptyHint]="i18n.t('listings.emptyHint')"
+  [errorTitle]="i18n.t('listings.error')"
+  [errorHint]="i18n.t('listings.errorHint')"
+  errorRef="ERR-5031"
+  (rowOpen)="openRow($any($event))"
+  (selectionChange)="list.setSelection($event)"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-container tableActions>
+    <button
+      appUiButton
+      variant="primary"
+      size="sm"
+      type="button"
+      [disabled]="submitting()"
+      (click)="approveSelected()"
+    >
+      {{ i18n.t('admin.approveSelected') }}
+    </button>
+    <button
+      appUiButton
+      variant="danger"
+      size="sm"
+      type="button"
+      [disabled]="submitting()"
+      (click)="askRejectSelected()"
+    >
+      {{ i18n.t('admin.rejectSelected') }}
+    </button>
+  </ng-container>
+
+  <ng-template #row let-row>
+    <span class="cell cell--strong">
+      {{ row.unitTitle }}
+      @if (row.isEdit) {
+        <span class="tag">{{ i18n.t('listings.editBadge') }}</span>
+      }
+    </span>
+    <span class="cell">{{ row.ownerName }}</span>
+    <span class="cell cell--muted">{{ row.categoryName }}</span>
+    <span class="cell cell--muted">{{ row.cityName }}</span>
+    <span class="cell num"
+      >{{ row.dailyPrice }} <span class="unit">{{ i18n.t('admin.sar') }}</span></span
+    >
+    <span class="cell num">{{ row.submittedAt | date: 'd MMM y' }}</span>
+    <span class="cell">
+      <span class="wait num" [class.wait--late]="isLate(row.waitingHours)">
+        {{ waitLabel(row.waitingHours) }}
+      </span>
+    </span>
+    <span class="cell cell--link">{{ i18n.t('admin.openReview') }}</span>
+  </ng-template>
+</app-admin-table>
+
+<!-- Review panel -->
+@if (detail(); as unit) {
+  <app-admin-panel
+    open
+    [eyebrow]="i18n.t('listings.panelEyebrow')"
+    [title]="unit.unitTitle"
+    (dismissed)="closePanel()"
+  >
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('listings.photos') }}</h3>
+      @if (unit.imageUrls.length === 0) {
+        <p class="block__note">{{ i18n.t('listings.noPhotos') }}</p>
+      } @else {
+        <div class="shots">
+          @for (url of unit.imageUrls; track url) {
+            <img class="shots__img" [src]="url" [alt]="unit.unitTitle" />
+          }
+        </div>
+      }
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('listings.unitData') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('admin.category') }}</dt>
+          <dd>{{ unit.categoryName }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('admin.city') }}</dt>
+          <dd>{{ unit.cityName }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('listings.district') }}</dt>
+          <dd>{{ unit.districtName }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('listings.area') }}</dt>
+          <dd class="num">{{ unit.areaSqm }} م²</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('listings.price') }}</dt>
+          <dd class="num">{{ unit.dailyPrice }} {{ i18n.t('admin.sar') }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('listings.sentAt') }}</dt>
+          <dd class="num">{{ unit.submittedAt | date: 'd MMMM y' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('listings.ownerData') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('users.name') }}</dt>
+          <dd>{{ unit.owner.name }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.mobile') }}</dt>
+          <dd class="num" dir="ltr">{{ unit.owner.mobile }}</dd>
+        </div>
+        @if (unit.owner.email) {
+          <div class="fact">
+            <dt>{{ i18n.t('users.email') }}</dt>
+            <dd dir="ltr">{{ unit.owner.email }}</dd>
+          </div>
+        }
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.verified') }}</dt>
+          <dd>
+            <app-ui-badge [tone]="unit.owner.isVerified ? 'success' : 'warning'">
+              {{ unit.owner.isVerified ? i18n.t('users.verify') : i18n.t('admin.status') }}
+            </app-ui-badge>
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('listings.ownerDescription') }}</h3>
+      <p class="block__prose">{{ unit.description }}</p>
+    </section>
+
+    <ng-container panelActions>
+      <button
+        appUiButton
+        variant="primary"
+        type="button"
+        fullWidth
+        [disabled]="submitting()"
+        (click)="approveOne()"
+      >
+        {{ i18n.t('listings.approve') }}
+      </button>
+      <button
+        appUiButton
+        variant="danger"
+        type="button"
+        fullWidth
+        [disabled]="submitting()"
+        (click)="askRejectOne()"
+      >
+        {{ i18n.t('listings.rejectOne') }}
+      </button>
+    </ng-container>
+  </app-admin-panel>
+}
+
+<app-admin-reason-modal
+  queue="listing"
+  [open]="reasonOpen()"
+  [submitting]="submitting()"
+  (confirmed)="confirmReject($event)"
+  (dismissed)="reasonOpen.set(false)"
+/>

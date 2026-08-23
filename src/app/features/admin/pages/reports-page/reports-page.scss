@@ -1,0 +1,96 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.head {
+  @include a.surface(a.$radius-lg);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-8 a.$space-12;
+}
+
+.head__exports {
+  display: flex;
+  gap: a.$space-8;
+}
+
+// ── Report table ─────────────────────────────────────────────────────────
+// A grid, like every other table in the console. The column count differs per
+// report, so the track list is a modifier rather than a single shared value.
+.table {
+  @include a.surface(a.$radius-lg);
+  @include a.scrollbar(6px);
+
+  overflow-x: auto;
+}
+
+.table__head,
+.table__row {
+  display: grid;
+  align-items: center;
+  min-width: 640px;
+}
+
+.table__head {
+  grid-template-columns: 1.4fr 1fr 1.2fr;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+
+  span {
+    padding: a.$space-10 a.$space-16;
+    font-size: a.$fs-2xs;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text-muted);
+  }
+}
+
+.table__head--4 {
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+}
+
+.table__head--5 {
+  grid-template-columns: 1fr 1.4fr 1fr 1.2fr 1fr;
+}
+
+.table__row {
+  grid-template-columns: 1.4fr 1fr 1.2fr;
+  border-bottom: 1px solid var(--color-border-divider);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.table__row--4 {
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+}
+
+.table__row--5 {
+  grid-template-columns: 1.4fr 1.1fr 1fr 1fr 1.1fr;
+}
+
+.table__cell {
+  padding: a.$space-12 a.$space-16;
+  min-width: 0;
+  font-size: a.$fs-label;
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.table__cell--stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.table__cell--good {
+  color: var(--color-success-fg);
+  font-weight: a.$fw-semibold;
+}

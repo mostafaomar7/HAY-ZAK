@@ -1,0 +1,157 @@
+<section class="page">
+  <app-ui-stat-tile
+    [label]="i18n.t('earnings.total')"
+    [value]="totalEarnings()"
+    [filled]="true"
+    [hint]="i18n.t('earnings.totalHint')"
+  />
+
+  <div class="page__toolbar">
+    <label class="page__filter">
+      <span class="sr-only">{{ i18n.t('earnings.period') }}</span>
+      <select [value]="period()" (change)="onPeriod($any($event.target).value)">
+        @for (option of periods; track option.value) {
+          <option [value]="option.value">{{ i18n.t(option.labelKey) }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="page__filter">
+      <span class="sr-only">{{ i18n.t('earnings.unit') }}</span>
+      <select [value]="unitFilter()" (change)="onUnit($any($event.target).value)">
+        <option value="">{{ i18n.t('earnings.allUnits') }}</option>
+        @for (title of unitOptions(); track title) {
+          <option [value]="title">{{ title }}</option>
+        }
+      </select>
+    </label>
+
+    <button appUiButton variant="outline" (click)="downloadStatement()">
+      {{ i18n.t('earnings.export') }}
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="3" [label]="i18n.t('earnings.loading')" />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('earnings.loadFailed')"
+      [hint]="i18n.t('units.loadFailedHint')"
+    >
+      <button appUiButton variant="primary" (click)="fetch()">{{ i18n.t('common.retry') }}</button>
+    </app-ui-empty-state>
+  } @else if (visibleRows().length === 0) {
+    <app-ui-empty-state [title]="i18n.t('earnings.empty')" [hint]="i18n.t('earnings.emptyHint')">
+      <a appUiButton variant="primary" routerLink="/lessor/requests">{{
+        i18n.t('earnings.viewRequests')
+      }}</a>
+    </app-ui-empty-state>
+  } @else {
+    <div class="table" role="table" [attr.aria-label]="i18n.t('earnings.tableLabel')">
+      <div class="table__head" role="row">
+        <span role="columnheader">{{ i18n.t('earnings.colReference') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colUnit') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colPeriod') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colGross') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colCommission') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colNet') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colStatus') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colBankRef') }}</span>
+        <span role="columnheader">{{ i18n.t('earnings.colTransferDate') }}</span>
+      </div>
+
+      @for (row of visibleRows(); track row.bookingId) {
+        <div
+          class="table__row"
+          [class.table__row--hold]="isOnHold(row)"
+          [class.table__row--noted]="isProcessing(row)"
+          role="row"
+        >
+          <span class="cell" role="cell" [attr.data-label]="i18n.t('earnings.colReference')">
+            <span class="num" dir="ltr">{{ row.bookingReferenceNo }}</span>
+          </span>
+          <span
+            class="cell cell--title"
+            role="cell"
+            [attr.data-label]="i18n.t('earnings.colUnit')"
+            >{{ row.unitTitle }}</span
+          >
+          <span class="cell num" role="cell" [attr.data-label]="i18n.t('earnings.colPeriod')">
+            {{ row.startDate | date: dateFormat : undefined : i18n.language() }} &ndash;
+            {{ row.endDate | date: dateFormat : undefined : i18n.language() }}
+          </span>
+          <!-- Gross and commission are desktop-only: the design's phone card
+               shows the net alone, since that is the figure the lessor acts on. -->
+          <span class="cell cell--wide" role="cell" [attr.data-label]="i18n.t('earnings.colGross')">
+            <app-ui-money [amount]="row.grossAmount" />
+          </span>
+          <span
+            class="cell cell--wide cell--deduction"
+            role="cell"
+            [attr.data-label]="i18n.t('earnings.colCommission')"
+          >
+            <app-ui-money [amount]="row.commissionAmount" />
+          </span>
+          <span class="cell cell--net" role="cell" [attr.data-label]="i18n.t('earnings.colNet')">
+            <app-ui-money [amount]="row.netAmount" />
+          </span>
+          <span
+            class="cell cell--status"
+            role="cell"
+            [attr.data-label]="i18n.t('earnings.colStatus')"
+          >
+            <app-ui-badge [tone]="statusOf(row).tone" size="sm">
+              {{ statusLabel(row) }}
+            </app-ui-badge>
+          </span>
+          <span class="cell" role="cell" [attr.data-label]="i18n.t('earnings.colBankRef')">
+            @if (row.bankReference) {
+              <span class="num" dir="ltr">{{ row.bankReference }}</span>
+            } @else {
+              <span class="cell__empty" [attr.aria-label]="i18n.t('common.notAvailable')"
+                >&mdash;</span
+              >
+            }
+          </span>
+          <span
+            class="cell cell--wide num"
+            role="cell"
+            [attr.data-label]="i18n.t('earnings.colTransferDate')"
+          >
+            @if (row.transferredAt) {
+              {{ row.transferredAt | date: dateFormat : undefined : i18n.language() }}
+            } @else {
+              <span class="cell__empty" [attr.aria-label]="i18n.t('common.notAvailable')"
+                >&mdash;</span
+              >
+            }
+          </span>
+        </div>
+
+        @if (isProcessing(row)) {
+          <!-- Phone-only, as in the design: the desktop table is dense enough
+               that the "قيد التنفيذ" badge already says this. -->
+          <p class="note" role="row">
+            <span role="cell">{{ i18n.t('earnings.processingNote') }}</span>
+          </p>
+        }
+
+        @if (isOnHold(row) && row.holdReason) {
+          <div class="hold" role="row">
+            <div class="hold__text" role="cell">
+              <p class="hold__title">
+                {{ i18n.t('earnings.holdTitle', { reference: row.bookingReferenceNo }) }}
+              </p>
+              <p class="hold__reason">{{ row.holdReason }}</p>
+            </div>
+            <!-- The fix lives on the bank-details screen, not the profile. -->
+            <a appUiButton variant="primary" routerLink="/lessor/bank-account">
+              {{ i18n.t('earnings.fixBankDetails') }}
+            </a>
+          </div>
+        }
+      }
+    </div>
+  }
+</section>

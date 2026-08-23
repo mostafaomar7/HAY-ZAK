@@ -1,0 +1,75 @@
+<section class="page">
+  @if (blocker()) {
+    <!-- FR-LSR-03 — one blocker at a time, named, with its action beside it. -->
+    <div class="onboard">
+      <h2 class="onboard__title">خطوة واحدة تفصلك عن نشر مساحتك</h2>
+
+      @if (blocker() === 'mobile') {
+        <p class="onboard__text">
+          رقم جوالك
+          <span class="onboard__value num" dir="ltr">{{ user()?.mobile }}</span>
+          غير مُفعّل بعد.
+        </p>
+        <a appUiButton variant="accent" size="lg" routerLink="/auth/verify">فعّل جوالك</a>
+        <p class="onboard__hint">تنفتح إضافة المساحة بعد تفعيل جوالك.</p>
+      } @else {
+        <p class="onboard__text">أضِف بياناتك البنكية لتستلم مستحقاتك عن كل حجز.</p>
+        <a appUiButton variant="accent" size="lg" routerLink="/lessor/bank-account">
+          أضِف البيانات البنكية
+        </a>
+        <p class="onboard__hint">تنفتح إضافة المساحة بعد استكمال البيانات البنكية.</p>
+      }
+    </div>
+  }
+
+  @if (isLoading()) {
+    <p class="page__loading" role="status">جارٍ تحميل اللوحة...</p>
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      title="تعذّر تحميل اللوحة"
+      hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+    >
+      <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+    </app-ui-empty-state>
+  } @else if (data()) {
+    @let d = data()!;
+
+    <app-ui-stat-tile
+      label="إجمالي المستحقات"
+      [value]="d.totalReceivable"
+      [filled]="true"
+      hint="الصافي بعد خصم عمولة المنصة"
+    />
+
+    <div class="page__tiles">
+      @for (tile of tiles(); track tile.label) {
+        <app-ui-stat-tile [label]="tile.label" [value]="tile.value" [money]="false" />
+      }
+    </div>
+
+    <section class="recent">
+      <div class="recent__head">
+        <h2 class="recent__title">آخر الإشعارات</h2>
+        <a class="recent__all" routerLink="/lessor/notifications">عرض الكل</a>
+      </div>
+
+      @if (d.recentNotifications.length) {
+        <ul class="recent__list">
+          @for (item of d.recentNotifications; track item.id) {
+            <li class="recent__item">
+              <span
+                class="recent__dot"
+                [class.recent__dot--unread]="!item.isRead"
+                aria-hidden="true"
+              ></span>
+              <span>{{ item.title }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="recent__empty">لا توجد إشعارات بعد.</p>
+      }
+    </section>
+  }
+</section>

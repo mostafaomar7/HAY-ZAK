@@ -1,0 +1,48 @@
+@use 'abstracts' as a;
+
+.tile {
+  @include a.surface(a.$radius-xl);
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-6;
+  padding: a.$space-20 a.$space-24;
+}
+
+.tile__label {
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+}
+
+.tile__value {
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+  text-align: right;
+}
+
+.tile__hint {
+  font-size: a.$fs-sm;
+  color: var(--color-text-subtle);
+}
+
+.tile--filled {
+  padding: a.$space-32;
+  border-color: transparent;
+  background: var(--color-primary);
+
+  .tile__label {
+    font-size: a.$fs-xl;
+    color: color-mix(in srgb, var(--color-on-primary) 78%, transparent);
+  }
+
+  .tile__value {
+    // Scales down on a phone rather than overflowing the tile.
+    font-size: clamp(#{a.$fs-4xl}, 6vw, 48px);
+    color: var(--color-on-primary);
+  }
+
+  .tile__hint {
+    color: color-mix(in srgb, var(--color-on-primary) 70%, transparent);
+  }
+}

@@ -1,0 +1,10 @@
+@use 'abstracts' as a;
+
+.search {
+  @include a.control;
+
+  // The UA search-cancel button renders on the wrong side in RTL.
+  &::-webkit-search-cancel-button {
+    margin-inline-start: a.$space-4;
+  }
+}

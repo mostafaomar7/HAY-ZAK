@@ -1,0 +1,159 @@
+import type { Routes } from '@angular/router';
+import { Permission } from '@core/constants/permissions';
+import { guestGuard } from '@core/guards/guest.guard';
+import { permissionGuard } from '@core/guards/permission.guard';
+import { AdminQueueCountsService } from './services/admin-queue-counts.service';
+import { AdminSettingsStore } from './services/admin-settings.store';
+
+/**
+ * The operations console (FR-ADM, FR-RPT), lazy-loaded behind its own shell.
+ *
+ * Every child declares the permission it needs, matching its entry in
+ * `ADMIN_NAV` — so a route guard and the link that reaches it are derived from
+ * the same table and cannot disagree.
+ *
+ * `AdminSettingsStore` and the queue counters are provided here rather than on
+ * the shell component. A component provider is tied to that component's lifetime
+ * and is only reachable through the element-injector chain; on the route both
+ * live exactly as long as the console does and every page resolves the same
+ * instance, which is the whole reason they exist — one answer to "how late is
+ * late" and one answer to "how much work is waiting".
+ *
+ * `/admin/login` sits outside the shell — it has no sidebar, and a signed-in
+ * operator landing on it is sent on by `guestGuard`.
+ */
+export const ADMIN_ROUTES: Routes = [
+  {
+    path: 'login',
+    title: 'تسجيل دخول الإدارة',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/admin-login-page/admin-login-page').then((m) => m.AdminLoginPage),
+  },
+
+  {
+    path: '',
+    providers: [AdminSettingsStore, AdminQueueCountsService],
+    loadComponent: () => import('@layout/admin/admin-shell').then((m) => m.AdminShell),
+    children: [
+      {
+        path: 'dashboard',
+        title: 'لوحة المؤشرات',
+        data: { titleKey: 'adminNav.dashboard' },
+        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        loadComponent: () =>
+          import('./pages/dashboard-page/dashboard-page').then((m) => m.AdminDashboardPage),
+      },
+
+      {
+        path: 'listings',
+        title: 'مراجعة الإعلانات',
+        data: { titleKey: 'adminNav.listings' },
+        canActivate: [permissionGuard([Permission.ReviewUnit])],
+        loadComponent: () =>
+          import('./pages/listings-page/listings-page').then((m) => m.AdminListingsPage),
+      },
+      {
+        path: 'bookings',
+        title: 'مراجعة الحجوزات',
+        data: { titleKey: 'adminNav.bookings' },
+        canActivate: [permissionGuard([Permission.ReviewBooking])],
+        loadComponent: () =>
+          import('./pages/bookings-page/bookings-page').then((m) => m.AdminBookingsPage),
+      },
+      {
+        path: 'complaints',
+        title: 'الشكاوى',
+        data: { titleKey: 'adminNav.complaints' },
+        canActivate: [permissionGuard([Permission.ResolveDisputes])],
+        loadComponent: () =>
+          import('./pages/complaints-page/complaints-page').then((m) => m.AdminComplaintsPage),
+      },
+
+      {
+        path: 'payments',
+        title: 'متابعة المدفوعات',
+        data: { titleKey: 'adminNav.payments' },
+        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        loadComponent: () =>
+          import('./pages/payments-page/payments-page').then((m) => m.AdminPaymentsPage),
+      },
+      {
+        path: 'transfers',
+        title: 'التحويلات',
+        data: { titleKey: 'adminNav.transfers' },
+        canActivate: [permissionGuard([Permission.ExecutePayouts])],
+        loadComponent: () =>
+          import('./pages/transfers-page/transfers-page').then((m) => m.AdminTransfersPage),
+      },
+      {
+        path: 'reports',
+        title: 'التقارير',
+        data: { titleKey: 'adminNav.reports' },
+        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        loadComponent: () =>
+          import('./pages/reports-page/reports-page').then((m) => m.AdminReportsPage),
+      },
+      {
+        path: 'financial-settings',
+        title: 'الإعدادات المالية',
+        data: { titleKey: 'adminNav.financialSettings' },
+        canActivate: [permissionGuard([Permission.ConfigureFinancials])],
+        loadComponent: () =>
+          import('./pages/financial-settings-page/financial-settings-page').then(
+            (m) => m.AdminFinancialSettingsPage,
+          ),
+      },
+
+      {
+        path: 'users',
+        title: 'المستخدمون',
+        data: { titleKey: 'adminNav.users' },
+        canActivate: [permissionGuard([Permission.ManageUsers])],
+        loadComponent: () => import('./pages/users-page/users-page').then((m) => m.AdminUsersPage),
+      },
+      {
+        path: 'reference-lists',
+        title: 'القوائم المرجعية',
+        data: { titleKey: 'adminNav.referenceLists' },
+        canActivate: [permissionGuard([Permission.ManageReferenceData])],
+        loadComponent: () =>
+          import('./pages/reference-lists-page/reference-lists-page').then(
+            (m) => m.AdminReferenceListsPage,
+          ),
+      },
+      {
+        path: 'content',
+        title: 'إدارة المحتوى',
+        data: { titleKey: 'adminNav.content' },
+        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        loadComponent: () =>
+          import('./pages/content-page/content-page').then((m) => m.AdminContentPage),
+      },
+      {
+        path: 'terms',
+        title: 'الشروط والأحكام',
+        data: { titleKey: 'adminNav.terms' },
+        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        loadComponent: () => import('./pages/terms-page/terms-page').then((m) => m.AdminTermsPage),
+      },
+      {
+        path: 'audit',
+        title: 'سجل التدقيق',
+        data: { titleKey: 'adminNav.audit' },
+        canActivate: [permissionGuard([Permission.ViewAuditTrail])],
+        loadComponent: () => import('./pages/audit-page/audit-page').then((m) => m.AdminAuditPage),
+      },
+      {
+        path: 'library',
+        title: 'مكتبة المكوّنات',
+        data: { titleKey: 'adminNav.library' },
+        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        loadComponent: () =>
+          import('./pages/library-page/library-page').then((m) => m.AdminLibraryPage),
+      },
+
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+    ],
+  },
+];

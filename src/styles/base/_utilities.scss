@@ -1,0 +1,38 @@
+@use '../abstracts' as a;
+
+.container {
+  width: 100%;
+  max-width: a.$content-max-width;
+  margin-inline: auto;
+  padding-inline: a.$space-16;
+}
+
+.sr-only {
+  @include a.visually-hidden;
+}
+
+.truncate {
+  @include a.truncate;
+}
+
+/// Wrap any figure, amount, date range or reference number in this.
+/// See the `numeric` mixin for why it is not optional in an RTL layout.
+.num {
+  @include a.numeric;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-subtle {
+  color: var(--color-text-subtle);
+}
+
+.text-danger {
+  color: var(--color-danger-fg);
+}
+
+.text-success {
+  color: var(--color-success-fg);
+}

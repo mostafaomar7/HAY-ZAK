@@ -1,0 +1,110 @@
+<header class="bar">
+  <a class="brand" routerLink="/">
+    <span class="brand__ar">{{ i18n.t('nav.brand') }}</span>
+    <span class="brand__latin">{{ i18n.t('public.brandLatin') }}</span>
+  </a>
+
+  <nav class="nav" [attr.aria-label]="i18n.t('nav.menu')">
+    <a class="nav__link" routerLink="/units" routerLinkActive="nav__link--active">
+      {{ i18n.t('public.browse') }}
+    </a>
+
+    <a class="nav__link" routerLink="/pages/how-it-works" routerLinkActive="nav__link--active">
+      {{ i18n.t('pages.howItWorks') }}
+    </a>
+
+    <a class="nav__link" routerLink="/pages/faq" routerLinkActive="nav__link--active">
+      {{ i18n.t('pages.faq') }}
+    </a>
+
+    <a class="nav__link" routerLink="/pages/contact" routerLinkActive="nav__link--active">
+      {{ i18n.t('pages.contact') }}
+    </a>
+
+    @if (isAuthenticated()) {
+      <a class="nav__link" routerLink="/my-bookings" routerLinkActive="nav__link--active">
+        {{ i18n.t('public.myBookings') }}
+      </a>
+    }
+  </nav>
+
+  <div class="actions">
+    <button
+      type="button"
+      class="icon-btn icon-btn--label"
+      [attr.aria-label]="i18n.t('topbar.language')"
+      (click)="toggleLanguage.emit()"
+    >
+      <app-ui-icon name="globe" [size]="20" />
+      <span dir="ltr">{{ i18n.label() }}</span>
+    </button>
+
+    @if (isAuthenticated()) {
+      <div class="bell" (appClickOutside)="closeNotifications()">
+        <button
+          type="button"
+          class="icon-btn"
+          [attr.aria-label]="i18n.t('topbar.notifications')"
+          [attr.aria-expanded]="notificationsOpen()"
+          (click)="toggleNotifications()"
+        >
+          <app-ui-icon name="bell" [size]="20" />
+          @if (unreadCount() > 0) {
+            <span class="bell__count num" dir="ltr" aria-hidden="true">{{ unreadCount() }}</span>
+            <span class="sr-only">{{ i18n.t('topbar.unread', { count: unreadCount() }) }}</span>
+          }
+        </button>
+
+        @if (notificationsOpen()) {
+          <div class="dropdown" role="dialog" [attr.aria-label]="i18n.t('topbar.notifications')">
+            <div class="dropdown__header">
+              <span>{{ i18n.t('topbar.notifications') }}</span>
+              @if (unreadCount() > 0) {
+                <button type="button" class="dropdown__markAll" (click)="markAllRead()">
+                  {{ i18n.t('public.markAllRead') }}
+                </button>
+              }
+            </div>
+
+            <div class="dropdown__body">
+              @for (item of notifications(); track item.id) {
+                <a
+                  class="notif"
+                  [class.notif--unread]="!item.isRead"
+                  [routerLink]="item.targetUrl ?? '/my-bookings'"
+                  (click)="closeNotifications()"
+                >
+                  <span class="notif__dot" aria-hidden="true"></span>
+                  <span class="notif__title">{{ item.title }}</span>
+                </a>
+              } @empty {
+                <p class="dropdown__empty">{{ i18n.t('topbar.noNotifications') }}</p>
+              }
+            </div>
+
+            <a
+              class="dropdown__all"
+              routerLink="/account/notifications"
+              (click)="closeNotifications()"
+            >
+              {{ i18n.t('topbar.viewAllNotifications') }}
+            </a>
+          </div>
+        }
+      </div>
+
+      <a class="account" routerLink="/account" [attr.aria-label]="i18n.t('nav.account')">
+        <span aria-hidden="true">{{ user()?.fullName?.charAt(0) }}</span>
+      </a>
+    } @else {
+      <a appUiButton variant="ghost" routerLink="/auth/login">{{ i18n.t('public.signIn') }}</a>
+    }
+
+    <!-- Cross-sell into the lessor portal, exactly as the design has it. It goes
+         through the account-type screen because one account holds one role
+         (FR-AUTH-12) and the visitor may already be a renter. -->
+    <a appUiButton variant="accent" class="actions__cta" routerLink="/auth/account-type">
+      {{ i18n.t('public.listYourSpace') }}
+    </a>
+  </div>
+</header>

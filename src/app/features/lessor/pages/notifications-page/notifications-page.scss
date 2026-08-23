@@ -1,0 +1,119 @@
+@use 'abstracts' as a;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-20;
+}
+
+.page__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  flex-wrap: wrap;
+}
+
+.page__count {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+}
+
+.page__loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-8;
+}
+
+.group__label {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-subtle);
+}
+
+.list {
+  @include a.surface(a.$radius-xl);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+}
+
+.row {
+  @include a.focus-ring;
+
+  display: flex;
+  gap: a.$space-10;
+  width: 100%;
+  padding: a.$space-12 a.$space-16;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  li:last-child & {
+    border-bottom: 0;
+  }
+}
+
+// Unread rows get a tint and a gold marker — never colour alone, the template
+// also announces "(غير مقروء)".
+.row--unread {
+  background: var(--color-primary-soft);
+
+  .row__dot {
+    background: var(--color-accent);
+  }
+
+  .row__title {
+    font-weight: a.$fw-semibold;
+  }
+}
+
+.row__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  margin-top: 7px;
+  border-radius: a.$radius-pill;
+  background: transparent;
+}
+
+.row__body {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-2;
+  min-width: 0;
+}
+
+.row__title {
+  font-size: a.$fs-sm;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.row__text {
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.row__time {
+  font-size: a.$fs-xs;
+  color: var(--color-text-faint);
+}

@@ -1,0 +1,363 @@
+@if (submitted()) {
+  <!-- FR-UNT-07 — the confirmation says what happens next, not just "done". -->
+  <section class="done">
+    <span class="done__mark" aria-hidden="true">&check;</span>
+    <h2 class="done__title">تمت إضافة المساحة</h2>
+    <p class="done__text">
+      أُرسلت المساحة إلى إدارة المنصة للمراجعة. يصلك إشعار بالنتيجة، ولا تظهر المساحة في السوق قبل
+      الموافقة عليها.
+    </p>
+    <div class="done__actions">
+      <a appUiButton variant="primary" routerLink="/lessor/units">العودة إلى مساحاتي</a>
+    </div>
+  </section>
+} @else {
+  <form class="wizard" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <app-ui-wizard-steps [steps]="steps" [current]="step()" (goTo)="goTo($event)" />
+
+    <!-- ── Step 1 — basics ────────────────────────────────────────────── -->
+    @if (step() === 1) {
+      <section class="panel">
+        <app-ui-choice-chips
+          legend="تصنيف المساحة"
+          name="unit-category"
+          [options]="categoryOptions()"
+          [selected]="form.controls.categoryId.value ?? ''"
+          [error]="categoryError()"
+          (selectionChange)="form.controls.categoryId.setValue($event)"
+        />
+
+        <app-ui-field
+          label="عنوان المساحة"
+          for="u-title"
+          [control]="form.controls.title"
+          hint="اذكر النوع والحي، مثل: مستودع مكيّف — النرجس"
+        >
+          <input id="u-title" type="text" formControlName="title" />
+        </app-ui-field>
+
+        <app-ui-field
+          label="الوصف"
+          for="u-desc"
+          [control]="form.controls.description"
+          [hint]="descriptionCount()"
+        >
+          <textarea
+            id="u-desc"
+            formControlName="description"
+            [maxlength]="descriptionLimit"
+            placeholder="اذكر ما يميّز المساحة، وطريقة الوصول إليها، وأي قيود على الاستخدام."
+          ></textarea>
+        </app-ui-field>
+
+        <div class="panel__row">
+          <app-ui-field
+            label="المساحة التقريبية (متر مربع)"
+            for="u-area"
+            [control]="form.controls.areaSqm"
+            hint="للاسترشاد: الغرفة نحو 15 م²، القراج نحو 18 م²، المستودع الصغير نحو 35 م²"
+          >
+            <input
+              id="u-area"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="areaSqm"
+            />
+          </app-ui-field>
+
+          <app-ui-field
+            label="السعر اليومي (ريال)"
+            for="u-price"
+            [control]="form.controls.dailyPrice"
+            [hint]="monthlyHint()"
+          >
+            <input
+              id="u-price"
+              type="number"
+              inputmode="decimal"
+              min="1"
+              formControlName="dailyPrice"
+            />
+          </app-ui-field>
+        </div>
+
+        <div class="panel__row">
+          <app-ui-field
+            label="أقل مدة للحجز (بالأيام)"
+            for="u-min"
+            [control]="form.controls.minDays"
+          >
+            <input id="u-min" type="number" inputmode="numeric" min="1" formControlName="minDays" />
+          </app-ui-field>
+
+          <app-ui-field
+            label="أقصى مدة للحجز (بالأيام)"
+            for="u-max"
+            [optional]="true"
+            [control]="form.controls.maxDays"
+          >
+            <input id="u-max" type="number" inputmode="numeric" min="1" formControlName="maxDays" />
+          </app-ui-field>
+        </div>
+
+        <!-- Optional extras, collapsed by default so the required path stays short. -->
+        <div class="extras">
+          <button
+            type="button"
+            class="extras__toggle"
+            [attr.aria-expanded]="extrasOpen()"
+            (click)="extrasOpen.set(!extrasOpen())"
+          >
+            تفاصيل إضافية (اختياري)
+            <span aria-hidden="true">{{ extrasOpen() ? '−' : '+' }}</span>
+          </button>
+
+          @if (extrasOpen()) {
+            <div class="extras__body">
+              <app-ui-field label="الدور" for="u-floor" [optional]="true">
+                <select id="u-floor" formControlName="floor">
+                  @for (floor of floors; track floor.value) {
+                    <option [value]="floor.value">{{ floor.label }}</option>
+                  }
+                </select>
+              </app-ui-field>
+
+              <app-ui-choice-chips
+                legend="مزايا المساحة"
+                name="unit-perks"
+                [multiple]="true"
+                [optional]="true"
+                [options]="perkOptions"
+                [selected]="form.controls.perks.value ?? []"
+                (selectionChange)="togglePerk($event)"
+              />
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ── Step 2 — location ──────────────────────────────────────────── -->
+    @if (step() === 2) {
+      <section class="panel">
+        <div class="panel__row">
+          <app-ui-field label="المدينة" for="u-city" [control]="form.controls.cityId">
+            <select
+              id="u-city"
+              formControlName="cityId"
+              (change)="onCityChange($any($event.target).value)"
+            >
+              <option value="">اختر المدينة</option>
+              @for (city of cities(); track city.id) {
+                <option [value]="city.id">{{ city.nameAr }}</option>
+              }
+            </select>
+          </app-ui-field>
+
+          <app-ui-field label="الحي" for="u-district" [control]="form.controls.districtId">
+            <select
+              id="u-district"
+              formControlName="districtId"
+              [disabled]="districts().length === 0"
+            >
+              <option value="">اختر الحي</option>
+              @for (district of districts(); track district.id) {
+                <option [value]="district.id">{{ district.nameAr }}</option>
+              }
+            </select>
+          </app-ui-field>
+        </div>
+
+        <!-- FR-UNT-11 — before approval the marketplace shows an approximate
+             radius, not this exact pin. -->
+        <app-ui-notice tone="info">
+          حدّد الموقع على الخريطة بدقة. لا يظهر العنوان التفصيلي للمستأجرين قبل اعتماد الحجز — تُعرض
+          دائرة تقريبية فقط.
+        </app-ui-notice>
+
+        <div class="map" aria-hidden="true">
+          <span class="map__hint">خريطة تحديد الموقع</span>
+        </div>
+
+        <div class="panel__row">
+          <app-ui-field label="خط العرض" for="u-lat" [control]="form.controls.latitude">
+            <input
+              id="u-lat"
+              type="number"
+              step="any"
+              inputmode="decimal"
+              formControlName="latitude"
+            />
+          </app-ui-field>
+
+          <app-ui-field label="خط الطول" for="u-lng" [control]="form.controls.longitude">
+            <input
+              id="u-lng"
+              type="number"
+              step="any"
+              inputmode="decimal"
+              formControlName="longitude"
+            />
+          </app-ui-field>
+        </div>
+
+        <app-ui-field
+          label="العنوان الدقيق"
+          for="u-address"
+          [control]="form.controls.addressLine"
+          hint="الشارع ورقم المبنى. لا يظهر للمستأجر إلا بعد اعتماد حجزه."
+        >
+          <input id="u-address" type="text" formControlName="addressLine" />
+        </app-ui-field>
+
+        <app-ui-field label="الرمز البريدي" for="u-postal" optional>
+          <input
+            id="u-postal"
+            type="text"
+            inputmode="numeric"
+            formControlName="postalCode"
+            dir="ltr"
+          />
+        </app-ui-field>
+
+        <!-- FR-UNT-06 — one row per group of days that share an opening window. -->
+        <fieldset class="hours">
+          <legend class="hours__legend">أوقات الزيارة المسموحة</legend>
+          <p class="hours__hint">
+            حدّد الأيام ووقت الفتح والإغلاق. يمكن إضافة أكثر من فترة لو اختلفت الأيام.
+          </p>
+
+          <div class="hours__rows" formArrayName="visitSchedule">
+            @for (row of schedule.controls; track $index; let i = $index) {
+              <div class="row" [formGroupName]="i" [class.row--invalid]="windowInvalid(i)">
+                <div class="row__days" role="group" aria-label="أيام الفترة">
+                  @for (weekday of weekdays; track weekday.day) {
+                    <button
+                      type="button"
+                      class="day"
+                      [class.day--on]="isDayOn(i, weekday.day)"
+                      [attr.aria-pressed]="isDayOn(i, weekday.day)"
+                      (click)="toggleDay(i, weekday.day)"
+                    >
+                      {{ weekday.label }}
+                    </button>
+                  }
+                </div>
+
+                <div class="row__times">
+                  <label class="time">
+                    <span class="time__label">من</span>
+                    <input class="time__input" type="time" formControlName="from" />
+                  </label>
+
+                  <label class="time">
+                    <span class="time__label">إلى</span>
+                    <input class="time__input" type="time" formControlName="to" />
+                  </label>
+
+                  @if (schedule.length > 1) {
+                    <button
+                      type="button"
+                      class="row__remove"
+                      aria-label="حذف هذه الفترة"
+                      (click)="removeWindow(i)"
+                    >
+                      <span aria-hidden="true">✕</span>
+                    </button>
+                  }
+                </div>
+
+                @if (windowInvalid(i)) {
+                  <p class="row__error" role="alert">
+                    اختر يومًا واحدًا على الأقل، ووقت إغلاق بعد وقت الفتح.
+                  </p>
+                }
+              </div>
+            }
+          </div>
+
+          <button type="button" class="hours__add" (click)="addWindow()">إضافة فترة أخرى</button>
+
+          @if (uncovered().length) {
+            <!-- A note, not an error: a space that closes on Friday is a valid answer. -->
+            <p class="hours__uncovered">لا توجد أوقات زيارة في: {{ uncovered().join('، ') }}</p>
+          }
+        </fieldset>
+      </section>
+    }
+
+    <!-- ── Step 3 — photos ────────────────────────────────────────────── -->
+    @if (step() === 3) {
+      <section class="panel">
+        <h2 class="panel__title">صور المساحة</h2>
+        <p class="panel__hint">
+          أضِف من {{ imageRules.min }} إلى {{ imageRules.max }} صور واضحة في ضوء النهار تُظهر
+          المساحة بالكامل. الحد الأقصى لحجم الصورة
+          <span class="num" dir="ltr">{{ imageRules.maxSizeMb }}</span> ميجابايت.
+        </p>
+
+        <div class="images">
+          @for (image of images(); track image.previewUrl; let i = $index) {
+            <figure class="images__item">
+              <app-ui-thumbnail [src]="image.previewUrl" alt="" size="md" />
+              @if (i === 0) {
+                <figcaption class="images__primary">الصورة الرئيسية</figcaption>
+              }
+              <button type="button" class="images__remove" (click)="removeImage(i)">
+                إزالة
+                <span class="sr-only">الصورة {{ i + 1 }}</span>
+              </button>
+            </figure>
+          }
+
+          @if (canAddMoreImages()) {
+            <label class="images__add">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                (change)="onFilesSelected($event)"
+              />
+              <span aria-hidden="true">+</span>
+              <span>إضافة صورة</span>
+            </label>
+          }
+        </div>
+
+        @if (!imagesValid()) {
+          <p class="panel__error" role="status">
+            تحتاج {{ imageRules.min }} صور على الأقل قبل الإرسال.
+          </p>
+        }
+      </section>
+    }
+
+    <!-- ── Footer ─────────────────────────────────────────────────────── -->
+    <footer class="actions">
+      @if (step() > 1) {
+        <button type="button" appUiButton variant="ghost" (click)="back()">السابق</button>
+      }
+
+      <button
+        type="button"
+        appUiButton
+        variant="outline"
+        [disabled]="saving()"
+        (click)="saveDraft()"
+      >
+        الحفظ كمسودة
+      </button>
+
+      @if (step() < 3) {
+        <button type="button" appUiButton variant="primary" (click)="next()">
+          التالي: {{ steps[step()].label }}
+        </button>
+      } @else {
+        <button type="submit" appUiButton variant="accent" [disabled]="saving() || !imagesValid()">
+          {{ saving() ? 'جارٍ الإرسال...' : 'إرسال للمراجعة' }}
+        </button>
+      }
+    </footer>
+  </form>
+}

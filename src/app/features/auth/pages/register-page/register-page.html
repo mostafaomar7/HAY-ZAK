@@ -1,0 +1,119 @@
+<form class="authForm" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <header class="authForm__head">
+    <h1 class="authForm__title">{{ isRenter() ? 'تسجيل مستأجر' : 'تسجيل مؤجر جديد' }}</h1>
+    <!-- FR-AUTH-12 — one role per account in Phase 1. -->
+    <p class="authForm__sub">
+      {{
+        isRenter()
+          ? 'كل الحقول إلزامية. تُستخدم البيانات للتحقق ولإصدار الفاتورة فقط.'
+          : 'الحساب بدور واحد فقط: مؤجر مساحة.'
+      }}
+    </p>
+  </header>
+
+  @if (error()) {
+    <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
+  }
+
+  <app-ui-field label="الاسم الكامل" for="r-name" [control]="form.controls.fullName">
+    <input id="r-name" type="text" formControlName="fullName" autocomplete="name" />
+  </app-ui-field>
+
+  <app-ui-field
+    label="رقم الهوية أو الإقامة"
+    for="r-id"
+    [control]="form.controls.idNumber"
+    hint="10 أرقام، تبدأ بـ 1 للهوية الوطنية أو 2 للإقامة."
+  >
+    <input
+      id="r-id"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      formControlName="idNumber"
+      dir="ltr"
+    />
+  </app-ui-field>
+
+  <!-- FR-AUTH-03 — the renter's address is part of the invoice record. -->
+  @if (isRenter()) {
+    <app-ui-field label="العنوان" for="r-address" [control]="form.controls.address">
+      <input id="r-address" type="text" formControlName="address" autocomplete="street-address" />
+    </app-ui-field>
+  }
+
+  <app-ui-field label="البريد الإلكتروني" for="r-email" [control]="form.controls.email">
+    <input id="r-email" type="email" formControlName="email" autocomplete="email" dir="ltr" />
+  </app-ui-field>
+
+  <app-ui-field
+    label="رقم الجوال"
+    for="r-mobile"
+    [control]="form.controls.mobile"
+    hint="يُرسل رمز تحقق على هذا الرقم لتفعيل الحساب."
+  >
+    <span class="phone">
+      <span class="phone__code" dir="ltr" aria-hidden="true">+966</span>
+      <input
+        id="r-mobile"
+        type="tel"
+        inputmode="numeric"
+        placeholder="5XXXXXXXX"
+        formControlName="mobile"
+        autocomplete="tel-national"
+        dir="ltr"
+      />
+    </span>
+  </app-ui-field>
+
+  <div class="authForm__row">
+    <app-ui-field
+      label="كلمة المرور"
+      for="r-password"
+      [control]="form.controls.password"
+      hint="8 خانات على الأقل، بحرف كبير وصغير ورقم."
+    >
+      <input
+        id="r-password"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+      />
+      <app-ui-password-strength [value]="password()" />
+    </app-ui-field>
+
+    <app-ui-field
+      label="تأكيد كلمة المرور"
+      for="r-confirm"
+      [control]="form.controls.confirmPassword"
+    >
+      <input
+        id="r-confirm"
+        type="password"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+      />
+    </app-ui-field>
+  </div>
+
+  <label class="terms">
+    <input type="checkbox" formControlName="acceptedTerms" />
+    <span>
+      أوافق على
+      <a routerLink="/pages/terms">الشروط والأحكام</a>
+      وسياسة الخصوصية.
+    </span>
+  </label>
+  @if (form.controls.acceptedTerms.touched && form.controls.acceptedTerms.invalid) {
+    <p class="authForm__error" role="alert">يجب الموافقة على الشروط لإكمال التسجيل.</p>
+  }
+
+  <button appUiButton variant="primary" size="lg" [fullWidth]="true" [disabled]="submitting()">
+    {{ submitting() ? 'جارٍ إنشاء الحساب...' : 'إنشاء الحساب' }}
+  </button>
+
+  <p class="authForm__foot">
+    لديك حساب بالفعل؟
+    <a routerLink="/auth/login" [queryParams]="{ returnUrl: returnUrl() || null }">تسجيل الدخول</a>
+  </p>
+</form>

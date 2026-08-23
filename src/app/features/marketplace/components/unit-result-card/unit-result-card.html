@@ -1,0 +1,68 @@
+<article class="card" [class.card--active]="active()" [class.card--tile]="layout() === 'tile'">
+  <a class="card__link" [routerLink]="['/units', unit().id]">
+    <span class="sr-only">{{ unit().title }}</span>
+  </a>
+
+  <div class="card__media">
+    <app-ui-thumbnail class="card__thumb" [src]="cover()" [alt]="unit().title" />
+    <span class="card__category">{{ i18n.pick(unit().category) }}</span>
+    @if (isBooked()) {
+      <span class="card__booked">{{ i18n.t('details.bookedNow') }}</span>
+    }
+  </div>
+
+  <div class="card__body">
+    <div class="card__main">
+      <h3 class="card__title">{{ unit().title }}</h3>
+
+      <p class="card__meta">
+        <span>{{ place() }}</span>
+        @if (unit().distanceKm !== undefined) {
+          <span class="card__dot" aria-hidden="true"></span>
+          <span class="num" dir="ltr">{{ unit().distanceKm }}</span>
+          <span>{{ i18n.t('results.km') }}</span>
+        }
+        <span class="card__dot" aria-hidden="true"></span>
+        <span class="num" dir="ltr">{{ unit().areaSqm }}</span>
+        <span>{{ i18n.t('common.sqm') }}</span>
+      </p>
+
+      @if (unit().perks?.length) {
+        <ul class="card__perks">
+          @for (perk of unit().perks!.slice(0, 2); track perk) {
+            <li class="card__perk">{{ perk }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="card__side">
+      <p class="card__price">
+        <span class="card__amount num" dir="ltr">{{ unit().dailyPrice }}</span>
+        <span class="card__currency">{{ i18n.t('common.currency') }}</span>
+        <span class="card__per">{{ i18n.t('results.perDay') }}</span>
+      </p>
+
+      <p class="card__monthly">
+        <span class="num" dir="ltr">≈ {{ monthly() }}</span>
+        {{ i18n.t('results.monthlyApprox') }}
+      </p>
+
+      @if (days() > 0) {
+        <p class="card__total num">
+          {{ i18n.t('results.totalForDays', { days: days(), total: periodTotal() }) }}
+        </p>
+      }
+
+      <a
+        appUiButton
+        variant="outline"
+        class="card__action"
+        tabindex="-1"
+        [routerLink]="['/units', unit().id]"
+      >
+        {{ i18n.t('results.viewDetails') }}
+      </a>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,267 @@
+@if (isLoading()) {
+  <div class="page">
+    <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+  </div>
+} @else if (failed() || !page()) {
+  <div class="page">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('pages.notFound')"
+      [hint]="i18n.t('pages.notFoundHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/">{{ i18n.t('system.goHome') }}</a>
+    </app-ui-empty-state>
+  </div>
+} @else {
+  <article class="page">
+    <nav class="crumbs" [attr.aria-label]="i18n.t('details.breadcrumbHome')">
+      <a routerLink="/">{{ i18n.t('details.breadcrumbHome') }}</a>
+      <span aria-hidden="true">←</span>
+      <span class="crumbs__current">{{ page()!.title }}</span>
+    </nav>
+
+    <header class="head">
+      <h1 class="head__title">{{ page()!.title }}</h1>
+
+      @if (page()!.subtitle) {
+        <p class="head__sub">{{ page()!.subtitle }}</p>
+      }
+
+      @if (page()!.updatedAt) {
+        <p class="head__meta num">
+          {{ i18n.t('pages.lastUpdated', { date: page()!.updatedAt! }) }}
+        </p>
+      }
+    </header>
+
+    <!-- Version block: only the legal pages carry one (FR-ADM-07). -->
+    @if (page()!.version; as version) {
+      <div class="version">
+        <div class="version__cell">
+          <span class="version__label">{{ i18n.t('pages.versionLabel') }}</span>
+          <span class="version__value num" dir="ltr">{{ version.versionNo }}</span>
+        </div>
+
+        <div class="version__cell">
+          <span class="version__label">{{ i18n.t('pages.effectiveFrom') }}</span>
+          <span class="version__value num">{{ version.effectiveFrom }}</span>
+        </div>
+
+        @if (isAuthenticated() && version.acceptedVersionNo) {
+          <div class="version__consent">
+            <span class="version__label">{{ i18n.t('pages.acceptedConsent') }}</span>
+            <span class="version__value num">
+              {{
+                i18n.t('pages.acceptedConsentBody', {
+                  version: version.acceptedVersionNo,
+                  date: version.acceptedAt ?? '',
+                })
+              }}
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="layout">
+      <div class="content">
+        @if (page()!.intro) {
+          <p class="lead">{{ page()!.intro }}</p>
+        }
+
+        <!-- The two journeys — "كيف تعمل المنصة" only. -->
+        @for (journey of page()!.journeys ?? []; track journey.id) {
+          <section class="block">
+            <h2 class="block__title">{{ journey.title }}</h2>
+
+            <ol class="journey">
+              @for (step of journey.steps; track step.number) {
+                <li class="journey__step">
+                  <span class="journey__num num" dir="ltr">{{ step.number }}</span>
+                  <span class="journey__text">
+                    <span class="journey__stepTitle">{{ step.title }}</span>
+                    <span class="journey__body">{{ step.body }}</span>
+                  </span>
+                </li>
+              }
+            </ol>
+          </section>
+        }
+
+        <!-- The FAQ accordion — "الأسئلة الشائعة" only. -->
+        @for (group of page()!.faqGroups ?? []; track group.id) {
+          <section class="block" [id]="group.id">
+            <h2 class="block__title">{{ group.title }}</h2>
+            <app-ui-accordion [items]="faqItems(group.id)" [group]="group.id" />
+          </section>
+        }
+
+        <!-- The prose sections — every page. -->
+        @for (section of page()!.sections; track section.id) {
+          <section class="block" [id]="section.id">
+            <h2 class="block__title">
+              @if (section.number) {
+                <span class="block__num num" dir="ltr">{{ section.number }}</span>
+              }
+              {{ section.title }}
+            </h2>
+
+            <p class="block__body">{{ section.body }}</p>
+
+            @if (section.items?.length) {
+              <ul class="bullets">
+                @for (item of section.items!; track item) {
+                  <li class="bullets__item">{{ item }}</li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        <!-- The refund table — "سياسة الإلغاء والاسترداد" only. -->
+        @if (page()!.refundTiers?.length) {
+          <section class="block">
+            <div class="tableWrap">
+              <table class="tiers">
+                <thead>
+                  <tr>
+                    <th scope="col">{{ i18n.t('pages.refundWhen') }}</th>
+                    <th scope="col">{{ i18n.t('pages.refundShare') }}</th>
+                    <th scope="col">{{ i18n.t('pages.refundFee') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (tier of page()!.refundTiers!; track tier.when) {
+                    <tr>
+                      <td>{{ tier.when }}</td>
+                      <td class="tiers__share num" [class]="'tiers__share--' + tier.tone" dir="ltr">
+                        {{ tier.refundShare }}
+                      </td>
+                      <td class="tiers__fee">{{ tier.commissionNote }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @for (note of page()!.refundNotes ?? []; track note) {
+              <p class="note">
+                <span class="note__dot" aria-hidden="true"></span>
+                {{ note }}
+              </p>
+            }
+          </section>
+        }
+
+        <!-- The commitments grid — "من نحن" only. -->
+        @if (page()!.commitments?.length) {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('pages.commitments') }}</h2>
+
+            <ul class="values">
+              @for (item of page()!.commitments!; track item.title) {
+                <li class="value">
+                  <span class="value__title">{{ item.title }}</span>
+                  <span class="value__body">{{ item.body }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (page()!.coverage?.length) {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('pages.coverage') }}</h2>
+            <ul class="coverage">
+              @for (area of page()!.coverage!; track area) {
+                <li class="coverage__item">{{ area }}</li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- The prohibited list, where the page explains it. -->
+        @if (slug() === 'how-it-works') {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('details.prohibitedTitle') }}</h2>
+            <app-ui-prohibited-list
+              [items]="prohibitedLabels()"
+              [note]="i18n.t('details.prohibitedNote')"
+            />
+          </section>
+        }
+
+        <!-- The enquiry form — "التواصل معنا" only. -->
+        @if (slug() === 'contact') {
+          <app-contact-form />
+        }
+
+        @if (page()!.contactChannels?.length) {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('contact.channels') }}</h2>
+
+            <ul class="channels">
+              @for (channel of page()!.contactChannels!; track channel.label) {
+                <li class="channel">
+                  <span class="channel__label">{{ channel.label }}</span>
+                  <span
+                    class="channel__value"
+                    [class.num]="channel.isLatin"
+                    [attr.dir]="channel.isLatin ? 'ltr' : null"
+                  >
+                    {{ channel.value }}
+                  </span>
+                  @if (channel.hint) {
+                    <span class="channel__hint">{{ channel.hint }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+
+      <aside class="side">
+        @if (index().length > 1) {
+          <nav class="index" [attr.aria-label]="i18n.t('pages.index')">
+            <h2 class="index__title">{{ i18n.t('pages.index') }}</h2>
+            @for (entry of index(); track entry.id) {
+              <a class="index__link" [href]="'#' + entry.id">{{ entry.label }}</a>
+            }
+          </nav>
+        }
+
+        <nav class="related" [attr.aria-label]="i18n.t('pages.related')">
+          <h2 class="index__title">{{ i18n.t('pages.related') }}</h2>
+          @for (other of related(); track other) {
+            <a class="index__link" [routerLink]="['/pages', other]">{{ relatedLabel(other) }}</a>
+          }
+        </nav>
+
+        <div class="ask">
+          <h2 class="ask__title">{{ i18n.t('pages.questionTitle') }}</h2>
+          <p class="ask__body">{{ i18n.t('pages.questionBody') }}</p>
+          <a appUiButton variant="outline" routerLink="/pages/contact">
+            {{ i18n.t('pages.contactUs') }}
+          </a>
+        </div>
+      </aside>
+    </div>
+
+    <section class="cta">
+      <div class="cta__text">
+        <h2 class="cta__title">{{ i18n.t('pages.ctaTitle') }}</h2>
+        <p class="cta__body">{{ i18n.t('pages.ctaBody') }}</p>
+      </div>
+
+      <div class="cta__actions">
+        <a appUiButton variant="primary" routerLink="/units">
+          {{ i18n.t('result.exploreSpaces') }}
+        </a>
+        <a appUiButton variant="accent" routerLink="/auth/account-type">
+          {{ i18n.t('public.listYourSpace') }}
+        </a>
+      </div>
+    </section>
+  </article>
+}

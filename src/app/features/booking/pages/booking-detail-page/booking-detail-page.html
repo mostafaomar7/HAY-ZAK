@@ -1,0 +1,164 @@
+@if (isLoading()) {
+  <div class="page">
+    <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+  </div>
+} @else if (failed() || !booking()) {
+  <div class="page">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('bookingDetail.notFound')"
+      [hint]="i18n.t('bookingDetail.notFoundHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/my-bookings">
+        {{ i18n.t('bookings.title') }}
+      </a>
+    </app-ui-empty-state>
+  </div>
+} @else {
+  <article class="page">
+    <nav class="crumbs" [attr.aria-label]="i18n.t('bookings.title')">
+      <a routerLink="/my-bookings">{{ i18n.t('bookings.title') }}</a>
+      <span aria-hidden="true">←</span>
+      <span class="crumbs__current">{{ i18n.t('bookingDetail.title') }}</span>
+    </nav>
+
+    <header class="head">
+      <div class="head__text">
+        <div class="head__titleRow">
+          <h1 class="head__title">{{ booking()!.unit?.title }}</h1>
+          <app-ui-badge [tone]="tone()">{{ status() }}</app-ui-badge>
+        </div>
+
+        <p class="head__meta num">
+          {{ i18n.t('bookings.reference') }}
+          <span dir="ltr">{{ booking()!.referenceNo }}</span>
+          ·
+          {{ i18n.t('bookingDetail.createdOn', { date: booking()!.createdAt }) }}
+        </p>
+      </div>
+
+      <div class="head__actions">
+        @if (hasInvoice()) {
+          <a appUiButton variant="outline" [routerLink]="['/my-bookings', bookingId(), 'invoice']">
+            {{ i18n.t('bookings.viewInvoice') }}
+          </a>
+        }
+        @if (canCancel()) {
+          <a appUiButton variant="danger" [routerLink]="['/my-bookings', bookingId(), 'cancel']">
+            {{ i18n.t('bookingDetail.cancelAction') }}
+          </a>
+        }
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="content">
+        <section class="panel">
+          <h2 class="panel__title">{{ i18n.t('bookingDetail.data') }}</h2>
+
+          <dl class="specs">
+            <div class="spec">
+              <dt class="spec__label">{{ i18n.t('booking.space') }}</dt>
+              <dd class="spec__value">{{ booking()!.unit?.title }}</dd>
+            </div>
+            <div class="spec">
+              <dt class="spec__label">{{ i18n.t('booking.period') }}</dt>
+              <dd class="spec__value num">{{ booking()!.startDate }} — {{ booking()!.endDate }}</dd>
+            </div>
+            <div class="spec">
+              <dt class="spec__label">{{ i18n.t('booking.duration') }}</dt>
+              <dd class="spec__value num">
+                {{ i18n.t('booking.days', { count: booking()!.daysCount }) }}
+              </dd>
+            </div>
+            <div class="spec">
+              <dt class="spec__label">{{ i18n.t('booking.dailyPrice') }}</dt>
+              <dd class="spec__value num">
+                <span dir="ltr">{{ booking()!.dailyPriceSnapshot }}</span>
+                {{ i18n.t('common.currency') }}
+              </dd>
+            </div>
+          </dl>
+
+          <!-- Contact details for the other party appear only once the state
+               releases them (SRS §5) — the API omits them until then. -->
+          @if (booking()!.counterpartyContact; as contact) {
+            <p class="identity">
+              <span class="identity__label">{{ i18n.t('bookingDetail.identity') }}</span>
+              <span class="identity__value">{{ contact.fullName }}</span>
+              <span class="identity__badge">
+                <span aria-hidden="true">✓</span>
+                {{ i18n.t('bookingDetail.identityVerified') }}
+              </span>
+            </p>
+          }
+        </section>
+
+        <section class="panel">
+          <h2 class="panel__title">{{ i18n.t('bookingDetail.timeline') }}</h2>
+          <app-ui-stepper
+            orientation="vertical"
+            [steps]="stages()"
+            [label]="i18n.t('bookingDetail.timeline')"
+          />
+        </section>
+
+        <section class="panel">
+          <h2 class="panel__title">{{ i18n.t('bookingDetail.locationTitle') }}</h2>
+
+          @if (addressReleased() && booking()!.unit?.addressLine) {
+            <div class="address">
+              <span class="address__label">{{ i18n.t('bookingDetail.exactAddress') }}</span>
+              <span class="address__value">{{ booking()!.unit!.addressLine }}</span>
+              @if (booking()!.unit?.postalCode) {
+                <span class="address__sub num">
+                  {{ i18n.t('bookingDetail.postalCode') }}
+                  <span dir="ltr">{{ booking()!.unit!.postalCode }}</span>
+                </span>
+              }
+              @if (visitSummary()) {
+                <span class="address__sub num" dir="auto">{{ visitSummary() }}</span>
+              }
+            </div>
+            <app-ui-location-map precise [areaLabel]="booking()!.unit?.title ?? ''" />
+          } @else {
+            <app-ui-notice tone="info">
+              {{ i18n.t('bookingDetail.addressLocked', { metres: radiusMetres }) }}
+            </app-ui-notice>
+            <app-ui-location-map [showNote]="false" [areaLabel]="booking()!.unit?.title ?? ''" />
+          }
+        </section>
+
+        <section class="panel">
+          <h2 class="panel__title">{{ i18n.t('bookingDetail.goodsRecorded') }}</h2>
+          <p class="prose">{{ booking()!.goodsDescription }}</p>
+
+          @if (booking()!.prohibitedAck) {
+            <p class="ack">
+              <span class="ack__mark" aria-hidden="true">✓</span>
+              {{ i18n.t('booking.ackDone') }}
+            </p>
+          }
+        </section>
+      </div>
+
+      <aside class="side">
+        <div class="panel">
+          <h2 class="panel__title">{{ i18n.t('booking.priceBreakdown') }}</h2>
+          <app-ui-price-breakdown [price]="price()" />
+
+          @if (hasInvoice()) {
+            <a
+              appUiButton
+              variant="outline"
+              class="side__invoice"
+              [routerLink]="['/my-bookings', bookingId(), 'invoice']"
+            >
+              {{ i18n.t('bookings.viewInvoice') }}
+            </a>
+          }
+        </div>
+      </aside>
+    </div>
+  </article>
+}

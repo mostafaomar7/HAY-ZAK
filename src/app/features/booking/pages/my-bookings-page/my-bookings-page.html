@@ -1,0 +1,61 @@
+<section class="page">
+  <header class="page__head">
+    <div class="page__heading">
+      <h1 class="page__title">{{ i18n.t('bookings.title') }}</h1>
+      <p class="page__sub num">
+        {{ i18n.t('bookings.subtitle', { name: userName(), count: current().length }) }}
+      </p>
+    </div>
+
+    <a appUiButton variant="outline" routerLink="/units">
+      {{ i18n.t('result.exploreSpaces') }}
+    </a>
+  </header>
+
+  <app-ui-tabs
+    [tabs]="tabs()"
+    [selected]="tab()"
+    [label]="i18n.t('bookings.title')"
+    (selectionChange)="setTab($event)"
+  />
+
+  <div class="page__list" role="tabpanel">
+    @if (isLoading()) {
+      <app-ui-skeleton [count]="4" [label]="i18n.t('bookings.loadingList')" />
+    } @else if (failed()) {
+      <app-ui-empty-state
+        tone="error"
+        [title]="i18n.t('bookings.error')"
+        [hint]="i18n.t('results.errorHint')"
+      >
+        <button appUiButton variant="primary" (click)="fetch()">
+          {{ i18n.t('common.retry') }}
+        </button>
+      </app-ui-empty-state>
+    } @else if (visible().length === 0) {
+      @if (tab() === 'current') {
+        <app-ui-empty-state
+          [title]="i18n.t('bookings.emptyCurrent')"
+          [hint]="i18n.t('bookings.emptyCurrentHint')"
+        >
+          <a appUiButton variant="accent" routerLink="/units">
+            {{ i18n.t('result.exploreSpaces') }}
+          </a>
+        </app-ui-empty-state>
+      } @else {
+        <app-ui-empty-state
+          [title]="i18n.t('bookings.emptyPrevious')"
+          [hint]="i18n.t('bookings.emptyPreviousHint')"
+        >
+          <a appUiButton variant="accent" routerLink="/units">
+            {{ i18n.t('result.exploreSpaces') }}
+          </a>
+        </app-ui-empty-state>
+      }
+    } @else {
+      @for (booking of visible(); track booking.id) {
+        <app-booking-card [booking]="booking" [past]="tab() === 'previous'" />
+      }
+    }
+  </div>
+</section>

@@ -1,0 +1,71 @@
+@use 'abstracts' as a;
+
+.wizard {
+  width: 100%;
+  max-width: a.$content-max-width;
+  margin-inline: auto;
+  padding: a.$space-16;
+
+  @include a.up(lg) {
+    padding: a.$space-24 a.$space-32 a.$space-40;
+  }
+}
+
+.wizard__steps {
+  display: block;
+  margin-bottom: a.$space-18;
+}
+
+// ── Hold banner ──────────────────────────────────────────────────────────
+.hold {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-10;
+  margin-bottom: a.$space-18;
+  padding: a.$space-14 a.$space-16;
+  border: 1px solid var(--color-warning-border);
+  border-radius: a.$radius-lg;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.hold--urgent {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.hold__text {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  text-wrap: pretty;
+}
+
+.hold__mark {
+  font-size: a.$fs-lg;
+}
+
+.hold__timer {
+  display: flex;
+  align-items: baseline;
+  gap: a.$space-8;
+  margin: 0;
+  flex: none;
+  font-size: a.$fs-xs;
+}
+
+.hold__timerLabel,
+.hold__timerUnit {
+  color: currentcolor;
+  opacity: 0.75;
+}

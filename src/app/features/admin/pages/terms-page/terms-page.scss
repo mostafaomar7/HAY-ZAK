@@ -1,0 +1,118 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.head {
+  @include a.surface(a.$radius-lg);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  max-width: 1100px;
+  padding: a.$space-8 a.$space-12;
+}
+
+.list {
+  @include a.surface(a.$radius-lg);
+
+  max-width: 1100px;
+  overflow: hidden;
+}
+
+.list__bar {
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.version {
+  border-bottom: 1px solid var(--color-border-divider);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.3fr 1fr 1fr 1.8fr;
+  align-items: center;
+  gap: a.$space-8;
+  padding: a.$space-12 a.$space-16;
+  font-size: a.$fs-label;
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.row--head {
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+.row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+}
+
+.version__note {
+  margin: 0;
+  padding: 0 a.$space-16 a.$space-12;
+  font-size: a.$fs-xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+// ── Acceptances dialog ───────────────────────────────────────────────────
+.count {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.approvals {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+}
+
+.approvals__row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.3fr;
+  gap: a.$space-8;
+  padding: a.$space-10 a.$space-14;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-label;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.approvals__row--head {
+  background: var(--color-bg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}

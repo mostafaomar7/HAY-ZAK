@@ -1,0 +1,112 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+@include a.admin-panel-blocks;
+
+.links {
+  @include a.stack(a.$space-8);
+}
+
+.links__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  width: 100%;
+  padding: a.$space-12 a.$space-12;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  font-size: a.$fs-xs;
+  text-align: start;
+}
+
+.links__row--action {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+// A frozen payout is the one link that carries consequence, so it is tinted.
+.links__row--frozen {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+
+  .links__value {
+    color: var(--color-warning-fg);
+  }
+}
+
+.links__value {
+  @include a.numeric;
+
+  flex: none;
+  font-weight: a.$fw-semibold;
+  color: var(--color-link);
+}
+
+.msg {
+  @include a.stack(a.$space-4);
+
+  padding: a.$space-12 a.$space-12;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+}
+
+.msg__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.$space-12;
+}
+
+.msg__who {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.msg__when {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.msg__body {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: 1.9;
+  text-wrap: pretty;
+}
+
+.field {
+  @include a.stack(a.$space-6);
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.field__input {
+  @include a.control;
+
+  min-height: 108px;
+  padding: a.$space-10 a.$space-12;
+  font-size: a.$fs-xs;
+  line-height: 1.9;
+  resize: vertical;
+}
+
+.field__hint {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}

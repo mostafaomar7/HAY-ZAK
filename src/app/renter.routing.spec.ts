@@ -1,0 +1,199 @@
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideLocationMocks } from '@angular/common/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
+import { UserRole } from '@core/enums/user-role.enum';
+import { MOCK_LESSOR } from '@core/mock/lessor.fixtures';
+import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
+import { AuthService } from '@core/services/auth.service';
+import { routes } from './app.routes';
+import { App } from './app';
+
+/**
+ * End-to-end smoke test of the renter portal through the real router, the real
+ * shell and the real mock interceptor — the path `npm start` takes.
+ *
+ * The lessor portal has an equivalent (app.routing.spec.ts). This one exists for
+ * the same reason: every screen rendered in isolation while the shell, the
+ * guards and the lazy routes were what broke, and a blank page is invisible to a
+ * component test.
+ */
+describe('renter routing (smoke)', () => {
+  let router: Router;
+
+  async function configure(signedIn: boolean): Promise<void> {
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [
+        provideRouter(routes, withComponentInputBinding()),
+        provideLocationMocks(),
+        provideHttpClient(withInterceptors([mockApiInterceptor])),
+      ],
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    localStorage.clear();
+    sessionStorage.clear();
+
+    if (signedIn) {
+      TestBed.inject(AuthService).setSession({
+        accessToken: 'test-token',
+        // The dev session carries both roles; see core/mock/dev-session.ts.
+        user: { ...MOCK_LESSOR, roles: [UserRole.Lessor, UserRole.Renter] },
+      });
+    }
+  }
+
+  async function open(url: string): Promise<ComponentFixture<App>> {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    await router.navigateByUrl(url);
+    fixture.detectChanges();
+
+    // Outlast the mock's delay(500), then let the response render.
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    return fixture;
+  }
+
+  afterEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  // ── Open to guests (FR-MKT-02, design rule 1) ──────────────────────────
+  describe('as a guest', () => {
+    beforeEach(async () => configure(false));
+
+    it('lands on the storefront, not a login screen', async () => {
+      const fixture = await open('/');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-public-topbar')).withContext('header').not.toBeNull();
+      expect(el.querySelector('app-home-page')).withContext('landing page').not.toBeNull();
+      expect(router.url).toBe('/');
+    });
+
+    it('searches without an account', async () => {
+      const fixture = await open('/units');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-results-page')).not.toBeNull();
+      expect(el.querySelectorAll('app-unit-result-card').length).toBeGreaterThan(0);
+      expect(el.textContent).toContain('مستودع مكيّف — النرجس');
+    });
+
+    it('reads a space in full without an account', async () => {
+      const fixture = await open('/units/m-1');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-unit-details-page')).not.toBeNull();
+      expect(el.textContent).toContain('احجز الآن');
+    });
+
+    it('reads the static pages without an account', async () => {
+      const fixture = await open('/pages/faq');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-static-page')).not.toBeNull();
+      expect(el.querySelectorAll('app-ui-accordion').length).toBeGreaterThan(0);
+    });
+
+    // The other half of rule 1: a booking does need an account.
+    it('is sent to sign in when reaching for a booking', async () => {
+      await open('/my-bookings');
+
+      expect(router.url).toContain('/auth/login');
+      expect(router.url).toContain('returnUrl');
+    });
+  });
+
+  // ── Signed in ──────────────────────────────────────────────────────────
+  describe('as a signed-in renter', () => {
+    beforeEach(async () => configure(true));
+
+    it('lists the bookings under both tabs', async () => {
+      const fixture = await open('/my-bookings');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-my-bookings-page')).not.toBeNull();
+      expect(el.querySelectorAll('app-booking-card').length).toBeGreaterThan(0);
+      expect(el.textContent).toContain('حجوزاتي');
+    });
+
+    it('opens one booking with its stage trail', async () => {
+      const fixture = await open('/my-bookings/rb-1');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-booking-detail-page')).not.toBeNull();
+      expect(el.querySelector('app-ui-stepper')).withContext('stage trail').not.toBeNull();
+      expect(el.textContent).toContain('HZ-2026-04871');
+    });
+
+    it('renders the tax invoice', async () => {
+      const fixture = await open('/my-bookings/rb-1/invoice');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-invoice-page')).not.toBeNull();
+      expect(el.textContent).toContain('INV-2026-04871');
+    });
+
+    it('shows the refund figure before offering to cancel', async () => {
+      const fixture = await open('/my-bookings/rb-1/cancel');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-cancel-booking-page')).not.toBeNull();
+      expect(el.textContent).toContain('المبلغ المسترَد');
+      // FR-BKG-08 — the number comes from the server's quote.
+      expect(el.textContent).toContain('1,800.00');
+    });
+
+    it('starts the booking wizard on step one', async () => {
+      const fixture = await open('/booking/new/m-1');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-dates-step')).not.toBeNull();
+      expect(el.querySelector('app-ui-wizard-steps')).withContext('four steps').not.toBeNull();
+      expect(el.querySelector('app-ui-range-calendar')).withContext('calendar').not.toBeNull();
+    });
+
+    it('renders the account screen with the ID masked', async () => {
+      const fixture = await open('/account');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-account-page')).not.toBeNull();
+      // NFR-SEC-02 — only the last four digits, ever.
+      expect(el.textContent).toContain('••••••6421');
+      expect(el.querySelectorAll('app-ui-toggle').length).toBe(4);
+    });
+
+    it('renders the notification inbox grouped by day', async () => {
+      const fixture = await open('/account/notifications');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-renter-notifications-page')).not.toBeNull();
+      expect(el.querySelectorAll('.group').length).toBeGreaterThan(0);
+    });
+
+    it('keeps the shell around the whole journey', async () => {
+      const fixture = await open('/units');
+      const el = fixture.nativeElement as HTMLElement;
+      const topbar = el.querySelector('app-public-topbar');
+
+      await router.navigateByUrl('/my-bookings');
+      fixture.detectChanges();
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      fixture.detectChanges();
+
+      // The same element: the header is not torn down between features.
+      expect(el.querySelector('app-public-topbar')).toBe(topbar);
+    });
+  });
+});

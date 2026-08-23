@@ -1,0 +1,180 @@
+@use 'abstracts' as a;
+
+.step {
+  @include a.work-and-summary;
+}
+
+.step__main {
+  @include a.stack(a.$space-20);
+
+  min-width: 0;
+}
+
+.step__side {
+  min-width: 0;
+
+  @include a.sticky-side;
+}
+
+.panel {
+  @include a.card;
+  @include a.stack(a.$space-14);
+
+  margin: 0;
+  padding: a.$space-20;
+}
+
+.panel__title {
+  margin: 0;
+  padding: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+// ── Payment methods ──────────────────────────────────────────────────────
+.methods {
+  @include a.stack(a.$space-10);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.method {
+  display: flex;
+  align-items: flex-start;
+  gap: a.$space-12;
+  padding: a.$space-14;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-lg;
+  background: var(--color-surface);
+  cursor: pointer;
+
+  &:has(:focus-visible) {
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.method--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.method__dot {
+  @include a.flex-center;
+
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: a.$radius-pill;
+  background: var(--color-surface);
+
+  .method--on & {
+    border-color: var(--color-primary);
+
+    &::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: a.$radius-pill;
+      background: var(--color-primary);
+    }
+  }
+}
+
+.method__text {
+  @include a.stack(a.$space-2);
+
+  min-width: 0;
+}
+
+.method__label {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.method__hint {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+// ── Recap ────────────────────────────────────────────────────────────────
+.recap {
+  @include a.stack(a.$space-12);
+
+  margin: 0;
+}
+
+.recap__row {
+  @include a.stack(a.$space-2);
+}
+
+.recap__label {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.recap__value {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.recap__value--prose {
+  font-weight: a.$fw-regular;
+  line-height: a.$lh-base;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.ackDone {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  margin: 0;
+  padding: a.$space-12;
+  border-radius: a.$radius-md;
+  background: var(--color-success-bg);
+  font-size: a.$fs-xs;
+  color: var(--color-success-fg);
+}
+
+.ackDone__mark {
+  @include a.flex-center;
+
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-success);
+  color: var(--color-text-inverse);
+  font-size: a.$fs-2xs;
+}
+
+// ── Pay box ──────────────────────────────────────────────────────────────
+.pay {
+  @include a.card;
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-20;
+}
+
+.pay__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.pay__back {
+  width: 100%;
+}

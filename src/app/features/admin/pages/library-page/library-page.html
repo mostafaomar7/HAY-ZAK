@@ -1,0 +1,145 @@
+<p class="lead">{{ i18n.t('library.lead') }}</p>
+
+<!-- 1 — Indicator card -->
+<section class="demo">
+  <header class="demo__head">
+    <h2 class="demo__title">{{ i18n.t('library.kpi') }}</h2>
+    <p class="demo__hint">{{ i18n.t('library.kpiHint') }}</p>
+  </header>
+  <div class="demo__kpis">
+    @for (card of kpis(); track card.key) {
+      <app-admin-kpi-card
+        [label]="card.label"
+        [value]="card.value"
+        [unit]="card.unit"
+        [delta]="card.delta"
+        [icon]="card.icon"
+      />
+    }
+  </div>
+</section>
+
+<!-- 2 — Status badge -->
+<section class="demo">
+  <header class="demo__head">
+    <h2 class="demo__title">{{ i18n.t('library.badges') }}</h2>
+    <p class="demo__hint">{{ i18n.t('library.badgesHint') }}</p>
+  </header>
+  <div class="demo__box demo__box--wrap">
+    @for (item of tones; track item.tone) {
+      <app-ui-badge [tone]="item.tone">{{ item.label }}</app-ui-badge>
+    }
+  </div>
+</section>
+
+<!-- 3 — Filter bar -->
+<section class="demo">
+  <header class="demo__head">
+    <h2 class="demo__title">{{ i18n.t('library.filters') }}</h2>
+    <p class="demo__hint">{{ i18n.t('library.filtersHint') }}</p>
+  </header>
+  <app-admin-filter-bar
+    exportable
+    [searchPlaceholder]="i18n.t('listings.searchPlaceholder')"
+    [selects]="filterSelects()"
+  />
+</section>
+
+<!-- 4 — Admin table, in all four states -->
+<section class="demo">
+  <header class="demo__head demo__head--row">
+    <div>
+      <h2 class="demo__title">{{ i18n.t('library.table') }}</h2>
+      <p class="demo__hint">{{ i18n.t('library.tableHint') }}</p>
+    </div>
+    <div class="switch" role="group" [attr.aria-label]="i18n.t('library.tableState')">
+      @for (state of states; track state.value) {
+        <button
+          type="button"
+          class="switch__btn"
+          [class.switch__btn--on]="tableState() === state.value"
+          [attr.aria-pressed]="tableState() === state.value"
+          (click)="setState(state.value)"
+        >
+          {{ i18n.t(state.labelKey) }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <p class="demo__note">{{ i18n.t('library.stateNote') }}</p>
+
+  <app-admin-table
+    selectable
+    [columns]="columns()"
+    [rows]="visibleRows()"
+    [state]="tableState()"
+    [caption]="i18n.t('listings.title')"
+    [total]="visibleRows().length"
+    [selected]="selected()"
+    [emptyTitle]="i18n.t('listings.empty')"
+    [emptyHint]="i18n.t('listings.emptyHint')"
+    [errorTitle]="i18n.t('listings.error')"
+    [errorHint]="i18n.t('listings.errorHint')"
+    errorRef="ERR-5031"
+    (selectionChange)="selected.set($event)"
+  >
+    <ng-container tableActions>
+      <button appUiButton variant="primary" size="sm" type="button">
+        {{ i18n.t('admin.approveSelected') }}
+      </button>
+      <button appUiButton variant="danger" size="sm" type="button" (click)="reasonOpen.set(true)">
+        {{ i18n.t('admin.rejectSelected') }}
+      </button>
+    </ng-container>
+
+    <ng-template #row let-row>
+      <span class="cell cell--strong">{{ row.unit }}</span>
+      <span class="cell cell--muted">{{ row.owner }}</span>
+      <span class="cell num"
+        >{{ row.price }} <span class="unit">{{ i18n.t('admin.sar') }}</span></span
+      >
+      <span class="cell"
+        ><span class="wait num">{{ row.wait }}</span></span
+      >
+    </ng-template>
+  </app-admin-table>
+</section>
+
+<!-- 5 and 6 — Slide-over and the mandatory-reason dialog -->
+<section class="demo">
+  <header class="demo__head">
+    <h2 class="demo__title">{{ i18n.t('library.overlays') }}</h2>
+    <p class="demo__hint">{{ i18n.t('library.overlaysHint') }}</p>
+  </header>
+  <div class="demo__box">
+    <button appUiButton variant="primary" size="sm" type="button" (click)="panelOpen.set(true)">
+      {{ i18n.t('library.openPanel') }}
+    </button>
+    <button appUiButton variant="danger" size="sm" type="button" (click)="reasonOpen.set(true)">
+      {{ i18n.t('library.openReason') }}
+    </button>
+  </div>
+</section>
+
+<app-admin-panel
+  [open]="panelOpen()"
+  [eyebrow]="i18n.t('adminNav.library')"
+  [title]="i18n.t('library.samplePanel')"
+  (dismissed)="panelOpen.set(false)"
+>
+  <p class="prose">{{ i18n.t('library.sampleBody') }}</p>
+
+  <ng-container panelActions>
+    <button appUiButton variant="primary" type="button" fullWidth (click)="panelOpen.set(false)">
+      {{ i18n.t('common.close') }}
+    </button>
+  </ng-container>
+</app-admin-panel>
+
+<app-admin-reason-modal
+  queue="listing"
+  [open]="reasonOpen()"
+  (confirmed)="reasonOpen.set(false)"
+  (dismissed)="reasonOpen.set(false)"
+/>

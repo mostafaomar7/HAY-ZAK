@@ -1,0 +1,29 @@
+<nav class="rail" [attr.aria-label]="i18n.t('adminNav.menu')">
+  <div class="rail__brand">
+    <span class="rail__name">{{ i18n.t('nav.brand') }}</span>
+    <span class="rail__latin">{{ i18n.t('public.brandLatin') }}</span>
+  </div>
+
+  @for (group of groups(); track group.titleKey) {
+    <div class="group">
+      <h2 class="group__title">{{ i18n.t(group.titleKey) }}</h2>
+      <ul class="group__list">
+        @for (item of group.items; track item.route) {
+          <li>
+            <a
+              class="item"
+              routerLinkActive="item--on"
+              [routerLink]="item.route"
+              (click)="navigate.emit()"
+            >
+              <span class="item__label">{{ i18n.t(item.labelKey) }}</span>
+              @if (badgeOf(item.badge) > 0) {
+                <span class="item__badge num">{{ badgeOf(item.badge) }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

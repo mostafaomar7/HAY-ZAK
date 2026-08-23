@@ -1,0 +1,122 @@
+@if (isLoading()) {
+  <p class="loading" role="status">جارٍ تحميل الطلب...</p>
+} @else if (failed() || !booking()) {
+  <app-ui-empty-state
+    tone="error"
+    title="تعذّر تحميل الطلب"
+    hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+  >
+    <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+  </app-ui-empty-state>
+} @else {
+  @let b = booking()!;
+
+  <section class="detail">
+    <div class="detail__main">
+      <header class="card card--row">
+        <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="md" />
+        <div class="detail__unit">
+          <h2 class="detail__unitTitle">{{ b.unit?.title }}</h2>
+          <p class="detail__unitMeta">
+            {{ b.unit?.city?.nameAr }}
+            @if (b.unit?.district?.nameAr) {
+              &mdash; {{ b.unit?.district?.nameAr }}
+            }
+          </p>
+          <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unitId]">عرض المساحة</a>
+        </div>
+        <app-ui-badge class="detail__status" [tone]="status()!.tone">
+          {{ status()!.ar }}
+        </app-ui-badge>
+      </header>
+
+      <section class="card">
+        <h3 class="card__heading">مراحل الطلب</h3>
+        <app-ui-stepper [steps]="steps()" />
+      </section>
+
+      <section class="card">
+        <h3 class="card__heading">الفترة والبضاعة</h3>
+        <dl class="detail__grid">
+          <div class="detail__cell">
+            <dt>من</dt>
+            <dd class="num">{{ b.startDate | date: dateFormat }}</dd>
+          </div>
+          <div class="detail__cell">
+            <dt>إلى</dt>
+            <dd class="num">{{ b.endDate | date: dateFormat }}</dd>
+          </div>
+          <div class="detail__cell">
+            <dt>عدد الأيام</dt>
+            <dd class="num" dir="ltr">{{ b.daysCount }}</dd>
+          </div>
+        </dl>
+
+        <div class="detail__goods">
+          <dt>وصف البضاعة</dt>
+          <dd>{{ b.goodsDescription }}</dd>
+        </div>
+      </section>
+    </div>
+
+    <aside class="detail__side">
+      <section class="card">
+        <h3 class="card__heading">المبلغ</h3>
+
+        <div class="amount__row">
+          <span>قيمة الحجز</span>
+          <app-ui-money [amount]="b.subtotal" />
+        </div>
+
+        <div class="amount__row">
+          <span>عمولة المنصة</span>
+          <span class="amount__deduction">
+            &minus;&nbsp;<app-ui-money [amount]="b.commissionAmount" />
+          </span>
+        </div>
+
+        <div class="amount__row amount__row--total">
+          <span>صافي المستحقات</span>
+          <app-ui-money [amount]="netToLessor()" [strong]="true" />
+        </div>
+      </section>
+
+      <section>
+        @if (contactVisible() && b.counterpartyContact) {
+          <div class="card">
+            <h3 class="card__heading">بيانات المستأجر</h3>
+            <p class="renter__name">{{ b.counterpartyContact.fullName }}</p>
+            <a class="renter__phone num" dir="ltr" [href]="telHref()">
+              {{ b.counterpartyContact.mobile }}
+            </a>
+          </div>
+        } @else {
+          <h3 class="sr-only">بيانات المستأجر</h3>
+          <!-- Placeholder shapes only. The API must not send the real details
+               before approval (FR-LSR-09) — the blur is cosmetic. -->
+          <app-ui-locked-panel message="تظهر بيانات المستأجر بعد اعتماد الطلب من الإدارة">
+            <span class="renter__ghost renter__ghost--name"></span>
+            <span class="renter__ghost renter__ghost--phone"></span>
+            <span class="renter__ghost"></span>
+          </app-ui-locked-panel>
+        }
+      </section>
+
+      <section class="card card--row contract" [class.contract--pending]="!contractAvailable()">
+        <span class="contract__icon" aria-hidden="true">PDF</span>
+        <div>
+          <p class="contract__title">عقد الإيجار</p>
+          @if (contractAvailable()) {
+            <button appUiButton variant="ghost" (click)="downloadContract()">تنزيل العقد</button>
+          } @else {
+            <p class="contract__hint">يصدر العقد بعد اعتماد الطلب.</p>
+          }
+        </div>
+      </section>
+
+      <app-ui-notice tone="info">
+        تتولّى إدارة المنصة اعتماد الطلب أو رفضه، ويصلك إشعار بالنتيجة.
+      </app-ui-notice>
+    </aside>
+  </section>
+}

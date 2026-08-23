@@ -1,0 +1,68 @@
+<section class="kpis">
+  @for (card of cards(); track card.key) {
+    <app-admin-kpi-card
+      [label]="card.label"
+      [value]="card.value"
+      [unit]="i18n.t('admin.sar')"
+      [icon]="card.icon"
+    />
+  }
+</section>
+
+<app-admin-filter-bar
+  exportable
+  [searchPlaceholder]="i18n.t('payments.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('payments.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [sort]="list.sort()"
+  [emptyTitle]="i18n.t('payments.empty')"
+  [emptyHint]="i18n.t('payments.emptyHint')"
+  [errorTitle]="i18n.t('payments.error')"
+  [errorHint]="i18n.t('payments.errorHint')"
+  errorRef="ERR-5112"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-template #row let-row>
+    <span class="cell cell--stack">
+      <span class="cell--strong">{{ row.renterName }}</span>
+      <span class="cell__sub num" dir="ltr">{{ row.bookingReferenceNo }}</span>
+    </span>
+    <span class="cell">{{ row.lessorName }}</span>
+    <span class="cell cell--muted">{{ row.unitTitle }}</span>
+    <span class="cell num">
+      {{ row.totalAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+    </span>
+    <span class="cell cell--muted num">{{ row.commissionAmount }}</span>
+    <span class="cell cell--strong num">
+      {{ row.netAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+    </span>
+    <span class="cell">
+      <app-ui-badge [tone]="row.isRefunded ? 'warning' : 'success'">
+        {{ row.isRefunded ? i18n.t('payments.refunded') : i18n.t('payments.collected') }}
+      </app-ui-badge>
+    </span>
+    <span class="cell cell--stack">
+      <app-ui-badge [tone]="payoutDisplay(row.payoutStatus).tone">
+        {{ payoutLabel(row.payoutStatus) }}
+      </app-ui-badge>
+      @if (row.bankReference) {
+        <span class="cell__sub num" dir="ltr">{{ row.bankReference }}</span>
+      }
+    </span>
+  </ng-template>
+</app-admin-table>

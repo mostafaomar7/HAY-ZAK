@@ -1,0 +1,147 @@
+<section class="filters" [class.filters--sheet]="asSheet()">
+  <header class="filters__head">
+    <h2 class="filters__title">{{ i18n.t('results.filters') }}</h2>
+    <button type="button" class="filters__clear" (click)="cleared.emit()">
+      {{ i18n.t('results.clearFilters') }}
+    </button>
+  </header>
+
+  <app-ui-range-slider
+    inputId="f-distance"
+    [label]="i18n.t('results.distance')"
+    [valueLabel]="i18n.t('results.upToKm', { count: filters().maxDistanceKm })"
+    [minLabel]="'1 ' + i18n.t('results.km')"
+    [maxLabel]="'25 ' + i18n.t('results.km')"
+    [min]="1"
+    [max]="25"
+    [value]="filters().maxDistanceKm"
+    (valueChange)="setDistance($event)"
+  />
+
+  <hr class="filters__rule" />
+
+  <div class="group">
+    <h3 class="group__title">{{ i18n.t('results.priceRange') }}</h3>
+    <div class="group__pair">
+      <label class="box">
+        <span class="box__label">{{ i18n.t('results.from') }}</span>
+        <span class="box__control">
+          <input
+            class="box__input num"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            dir="ltr"
+            [value]="filters().minPrice ?? ''"
+            (change)="setNumber('minPrice', $event)"
+          />
+          <span class="box__unit">{{ i18n.t('common.currency') }}</span>
+        </span>
+      </label>
+
+      <label class="box">
+        <span class="box__label">{{ i18n.t('results.to') }}</span>
+        <span class="box__control">
+          <input
+            class="box__input num"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            dir="ltr"
+            [value]="filters().maxPrice ?? ''"
+            (change)="setNumber('maxPrice', $event)"
+          />
+          <span class="box__unit">{{ i18n.t('common.currency') }}</span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <hr class="filters__rule" />
+
+  <div class="group">
+    <h3 class="group__title">{{ i18n.t('results.areaRange') }}</h3>
+    <div class="group__pair">
+      <label class="box">
+        <span class="box__label">{{ i18n.t('results.from') }}</span>
+        <span class="box__control">
+          <input
+            class="box__input num"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            dir="ltr"
+            [value]="filters().minArea ?? ''"
+            (change)="setNumber('minArea', $event)"
+          />
+        </span>
+      </label>
+
+      <label class="box">
+        <span class="box__label">{{ i18n.t('results.to') }}</span>
+        <span class="box__control">
+          <input
+            class="box__input num"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            dir="ltr"
+            [value]="filters().maxArea ?? ''"
+            (change)="setNumber('maxArea', $event)"
+          />
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <hr class="filters__rule" />
+
+  <fieldset class="group">
+    <legend class="group__title">{{ i18n.t('results.category') }}</legend>
+
+    <ul class="cats">
+      @for (category of categories(); track category.id) {
+        <li>
+          <label class="cat" [class.cat--on]="isPicked(category.id)">
+            <input
+              class="cat__input sr-only"
+              type="checkbox"
+              [checked]="isPicked(category.id)"
+              (change)="toggleCategory(category.id)"
+            />
+            <span class="cat__box" aria-hidden="true">
+              @if (isPicked(category.id)) {
+                ✓
+              }
+            </span>
+            <span class="cat__name">{{ category.label }}</span>
+            @if (category.count !== undefined) {
+              <span class="cat__count num" dir="ltr">{{ category.count }}</span>
+            }
+          </label>
+        </li>
+      }
+    </ul>
+  </fieldset>
+
+  <hr class="filters__rule" />
+
+  <div class="group">
+    <h3 class="group__title">{{ i18n.t('results.dateRange') }}</h3>
+
+    <app-ui-range-calendar
+      compact
+      [startDate]="filters().availableFrom"
+      [endDate]="filters().availableTo"
+      (rangeChange)="setRange($event)"
+    />
+
+    <p class="group__hint">{{ i18n.t('results.dateRangeHint') }}</p>
+  </div>
+
+  @if (asSheet()) {
+    <button type="button" class="filters__apply" (click)="applied.emit()">
+      {{ i18n.t('results.applyFilters', { count: resultCount() }) }}
+    </button>
+  }
+</section>

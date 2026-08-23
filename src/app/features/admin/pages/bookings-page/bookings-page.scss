@@ -1,0 +1,7 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+@include a.admin-panel-blocks;

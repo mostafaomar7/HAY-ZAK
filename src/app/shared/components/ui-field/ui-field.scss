@@ -1,0 +1,55 @@
+@use 'abstracts' as a;
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-8;
+}
+
+.field__label {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.field__optional {
+  margin-inline-start: a.$space-4;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-subtle);
+}
+
+.field__hint {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.field__error {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-danger-fg);
+  text-wrap: pretty;
+}
+
+// Style the projected control from here so every form gets the same geometry
+// without repeating the mixin in each feature stylesheet.
+::ng-deep {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    @include a.control;
+  }
+
+  textarea {
+    min-height: 132px;
+    padding: a.$space-12 a.$space-14;
+    resize: vertical;
+  }
+
+  // An invalid, touched control gets a red border to match its message.
+  .ng-invalid.ng-touched:not(form) {
+    border-color: var(--color-danger);
+  }
+}

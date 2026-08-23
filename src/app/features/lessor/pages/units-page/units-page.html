@@ -1,0 +1,58 @@
+<section class="page">
+  <div class="page__toolbar">
+    <app-ui-search-field
+      class="page__search"
+      placeholder="البحث باسم المساحة"
+      [initialValue]="query()"
+      (searchChange)="onSearch($event)"
+    />
+
+    <app-ui-filter-chips
+      label="تصفية المساحات بالحالة"
+      [chips]="chips"
+      [selected]="filter()"
+      (selectionChange)="onFilter($event)"
+    />
+  </div>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="6" label="جارٍ تحميل المساحات..." />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      title="تعذّر تحميل المساحات"
+      hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+    >
+      <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+    </app-ui-empty-state>
+  } @else if (visibleUnits().length === 0) {
+    @if (isFiltered()) {
+      <app-ui-empty-state
+        title="لا توجد مساحات مطابقة"
+        hint="جرّب اسمًا آخر أو اختر «الكل» لعرض جميع مساحاتك."
+      >
+        <button appUiButton variant="outline" (click)="clearFilters()">إلغاء التصفية</button>
+      </app-ui-empty-state>
+    } @else {
+      <app-ui-empty-state
+        title="لم تُضِف أي مساحة بعد"
+        hint="أضِف مساحتك الأولى في ثلاث خطوات، ويمكنك حفظها كمسودة والعودة إليها لاحقًا."
+      >
+        <a appUiButton variant="accent" routerLink="/lessor/units/new"> إضافة مساحة جديدة </a>
+      </app-ui-empty-state>
+    }
+  } @else {
+    <p class="page__count">
+      <span class="num" dir="ltr">{{ visibleUnits().length }}</span>
+      من
+      <span class="num" dir="ltr">{{ total() }}</span>
+      مساحة
+    </p>
+
+    <div class="page__grid">
+      @for (unit of visibleUnits(); track unit.id) {
+        <app-unit-card [unit]="unit" (suspendRequested)="onSuspend($event.id)" />
+      }
+    </div>
+  }
+</section>

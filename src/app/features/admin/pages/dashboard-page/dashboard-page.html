@@ -1,0 +1,99 @@
+@if (isLoading()) {
+  <app-ui-skeleton [count]="6" [label]="i18n.t('common.loading')" />
+} @else if (failed()) {
+  <app-ui-empty-state tone="error" [title]="i18n.t('dash.error')" [hint]="i18n.t('dash.errorHint')">
+    <button appUiButton variant="primary" type="button" (click)="fetch()">
+      {{ i18n.t('common.retry') }}
+    </button>
+  </app-ui-empty-state>
+} @else {
+  <section class="kpis">
+    @for (card of cards(); track card.key) {
+      <app-admin-kpi-card
+        [label]="card.label"
+        [value]="card.value"
+        [unit]="card.unit"
+        [delta]="card.delta"
+        [icon]="card.icon"
+      />
+    }
+  </section>
+
+  <section class="queues">
+    <!-- Listings -->
+    <article class="queue">
+      <header class="queue__head">
+        <h2 class="queue__title">
+          {{ i18n.t('dash.pendingListings') }}
+          @if (listings().length > 0) {
+            <span class="queue__badge num">{{ listings().length }}</span>
+          }
+        </h2>
+        <a appUiButton variant="outline" size="sm" routerLink="/admin/listings">
+          {{ i18n.t('dash.viewAll') }}
+        </a>
+      </header>
+
+      @if (topListings().length === 0) {
+        <p class="queue__empty">{{ i18n.t('dash.emptyQueue') }}</p>
+      } @else {
+        <ul class="queue__list">
+          @for (row of topListings(); track row.id) {
+            <li>
+              <a class="entry" [routerLink]="['/admin/listings']" [queryParams]="{ open: row.id }">
+                <span class="entry__text">
+                  <span class="entry__title">{{ row.unitTitle }}</span>
+                  <span class="entry__meta num">
+                    {{ row.ownerName }} · {{ row.categoryName }} · {{ row.dailyPrice }}
+                    {{ i18n.t('admin.sar') }}
+                  </span>
+                </span>
+                <span class="entry__wait num" [class.entry__wait--late]="isLate(row.waitingHours)">
+                  {{ waitLabel(row.waitingHours) }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </article>
+
+    <!-- Bookings -->
+    <article class="queue">
+      <header class="queue__head">
+        <h2 class="queue__title">
+          {{ i18n.t('dash.pendingBookings') }}
+          @if (bookings().length > 0) {
+            <span class="queue__badge num">{{ bookings().length }}</span>
+          }
+        </h2>
+        <a appUiButton variant="outline" size="sm" routerLink="/admin/bookings">
+          {{ i18n.t('dash.viewAll') }}
+        </a>
+      </header>
+
+      @if (topBookings().length === 0) {
+        <p class="queue__empty">{{ i18n.t('dash.emptyQueue') }}</p>
+      } @else {
+        <ul class="queue__list">
+          @for (row of topBookings(); track row.id) {
+            <li>
+              <a class="entry" [routerLink]="['/admin/bookings']" [queryParams]="{ open: row.id }">
+                <span class="entry__text">
+                  <span class="entry__title num" dir="ltr">{{ row.referenceNo }}</span>
+                  <span class="entry__meta num">
+                    {{ row.renterName }} · {{ row.unitTitle }} · {{ row.totalAmount }}
+                    {{ i18n.t('admin.sar') }}
+                  </span>
+                </span>
+                <span class="entry__wait num" [class.entry__wait--late]="isLate(row.waitingHours)">
+                  {{ waitLabel(row.waitingHours) }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </article>
+  </section>
+}

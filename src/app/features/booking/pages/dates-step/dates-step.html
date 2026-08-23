@@ -1,0 +1,56 @@
+@if (isLoading()) {
+  <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+} @else if (failed() || !unit()) {
+  <app-ui-empty-state
+    tone="error"
+    [title]="i18n.t('details.notFound')"
+    [hint]="i18n.t('details.notFoundHint')"
+  >
+    <a appUiButton variant="primary" routerLink="/units">{{ i18n.t('details.backToResults') }}</a>
+  </app-ui-empty-state>
+} @else {
+  <div class="step">
+    <section class="step__main">
+      <h1 class="step__title">{{ i18n.t('booking.pickPeriod') }}</h1>
+
+      <app-ui-range-calendar
+        initiallyOpen
+        [startDate]="initialStart()"
+        [endDate]="initialEnd()"
+        [minDays]="minDays()"
+        [maxDays]="maxDays()"
+        [blockedDates]="blockedDates()"
+        [today]="today"
+        (rangeChange)="onRange($event)"
+      />
+
+      <app-ui-notice tone="info">
+        {{ i18n.t('booking.datesNote', { minutes: holdMinutes }) }}
+        {{ i18n.t('calendar.minDays', { count: minDays() }) }} ·
+        {{ i18n.t('calendar.maxDays', { count: maxDays() }) }}
+      </app-ui-notice>
+    </section>
+
+    <aside class="step__side">
+      <app-booking-summary [unit]="unit()" [draft]="draft()">
+        <button
+          appUiButton
+          variant="primary"
+          type="button"
+          fullWidth
+          [disabled]="!canContinue() || submitting()"
+          (click)="canContinue() ? goNext() : notifyMissing()"
+        >
+          {{ i18n.t('booking.continueToGoods') }}
+        </button>
+
+        <p class="step__note">{{ i18n.t('booking.paidLaterNote') }}</p>
+      </app-booking-summary>
+
+      <section class="location">
+        <h2 class="location__title">{{ i18n.t('booking.unitLocation') }}</h2>
+        <app-ui-location-map height="sm" [point]="unit()!.location" />
+      </section>
+    </aside>
+  </div>
+}

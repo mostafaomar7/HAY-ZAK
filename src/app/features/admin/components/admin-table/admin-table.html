@@ -1,0 +1,185 @@
+<section class="tbl">
+  @if (caption() || selectable()) {
+    <header class="tbl__bar">
+      @if (caption()) {
+        <p class="tbl__caption">
+          {{ caption() }} —
+          <span class="tbl__count num">{{ total() }}</span>
+        </p>
+      }
+      <!-- Bulk actions: the page owns them, because approving is not the same
+           verb on a listing queue as on a booking queue. -->
+      @if (selected().length > 0) {
+        <div class="tbl__bulk">
+          <span class="tbl__selected num">
+            {{ i18n.t('admin.selectedCount', { count: selected().length }) }}
+          </span>
+          <ng-content select="[tableActions]" />
+          <button
+            appUiButton
+            variant="ghost"
+            size="sm"
+            type="button"
+            (click)="selectionChange.emit([])"
+          >
+            {{ i18n.t('admin.clearSelection') }}
+          </button>
+        </div>
+      }
+    </header>
+  }
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="skeleton" role="status" [attr.aria-label]="i18n.t('common.loading')">
+        @for (row of skeletonRows; track row) {
+          <div class="skeleton__row">
+            @for (column of columns(); track column.key) {
+              <span class="skeleton__cell" [style.flex]="column.width"></span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @case ('empty') {
+      <div class="state">
+        <span class="state__mark" aria-hidden="true">⌕</span>
+        <h3 class="state__title">{{ emptyTitle() }}</h3>
+        @if (emptyHint()) {
+          <p class="state__hint">{{ emptyHint() }}</p>
+        }
+        <button
+          appUiButton
+          variant="outline"
+          size="sm"
+          type="button"
+          (click)="clearedFilters.emit()"
+        >
+          {{ i18n.t('admin.resetFilters') }}
+        </button>
+      </div>
+    }
+
+    @case ('error') {
+      <div class="state state--error">
+        <span class="state__mark state__mark--error" aria-hidden="true">!</span>
+        <h3 class="state__title state__title--error">{{ errorTitle() }}</h3>
+        <p class="state__hint">
+          {{ errorHint() }}
+          @if (errorRef()) {
+            <span class="state__ref num" dir="ltr">{{ errorRef() }}</span>
+          }
+        </p>
+        <button appUiButton variant="primary" size="sm" type="button" (click)="retried.emit()">
+          {{ i18n.t('common.retry') }}
+        </button>
+      </div>
+    }
+
+    @default {
+      <div class="tbl__scroll">
+        <div class="tbl__grid" role="table">
+          <div class="tbl__head" role="row" [style.grid-template-columns]="gridTemplate()">
+            @if (selectable()) {
+              <span class="cell cell--check" role="columnheader">
+                <input
+                  class="check"
+                  type="checkbox"
+                  [checked]="allSelected()"
+                  [attr.aria-label]="i18n.t('admin.selectAll')"
+                  (change)="toggleAll()"
+                />
+              </span>
+            }
+            @for (column of columns(); track column.key) {
+              <span class="cell cell--head" role="columnheader">
+                @if (column.sortable) {
+                  <button class="sortBtn" type="button" (click)="onSort(column)">
+                    <span>{{ column.label }}</span>
+                    <span class="sortBtn__arrow" aria-hidden="true">{{ arrow(column) }}</span>
+                  </button>
+                } @else {
+                  {{ column.label }}
+                }
+              </span>
+            }
+          </div>
+
+          @for (row of rows(); track row.id) {
+            <div
+              class="tbl__row"
+              role="row"
+              tabindex="0"
+              [class.tbl__row--danger]="rowTone()(row) === 'danger'"
+              [class.tbl__row--on]="isSelected(row.id)"
+              [style.grid-template-columns]="gridTemplate()"
+              (click)="rowOpen.emit(row)"
+              (keydown.enter)="rowOpen.emit(row)"
+            >
+              @if (selectable()) {
+                <span class="cell cell--check" role="cell">
+                  <input
+                    class="check"
+                    type="checkbox"
+                    [checked]="isSelected(row.id)"
+                    [attr.aria-label]="i18n.t('admin.selectRow')"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleRow(row.id)"
+                  />
+                </span>
+              }
+              <ng-container
+                [ngTemplateOutlet]="rowTemplate()"
+                [ngTemplateOutletContext]="{ $implicit: row }"
+              />
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (total() > pageSize()) {
+        <footer class="pager">
+          <p class="pager__range num">
+            {{
+              i18n.t('admin.showingRange', {
+                from: firstShown(),
+                to: lastShown(),
+                total: total(),
+              })
+            }}
+          </p>
+          <div class="pager__pages">
+            <button
+              class="pager__btn"
+              type="button"
+              [disabled]="page() === 1"
+              (click)="go(page() - 1)"
+            >
+              {{ i18n.t('admin.previous') }}
+            </button>
+            @for (number of pages(); track number) {
+              <button
+                class="pager__btn pager__btn--num num"
+                type="button"
+                [class.pager__btn--on]="number === page()"
+                [attr.aria-current]="number === page() ? 'page' : null"
+                (click)="go(number)"
+              >
+                {{ number }}
+              </button>
+            }
+            <button
+              class="pager__btn"
+              type="button"
+              [disabled]="page() === totalPages()"
+              (click)="go(page() + 1)"
+            >
+              {{ i18n.t('admin.next') }}
+            </button>
+          </div>
+        </footer>
+      }
+    }
+  }
+</section>

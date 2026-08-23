@@ -1,0 +1,290 @@
+@if (isLoading()) {
+  <div class="page">
+    <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+  </div>
+} @else {
+  <div class="page">
+    <aside class="rail">
+      <div class="rail__who">
+        <span class="rail__avatar" aria-hidden="true">
+          {{ profile()?.fullName?.charAt(0) }}
+        </span>
+        <span class="rail__whoText">
+          <span class="rail__name">{{ profile()?.fullName }}</span>
+          <span class="rail__role">
+            {{ i18n.t('account.role') }}
+            @if (profile()?.mobileVerifiedAt) {
+              · {{ i18n.t('account.mobileVerified') }}
+            }
+          </span>
+        </span>
+      </div>
+
+      <nav class="rail__nav" [attr.aria-label]="i18n.t('account.title')">
+        <a class="rail__link" href="#profile">{{ i18n.t('account.sectionProfile') }}</a>
+        <a class="rail__link" href="#verification">{{ i18n.t('account.sectionVerification') }}</a>
+        <a class="rail__link" href="#password">{{ i18n.t('account.sectionPassword') }}</a>
+        <a class="rail__link" href="#preferences">{{ i18n.t('account.sectionPreferences') }}</a>
+        <a class="rail__link" href="#legal">{{ i18n.t('account.sectionLegal') }}</a>
+      </nav>
+
+      <button type="button" class="rail__signOut" (click)="signOut()">
+        {{ i18n.t('account.signOut') }}
+      </button>
+    </aside>
+
+    <div class="content">
+      <!-- ── My details ────────────────────────────────────────────────── -->
+      <section class="panel" id="profile">
+        <h1 class="panel__title">{{ i18n.t('account.sectionProfile') }}</h1>
+
+        <form class="grid" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <app-ui-field
+            [label]="i18n.t('account.fullName')"
+            for="ac-name"
+            [control]="profileForm.controls.fullName"
+          >
+            <input id="ac-name" class="input" type="text" formControlName="fullName" />
+          </app-ui-field>
+
+          <!-- Read-only by design: Nafath verification is bound to this number. -->
+          <div class="locked">
+            <span class="locked__label">{{ i18n.t('account.idNumber') }}</span>
+            <span class="locked__value num" dir="ltr">{{ profile()?.idNumberMasked }}</span>
+            <span class="locked__hint">{{ i18n.t('account.idNotEditable') }}</span>
+          </div>
+
+          <app-ui-field
+            class="grid__wide"
+            [label]="i18n.t('account.address')"
+            for="ac-address"
+            [control]="profileForm.controls.address"
+          >
+            <input id="ac-address" class="input" type="text" formControlName="address" />
+          </app-ui-field>
+
+          <app-ui-field
+            [label]="i18n.t('account.mobile')"
+            for="ac-mobile"
+            [control]="profileForm.controls.mobile"
+          >
+            <input
+              id="ac-mobile"
+              class="input num"
+              type="tel"
+              dir="ltr"
+              inputmode="tel"
+              formControlName="mobile"
+            />
+          </app-ui-field>
+
+          <app-ui-field
+            [label]="i18n.t('account.email')"
+            for="ac-email"
+            [control]="profileForm.controls.email"
+          >
+            <input
+              id="ac-email"
+              class="input num"
+              type="email"
+              dir="ltr"
+              inputmode="email"
+              formControlName="email"
+            />
+          </app-ui-field>
+
+          <div class="grid__actions">
+            <button appUiButton variant="primary" type="submit" [disabled]="savingProfile()">
+              {{ i18n.t('account.saveChanges') }}
+            </button>
+            <button appUiButton variant="ghost" type="button" (click)="revertProfile()">
+              {{ i18n.t('account.revert') }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── Nafath verification ───────────────────────────────────────── -->
+      <section class="panel" id="verification">
+        <div class="panel__head">
+          <h2 class="panel__title">{{ i18n.t('account.sectionVerification') }}</h2>
+          <span class="nafath" aria-hidden="true">
+            <span class="nafath__mark">نـ</span>
+            <span class="nafath__name">{{ i18n.t('nafath.brand') }}</span>
+          </span>
+        </div>
+
+        <dl class="rows">
+          <div class="row">
+            <dt class="row__label">{{ i18n.t('account.idNumber') }}</dt>
+            <dd class="row__value num" dir="ltr">{{ identity()?.idNumberMasked ?? '—' }}</dd>
+          </div>
+
+          <div class="row">
+            <dt class="row__label">{{ i18n.t('account.verificationStatus') }}</dt>
+            <dd class="row__value">
+              @if (isVerified()) {
+                <app-ui-badge tone="success">{{
+                  i18n.t('bookingDetail.identityVerified')
+                }}</app-ui-badge>
+              } @else {
+                <app-ui-badge tone="warning">{{ i18n.t('account.notVerified') }}</app-ui-badge>
+              }
+            </dd>
+          </div>
+
+          <div class="row">
+            <dt class="row__label">{{ i18n.t('account.verificationDate') }}</dt>
+            <dd class="row__value num">
+              {{ identity()?.verifiedAt ?? i18n.t('common.notAvailable') }}
+            </dd>
+          </div>
+        </dl>
+
+        @if (isVerified()) {
+          <p class="panel__note">{{ i18n.t('account.noReverify') }}</p>
+        } @else {
+          <a appUiButton variant="primary" routerLink="/my-bookings">
+            {{ i18n.t('account.verifyNow') }}
+          </a>
+        }
+      </section>
+
+      <!-- ── Password ──────────────────────────────────────────────────── -->
+      <section class="panel" id="password">
+        <h2 class="panel__title">{{ i18n.t('account.changePassword') }}</h2>
+
+        <form class="grid" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <app-ui-field
+            [label]="i18n.t('account.currentPassword')"
+            for="ac-current"
+            [control]="passwordForm.controls.currentPassword"
+          >
+            <input
+              id="ac-current"
+              class="input"
+              type="password"
+              autocomplete="current-password"
+              formControlName="currentPassword"
+            />
+          </app-ui-field>
+
+          <app-ui-field
+            [label]="i18n.t('account.newPassword')"
+            for="ac-new"
+            [control]="passwordForm.controls.newPassword"
+            [hint]="i18n.t('password.rule')"
+          >
+            <input
+              id="ac-new"
+              class="input"
+              type="password"
+              autocomplete="new-password"
+              formControlName="newPassword"
+            />
+            <app-ui-password-strength [value]="newPassword()" />
+          </app-ui-field>
+
+          <app-ui-field
+            [label]="i18n.t('account.confirmPassword')"
+            for="ac-confirm"
+            [control]="passwordForm.controls.confirmPassword"
+          >
+            <input
+              id="ac-confirm"
+              class="input"
+              type="password"
+              autocomplete="new-password"
+              formControlName="confirmPassword"
+            />
+          </app-ui-field>
+
+          <div class="grid__actions">
+            <button appUiButton variant="primary" type="submit" [disabled]="savingPassword()">
+              {{ i18n.t('account.updatePassword') }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── Notification preferences ──────────────────────────────────── -->
+      <section class="panel" id="preferences">
+        <h2 class="panel__title">{{ i18n.t('account.sectionPreferences') }}</h2>
+
+        <div class="prefs">
+          @for (preference of preferenceRows(); track preference.key) {
+            <app-ui-toggle
+              [label]="preference.title"
+              [hint]="preference.hint"
+              [checked]="preference.enabled"
+              (checkedChange)="togglePreference(preference.key, $event)"
+            />
+          }
+        </div>
+      </section>
+
+      <!-- ── Terms and policies ────────────────────────────────────────── -->
+      <section class="panel" id="legal">
+        <h2 class="panel__title">{{ i18n.t('account.sectionLegal') }}</h2>
+
+        <ul class="legal">
+          <li class="legal__row">
+            <span>{{ i18n.t('pages.contactUs') }}</span>
+            <a routerLink="/pages/contact">{{ i18n.t('account.viewFullText') }}</a>
+          </li>
+          <li class="legal__row">
+            <span>{{ i18n.t('account.sectionLegal') }}</span>
+            <a routerLink="/pages/terms">{{ i18n.t('account.viewFullText') }}</a>
+          </li>
+          <li class="legal__row">
+            <span>{{ i18n.t('pages.refundWhen') }}</span>
+            <a routerLink="/pages/refund-policy">{{ i18n.t('account.viewFullText') }}</a>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ── Delete ────────────────────────────────────────────────────── -->
+      <section class="panel panel--danger">
+        <h2 class="panel__title">{{ i18n.t('account.deleteTitle') }}</h2>
+        <p class="panel__note">{{ i18n.t('account.deleteBody') }}</p>
+
+        <button appUiButton variant="danger" type="button" (click)="openDelete()">
+          {{ i18n.t('account.deleteAction') }}
+        </button>
+      </section>
+    </div>
+  </div>
+
+  <app-ui-modal
+    tone="danger"
+    [open]="deleteOpen()"
+    [title]="i18n.t('account.deleteDialogTitle')"
+    (dismissed)="closeDelete()"
+  >
+    <p>{{ i18n.t('account.deleteDialogBody', { name: profile()?.fullName ?? '' }) }}</p>
+
+    <label class="confirm">
+      <span class="confirm__label">{{ i18n.t('account.deleteConfirmLabel') }}</span>
+      <input
+        class="input"
+        type="text"
+        [value]="deleteConfirmation()"
+        (input)="setDeleteConfirmation($event)"
+      />
+    </label>
+
+    <button
+      slot="actions"
+      appUiButton
+      variant="danger"
+      type="button"
+      [disabled]="!canDelete()"
+      (click)="confirmDelete()"
+    >
+      {{ i18n.t('account.deleteFinal') }}
+    </button>
+    <button slot="actions" appUiButton variant="outline" type="button" (click)="closeDelete()">
+      {{ i18n.t('cancel.dialogDismiss') }}
+    </button>
+  </app-ui-modal>
+}

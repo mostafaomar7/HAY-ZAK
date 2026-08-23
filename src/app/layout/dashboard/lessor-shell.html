@@ -1,0 +1,41 @@
+<div class="shell">
+  <!-- Desktop: permanent rail. -->
+  <div class="shell__rail">
+    <app-lessor-sidebar />
+  </div>
+
+  <!-- Mobile: off-canvas drawer. Rendered only when open so its links stay out
+       of the tab order while hidden. -->
+  @if (drawerOpen()) {
+    <!-- A real button, not a click-handling div: it is reachable by keyboard and
+         announced, which a bare overlay never is. -->
+    <button type="button" class="shell__scrim" (click)="closeDrawer()">
+      <span class="sr-only">{{ i18n.t('nav.closeMenu') }}</span>
+    </button>
+    <div
+      class="shell__drawer"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="i18n.t('nav.menu')"
+      (keydown.escape)="closeDrawer()"
+    >
+      <app-lessor-sidebar (navigate)="closeDrawer()" />
+    </div>
+  }
+
+  <div class="shell__main">
+    <app-lessor-topbar [title]="title()" [unreadCount]="unreadCount()" (openMenu)="openDrawer()" />
+
+    @if (loading.isLoading()) {
+      <div
+        class="shell__progress"
+        role="progressbar"
+        [attr.aria-label]="i18n.t('common.loading')"
+      ></div>
+    }
+
+    <main class="shell__content" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>

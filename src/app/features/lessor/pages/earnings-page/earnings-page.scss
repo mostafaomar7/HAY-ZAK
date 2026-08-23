@@ -1,0 +1,208 @@
+@use 'abstracts' as a;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-20;
+}
+
+.page__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-12;
+  align-items: center;
+}
+
+.page__filter select {
+  @include a.control;
+
+  width: auto;
+  min-width: 160px;
+  font-size: a.$fs-md;
+}
+
+// ── Table ────────────────────────────────────────────────────────────────
+// A grid rather than <table>, so the same markup reflows into stacked cards on
+// a phone. ARIA roles in the template keep the table semantics.
+$cols: 0.8fr 1.2fr 1.2fr 0.9fr 0.8fr 0.9fr 1fr 1fr 1fr;
+
+.table {
+  @include a.surface(a.$radius-2xl);
+
+  overflow: hidden;
+}
+
+.table__head {
+  display: none;
+
+  @include a.up(xxl) {
+    display: grid;
+    grid-template-columns: $cols;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border-subtle);
+    font-size: a.$fs-sm;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text-muted);
+
+    > span {
+      padding: a.$space-14 a.$space-12;
+    }
+  }
+}
+
+.table__row {
+  // Below xxl: a stacked card. Flex + `order` puts the unit title and its status
+  // side by side on the first line, matching the design's phone card, without
+  // duplicating the markup for the two breakpoints.
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-8;
+  padding: a.$space-14;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-md;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @include a.up(xxl) {
+    display: grid;
+    grid-template-columns: $cols;
+    gap: 0;
+    padding: 0;
+  }
+}
+
+// Gold wash on a frozen payout, matching the design.
+.table__row--hold {
+  background: var(--color-warning-bg);
+}
+
+// A row followed by a note or a hold panel keeps them visually joined.
+.table__row--noted,
+.table__row--hold {
+  border-bottom: 0;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+  // Stacked view: one field per line by default.
+  flex: 0 0 100%;
+  order: 3;
+
+  // Stacked view: show the column name before the value.
+  &::before {
+    content: attr(data-label) ':';
+    flex: none;
+    min-width: 96px;
+    font-size: a.$fs-sm;
+    color: var(--color-text-muted);
+  }
+
+  @include a.up(xxl) {
+    flex: initial;
+    order: initial;
+    padding: a.$space-14 a.$space-12;
+
+    &::before {
+      content: none;
+    }
+  }
+}
+
+// ── Phone card header: unit title beside its status badge ────────────────
+.cell--title {
+  flex: 1;
+  order: 1;
+  min-width: 0;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.cell--status {
+  flex: none;
+  order: 2;
+}
+
+.cell--title,
+.cell--status {
+  &::before {
+    content: none;
+  }
+}
+
+// Gross, commission and transfer date are desktop-only — the design's phone
+// card carries the net alone.
+.cell--wide {
+  display: none;
+
+  @include a.up(xxl) {
+    display: flex;
+  }
+}
+
+.cell--deduction ::ng-deep .money {
+  color: var(--color-danger-fg);
+}
+
+.cell--net ::ng-deep .money {
+  font-weight: a.$fw-bold;
+}
+
+.cell__empty {
+  color: var(--color-text-faint);
+}
+
+// ── Payout-in-progress note (phone only, as in the design) ───────────────
+.note {
+  margin: 0;
+  padding: 0 a.$space-14 a.$space-14;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+
+  @include a.up(xxl) {
+    display: none;
+  }
+}
+
+// ── Frozen-payout explanation ────────────────────────────────────────────
+.hold {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-14;
+  padding: a.$space-14 a.$space-16;
+  background: var(--color-warning-bg);
+  border-top: 1px solid var(--color-warning-border);
+  border-bottom: 1px solid var(--color-border-divider);
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: a.$space-20;
+  }
+}
+
+.hold__text {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-4;
+}
+
+.hold__title {
+  margin: 0;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.hold__reason {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text);
+  text-wrap: pretty;
+}

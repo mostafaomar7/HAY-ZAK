@@ -1,0 +1,294 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.tbl {
+  @include a.surface(a.$radius-lg);
+
+  overflow: hidden;
+}
+
+// ── Caption and bulk-action bar ──────────────────────────────────────────
+.tbl__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  min-height: 44px;
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.tbl__caption {
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.tbl__count {
+  @include a.numeric;
+
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.tbl__bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-8;
+}
+
+.tbl__selected {
+  @include a.numeric;
+
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+// ── Grid ─────────────────────────────────────────────────────────────────
+// A grid rather than <table>: the sticky header, the row-level tinting and the
+// two-line cells are all far simpler here, and explicit ARIA roles keep the
+// table semantics a screen reader needs.
+.tbl__scroll {
+  overflow: auto;
+
+  @include a.scrollbar(8px);
+
+  max-height: 560px;
+}
+
+.tbl__grid {
+  min-width: 900px;
+  font-size: a.$fs-label;
+}
+
+.tbl__head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.tbl__row {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-divider);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+}
+
+.tbl__row--on {
+  background: var(--color-primary-soft);
+}
+
+// An SLA breach is a state of the row, not of one cell — the whole row carries
+// it, with an edge marker so it survives a monochrome print.
+.tbl__row--danger {
+  background: var(--color-danger-bg);
+  border-inline-end: 3px solid var(--color-danger);
+
+  &:hover {
+    background: var(--color-danger-bg);
+  }
+}
+
+// `cell` is used by the projected row templates too, so it is not nested.
+.cell {
+  padding: a.$space-12 a.$space-14;
+  min-width: 0;
+}
+
+.cell--check {
+  display: flex;
+  align-items: center;
+  padding-inline: a.$space-16;
+}
+
+.cell--head {
+  padding-block: a.$space-10;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.sortBtn {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.sortBtn__arrow {
+  font-size: 10px;
+  color: var(--color-text-faint);
+}
+
+// ── Skeleton ─────────────────────────────────────────────────────────────
+.skeleton {
+  @include a.stack(a.$space-12);
+
+  padding: a.$space-16;
+}
+
+.skeleton__row {
+  display: flex;
+  align-items: center;
+  gap: a.$space-12;
+  animation: tbl-pulse 1.3s ease-in-out infinite;
+}
+
+.skeleton__cell {
+  height: 12px;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg-shell);
+}
+
+@keyframes tbl-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+// ── Empty and error ──────────────────────────────────────────────────────
+.state {
+  @include a.stack(a.$space-12);
+
+  align-items: center;
+  padding: a.$space-56 a.$space-24;
+  text-align: center;
+}
+
+.state__mark {
+  @include a.flex-center;
+
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-pill;
+  color: var(--color-text-faint);
+  font-size: a.$fs-2xl;
+}
+
+.state__mark--error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.state__title {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.state__title--error {
+  color: var(--color-danger);
+}
+
+.state__hint {
+  max-width: 440px;
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+.state__ref {
+  @include a.numeric;
+
+  margin-inline-start: a.$space-4;
+}
+
+// ── Pagination ───────────────────────────────────────────────────────────
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-10 a.$space-16;
+  border-top: 1px solid var(--color-border-divider);
+}
+
+.pager__range {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.pager__pages {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+}
+
+.pager__btn {
+  @include a.focus-ring;
+
+  min-height: 28px;
+  padding: 0 a.$space-10;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--color-text-faint);
+    cursor: not-allowed;
+  }
+}
+
+.pager__btn--num {
+  @include a.numeric;
+}
+
+.pager__btn--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

@@ -1,0 +1,142 @@
+@if (isLoading()) {
+  <p class="loading" role="status">جارٍ تحميل المساحة...</p>
+} @else if (failed() || !unit()) {
+  <app-ui-empty-state
+    tone="error"
+    title="تعذّر تحميل المساحة"
+    hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+  >
+    <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+  </app-ui-empty-state>
+} @else {
+  @let u = unit()!;
+
+  <section class="detail">
+    <div class="detail__main">
+      <header class="card">
+        <div class="head">
+          <div class="head__titles">
+            <app-ui-badge [tone]="status()!.tone" size="sm">{{ status()!.ar }}</app-ui-badge>
+            <h2 class="head__title">{{ u.title }}</h2>
+            <p class="head__meta">
+              {{ u.category?.nameAr }} &middot;
+              <span class="num" dir="ltr">{{ u.areaSqm }} م²</span>
+              @if (u.city?.nameAr) {
+                &middot; {{ u.city?.nameAr }}
+              }
+              @if (u.district?.nameAr) {
+                — {{ u.district?.nameAr }}
+              }
+            </p>
+          </div>
+
+          <div class="head__actions">
+            @if (canEdit()) {
+              <a appUiButton variant="outline" [routerLink]="['/lessor/units', u.id, 'edit']">
+                تعديل
+              </a>
+            }
+            @if (canSuspend()) {
+              <button appUiButton variant="ghost" (click)="requestSuspension()">إيقاف مؤقت</button>
+            }
+          </div>
+        </div>
+
+        @if (isRejected() && u.rejectionReason) {
+          <app-ui-notice tone="danger" title="سبب الرفض من الإدارة">
+            {{ u.rejectionReason }}
+          </app-ui-notice>
+        }
+
+        @if (priceLocked()) {
+          <app-ui-notice tone="warning">
+            لا يمكن تعديل السعر أو حذف المساحة أثناء وجود حجز ساري عليها.
+          </app-ui-notice>
+        }
+      </header>
+
+      <section class="card">
+        <h3 class="card__heading">الصور</h3>
+        @if (u.images.length) {
+          <div class="gallery">
+            @for (image of u.images; track image.id) {
+              <app-ui-thumbnail [src]="image.url" [alt]="u.title" size="md" />
+            }
+          </div>
+        } @else {
+          <p class="muted">لا توجد صور مرفوعة لهذه المساحة.</p>
+        }
+      </section>
+
+      <section class="card">
+        <h3 class="card__heading">الوصف</h3>
+        <p class="description">{{ u.description }}</p>
+      </section>
+
+      <section class="card">
+        <h3 class="card__heading">التقويم</h3>
+        @if (upcomingBlocks().length) {
+          <ul class="blocks">
+            @for (block of upcomingBlocks(); track block.id) {
+              <li class="block">
+                <span class="block__dates num">
+                  {{ block.startDate | date: dateFormat }} &ndash;
+                  {{ block.endDate | date: dateFormat }}
+                </span>
+                <span class="block__reason">{{ blockReasons[block.reason] ?? block.reason }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">المساحة متاحة بالكامل في الفترة القادمة.</p>
+        }
+      </section>
+    </div>
+
+    <aside class="detail__side">
+      <section class="card">
+        <h3 class="card__heading">السعر</h3>
+        <div class="price">
+          <app-ui-money [amount]="u.dailyPrice" [strong]="true" />
+          <span class="price__unit">/ يوم</span>
+        </div>
+        <!-- FR-UNT-05 — indicative only, never charged as a monthly rate. -->
+        <p class="muted">يعادل نحو <app-ui-money [amount]="monthlyPrice()" /> شهريًا (استرشادي)</p>
+      </section>
+
+      <section class="card">
+        <h3 class="card__heading">تفاصيل</h3>
+        <dl class="facts">
+          <div class="facts__row">
+            <dt>ساعات الزيارة</dt>
+            <dd class="num" dir="auto">{{ visitSummary(u) || 'غير محدّدة' }}</dd>
+          </div>
+          <div class="facts__row">
+            <dt>أقل مدة للحجز</dt>
+            <dd class="num" dir="ltr">{{ u.minDays ?? 1 }}</dd>
+          </div>
+          @if (u.maxDays) {
+            <div class="facts__row">
+              <dt>أقصى مدة للحجز</dt>
+              <dd class="num" dir="ltr">{{ u.maxDays }}</dd>
+            </div>
+          }
+          @if (u.floor) {
+            <div class="facts__row">
+              <dt>الدور</dt>
+              <dd>{{ u.floor }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (u.perks?.length) {
+          <ul class="perks">
+            @for (perk of u.perks; track perk) {
+              <li class="perks__item">{{ perk }}</li>
+            }
+          </ul>
+        }
+      </section>
+    </aside>
+  </section>
+}

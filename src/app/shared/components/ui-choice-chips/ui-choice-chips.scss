@@ -1,0 +1,79 @@
+@use 'abstracts' as a;
+
+.group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-10;
+}
+
+.group__legend {
+  padding: 0;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.group__optional {
+  margin-inline-start: a.$space-4;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-subtle);
+}
+
+.group__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+}
+
+.group__error {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-danger-fg);
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: a.$control-touch-min;
+  padding: 0 a.$space-14;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-pill;
+  font-size: a.$fs-md;
+  cursor: pointer;
+  transition:
+    background-color a.$transition-fast,
+    border-color a.$transition-fast;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  // Keeps the real control operable while invisible.
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.chip--on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: a.$fw-semibold;
+}

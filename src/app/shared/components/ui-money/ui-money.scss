@@ -1,0 +1,16 @@
+@use 'abstracts' as a;
+
+.money {
+  @include a.numeric;
+
+  display: inline-block;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+  text-align: right;
+}
+
+.money--strong {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+}

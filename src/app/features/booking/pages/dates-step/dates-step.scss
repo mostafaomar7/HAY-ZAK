@@ -1,0 +1,45 @@
+@use 'abstracts' as a;
+
+.step {
+  @include a.work-and-summary;
+}
+
+.step__main {
+  @include a.stack(a.$space-16);
+
+  min-width: 0;
+}
+
+.step__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.step__side {
+  @include a.stack(a.$space-16);
+
+  min-width: 0;
+
+  @include a.sticky-side;
+}
+
+.step__note {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.location {
+  @include a.stack(a.$space-8);
+}
+
+.location__title {
+  margin: 0;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}

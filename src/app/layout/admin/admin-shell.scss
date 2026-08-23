@@ -1,0 +1,97 @@
+@use 'abstracts' as a;
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-bg-canvas);
+}
+
+.shell__rail {
+  display: none;
+
+  @include a.up(lg) {
+    display: block;
+    flex: none;
+    width: 240px;
+    // Sticky rather than fixed: no magic offset on the content column.
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+.shell__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  background: var(--color-overlay);
+  cursor: pointer;
+
+  @include a.up(lg) {
+    display: none;
+  }
+}
+
+.shell__drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 41;
+  width: 240px;
+  box-shadow: var(--shadow-dropdown);
+
+  @include a.up(lg) {
+    display: none;
+  }
+}
+
+.shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__progress {
+  height: 3px;
+  flex: none;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0%,
+    var(--color-primary) 50%,
+    var(--color-accent) 100%
+  );
+  background-size: 200% 100%;
+  animation: admin-progress 1.1s linear infinite;
+}
+
+@keyframes admin-progress {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.shell__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-20;
+  padding: a.$space-16;
+  overflow-x: hidden;
+
+  &:focus {
+    outline: none;
+  }
+
+  @include a.up(lg) {
+    padding: a.$space-24 a.$space-28 a.$space-56;
+  }
+}

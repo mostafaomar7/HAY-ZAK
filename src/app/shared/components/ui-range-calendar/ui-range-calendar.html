@@ -1,0 +1,152 @@
+<div class="cal">
+  <div class="cal__fields">
+    <button type="button" class="field" [class.field--active]="open()" (click)="toggleOpen()">
+      <span class="field__label">{{ i18n.t('calendar.start') }}</span>
+      <span class="field__main num">{{ startLabel() }}</span>
+      <span class="field__sub num">{{ startSubLabel() }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="field"
+      [class.field--active]="open() && !selectedEnd()"
+      (click)="toggleOpen()"
+    >
+      <span class="field__label">{{ i18n.t('calendar.end') }}</span>
+      <span class="field__main num">{{ endLabel() }}</span>
+      <span class="field__sub num">{{ endSubLabel() }}</span>
+    </button>
+  </div>
+
+  <p class="cal__closed num">{{ closedSummary() }}</p>
+
+  @if (open()) {
+    <div class="panel" role="group" [attr.aria-label]="i18n.t('calendar.label')">
+      <div class="panel__head">
+        <button
+          type="button"
+          class="panel__nav"
+          [disabled]="!canGoBack()"
+          [attr.aria-label]="i18n.t('calendar.prevMonth')"
+          (click)="shiftMonth(-1)"
+        >
+          <span aria-hidden="true">‹</span>
+        </button>
+
+        <span class="panel__title">{{ headerTitle() }}</span>
+
+        <button
+          type="button"
+          class="panel__nav"
+          [attr.aria-label]="i18n.t('calendar.nextMonth')"
+          (click)="shiftMonth(1)"
+        >
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
+
+      <div class="panel__months" [class.panel__months--single]="compact()">
+        @for (month of months(); track month.key) {
+          <div class="month">
+            <p class="month__title">{{ month.title }}</p>
+
+            <div class="month__grid" (mouseleave)="clearHover()">
+              @for (name of weekdayNames(); track name) {
+                <span class="month__weekday" aria-hidden="true">{{ name }}</span>
+              }
+
+              @for (cell of month.cells; track cell.iso) {
+                @if (cell.blank) {
+                  <span class="day day--blank" aria-hidden="true"></span>
+                } @else {
+                  <button
+                    type="button"
+                    class="day"
+                    [class.day--past]="cell.past"
+                    [class.day--blocked]="cell.blocked"
+                    [class.day--range]="cell.inRange"
+                    [class.day--start]="cell.isStart"
+                    [class.day--end]="cell.isEnd"
+                    [disabled]="cell.past || cell.blocked"
+                    [attr.aria-label]="dayAriaLabel(cell)"
+                    [attr.aria-pressed]="cell.isStart || cell.isEnd"
+                    (click)="pick(cell)"
+                    (mouseenter)="hover(cell)"
+                    (focus)="hover(cell)"
+                  >
+                    <span class="day__num num" dir="ltr">{{ cell.label }}</span>
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="panel__foot">
+        @if (error()) {
+          <p class="panel__error" role="alert">
+            <span class="panel__errorMark" aria-hidden="true">!</span>
+            {{ error() }}
+          </p>
+        }
+
+        <div class="panel__summary">
+          <span class="panel__summaryMain num">{{ summary() }}</span>
+          @if (summarySub()) {
+            <span class="panel__summarySub num">{{ summarySub() }}</span>
+          }
+        </div>
+
+        <div class="switch" role="group" [attr.aria-label]="i18n.t('calendar.label')">
+          <button
+            type="button"
+            class="switch__opt"
+            [class.switch__opt--on]="calendar() === 'gregorian'"
+            [attr.aria-pressed]="calendar() === 'gregorian'"
+            (click)="setCalendar('gregorian')"
+          >
+            {{ i18n.t('home.gregorian') }}
+          </button>
+          <button
+            type="button"
+            class="switch__opt"
+            [class.switch__opt--on]="calendar() === 'hijri'"
+            [attr.aria-pressed]="calendar() === 'hijri'"
+            (click)="setCalendar('hijri')"
+          >
+            {{ i18n.t('home.hijri') }}
+          </button>
+        </div>
+
+        <ul class="legend">
+          <li class="legend__item">
+            <span class="legend__swatch legend__swatch--end" aria-hidden="true"></span>
+            {{ i18n.t('calendar.legendEnds') }}
+          </li>
+          <li class="legend__item">
+            <span class="legend__swatch legend__swatch--range" aria-hidden="true"></span>
+            {{ i18n.t('calendar.legendRange') }}
+          </li>
+          <li class="legend__item">
+            <span class="legend__swatch legend__swatch--blocked num" aria-hidden="true">24</span>
+            {{ i18n.t('calendar.legendBlocked') }}
+          </li>
+          <li class="legend__item">
+            <span class="legend__swatch legend__swatch--past num" aria-hidden="true">08</span>
+            {{ i18n.t('calendar.legendPast') }}
+          </li>
+        </ul>
+
+        <div class="panel__actions">
+          <button type="button" class="panel__confirm" (click)="confirm()">
+            {{ i18n.t('calendar.confirm') }}
+          </button>
+          <button type="button" class="panel__reset" (click)="reset()">
+            {{ i18n.t('calendar.reset') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

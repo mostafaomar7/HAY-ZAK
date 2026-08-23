@@ -1,0 +1,164 @@
+@use 'abstracts' as a;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-20;
+  max-width: 640px;
+  width: 100%;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-16;
+}
+
+// ── Identity header ──────────────────────────────────────────────────────
+.identity {
+  display: flex;
+  align-items: center;
+  gap: a.$space-16;
+}
+
+.identity__avatar {
+  @include a.flex-center;
+
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+}
+
+.identity__name {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text);
+}
+
+.identity__role {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+}
+
+// ── Cards ────────────────────────────────────────────────────────────────
+.card {
+  @include a.surface(a.$radius-2xl);
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-16;
+  padding: a.$space-20;
+}
+
+.card--danger {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+.card__heading {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.card__heading--danger {
+  color: var(--color-danger-fg);
+}
+
+.card__note {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-12;
+}
+
+// ── Facts list ───────────────────────────────────────────────────────────
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+  margin: 0;
+}
+
+.facts__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.$space-8;
+  padding-bottom: a.$space-12;
+  border-bottom: 1px solid var(--color-border-divider);
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  dt {
+    font-size: a.$fs-md;
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-size: a.$fs-lg;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text);
+  }
+}
+
+.facts__value {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+  flex-wrap: wrap;
+}
+
+.tag {
+  @include a.pill(a.$badge-height-sm, a.$space-10);
+
+  text-decoration: none;
+}
+
+.tag--ok {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.tag--warn {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning-fg);
+}
+
+// ── Links ────────────────────────────────────────────────────────────────
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-10;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: a.$control-touch-min;
+    font-size: a.$fs-lg;
+    font-weight: a.$fw-semibold;
+  }
+}

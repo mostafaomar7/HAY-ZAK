@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Montserrat:wght@500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FFFFFF; color:#2D2D2D; font-family:'IBM Plex Sans Arabic',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#2E6E8E; text-decoration:none; }
+  a:hover { color:#123642; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+</style>
+</helmet>
+
+<div dir="rtl" style="background:#FFFFFF;min-height:100vh;padding-bottom:80px">
+
+  <div style="background:#123642;padding:28px 40px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="font-family:'IBM Plex Sans Arabic';font-weight:700;font-size:30px;color:#FFFFFF;letter-spacing:-.5px">حيزك</div>
+      <div style="font-family:'Montserrat';font-weight:600;font-size:11px;color:#C7A15A;letter-spacing:6px">HAY-ZAK</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.66);margin-top:4px">كل مساحة لها قيمة</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;text-align:left">
+      <div style="font-family:'Montserrat';font-weight:600;font-size:11px;color:#C7A15A;letter-spacing:3px">DESIGN SYSTEM · V1</div>
+      <div style="font-size:20px;font-weight:600;color:#FFFFFF">نظام التصميم — واجهة العميل</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.55)">المرحلة 1 من 6 · RTL كامل · Mobile-first</div>
+    </div>
+  </div>
+
+  <div style="max-width:1180px;margin:0 auto;padding:0 32px;display:flex;flex-direction:column;gap:64px">
+
+    <!-- ألوان -->
+    <section style="padding-top:52px">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">1 · الألوان</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">الكحلي للبنية · الذهبي للتأكيد والأسعار فقط · الأبيض والرمادي للمساحات</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+          <div style="height:96px;background:#123642"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">اللون الأساسي</div>
+            <div dir="ltr" style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);letter-spacing:1px;text-align:right;unicode-bidi:isolate">#123642</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5);line-height:1.7">الهيدر، الفوتر، الأزرار الأساسية، العناوين</div>
+          </div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+          <div style="height:96px;background:#C7A15A"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">اللون الثانوي</div>
+            <div dir="ltr" style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);letter-spacing:1px;text-align:right;unicode-bidi:isolate">#C7A15A</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5);line-height:1.7">الأسعار، الأزرار الثانوية، شارات التميّز</div>
+          </div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+          <div style="height:96px;background:#FFFFFF;border-bottom:1px solid #EDEDED"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">الخلفية</div>
+            <div dir="ltr" style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);letter-spacing:1px;text-align:right;unicode-bidi:isolate">#FFFFFF</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5);line-height:1.7">خلفية كل الصفحات والكروت</div>
+          </div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+          <div style="height:96px;background:#2D2D2D"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">النصوص</div>
+            <div dir="ltr" style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);letter-spacing:1px;text-align:right;unicode-bidi:isolate">#2D2D2D</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5);line-height:1.7">النص الأساسي · 60% للثانوي · 45% للمساعد</div>
+          </div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+          <div style="height:96px;background:#F5F5F5"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">لون مساعد / Surface</div>
+            <div dir="ltr" style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);letter-spacing:1px;text-align:right;unicode-bidi:isolate">#F5F5F5</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5);line-height:1.7">الحقول، الفلاتر، غير المقروء، الجداول</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;background:#F5F5F5;border-radius:14px;padding:22px 24px">
+        <div style="font-size:14px;font-weight:600;color:#123642;margin-bottom:4px">ألوان وظيفية — للحالات فقط</div>
+        <div style="font-size:12px;color:rgba(45,45,45,.55);margin-bottom:18px">تُستخدم بنسبة صغيرة جدًا من المساحة: شارات، تنبيهات، رسائل خطأ</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+          <div style="background:#FFFFFF;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:8px;background:#1E8E5A;flex:none"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:600;color:#123642">نجاح</div><div dir="ltr" style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.5);text-align:right;unicode-bidi:isolate">#1E8E5A</div></div>
+          </div>
+          <div style="background:#FFFFFF;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:8px;background:#C7A15A;flex:none"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:600;color:#123642">انتظار</div><div dir="ltr" style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.5);text-align:right;unicode-bidi:isolate">#C7A15A</div></div>
+          </div>
+          <div style="background:#FFFFFF;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:8px;background:#C0392B;flex:none"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:600;color:#123642">خطر</div><div dir="ltr" style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.5);text-align:right;unicode-bidi:isolate">#C0392B</div></div>
+          </div>
+          <div style="background:#FFFFFF;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:8px;background:#2E6E8E;flex:none"></div>
+            <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:600;color:#123642">معلومة</div><div dir="ltr" style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.5);text-align:right;unicode-bidi:isolate">#2E6E8E</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الخطوط -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">2 · الخطوط ومقياس الأحجام</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">عربي: IBM Plex Sans Arabic · لاتيني وأرقام: Montserrat للعناوين، Poppins للنصوص</div>
+      </div>
+      <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #F5F5F5">
+          <div style="font-size:40px;line-height:1.25;font-weight:700;color:#123642">كل مساحة لها قيمة</div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">H1 · 40 / 700</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #F5F5F5">
+          <div style="font-size:28px;line-height:1.3;font-weight:600;color:#123642">مستودع مكيّف — حي النرجس</div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">H2 · 28 / 600</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #F5F5F5">
+          <div style="font-size:20px;line-height:1.4;font-weight:600;color:#123642">تفاصيل الحجز والمدة</div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">H3 · 20 / 600</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #F5F5F5">
+          <div style="font-size:16px;line-height:1.85;color:#2D2D2D;max-width:640px">مساحة تخزين نظيفة وجاهزة للاستخدام في حي الياسمين بالرياض، مناسبة للأثاث والكراتين ومستلزمات المكاتب. الدخول متاح في أوقات الزيارة المحددة.</div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">Body · 16 / 400</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #F5F5F5">
+          <div style="font-size:13px;line-height:1.8;color:rgba(45,45,45,.6)">حي الملقا، الرياض · 2.4 كم · 24 م²</div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">Caption · 13 / 400</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:20px 24px;background:#F5F5F5">
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font-family:'Montserrat';font-size:26px;font-weight:700;color:#C7A15A">75</div>
+            <div style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</div>
+            <div style="font-size:13px;color:rgba(45,45,45,.55)">/ يوميًا</div>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45);letter-spacing:1px;flex:none">Price · 26 / 700 · Montserrat</div>
+        </div>
+      </div>
+      <sc-if value="{{ showEnglishSpecimens }}" hint-placeholder-val="{{ true }}">
+        <div dir="ltr" style="margin-top:16px;border:1px solid #EDEDED;border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Montserrat';font-size:11px;letter-spacing:2px;color:rgba(45,45,45,.45)">LTR SPECIMEN · FUNCTIONALLY IDENTICAL</div>
+          <div style="font-family:'Montserrat';font-weight:700;font-size:34px;color:#123642">Every space has value</div>
+          <div style="font-family:'Poppins';font-size:15px;line-height:1.8;color:#2D2D2D;max-width:620px">Clean, ready-to-use storage space in Al Yasmin, Riyadh — suitable for furniture, boxes and office supplies.</div>
+          <div style="font-family:'Montserrat';font-size:13px;color:rgba(45,45,45,.5);letter-spacing:1px">0 1 2 3 4 5 6 7 8 9 · 12 August 2026 · SAR 500</div>
+        </div>
+      </sc-if>
+    </section>
+
+    <!-- الأزرار -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">3 · الأزرار</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">نصف قطر 9px · ارتفاع 48px للأساسي (44px حد أدنى للمس) · حالة hover تغميق 8%</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px">
+        <div style="display:flex;flex-direction:column;gap:12px;border:1px solid #EDEDED;border-radius:14px;padding:20px">
+          <div style="font-size:12px;font-weight:600;color:rgba(45,45,45,.5)">أساسي — احجز الآن</div>
+          <button style="height:48px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;padding:0 22px" style-hover="background:#0C2731">احجز الآن</button>
+          <button style="height:48px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;padding:0 22px;width:100%">ادفع 500 ر.س</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;border:1px solid #EDEDED;border-radius:14px;padding:20px">
+          <div style="font-size:12px;font-weight:600;color:rgba(45,45,45,.5)">ثانوي ذهبي — دعوة المؤجرين</div>
+          <button style="height:48px;border:none;border-radius:9px;background:#C7A15A;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;padding:0 22px" style-hover="background:#B08D46">أضف مساحتك الآن</button>
+          <button style="height:44px;border:1px solid #123642;border-radius:9px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;padding:0 20px" style-hover="background:#F5F5F5">عرض التفاصيل</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;border:1px solid #EDEDED;border-radius:14px;padding:20px">
+          <div style="font-size:12px;font-weight:600;color:rgba(45,45,45,.5)">خطر · معطّل</div>
+          <button style="height:44px;border:1px solid rgba(192,57,43,.35);border-radius:9px;background:rgba(192,57,43,.06);color:#C0392B;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;padding:0 20px" style-hover="background:rgba(192,57,43,.12)">إلغاء الحجز</button>
+          <button disabled="disabled" style="height:48px;border:none;border-radius:9px;background:#F5F5F5;color:rgba(45,45,45,.35);font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:not-allowed;padding:0 22px">هذه المساحة محجوزة حاليًا</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;border:1px solid #EDEDED;border-radius:14px;padding:20px">
+          <div style="font-size:12px;font-weight:600;color:rgba(45,45,45,.5)">نصي · صغير</div>
+          <button style="height:44px;border:none;border-radius:9px;background:transparent;color:#2E6E8E;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;padding:0 12px;align-self:flex-start" style-hover="background:#F5F5F5">مسح الكل</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button style="height:36px;border:1px solid #EDEDED;border-radius:8px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:500;cursor:pointer;padding:0 14px" style-hover="border-color:#123642">نسخ الرقم</button>
+            <button style="height:36px;border:1px solid #EDEDED;border-radius:8px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:500;cursor:pointer;padding:0 14px" style-hover="border-color:#123642">تحميل الفاتورة</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الحقول -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">4 · الحقول والاختيارات</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">ارتفاع 48px · نصف قطر 10px · التسمية فوق الحقل دايمًا · رسالة الخطأ بعربي بسيط</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">المدينة أو الحي</label>
+          <input type="text" placeholder="مثال: حي النرجس، الرياض" style="height:48px;border:1px solid #E4E4E4;border-radius:10px;background:#FFFFFF;padding:0 14px;font-family:'IBM Plex Sans Arabic';font-size:14px;color:#2D2D2D;outline:none" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,.08)" />
+          <div style="font-size:11px;color:rgba(45,45,45,.5)">نبحث في نطاق 10 كم حول الموقع</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">الفئة</label>
+          <select style="height:48px;border:1px solid #E4E4E4;border-radius:10px;background:#FFFFFF;padding:0 14px;font-family:'IBM Plex Sans Arabic';font-size:14px;color:#2D2D2D;outline:none">
+            <option>مستودع</option>
+            <option>غرفة</option>
+            <option>مكان مكشوف</option>
+            <option>قراج</option>
+          </select>
+          <div style="font-size:11px;color:rgba(45,45,45,.5)">أربع فئات فقط</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">تاريخ البداية</label>
+          <div style="height:48px;border:1px solid #E4E4E4;border-radius:10px;background:#FFFFFF;padding:0 14px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:14px;color:#2D2D2D">12 أغسطس 2026</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.45)">28 صفر 1448</div>
+          </div>
+          <div style="font-size:11px;color:rgba(45,45,45,.5)">الميلادي أساسي والهجري ثانوي</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">عدد الأيام</label>
+          <div style="height:48px;border:1px solid #E4E4E4;border-radius:10px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 6px">
+            <button style="width:36px;height:36px;border:none;border-radius:8px;background:#F5F5F5;color:#123642;font-size:18px;cursor:pointer">−</button>
+            <div style="font-family:'Montserrat';font-size:16px;font-weight:600;color:#123642">10</div>
+            <button style="width:36px;height:36px;border:none;border-radius:8px;background:#F5F5F5;color:#123642;font-size:18px;cursor:pointer">+</button>
+          </div>
+          <div style="font-size:11px;color:rgba(45,45,45,.5)">10 أيام · من 12 أغسطس إلى 22 أغسطس 2026</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">رقم الجوال</label>
+          <input type="text" value="05x xxx xxxx" style="height:48px;border:1px solid #C0392B;border-radius:10px;background:rgba(192,57,43,.04);padding:0 14px;font-family:'IBM Plex Sans Arabic';font-size:14px;color:#2D2D2D;outline:none" />
+          <div style="font-size:11px;color:#C0392B">الرقم لازم يبدأ بـ 05 ويكون 10 أرقام. عدّل الرقم وحاول مرة ثانية.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="font-size:13px;font-weight:600;color:#123642">وصف البضاعة</label>
+          <textarea placeholder="صف نوع البضاعة اللي هتخزنها" style="height:96px;border:1px solid #E4E4E4;border-radius:10px;background:#FFFFFF;padding:12px 14px;font-family:'IBM Plex Sans Arabic';font-size:14px;color:#2D2D2D;outline:none;resize:none"></textarea>
+          <div style="font-size:11px;color:rgba(45,45,45,.5)">هذا الوصف يظهر لصاحب المساحة</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;display:flex;gap:12px;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:6px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none">✓</div>
+          <div style="font-size:13px;line-height:1.8;color:#2D2D2D">أوافق على <a href="#terms">الشروط والأحكام</a> و<a href="#privacy">سياسة الخصوصية</a> — موافقة إجبارية</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E4E4;border-radius:12px;padding:18px;display:flex;gap:12px;align-items:flex-start">
+          <div style="width:22px;height:22px;border-radius:6px;border:1.5px solid #C9C9C9;flex:none"></div>
+          <div style="font-size:13px;line-height:1.8;color:#2D2D2D">أقر بأني قرأت قائمة الممنوعات ولن أخزّن أي منها</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div style="height:38px;padding:0 16px;border-radius:9px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center">الأقرب</div>
+          <div style="height:38px;padding:0 16px;border-radius:9px;background:#F5F5F5;color:#2D2D2D;font-size:13px;display:flex;align-items:center">الأقل سعرًا</div>
+          <div style="height:38px;padding:0 16px;border-radius:9px;background:#F5F5F5;color:#2D2D2D;font-size:13px;display:flex;align-items:center">الأحدث</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الشارات -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">5 · شارات الحالة</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">خلفية 10% من اللون + نص باللون الكامل + نقطة يمين النص · ممنوع شارات بلون مصمت كبير</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(199,161,90,.1);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#C7A15A"></span>
+            <span style="font-size:13px;font-weight:600;color:#C7A15A">بانتظار الدفع</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Awaiting payment</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(46,110,142,.1);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#2E6E8E"></span>
+            <span style="font-size:13px;font-weight:600;color:#2E6E8E">قيد المراجعة</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Paid · pending approval</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(30,142,90,.1);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#1E8E5A"></span>
+            <span style="font-size:13px;font-weight:600;color:#1E8E5A">تمت الموافقة</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Approved</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:#1E8E5A;border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF"></span>
+            <span style="font-size:13px;font-weight:600;color:#FFFFFF">جارٍ الآن</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)"><span dir="ltr" style="unicode-bidi:isolate">Active</span> — الحالة الوحيدة المملوءة</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(45,45,45,.08);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#2D2D2D"></span>
+            <span style="font-size:13px;font-weight:600;color:#2D2D2D">مكتمل</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Completed</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(192,57,43,.1);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:#C0392B"></span>
+            <span style="font-size:13px;font-weight:600;color:#C0392B">مرفوض — جارٍ الاسترداد</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Rejected &amp; refunded</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(192,57,43,.06);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:rgba(192,57,43,.55)"></span>
+            <span style="font-size:13px;font-weight:600;color:rgba(192,57,43,.7)">ملغي</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Cancelled</div>
+        </div>
+        <div style="border:1px solid #EDEDED;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:rgba(45,45,45,.05);border-radius:999px;padding:6px 12px">
+            <span style="width:7px;height:7px;border-radius:999px;background:rgba(45,45,45,.35)"></span>
+            <span style="font-size:13px;font-weight:600;color:rgba(45,45,45,.45)">انتهت المهلة</span>
+          </div>
+          <div style="font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.45)">Expired</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الكروت -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">6 · الكروت</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">نصف قطر 14px · حدود #EDEDED · ظل ناعم 0 1px 3px rgba(18,54,66,.06) · السعر أبرز عنصر</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06);background:#FFFFFF">
+          <div style="height:170px;background:repeating-linear-gradient(135deg,#F5F5F5 0 10px,#ECECEC 10px 20px);display:flex;align-items:center;justify-content:center;position:relative">
+            <div style="font-family:'Montserrat';font-size:11px;letter-spacing:1px;color:rgba(45,45,45,.45)">SPACE PHOTO 4:3</div>
+            <div style="position:absolute;top:12px;right:12px;background:rgba(199,161,90,.95);color:#FFFFFF;font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px">مميزة</div>
+          </div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:16px;font-weight:600;color:#123642">مستودع مكيّف — النرجس</div>
+              <div style="font-size:12px;color:rgba(45,45,45,.55)">مستودع · حي النرجس، الرياض · 2.4 كم · 24 م²</div>
+            </div>
+            <div style="height:1px;background:#F5F5F5"></div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="display:flex;align-items:baseline;gap:6px">
+                  <span style="font-family:'Montserrat';font-size:24px;font-weight:700;color:#C7A15A">75</span>
+                  <span style="font-size:14px;font-weight:600;color:#C7A15A">ر.س</span>
+                  <span style="font-size:12px;color:rgba(45,45,45,.5)">/ يوميًا</span>
+                </div>
+                <div style="font-size:11px;color:rgba(45,45,45,.45)">≈ 2,250 ر.س شهريًا</div>
+              </div>
+              <button style="height:40px;border:1px solid #123642;border-radius:9px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;cursor:pointer;padding:0 16px;flex:none" style-hover="background:#123642;color:#FFFFFF">عرض التفاصيل</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(18,54,66,.06);background:#FFFFFF">
+          <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div style="display:inline-flex;align-items:center;gap:8px;background:#1E8E5A;border-radius:999px;padding:6px 12px">
+                <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF"></span>
+                <span style="font-size:12px;font-weight:600;color:#FFFFFF">جارٍ الآن</span>
+              </div>
+              <div style="font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.5)">#HZ-2481</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="width:64px;height:64px;border-radius:10px;background:repeating-linear-gradient(135deg,#F5F5F5 0 8px,#ECECEC 8px 16px);flex:none"></div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:15px;font-weight:600;color:#123642">غرفة تخزين — الياسمين</div>
+                <div style="font-size:12px;color:rgba(45,45,45,.55)">غرفة · حي الياسمين، الرياض</div>
+              </div>
+            </div>
+            <div style="background:#F5F5F5;border-radius:12px;padding:16px;display:flex;align-items:center;gap:16px">
+              <div style="width:78px;height:78px;border-radius:999px;background:conic-gradient(#1E8E5A 0 60%,#E2E2E2 60% 100%);display:flex;align-items:center;justify-content:center;flex:none">
+                <div style="width:60px;height:60px;border-radius:999px;background:#F5F5F5;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                  <div style="font-family:'Montserrat';font-size:19px;font-weight:700;color:#123642">6</div>
+                  <div style="font-size:9px;color:rgba(45,45,45,.5)">أيام متبقية</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="font-size:17px;font-weight:600;color:#123642">متبقي 6 أيام من 10</div>
+                <div style="font-size:12px;color:rgba(45,45,45,.55)">من 12 أغسطس إلى 22 أغسطس 2026</div>
+                <div style="display:flex;align-items:baseline;gap:5px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.55)">الإجمالي المدفوع</span>
+                  <span style="font-family:'Montserrat';font-size:16px;font-weight:700;color:#C7A15A">862.50</span>
+                  <span style="font-size:12px;font-weight:600;color:#C7A15A">ر.س</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button style="height:40px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;cursor:pointer;padding:0 16px">تفاصيل الحجز</button>
+              <button style="height:40px;border:1px solid #EDEDED;border-radius:9px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:500;cursor:pointer;padding:0 16px">تحميل الفاتورة</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="border:1px solid #EDEDED;border-radius:14px;box-shadow:0 1px 3px rgba(18,54,66,.06);background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="font-family:'Montserrat';font-size:28px;font-weight:700;color:#C7A15A">75</span>
+            <span style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</span>
+            <span style="font-size:13px;color:rgba(45,45,45,.5)">/ يوميًا</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(45,45,45,.7)"><span>قيمة الإيجار · 10 أيام</span><span style="font-family:'Montserrat';font-weight:600;color:#2D2D2D">750.00 ر.س</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(45,45,45,.7)"><span>عمولة المنصة</span><span style="font-family:'Montserrat';font-weight:600;color:#2D2D2D">37.50 ر.س</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(45,45,45,.7)"><span>ضريبة القيمة المضافة 15%</span><span style="font-family:'Montserrat';font-weight:600;color:#2D2D2D">118.13 ر.س</span></div>
+            <div style="height:1px;background:#EDEDED;margin:4px 0"></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600;color:#123642">الإجمالي</span><span style="font-family:'Montserrat';font-size:20px;font-weight:700;color:#C7A15A">905.63 ر.س</span></div>
+          </div>
+          <button style="height:48px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;width:100%">احجز الآن</button>
+          <div style="font-size:11px;line-height:1.7;color:rgba(45,45,45,.5);text-align:center">تدفع أولاً، ثم تراجع إدارة المنصة الحجز خلال 4 ساعات عمل</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stepper + تنبيهات -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">7 · الـ Stepper والخط الزمني والتنبيهات</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">يمشي من اليمين لليسار · الخطوة الحالية كحلية مملوءة · المكتملة بعلامة ✓</div>
+      </div>
+
+      <div style="border:1px solid #EDEDED;border-radius:14px;padding:26px 24px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:999px;background:#1E8E5A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px">✓</div>
+            <div style="font-size:14px;font-weight:600;color:#123642">التواريخ</div>
+          </div>
+          <div style="flex:1;min-width:40px;height:2px;background:#1E8E5A"></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Montserrat';font-size:14px;font-weight:600">2</div>
+            <div style="font-size:14px;font-weight:600;color:#123642">بيانات البضاعة</div>
+          </div>
+          <div style="flex:1;min-width:40px;height:2px;background:#E4E4E4"></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:999px;background:#F5F5F5;color:rgba(45,45,45,.45);display:flex;align-items:center;justify-content:center;font-family:'Montserrat';font-size:14px;font-weight:600">3</div>
+            <div style="font-size:14px;color:rgba(45,45,45,.45)">الدفع</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #EDEDED;border-radius:14px;padding:26px 24px;margin-bottom:18px;overflow-x:auto">
+        <div style="display:flex;align-items:flex-start;gap:8px;min-width:640px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+            <div style="display:flex;align-items:center;width:100%"><div style="flex:1;height:2px;background:transparent"></div><div style="width:14px;height:14px;border-radius:999px;background:#1E8E5A;flex:none"></div><div style="flex:1;height:2px;background:#1E8E5A"></div></div>
+            <div style="font-size:13px;font-weight:600;color:#123642">تم الدفع</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5)">12 أغسطس · 09:24</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+            <div style="display:flex;align-items:center;width:100%"><div style="flex:1;height:2px;background:#1E8E5A"></div><div style="width:14px;height:14px;border-radius:999px;background:#2E6E8E;box-shadow:0 0 0 4px rgba(46,110,142,.16);flex:none"></div><div style="flex:1;height:2px;background:#E4E4E4"></div></div>
+            <div style="font-size:13px;font-weight:600;color:#2E6E8E">قيد المراجعة</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.5)">12 أغسطس · 09:25</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+            <div style="display:flex;align-items:center;width:100%"><div style="flex:1;height:2px;background:#E4E4E4"></div><div style="width:14px;height:14px;border-radius:999px;background:#FFFFFF;border:2px solid #E4E4E4;flex:none"></div><div style="flex:1;height:2px;background:#E4E4E4"></div></div>
+            <div style="font-size:13px;color:rgba(45,45,45,.45)">تمت الموافقة</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.35)">—</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+            <div style="display:flex;align-items:center;width:100%"><div style="flex:1;height:2px;background:#E4E4E4"></div><div style="width:14px;height:14px;border-radius:999px;background:#FFFFFF;border:2px solid #E4E4E4;flex:none"></div><div style="flex:1;height:2px;background:#E4E4E4"></div></div>
+            <div style="font-size:13px;color:rgba(45,45,45,.45)">جارٍ الآن</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.35)">—</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+            <div style="display:flex;align-items:center;width:100%"><div style="flex:1;height:2px;background:#E4E4E4"></div><div style="width:14px;height:14px;border-radius:999px;background:#FFFFFF;border:2px solid #E4E4E4;flex:none"></div><div style="flex:1;height:2px;background:transparent"></div></div>
+            <div style="font-size:13px;color:rgba(45,45,45,.45)">مكتمل</div>
+            <div style="font-size:11px;color:rgba(45,45,45,.35)">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+        <div style="background:rgba(46,110,142,.07);border:1px solid rgba(46,110,142,.2);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:999px;background:#2E6E8E;margin-top:7px;flex:none"></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">حجزك #HZ-2481 قيد مراجعة الإدارة</div>
+            <div style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.65)">عادة يتم الرد خلال 4 ساعات عمل. هنبلّغك بإشعار أول ما تتم المراجعة.</div>
+          </div>
+        </div>
+        <div style="background:rgba(199,161,90,.09);border:1px solid rgba(199,161,90,.28);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:999px;background:#C7A15A;margin-top:7px;flex:none"></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">محجوزة لك لمدة 14:32</div>
+            <div style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.65)">التواريخ محجوزة مؤقتًا 15 دقيقة لحد ما تكمل الدفع.</div>
+          </div>
+        </div>
+        <div style="background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.22);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:999px;background:#C0392B;margin-top:7px;flex:none"></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:14px;font-weight:600;color:#123642">ما قدرناش نكمل الدفع</div>
+            <div style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.65)">البنك رفض العملية. جرّب بطاقة ثانية أو طريقة دفع مختلفة.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الحالات -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">8 · حالات الفراغ والتحميل والخطأ</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+        <div style="font-size:13px;color:rgba(45,45,45,.6);margin-top:4px">كل شاشة لازم يكون لها الثلاثة · لغة بسيطة توضّح السبب والحل بدون أكواد تقنية</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px">
+        <div style="border:1px solid #EDEDED;border-radius:14px;padding:34px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px">
+          <div style="width:56px;height:56px;border-radius:14px;background:#F5F5F5;display:flex;align-items:center;justify-content:center">
+            <div style="width:22px;height:22px;border:2px solid rgba(18,54,66,.35);border-radius:6px"></div>
+          </div>
+          <div style="font-size:16px;font-weight:600;color:#123642">ما لقينا مساحات تطابق بحثك</div>
+          <div style="font-size:13px;line-height:1.8;color:rgba(45,45,45,.6);max-width:260px">جرّب توسيع المسافة لـ 15 كم، أو زيادة نطاق السعر، أو اختيار فئة ثانية.</div>
+          <button style="height:44px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;padding:0 20px;margin-top:4px">وسّع نطاق البحث</button>
+        </div>
+
+        <sc-if value="{{ showSkeletons }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid #EDEDED;border-radius:14px;overflow:hidden">
+            <div style="height:130px;background:linear-gradient(90deg,#F5F5F5 25%,#ECECEC 37%,#F5F5F5 63%);background-size:300% 100%;animation:shimmer 1.4s linear infinite"></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="height:14px;width:70%;border-radius:6px;background:linear-gradient(90deg,#F5F5F5 25%,#ECECEC 37%,#F5F5F5 63%);background-size:300% 100%;animation:shimmer 1.4s linear infinite"></div>
+              <div style="height:11px;width:45%;border-radius:6px;background:#F1F1F1"></div>
+              <div style="height:1px;background:#F5F5F5"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="height:22px;width:90px;border-radius:6px;background:linear-gradient(90deg,#F5F5F5 25%,#ECECEC 37%,#F5F5F5 63%);background-size:300% 100%;animation:shimmer 1.4s linear infinite"></div>
+                <div style="height:36px;width:110px;border-radius:9px;background:#F1F1F1"></div>
+              </div>
+              <div style="font-family:'Montserrat';font-size:10px;letter-spacing:1px;color:rgba(45,45,45,.35);text-align:center;margin-top:4px">SKELETON · 12 CARDS PER PAGE</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="border:1px solid rgba(192,57,43,.22);background:rgba(192,57,43,.03);border-radius:14px;padding:34px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px">
+          <div style="width:56px;height:56px;border-radius:14px;background:rgba(192,57,43,.08);display:flex;align-items:center;justify-content:center;color:#C0392B;font-size:22px">!</div>
+          <div style="font-size:16px;font-weight:600;color:#123642">ما قدرناش نحمّل النتائج</div>
+          <div style="font-size:13px;line-height:1.8;color:rgba(45,45,45,.6);max-width:260px">في مشكلة مؤقتة في الاتصال. تأكد من الإنترنت وحاول مرة ثانية.</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button style="height:44px;border:none;border-radius:9px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;padding:0 20px">حاول مرة ثانية</button>
+            <button style="height:44px;border:1px solid #EDEDED;border-radius:9px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:500;cursor:pointer;padding:0 16px">تواصل مع الدعم</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- قواعد -->
+    <section>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:26px">
+        <div style="font-size:22px;font-weight:700;color:#123642">9 · قواعد ملزمة للتطبيق</div>
+        <div style="width:44px;height:3px;background:#C7A15A"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">التصفح والبحث بدون تسجيل · التسجيل يظهر كـ Modal عند الضغط على «احجز الآن» فقط</div>
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">العميل يدفع أولاً ثم تراجع الإدارة · المؤجر ما عندهوش صلاحية قبول أو رفض</div>
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">بمجرد الدفع تختفي المساحة من نتائج البحث لحد ما ينتهي الحجز</div>
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">بيانات المؤجر مقفولة قبل الموافقة · الخريطة دائرة 300 متر بدل العنوان الدقيق</div>
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">زر أساسي واحد في صفحة التفاصيل: احجز الآن · مفيش تواصل أو محادثة</div>
+        <div style="background:#F5F5F5;border-radius:12px;padding:18px;font-size:13px;line-height:1.9;color:#2D2D2D">ممنوع أي وعد أمني (مراقبة، حراسة، تأمين) في أي نص</div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showEnglishSpecimens&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;نطاق العرض&quot;},&quot;showSkeletons&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;نطاق العرض&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showEnglishSpecimens: this.props.showEnglishSpecimens ?? true,
+      showSkeletons: this.props.showSkeletons ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>

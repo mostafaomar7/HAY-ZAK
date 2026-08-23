@@ -1,0 +1,145 @@
+<app-admin-filter-bar
+  [searchPlaceholder]="i18n.t('complaints.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('complaints.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [sort]="list.sort()"
+  [emptyTitle]="i18n.t('complaints.empty')"
+  [emptyHint]="i18n.t('complaints.emptyHint')"
+  [errorTitle]="i18n.t('complaints.error')"
+  [errorHint]="i18n.t('complaints.errorHint')"
+  errorRef="ERR-5411"
+  (rowOpen)="openRow($any($event))"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-template #row let-row>
+    <span class="cell cell--strong num" dir="ltr">{{ row.referenceNo }}</span>
+    <span class="cell cell--link num" dir="ltr">{{ row.bookingReferenceNo }}</span>
+    <span class="cell">{{ row.raisedByName }}</span>
+    <span class="cell">{{ row.subject }}</span>
+    <span class="cell">
+      <app-ui-badge [tone]="statusTone(row.status)">{{ statusLabel(row.status) }}</app-ui-badge>
+    </span>
+    <span class="cell num">{{ row.openedAt | date: 'd MMM y' }}</span>
+  </ng-template>
+</app-admin-table>
+
+@if (detail(); as complaint) {
+  <app-admin-panel
+    open
+    [eyebrow]="complaint.referenceNo"
+    [title]="complaint.subject"
+    (dismissed)="close()"
+  >
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('complaints.data') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('complaints.raisedBy') }}</dt>
+          <dd>{{ complaint.raisedByName }} · {{ roleLabel(complaint.raisedByRole) }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('admin.status') }}</dt>
+          <dd>
+            <app-ui-badge [tone]="statusTone(complaint.status)">
+              {{ statusLabel(complaint.status) }}
+            </app-ui-badge>
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('complaints.openedAt') }}</dt>
+          <dd class="num">{{ complaint.openedAt | date: 'd MMMM y' }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('complaints.amount') }}</dt>
+          <dd><app-ui-money [amount]="complaint.bookingAmount" /></dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('complaints.links') }}</h3>
+      <div class="links">
+        <span class="links__row">
+          <span>{{ i18n.t('complaints.booking') }}</span>
+          <span class="links__value num" dir="ltr">{{ complaint.bookingReferenceNo }}</span>
+        </span>
+        <button
+          class="links__row links__row--action"
+          type="button"
+          [class.links__row--frozen]="complaint.payoutFrozen"
+          (click)="goToTransfers()"
+        >
+          <span>
+            {{
+              complaint.payoutFrozen
+                ? i18n.t('complaints.frozenTransfer')
+                : i18n.t('complaints.bookingTransfer')
+            }}
+          </span>
+          <span class="links__value">{{ i18n.t('complaints.viewInTransfers') }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('complaints.thread') }}</h3>
+      @for (message of complaint.messages; track message.id) {
+        <article class="msg">
+          <header class="msg__head">
+            <span class="msg__who">{{ message.authorName }}</span>
+            <span class="msg__when num">{{ message.sentAt | date: 'd MMM y · HH:mm' }}</span>
+          </header>
+          <p class="msg__body">{{ message.body }}</p>
+        </article>
+      }
+    </section>
+
+    @if (isOpen()) {
+      <section class="block">
+        <label class="field">
+          <span class="field__label">{{ i18n.t('complaints.resolution') }}</span>
+          <textarea
+            class="field__input"
+            rows="4"
+            [placeholder]="i18n.t('complaints.resolutionPlaceholder')"
+            [value]="resolution()"
+            (input)="resolution.set($any($event.target).value)"
+          ></textarea>
+          <span class="field__hint">{{ i18n.t('complaints.resolutionHint') }}</span>
+        </label>
+      </section>
+    } @else {
+      <app-ui-notice tone="success">{{ i18n.t('complaints.closedNote') }}</app-ui-notice>
+    }
+
+    @if (isOpen()) {
+      <ng-container panelActions>
+        <button
+          appUiButton
+          variant="primary"
+          type="button"
+          fullWidth
+          [disabled]="!canClose() || submitting()"
+          (click)="resolve()"
+        >
+          {{ i18n.t('complaints.close') }}
+        </button>
+      </ng-container>
+    }
+  </app-admin-panel>
+}

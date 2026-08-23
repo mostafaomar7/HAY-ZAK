@@ -1,0 +1,131 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.chart {
+  @include a.surface(a.$radius-lg);
+
+  margin: 0;
+  padding: a.$space-18;
+}
+
+.chart__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  margin-bottom: a.$space-16;
+}
+
+.chart__title {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.chart__legend {
+  display: flex;
+  gap: a.$space-16;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.legend__swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+.legend__swatch--primary {
+  background: var(--color-primary);
+}
+
+.legend__swatch--accent {
+  background: var(--color-accent);
+}
+
+.chart__plot {
+  display: flex;
+  align-items: flex-end;
+  gap: a.$space-24;
+  height: 190px;
+  padding-bottom: a.$space-10;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.group {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: a.$space-8;
+  height: 100%;
+  min-width: 0;
+}
+
+.group__value {
+  @include a.numeric;
+
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.group__bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: a.$space-6;
+  width: 100%;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  max-width: 30px;
+  border-radius: a.$radius-sm a.$radius-sm 0 0;
+}
+
+.bar--primary {
+  background: var(--color-primary);
+}
+
+.bar--accent {
+  background: var(--color-accent);
+}
+
+.chart__axis {
+  display: flex;
+  gap: a.$space-24;
+  padding-top: a.$space-8;
+}
+
+.tick {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.tick__label {
+  font-size: a.$fs-xs;
+  color: var(--color-text);
+}
+
+.tick__sub {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}

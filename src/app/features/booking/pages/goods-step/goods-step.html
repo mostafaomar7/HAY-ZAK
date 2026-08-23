@@ -1,0 +1,77 @@
+@if (!hasDates()) {
+  <app-ui-notice tone="warning" [title]="i18n.t('booking.missingDates')">
+    {{ i18n.t('booking.missingDatesHint') }}
+  </app-ui-notice>
+} @else {
+  <form class="step" [formGroup]="form" (ngSubmit)="goNext()">
+    <section class="step__main">
+      <div class="panel">
+        <h1 class="panel__title">{{ i18n.t('booking.goodsTitle') }}</h1>
+        <p class="panel__hint">{{ i18n.t('booking.goodsHint') }}</p>
+
+        <app-ui-field
+          [label]="i18n.t('booking.goodsTitle')"
+          for="goods"
+          [control]="form.controls.goodsDescription"
+          [hint]="i18n.t('booking.goodsRequired', { min: minLength })"
+        >
+          <textarea
+            id="goods"
+            class="goods"
+            rows="5"
+            formControlName="goodsDescription"
+            [attr.maxlength]="maxLength"
+            [attr.aria-describedby]="'goods-hint goods-counter'"
+          ></textarea>
+        </app-ui-field>
+
+        <p class="counter num" id="goods-counter" dir="ltr" aria-live="polite">
+          {{ i18n.t('booking.goodsCounter', { used: used(), max: maxLength }) }}
+        </p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">{{ i18n.t('details.prohibitedTitle') }}</h2>
+        <p class="panel__hint">{{ i18n.t('details.prohibitedSub') }}</p>
+
+        <app-ui-prohibited-list [items]="prohibitedLabels()">
+          <label class="ack" [class.ack--on]="acknowledged()">
+            <input
+              class="ack__input"
+              type="checkbox"
+              [checked]="acknowledged()"
+              (change)="toggleAck($event)"
+            />
+            <span class="ack__text">
+              <span class="ack__label">{{ i18n.t('booking.ackLabel') }}</span>
+              <span class="ack__hint">
+                {{ acknowledged() ? i18n.t('booking.ackRecorded') : i18n.t('booking.ackHint') }}
+              </span>
+            </span>
+          </label>
+        </app-ui-prohibited-list>
+
+        @if (!acknowledged()) {
+          <app-ui-notice tone="warning">{{ i18n.t('booking.ackPending') }}</app-ui-notice>
+        }
+      </div>
+    </section>
+
+    <aside class="step__side">
+      <app-booking-summary [unit]="unit()" [draft]="draft()" [showPrice]="false">
+        <button appUiButton variant="primary" type="submit" fullWidth [disabled]="!canContinue()">
+          {{ i18n.t('booking.continueToPayment') }}
+        </button>
+
+        <a
+          appUiButton
+          variant="ghost"
+          class="step__back"
+          [routerLink]="['/booking', 'new', draft()?.unitId ?? '']"
+        >
+          {{ i18n.t('booking.backToDates') }}
+        </a>
+      </app-booking-summary>
+    </aside>
+  </form>
+}

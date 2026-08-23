@@ -1,0 +1,62 @@
+@use 'abstracts' as a;
+
+.banned {
+  @include a.stack(a.$space-12);
+
+  padding: a.$space-18;
+  border: 1px solid var(--color-danger-border);
+  border-radius: a.$radius-xl;
+  background: var(--color-danger-bg);
+}
+
+.banned__list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-10;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include a.up(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .banned--single & {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.banned__item {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  padding: a.$space-12 a.$space-14;
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+}
+
+.banned__mark {
+  @include a.flex-center;
+
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: a.$fs-label;
+}
+
+.banned__text {
+  font-size: a.$fs-label;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.banned__note {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}

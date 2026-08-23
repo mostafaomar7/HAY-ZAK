@@ -1,0 +1,147 @@
+@if (isLoading()) {
+  <div class="page">
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  </div>
+} @else if (failed() || !invoice()) {
+  <div class="page">
+    <app-ui-empty-state
+      [title]="i18n.t('invoice.notReady')"
+      [hint]="i18n.t('invoice.notReadyHint')"
+    >
+      <a appUiButton variant="primary" [routerLink]="['/my-bookings', bookingId()]">
+        {{ i18n.t('bookings.detailsAction') }}
+      </a>
+    </app-ui-empty-state>
+  </div>
+} @else {
+  <article class="page">
+    <nav class="crumbs" [attr.aria-label]="i18n.t('invoice.title')">
+      <a routerLink="/my-bookings">{{ i18n.t('bookings.title') }}</a>
+      <span aria-hidden="true">←</span>
+      <a [routerLink]="['/my-bookings', bookingId()]">{{ i18n.t('bookingDetail.title') }}</a>
+      <span aria-hidden="true">←</span>
+      <span class="crumbs__current">{{ i18n.t('invoice.title') }}</span>
+    </nav>
+
+    <header class="head">
+      <div class="head__text">
+        <h1 class="head__title">{{ i18n.t('invoice.title') }}</h1>
+        <p class="head__meta num">
+          {{ i18n.t('invoice.meta', { no: invoice()!.invoiceNo, date: invoice()!.issuedAt }) }}
+        </p>
+      </div>
+
+      <div class="head__actions">
+        <button appUiButton variant="outline" type="button" (click)="openPreview()">
+          {{ i18n.t('invoice.view') }}
+        </button>
+        <button appUiButton variant="primary" type="button" (click)="download()">
+          {{ i18n.t('invoice.download') }}
+        </button>
+      </div>
+    </header>
+
+    <section class="doc">
+      <header class="doc__head">
+        <div class="doc__issuer">
+          <span class="doc__mark" aria-hidden="true">ح</span>
+          <span class="doc__issuerText">
+            <span class="doc__issuerName">{{ i18n.t('invoice.issuer') }}</span>
+            <span class="doc__tax num">
+              {{ i18n.t('invoice.taxNumber') }}
+              <span dir="ltr">300124578900003</span>
+            </span>
+          </span>
+        </div>
+
+        <app-ui-badge tone="success">{{ i18n.t('invoice.paid') }}</app-ui-badge>
+      </header>
+
+      <dl class="parties">
+        <div class="party">
+          <dt class="party__label">{{ i18n.t('invoice.renter') }}</dt>
+          <dd class="party__value">{{ booking()?.counterpartyContact?.fullName ?? '—' }}</dd>
+        </div>
+
+        <!-- SRS §5: the owner is not identified to the renter. -->
+        <div class="party">
+          <dt class="party__label">{{ i18n.t('invoice.lessor') }}</dt>
+          <dd class="party__value">
+            {{ i18n.t('invoice.lessorMasked') }}
+            <span class="party__hint">{{ i18n.t('invoice.lessorNote') }}</span>
+          </dd>
+        </div>
+
+        <div class="party">
+          <dt class="party__label">{{ i18n.t('booking.space') }}</dt>
+          <dd class="party__value">{{ booking()?.unit?.title }}</dd>
+        </div>
+
+        <div class="party">
+          <dt class="party__label">{{ i18n.t('booking.period') }}</dt>
+          <dd class="party__value num">
+            {{ booking()?.startDate }} — {{ booking()?.endDate }}
+            <span class="party__hint num">
+              {{ i18n.t('booking.days', { count: booking()?.daysCount ?? 0 }) }}
+            </span>
+          </dd>
+        </div>
+      </dl>
+
+      <app-ui-price-breakdown [price]="price()" [totalLabel]="i18n.t('invoice.totalPaid')" />
+
+      <dl class="refs">
+        <div class="ref">
+          <dt class="ref__label">{{ i18n.t('invoice.linkedBooking') }}</dt>
+          <dd class="ref__value num" dir="ltr">{{ booking()?.referenceNo }}</dd>
+        </div>
+        <div class="ref">
+          <dt class="ref__label">{{ i18n.t('bookingDetail.invoiceNo') }}</dt>
+          <dd class="ref__value num" dir="ltr">{{ invoice()!.invoiceNo }}</dd>
+        </div>
+      </dl>
+    </section>
+  </article>
+
+  <app-ui-modal
+    [open]="previewOpen()"
+    [showIcon]="false"
+    [title]="i18n.t('invoice.preview')"
+    (dismissed)="closePreview()"
+  >
+    <div class="preview">
+      <p class="preview__head">
+        <span>{{ i18n.t('invoice.taxInvoice') }}</span>
+        <span class="num" dir="ltr">{{ invoice()!.invoiceNo }}</span>
+      </p>
+
+      <dl class="preview__rows">
+        <div class="preview__row">
+          <dt>{{ i18n.t('invoice.renter') }}</dt>
+          <dd>{{ booking()?.counterpartyContact?.fullName ?? '—' }}</dd>
+        </div>
+        <div class="preview__row">
+          <dt>{{ i18n.t('booking.space') }}</dt>
+          <dd>{{ booking()?.unit?.title }}</dd>
+        </div>
+        <div class="preview__row">
+          <dt>{{ i18n.t('booking.duration') }}</dt>
+          <dd class="num">{{ i18n.t('booking.days', { count: booking()?.daysCount ?? 0 }) }}</dd>
+        </div>
+        <div class="preview__row preview__row--total">
+          <dt>{{ i18n.t('invoice.totalPaid') }}</dt>
+          <dd><app-ui-money strong [amount]="booking()?.totalAmount ?? 0" /></dd>
+        </div>
+      </dl>
+
+      <p class="preview__qr">{{ i18n.t('invoice.qrHint') }}</p>
+    </div>
+
+    <button slot="actions" appUiButton variant="outline" type="button" (click)="print()">
+      {{ i18n.t('invoice.print') }}
+    </button>
+    <button slot="actions" appUiButton variant="primary" type="button" (click)="download()">
+      {{ i18n.t('invoice.download') }}
+    </button>
+  </app-ui-modal>
+}

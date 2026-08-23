@@ -1,0 +1,175 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.split {
+  display: grid;
+  min-height: 100dvh;
+
+  // The brand panel is decoration; on a phone it would push the form below the
+  // fold, so it is hidden rather than stacked.
+  @include a.up(lg) {
+    grid-template-columns: 1fr 520px;
+  }
+}
+
+// ── Brand panel ──────────────────────────────────────────────────────────
+.brand {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: a.$space-40;
+  padding: a.$space-56;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  @include a.up(lg) {
+    display: flex;
+  }
+}
+
+.brand__mark {
+  @include a.stack(a.$space-10);
+}
+
+.brand__name {
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+}
+
+.brand__rule {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+}
+
+.brand__line {
+  width: 26px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+.brand__latin {
+  font-family: a.$font-latin;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-medium;
+  letter-spacing: 5px;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.brand__body {
+  @include a.stack(a.$space-18);
+
+  max-width: 520px;
+}
+
+.brand__title {
+  margin: 0;
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.brand__text {
+  margin: 0;
+  font-size: a.$fs-md;
+  line-height: 1.8;
+  color: rgb(255 255 255 / 72%);
+  text-wrap: pretty;
+}
+
+.brand__facts {
+  display: flex;
+  gap: a.$space-32;
+  margin: 0;
+  padding-top: a.$space-14;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.brand__fact {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-2;
+
+  dt {
+    font-size: a.$fs-2xs;
+    color: rgb(255 255 255 / 60%);
+  }
+
+  dd {
+    margin: 0;
+    font-size: a.$fs-sm;
+    font-weight: a.$fw-semibold;
+  }
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.brand__foot {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: rgb(255 255 255 / 48%);
+}
+
+// ── Form ─────────────────────────────────────────────────────────────────
+.form {
+  @include a.stack(a.$space-24);
+
+  justify-content: center;
+  padding: a.$space-32 a.$space-24;
+  background: var(--color-surface);
+
+  @include a.up(lg) {
+    padding: a.$space-56;
+    border-inline-start: 1px solid var(--color-border);
+  }
+}
+
+.form__head {
+  @include a.stack(a.$space-6);
+}
+
+.form__title {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.form__sub {
+  margin: 0;
+  font-size: a.$fs-label;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+.form__body {
+  @include a.stack(a.$space-18);
+}
+
+.input {
+  @include a.control;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--color-primary);
+  }
+}

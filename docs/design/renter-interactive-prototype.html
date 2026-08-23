@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; background:#F1F3F4; font-family:'IBM Plex Sans Arabic',sans-serif; line-height:1.7; color:#2D2D2D; }
+  a { color:#2E6E8E; text-decoration:none; }
+  a:hover { color:#123642; }
+  * { box-sizing:border-box; }
+  button:focus-visible, [tabindex]:focus-visible, input:focus-visible { outline:2px solid #C7A15A; outline-offset:2px; }
+  input { font-family:'IBM Plex Sans Arabic',sans-serif; }
+  @keyframes hz-spin { to { transform:rotate(360deg); } }
+</style>
+</helmet>
+
+<div dir="rtl" style="min-height:100vh;background:#F1F3F4">
+
+  <div style="position:sticky;top:0;z-index:40;background:#14181B;border-bottom:2px solid #C7A15A;padding:10px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:1px;padding-left:14px;border-left:1px solid rgba(255,255,255,.16)">
+      <span style="font-size:12px;font-weight:700;color:#C7A15A">شريط أدوات العرض</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.45)">ليس جزءًا من المنتج</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:rgba(255,255,255,.6)">حالة الدخول</span>
+      <div style="display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px">
+        <button onClick="{{ setGuest }}" style="height:28px;border:none;border-radius:999px;background:{{ guestBtnBg }};color:{{ guestBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:11px;font-weight:600;padding:0 12px;cursor:pointer">زائر</button>
+        <button onClick="{{ setSigned }}" style="height:28px;border:none;border-radius:999px;background:{{ signedBtnBg }};color:{{ signedBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:11px;font-weight:600;padding:0 12px;cursor:pointer">مسجّل</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:rgba(255,255,255,.6)">العرض</span>
+      <div style="display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px">
+        <button onClick="{{ setDesktop }}" style="height:28px;border:none;border-radius:999px;background:{{ deskBtnBg }};color:{{ deskBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:11px;font-weight:600;padding:0 12px;cursor:pointer">ديسكتوب 1440</button>
+        <button onClick="{{ setMobile }}" style="height:28px;border:none;border-radius:999px;background:{{ mobBtnBg }};color:{{ mobBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:11px;font-weight:600;padding:0 12px;cursor:pointer">موبايل 375</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:rgba(255,255,255,.6)">حالة الحجز</span>
+      <select value="{{ bookingStatus }}" onChange="{{ onStatus }}" style="height:30px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:#1F2429;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:11px;padding:0 8px;cursor:pointer">
+        <sc-for list="{{ statusOptions }}" as="s" hint-placeholder-count="9">
+          <option value="{{ s }}">{{ s }}</option>
+        </sc-for>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:rgba(255,255,255,.6)">حالة الشاشة</span>
+      <select value="{{ uiState }}" onChange="{{ onUiState }}" style="height:30px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:#1F2429;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:11px;padding:0 8px;cursor:pointer">
+        <option value="عادية">عادية</option>
+        <option value="تحميل">تحميل</option>
+        <option value="فارغة">فارغة</option>
+        <option value="خطأ">خطأ</option>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:rgba(255,255,255,.6)">حالة نفاذ</span>
+      <select value="{{ nafathState }}" onChange="{{ onNafathState }}" style="height:30px;border:1px solid rgba(199,161,90,.35);border-radius:8px;background:#1F2429;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:11px;padding:0 8px;cursor:pointer">
+        <option value="قبل البدء">قبل البدء</option>
+        <option value="بانتظار التأكيد">بانتظار التأكيد</option>
+        <option value="نجاح">نجاح</option>
+        <option value="فشل">فشل أو انتهاء مهلة</option>
+        <option value="عدم تطابق">عدم تطابق الاسم</option>
+        <option value="موثّق مسبقًا">موثّق مسبقًا (تُتخطّى)</option>
+      </select>
+    </div>
+
+    <button onClick="{{ goIndex }}" style="height:30px;border:1px solid rgba(199,161,90,.6);border-radius:8px;background:transparent;color:#C7A15A;font-family:'IBM Plex Sans Arabic';font-size:11px;font-weight:600;padding:0 14px;cursor:pointer;margin-right:auto" style-hover="background:#C7A15A;color:#14181B">الفهرس</button>
+  </div>
+
+  <div style="display:flex;justify-content:center;padding:22px 16px 60px">
+    <div style="width:{{ frameW }};max-width:100%;background:#FFFFFF;border-radius:18px;overflow:hidden;box-shadow:0 2px 10px rgba(18,54,66,.1);position:relative">
+
+      <sc-if value="{{ isIndex }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:0">
+          <div style="background:#123642;padding:34px 32px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;border-radius:12px;border:1.5px solid #C7A15A;display:flex;align-items:center;justify-content:center;color:#C7A15A;font-size:19px;font-weight:700">ح</div>
+              <div style="display:flex;flex-direction:column;line-height:1.25">
+                <span style="font-size:19px;font-weight:700;color:#FFFFFF">حيزك — النموذج التفاعلي</span>
+                <span style="font-size:12px;color:rgba(255,255,255,.6)">كل شاشات المشروع ومساراتها القابلة للنقر</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button onClick="{{ startJourney }}" style="height:48px;border:none;border-radius:10px;background:#C7A15A;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 22px;cursor:pointer" style-hover="background:#B58F49">بدء رحلة الحجز كاملة</button>
+              <button onClick="{{ browseGuest }}" style="height:48px;border:1px solid rgba(255,255,255,.65);border-radius:10px;background:transparent;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 22px;cursor:pointer" style-hover="background:rgba(255,255,255,.12)">التصفّح كزائر</button>
+              <button onClick="{{ browseSigned }}" style="height:48px;border:1px solid rgba(255,255,255,.65);border-radius:10px;background:transparent;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 22px;cursor:pointer" style-hover="background:rgba(255,255,255,.12)">التصفّح كمسجّل</button>
+            </div>
+          </div>
+
+          <div style="padding:28px 32px 40px;display:flex;flex-direction:column;gap:28px">
+            <sc-for list="{{ indexGroups }}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:baseline;gap:12px">
+                  <div style="font-size:20px;font-weight:700;color:#123642">{{ g.title }}</div>
+                  <div style="font-size:12px;color:rgba(45,45,45,.6)">{{ g.note }}</div>
+                </div>
+                <div style="display:grid;grid-template-columns:{{ indexCols }};gap:16px">
+                  <sc-for list="{{ g.items }}" as="s" hint-placeholder-count="4">
+                    <div onClick="{{ s.open }}" tabindex="0" style="border:1px solid #E6E8EA;border-radius:16px;overflow:hidden;background:#FFFFFF;box-shadow:0 1px 3px rgba(18,54,66,.06);cursor:pointer" style-hover="box-shadow:0 8px 22px rgba(18,54,66,.13);border-color:#123642">
+                      <div style="height:112px;background:#F7F8F8;border-bottom:1px solid #F1F3F4;padding:10px;display:flex;flex-direction:column;gap:6px">
+                        <div style="height:14px;border-radius:4px;background:#123642"></div>
+                        <div style="display:flex;gap:6px;flex:1">
+                          <div style="width:{{ s.thumbSide }};border-radius:5px;background:#E6E8EA"></div>
+                          <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+                            <div style="height:9px;width:70%;border-radius:999px;background:#E6E8EA"></div>
+                            <div style="height:9px;width:52%;border-radius:999px;background:#F1F3F4"></div>
+                            <div style="flex:1;border-radius:5px;background:{{ s.thumbAccent }}"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div style="padding:16px;display:flex;flex-direction:column;gap:7px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                          <span style="font-size:15px;font-weight:600;color:#123642">{{ s.name }}</span>
+                          <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:10px;letter-spacing:1px;color:rgba(45,45,45,.45)">{{ s.code }}</span>
+                        </div>
+                        <div style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.68)">{{ s.desc }}</div>
+                        <div style="font-size:12px;font-weight:600;color:#2E6E8E">فتح الشاشة ←</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="background:#123642;height:{{ barH }};padding:{{ barPad }};display:flex;align-items:center;justify-content:space-between;gap:{{ barGap }}">
+            <div onClick="{{ goHome }}" tabindex="0" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+              <div style="width:{{ logoSize }};height:{{ logoSize }};border-radius:10px;border:1.5px solid #C7A15A;display:flex;align-items:center;justify-content:center;color:#C7A15A;font-size:16px;font-weight:700">ح</div>
+              <div style="display:flex;flex-direction:column;line-height:1.25">
+                <span style="font-size:15px;font-weight:700;color:#FFFFFF">حيزك</span>
+                <span style="font-family:'Montserrat';font-size:9px;letter-spacing:2.5px;color:#C7A15A">HAY-ZAK</span>
+              </div>
+            </div>
+
+            <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:26px">
+                <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="4">
+                  <a href="#" onClick="{{ n.go }}" style="font-size:14px;font-weight:{{ n.weight }};color:{{ n.color }};padding-bottom:5px;border-bottom:{{ n.underline }}">{{ n.label }}</a>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;align-items:center;gap:{{ authGap }};position:relative">
+              <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ goAccountType }}" style="height:42px;border:none;border-radius:10px;background:#C7A15A;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;padding:0 14px;white-space:nowrap;line-height:1;cursor:pointer" style-hover="background:#B58F49">إضافة مساحتك الآن</button>
+              </sc-if>
+
+              <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ goLoginScreen }}" style="height:42px;border:1px solid rgba(255,255,255,.6);border-radius:10px;background:transparent;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;padding:0 16px;cursor:pointer" style-hover="background:rgba(255,255,255,.12)">تسجيل الدخول</button>
+              </sc-if>
+
+              <sc-if value="{{ isSigned }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:18px">
+                  <a href="#" onClick="{{ goBookings }}" style="font-size:14px;font-weight:600;color:#FFFFFF">حجوزاتي</a>
+                  <div onClick="{{ toggleNotif }}" tabindex="0" style="position:relative;color:#FFFFFF;font-size:19px;cursor:pointer;line-height:1">
+                    ⌾
+                    <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}">
+                      <span style="position:absolute;top:-7px;left:-8px;min-width:17px;height:17px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-family:'Montserrat';font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px">{{ unreadCount }}</span>
+                    </sc-if>
+                  </div>
+                  <div onClick="{{ toggleMenu }}" tabindex="0" style="display:flex;align-items:center;gap:7px;cursor:pointer">
+                    <div style="width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.16);color:#C7A15A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">ف</div>
+                    <span style="font-size:10px;color:rgba(255,255,255,.7)">▾</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:52px;left:0;width:360px;background:#FFFFFF;border:1px solid #E6E8EA;border-radius:14px;box-shadow:0 12px 30px rgba(18,54,66,.18);padding:14px;display:flex;flex-direction:column;gap:10px;z-index:30">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:14px;font-weight:700;color:#123642">الإشعارات</span>
+                    <button onClick="{{ markAllRead }}" style="border:none;background:transparent;color:#2E6E8E;font-family:'IBM Plex Sans Arabic';font-size:12px;font-weight:600;cursor:pointer">تعليم الكل كمقروء</button>
+                  </div>
+                  <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+                    <div onClick="{{ n.open }}" tabindex="0" style="border:{{ n.border }};background:{{ n.bg }};border-radius:12px;padding:12px;display:flex;gap:10px;cursor:pointer" style-hover="border-color:#123642">
+                      <div style="width:32px;height:32px;border-radius:9px;background:{{ n.iconBg }};color:{{ n.iconColor }};display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">{{ n.icon }}</div>
+                      <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <span style="font-size:13px;font-weight:{{ n.weight }};color:#123642">{{ n.title }}</span>
+                          <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ true }}">
+                            <span style="width:7px;height:7px;border-radius:999px;background:#A32C22;flex:none"></span>
+                          </sc-if>
+                        </div>
+                        <span style="font-size:11px;line-height:1.75;color:rgba(45,45,45,.7)">{{ n.body }}</span>
+                        <span style="font-size:10px;color:rgba(45,45,45,.5)">{{ n.time }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ goNotifications }}" style="height:40px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:12px;font-weight:600;cursor:pointer">عرض كل الإشعارات</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:52px;left:0;width:220px;background:#FFFFFF;border:1px solid #E6E8EA;border-radius:14px;box-shadow:0 12px 30px rgba(18,54,66,.18);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:30">
+                  <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="4">
+                    <button onClick="{{ m.go }}" style="border:none;background:transparent;text-align:right;padding:11px 12px;border-radius:9px;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:{{ m.weight }};color:{{ m.color }};cursor:pointer" style-hover="background:#F7F8F8">{{ m.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="position:relative;height:{{ heroH }};background:#123642;overflow:hidden">
+                {{ heroImg }}
+                <div style="position:absolute;inset:0;background:rgba(18,54,66,0.66)"></div>
+                <div style="position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:{{ heroPad }}">
+                  <h1 style="margin:0;font-size:{{ heroTitleSize }};font-weight:700;line-height:1.25;color:#FFFFFF;text-align:center;text-shadow:0 1px 12px rgba(18,54,66,.35)">مساحاتك.. فرصتك</h1>
+                  <p style="margin:12px 0 0;font-size:{{ heroSubSize }};font-weight:400;color:#FFFFFF;text-align:center;max-width:760px;text-wrap:pretty;text-shadow:0 1px 10px rgba(18,54,66,.35)">مساحة قريبة منك، بسعر واضح، ودفع محفوظ حتى اعتماد الطلب.</p>
+
+                  <sc-if value="{{ mobileSearchPill }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ openSearchSheet }}" style="margin-top:36px;width:100%;height:60px;border:none;border-radius:999px;background:#FFFFFF;box-shadow:0 12px 30px rgba(18,54,66,.26);display:flex;align-items:center;gap:12px;padding:0 10px;cursor:pointer;font-family:'IBM Plex Sans Arabic'">
+                      <span style="width:40px;height:40px;flex:none;border-radius:999px;background:#123642;color:#FFFFFF;font-size:17px;display:flex;align-items:center;justify-content:center">⌕</span>
+                      <span style="font-size:15px;color:#6B7075">ابحث عن مساحة</span>
+                    </button>
+                  </sc-if>
+
+                  <sc-if value="{{ showSearchBar }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:36px;width:100%;max-width:900px;background:#FFFFFF;border-radius:{{ searchRadius }};box-shadow:0 14px 38px rgba(18,54,66,.24);display:flex;flex-direction:{{ searchDir }};align-items:center;padding:10px;gap:{{ searchGap }}">
+                    <div style="flex:1.25;width:100%;padding:0 16px;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:12px;font-weight:600;color:#123642">المدينة أو الحي</span>
+                      <select value="{{ city }}" onChange="{{ onCity }}" style="border:none;background:transparent;font-family:'IBM Plex Sans Arabic';font-size:15px;color:#6B7075;padding:0;cursor:pointer;appearance:none;width:100%">
+                        <sc-for list="{{ cityOptions }}" as="c" hint-placeholder-count="4">
+                          <option value="{{ c }}">{{ c }}</option>
+                        </sc-for>
+                      </select>
+                    </div>
+                    <div style="width:1px;height:38px;background:#E6E8EA;flex:none;display:{{ dividerDisplay }}"></div>
+
+                    <div style="flex:1;width:100%;padding:0 16px;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:12px;font-weight:600;color:#123642">الفئة</span>
+                      <select value="{{ homeCategory }}" onChange="{{ onHomeCategory }}" style="border:none;background:transparent;font-family:'IBM Plex Sans Arabic';font-size:15px;color:#6B7075;padding:0;cursor:pointer;appearance:none;width:100%">
+                        <sc-for list="{{ categoryOptions }}" as="c" hint-placeholder-count="5">
+                          <option value="{{ c }}">{{ c }}</option>
+                        </sc-for>
+                      </select>
+                    </div>
+                    <div style="width:1px;height:38px;background:#E6E8EA;flex:none;display:{{ dividerDisplay }}"></div>
+
+                    <div style="flex:1.15;width:100%;padding:0 16px;display:flex;flex-direction:column;gap:1px">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="font-size:12px;font-weight:600;color:#123642">تاريخ البداية</span>
+                        <div style="display:flex;background:#F5F5F5;border-radius:999px;padding:2px">
+                          <button onClick="{{ setGregorian }}" style="border:none;border-radius:999px;background:{{ gregBg }};color:{{ gregColor }};font-family:'IBM Plex Sans Arabic';font-size:10px;font-weight:600;padding:2px 8px;cursor:pointer">ميلادي</button>
+                          <button onClick="{{ setHijri }}" style="border:none;border-radius:999px;background:{{ hijriBg }};color:{{ hijriColor }};font-family:'IBM Plex Sans Arabic';font-size:10px;font-weight:600;padding:2px 8px;cursor:pointer">هجري</button>
+                        </div>
+                      </div>
+                      <select value="{{ startDayValue }}" onChange="{{ onStartDay }}" style="border:none;background:transparent;font-family:'IBM Plex Sans Arabic';font-size:15px;color:#6B7075;padding:0;cursor:pointer;appearance:none;width:100%">
+                        <sc-for list="{{ startDayOptions }}" as="d" hint-placeholder-count="6">
+                          <option value="{{ d.value }}">{{ d.label }}</option>
+                        </sc-for>
+                      </select>
+                    </div>
+                    <div style="width:1px;height:38px;background:#E6E8EA;flex:none;display:{{ dividerDisplay }}"></div>
+
+                    <div style="flex:0.95;width:100%;padding:0 16px;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:12px;font-weight:600;color:#123642">المدة</span>
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <button onClick="{{ decDays }}" style="width:26px;height:26px;border:1px solid #E6E8EA;border-radius:7px;background:#FFFFFF;color:#123642;font-size:14px;cursor:pointer">−</button>
+                        <span style="font-size:15px;color:#6B7075;font-variant-numeric:tabular-nums;white-space:nowrap"><span dir="ltr" style="unicode-bidi:isolate">{{ days }}</span> يومًا</span>
+                        <button onClick="{{ incDays }}" style="width:26px;height:26px;border:1px solid #E6E8EA;border-radius:7px;background:#FFFFFF;color:#123642;font-size:14px;cursor:pointer">+</button>
+                      </div>
+                    </div>
+
+                    <button onClick="{{ goResults }}" aria-label="البحث" style="width:{{ searchBtnW }};height:56px;flex:none;border:none;border-radius:999px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:{{ searchBtnFont }};font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#0C2731">{{ searchBtnLabel }}</button>
+                  </div>
+                  </sc-if>
+
+                  <div style="margin-top:24px;display:flex;align-items:center;gap:9px">
+                    <sc-for list="{{ heroChips }}" as="c" hint-placeholder-count="3">
+                      <button onClick="{{ c.go }}" style="font-family:'IBM Plex Sans Arabic';font-size:13px;color:#FFFFFF;background:transparent;border:1px solid rgba(255,255,255,.65);border-radius:999px;padding:7px 18px;cursor:pointer" style-hover="background:rgba(255,255,255,.16)">{{ c.name }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:16px">
+                <div style="padding:{{ catsPad }};display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="font-size:{{ catsTitleSize }};font-weight:700;color:#123642;text-align:center">ما الذي ترغب في تخزينه؟</div>
+                  <div style="font-size:{{ catsSubSize }};color:#6B7075;text-align:center">اختر نوع المساحة التي تناسبك</div>
+                  <div style="display:grid;grid-template-columns:{{ catsCols }};justify-content:center;gap:16px;margin-top:24px;width:{{ catsWidth }}">
+                    <sc-for list="{{ homeCats }}" as="c" hint-placeholder-count="4">
+                      <div onClick="{{ c.go }}" tabindex="0" style="width:{{ catCardW }};height:120px;border:{{ c.border }};border-radius:14px;background:{{ c.bg }};color:{{ c.color }};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,border-color .15s" style-hover="border-color:#123642;transform:translateY(-2px);box-shadow:0 6px 16px rgba(18,54,66,.12)">
+                        {{ c.iconEl }}
+                        <span style="font-size:15px;font-weight:600;color:currentColor;margin-top:12px">{{ c.name }}</span>
+                        <span style="font-size:12px;color:currentColor;opacity:.62;margin-top:4px"><span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ c.count }}</span> مساحة</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="margin-top:36px;display:flex;flex-direction:column;gap:16px">
+                  <div style="font-size:20px;font-weight:700;color:#123642">كيف تعمل المنصة</div>
+                  <div style="display:grid;grid-template-columns:{{ howCols }};gap:18px">
+                    <sc-for list="{{ howSteps }}" as="s" hint-placeholder-count="3">
+                      <div onClick="{{ s.go }}" tabindex="0" style="border:1px solid #E6E8EA;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(18,54,66,.06);cursor:{{ s.cursor }};transition:transform .15s,box-shadow .15s,border-color .15s" style-hover="border-color:#123642;transform:translateY(-2px);box-shadow:0 6px 16px rgba(18,54,66,.12)">
+                        <div style="display:flex;align-items:center;gap:12px">
+                          <div style="width:44px;height:44px;border-radius:12px;border:1px solid rgba(18,54,66,.16);color:#123642;display:flex;align-items:center;justify-content:center;font-size:20px">{{ s.icon }}</div>
+                          <div style="font-family:'Montserrat';font-size:13px;font-weight:700;color:#C7A15A">{{ s.num }}</div>
+                        </div>
+                        <div style="font-size:17px;font-weight:600;color:#123642">{{ s.title }}</div>
+                        <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.7)">{{ s.desc }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="margin-top:28px;background:#F7F8F8;border:1px solid #E6E8EA;border-radius:16px;padding:26px;display:grid;grid-template-columns:{{ featCols }};gap:20px">
+                  <sc-for list="{{ whyFeatures }}" as="f" hint-placeholder-count="5">
+                    <div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start">
+                      <div style="width:40px;height:40px;border-radius:10px;background:#FFFFFF;border:1px solid #E6E8EA;color:#C7A15A;display:flex;align-items:center;justify-content:center;font-size:17px">{{ f.icon }}</div>
+                      <div style="font-size:14px;font-weight:600;color:#123642">{{ f.title }}</div>
+                      <div style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.65)">{{ f.desc }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="font-size:20px;font-weight:700;color:#123642;margin-top:16px">أحدث المساحات</div>
+                <div style="display:grid;grid-template-columns:{{ cardCols }};gap:16px">
+                  <sc-for list="{{ latest }}" as="s" hint-placeholder-count="4">
+                    <div onClick="{{ s.open }}" tabindex="0" style="border:1px solid #E6E8EA;border-radius:16px;overflow:hidden;background:#FFFFFF;box-shadow:0 1px 3px rgba(18,54,66,.06);cursor:pointer" style-hover="box-shadow:0 8px 22px rgba(18,54,66,.13)">
+                      <div style="height:150px;background:#F5F5F5;position:relative">
+                        {{ s.imgEl }}
+                        <div style="position:absolute;top:10px;right:10px;background:#123642;color:#FFFFFF;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px">{{ s.category }}</div>
+                      </div>
+                      <div style="padding:18px;display:flex;flex-direction:column;gap:9px">
+                        <div style="font-size:15px;font-weight:600;color:#123642">{{ s.name }}</div>
+                        <div style="font-size:12px;color:rgba(45,45,45,.6)">{{ s.district }}، {{ s.city }} · <span dir="ltr" style="unicode-bidi:isolate">{{ s.area }}</span> م²</div>
+                        <div style="height:1px;background:#F1F3F4"></div>
+                        <div style="display:flex;align-items:baseline;gap:5px">
+                          <span style="font-family:'Montserrat';font-size:30px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ s.price }}</span>
+                          <span style="font-size:13px;font-weight:600;color:#C7A15A">ر.س</span>
+                          <span style="font-size:13px;color:rgba(45,45,45,.55)">/ يوميًا</span>
+                        </div>
+                        <div style="font-size:11px;color:rgba(45,45,45,.5)">المكافئ الشهري التقريبي <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ s.monthly }}</span> ر.س</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="background:#123642;border-radius:16px;padding:26px;margin-top:16px;display:flex;flex-direction:{{ ctaDir }};align-items:{{ ctaAlign }};justify-content:space-between;gap:18px">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="font-size:20px;font-weight:700;color:#FFFFFF">كل مساحة لها قيمة</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,.72);max-width:520px">ابحث عن المساحة المناسبة لبضاعتك، أو اعرض مساحتك غير المستغلة على المنصة.</div>
+                  </div>
+                  <div style="display:flex;gap:12px;flex-wrap:wrap;flex:none">
+                    <button onClick="{{ exploreAll }}" style="height:48px;border:1px solid #FFFFFF;border-radius:10px;background:transparent;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 24px;cursor:pointer" style-hover="background:rgba(255,255,255,.14)">استكشاف المساحات</button>
+                    <button onClick="{{ goAccountType }}" style="height:48px;border:none;border-radius:10px;background:#C7A15A;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 24px;cursor:pointer" style-hover="background:#B58F49">إضافة مساحتك الآن</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isAccountType }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="font-size:20px;font-weight:700;color:#123642">اختيار نوع الحساب</div>
+                <div style="font-size:13px;color:rgba(45,45,45,.65)">اختر ما يناسبك للمتابعة. الحساب بدور واحد، ويمكن التصفح بدون تسجيل.</div>
+              </div>
+              <div style="display:grid;grid-template-columns:{{ specCols }};gap:16px">
+                <div style="border:1px solid #E6E8EA;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+                  <div style="width:44px;height:44px;border-radius:12px;border:1.5px solid #C7A15A;color:#C7A15A;display:flex;align-items:center;justify-content:center;font-size:19px">⌕</div>
+                  <div style="font-size:17px;font-weight:700;color:#123642">أبحث عن مساحة</div>
+                  <div style="font-size:13px;color:rgba(45,45,45,.7)">استئجار مساحة تخزين قريبة لمدة تختارها، بسعر معروض قبل أي خطوة.</div>
+                  <button onClick="{{ goSignupRenter }}" style="height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;margin-top:4px" style-hover="background:#0C2731">تسجيل مستأجر</button>
+                </div>
+                <div style="border:1px solid #E6E8EA;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(18,54,66,.06)">
+                  <div style="width:44px;height:44px;border-radius:12px;border:1.5px solid #C7A15A;color:#C7A15A;display:flex;align-items:center;justify-content:center;font-size:19px">▦</div>
+                  <div style="font-size:17px;font-weight:700;color:#123642">أملك مساحة</div>
+                  <div style="font-size:13px;color:rgba(45,45,45,.7)">عرض مساحتك غير المستغلة للإيجار، وإدارة التوفر والأسعار من حسابك.</div>
+                  <button onClick="{{ goSignupLessor }}" style="height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;margin-top:4px" style-hover="background:#F7F8F8">تسجيل مؤجر</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="font-size:24px;font-weight:700;color:#123642">نتائج البحث</div>
+                  <div style="font-size:13px;color:rgba(45,45,45,.65)"><span dir="ltr" style="unicode-bidi:isolate;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ resultCount }}</span> مساحة مطابقة في {{ city }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="font-size:12px;color:rgba(45,45,45,.6)">الترتيب</span>
+                  <sc-for list="{{ sortOptions }}" as="o" hint-placeholder-count="3">
+                    <button onClick="{{ o.pick }}" style="height:38px;border:{{ o.border }};border-radius:999px;background:{{ o.bg }};color:{{ o.color }};font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;padding:0 14px;cursor:pointer">{{ o.label }}</button>
+                  </sc-for>
+                  <div style="display:flex;background:#F5F5F5;border-radius:999px;padding:3px;margin-right:8px">
+                    <button onClick="{{ showList }}" style="height:34px;border:none;border-radius:999px;background:{{ listBg }};color:{{ listColor }};font-family:'IBM Plex Sans Arabic';font-size:12px;font-weight:600;padding:0 14px;cursor:pointer">قائمة</button>
+                    <button onClick="{{ showMap }}" style="height:34px;border:none;border-radius:999px;background:{{ mapBg }};color:{{ mapColor }};font-family:'IBM Plex Sans Arabic';font-size:12px;font-weight:600;padding:0 14px;cursor:pointer">خريطة</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:18px;align-items:flex-start;flex-direction:{{ resultsDir }}">
+                <div style="width:{{ filterW }};flex:none;border:1px solid #E6E8EA;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:16px;font-weight:700;color:#123642">الفلاتر</span>
+                    <button onClick="{{ resetFilters }}" style="border:none;background:transparent;color:#2E6E8E;font-family:'IBM Plex Sans Arabic';font-size:12px;font-weight:600;cursor:pointer">إعادة التعيين</button>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-size:13px;color:rgba(45,45,45,.75)">المسافة القصوى</span>
+                      <span style="font-size:13px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ maxDistance }}</span> كم</span>
+                    </div>
+                    <input type="range" min="1" max="10" step="1" value="{{ maxDistance }}" onChange="{{ onDistance }}" style="width:100%;accent-color:#123642;cursor:pointer" />
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-size:13px;color:rgba(45,45,45,.75)">السعر اليومي الأعلى</span>
+                      <span style="font-size:13px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ maxPrice }}</span> ر.س</span>
+                    </div>
+                    <input type="range" min="25" max="150" step="5" value="{{ maxPrice }}" onChange="{{ onPrice }}" style="width:100%;accent-color:#123642;cursor:pointer" />
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-size:13px;color:rgba(45,45,45,.75)">المساحة الأدنى</span>
+                      <span style="font-size:13px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ minArea }}</span> م²</span>
+                    </div>
+                    <input type="range" min="8" max="120" step="2" value="{{ minArea }}" onChange="{{ onArea }}" style="width:100%;accent-color:#123642;cursor:pointer" />
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <span style="font-size:13px;color:rgba(45,45,45,.75)">التصنيف</span>
+                    <sc-for list="{{ categories }}" as="c" hint-placeholder-count="4">
+                      <div onClick="{{ c.toggle }}" tabindex="0" style="display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;padding:6px 0">
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <div style="width:20px;height:20px;border-radius:5px;border:{{ c.boxBorder }};background:{{ c.boxBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px">{{ c.mark }}</div>
+                          <span style="font-size:13px;color:#2D2D2D">{{ c.name }}</span>
+                        </div>
+                        <span style="font-size:12px;color:rgba(45,45,45,.5);font-variant-numeric:tabular-nums">{{ c.count }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px">
+                  <sc-if value="{{ resultsLoading }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                      <sc-for list="{{ skeleton }}" as="k" hint-placeholder-count="3">
+                        <div style="border:1px solid #F1F3F4;border-radius:14px;padding:16px;display:flex;gap:14px;align-items:center">
+                          <div style="width:120px;height:88px;border-radius:10px;background:#F1F3F4;flex:none"></div>
+                          <div style="flex:1;display:flex;flex-direction:column;gap:9px">
+                            <div style="height:12px;width:38%;border-radius:999px;background:#F1F3F4"></div>
+                            <div style="height:12px;width:62%;border-radius:999px;background:#F5F5F5"></div>
+                            <div style="height:12px;width:44%;border-radius:999px;background:#F5F5F5"></div>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ resultsError }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid rgba(163,44,34,.25);background:rgba(163,44,34,.04);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+                      <div style="width:56px;height:56px;border-radius:999px;background:rgba(163,44,34,.1);color:#A32C22;display:flex;align-items:center;justify-content:center;font-size:22px">!</div>
+                      <div style="font-size:18px;font-weight:700;color:#123642">تعذّر تحميل النتائج</div>
+                      <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.7);max-width:420px">انقطع الاتصال أثناء جلب المساحات. تحقّق من الشبكة ثم أعد المحاولة.</div>
+                      <button onClick="{{ retryResults }}" style="height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 24px;cursor:pointer">إعادة المحاولة</button>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ resultsEmpty }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:40px 28px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+                      <div style="width:60px;height:60px;border-radius:16px;border:1px solid #E6E8EA;color:#C7C9CC;display:flex;align-items:center;justify-content:center;font-size:24px">⌕</div>
+                      <div style="font-size:18px;font-weight:700;color:#123642">لا توجد مساحات مطابقة</div>
+                      <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.7);max-width:440px">لم تطابق أي مساحة الفلاتر الحالية. وسّع نطاق المسافة أو ارفع سقف السعر أو أضف تصنيفًا آخر.</div>
+                      <button onClick="{{ resetFilters }}" style="height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 24px;cursor:pointer">توسيع نطاق البحث</button>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ resultsReady }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;gap:14px">
+                      <sc-if value="{{ mapMode }}" hint-placeholder-val="{{ false }}">
+                        <div style="height:420px;border-radius:16px;background:#E8EBE9;position:relative;overflow:hidden;border:1px solid #E6E8EA">
+                          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.75) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.75) 1px,transparent 1px);background-size:40px 40px"></div>
+                          <div style="position:absolute;top:0;bottom:0;right:34%;width:22px;background:#FFFFFF;opacity:.85"></div>
+                          <div style="position:absolute;left:0;right:0;top:44%;height:24px;background:#FFFFFF;opacity:.85"></div>
+                          <sc-for list="{{ visible }}" as="s" hint-placeholder-count="6">
+                            <div onClick="{{ s.open }}" tabindex="0" style="position:absolute;top:{{ s.pinTop }};right:{{ s.pinRight }};cursor:pointer;z-index:{{ s.pinZ }}">
+                              <div style="display:flex;flex-direction:column;align-items:center">
+                                <div style="background:{{ s.pinBg }};color:{{ s.pinColor }};border:1px solid {{ s.pinBorder }};border-radius:999px;padding:6px 12px;box-shadow:0 2px 8px rgba(18,54,66,.18);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span dir="ltr" style="unicode-bidi:isolate">{{ s.price }}</span> ر.س</div>
+                                <div style="width:2px;height:10px;background:{{ s.pinBg }}"></div>
+                              </div>
+                            </div>
+                          </sc-for>
+                          <div style="position:absolute;bottom:14px;right:14px;background:#FFFFFF;border-radius:9px;padding:9px 13px;box-shadow:0 1px 3px rgba(18,54,66,.12);font-size:11px;color:rgba(45,45,45,.65)">الضغط على مؤشر السعر يفتح تفاصيل المساحة</div>
+                        </div>
+                      </sc-if>
+
+                      <sc-for list="{{ visible }}" as="s" hint-placeholder-count="5">
+                        <div onClick="{{ s.open }}" tabindex="0" style="border:1px solid #E6E8EA;border-radius:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(18,54,66,.06);display:flex;flex-direction:{{ cardDir }};overflow:hidden;cursor:pointer" style-hover="box-shadow:0 8px 22px rgba(18,54,66,.13);border-color:#123642">
+                          <div style="width:{{ resultImgW }};height:{{ resultImgH }};flex:none;background:#F5F5F5;position:relative">
+                            {{ s.imgEl }}
+                            <div style="position:absolute;top:10px;right:10px;background:#123642;color:#FFFFFF;font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px">{{ s.category }}</div>
+                          </div>
+                          <div style="flex:1;min-width:0;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+                            <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                              <div style="font-size:16px;font-weight:600;color:#123642">{{ s.name }}</div>
+                              <div style="font-size:12px;color:rgba(45,45,45,.65)">{{ s.district }}، {{ s.city }} · <span dir="ltr" style="unicode-bidi:isolate">{{ s.distance }}</span> كم · <span dir="ltr" style="unicode-bidi:isolate">{{ s.area }}</span> م²</div>
+                              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                <div style="background:#F5F5F5;border-radius:999px;padding:5px 11px;font-size:12px;color:#2D2D2D">{{ s.tag1 }}</div>
+                                <div style="background:#F5F5F5;border-radius:999px;padding:5px 11px;font-size:12px;color:#2D2D2D">{{ s.tag2 }}</div>
+                              </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+                              <div style="display:flex;align-items:baseline;gap:5px">
+                                <span style="font-family:'Montserrat';font-size:30px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ s.price }}</span>
+                                <span style="font-size:13px;font-weight:600;color:#C7A15A">ر.س</span>
+                                <span style="font-size:13px;color:rgba(45,45,45,.55)">/ يوميًا</span>
+                              </div>
+                              <div style="font-size:11px;color:rgba(45,45,45,.5)">المكافئ الشهري التقريبي <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ s.monthly }}</span> ر.س</div>
+                              <div style="font-size:11px;color:rgba(45,45,45,.5)">إجمالي <span dir="ltr" style="unicode-bidi:isolate">{{ days }}</span> يومًا <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ s.periodTotal }}</span> ر.س</div>
+                              <button onClick="{{ s.open }}" style="height:42px;border:1px solid #123642;border-radius:10px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;padding:0 18px;cursor:pointer" style-hover="background:#123642;color:#FFFFFF">التفاصيل</button>
+                            </div>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isDetails }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(45,45,45,.6)">
+                <a href="#" onClick="{{ goResults }}">نتائج البحث</a><span>←</span><span style="color:#123642;font-weight:600">{{ space.name }}</span>
+              </div>
+
+              <div style="display:flex;gap:18px;align-items:flex-start;flex-direction:{{ detailsDir }}">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;overflow:hidden">
+                    <div style="height:{{ galleryH }};background:#F5F5F5;position:relative">
+                      {{ galleryImg }}
+                      <div style="position:absolute;top:14px;right:14px;background:#123642;color:#FFFFFF;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px">{{ space.category }}</div>
+                      <button onClick="{{ prevPhoto }}" style="position:absolute;top:50%;right:14px;transform:translateY(-50%);width:40px;height:40px;border:none;border-radius:999px;background:rgba(255,255,255,.92);color:#123642;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(18,54,66,.18)">→</button>
+                      <button onClick="{{ nextPhoto }}" style="position:absolute;top:50%;left:14px;transform:translateY(-50%);width:40px;height:40px;border:none;border-radius:999px;background:rgba(255,255,255,.92);color:#123642;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(18,54,66,.18)">←</button>
+                      <div style="position:absolute;bottom:14px;right:14px;background:rgba(18,54,66,.85);color:#FFFFFF;border-radius:999px;padding:5px 12px;font-size:11px;font-variant-numeric:tabular-nums"><span dir="ltr" style="unicode-bidi:isolate">{{ photoLabel }}</span></div>
+                    </div>
+                    <div style="padding:12px;display:flex;gap:10px">
+                      <sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="3">
+                        <div onClick="{{ t.pick }}" tabindex="0" style="width:86px;height:62px;border-radius:9px;overflow:hidden;border:{{ t.border }};background:#F5F5F5;position:relative;cursor:pointer">{{ t.imgEl }}</div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                    <div style="font-size:22px;font-weight:700;color:#123642">{{ space.name }}</div>
+                    <div style="font-size:13px;color:rgba(45,45,45,.65)">{{ space.district }}، {{ space.city }} · <span dir="ltr" style="unicode-bidi:isolate">{{ space.distance }}</span> كم من موقعك</div>
+                    <div style="display:grid;grid-template-columns:{{ detailSpecCols }};gap:12px">
+                      <sc-for list="{{ specs }}" as="s" hint-placeholder-count="5">
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">{{ s.label }}</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642">{{ s.value }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font-size:14px;line-height:1.95;color:rgba(45,45,45,.8)">{{ space.desc }}</div>
+                  </div>
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">موقع المساحة</div>
+                    <div style="height:220px;border-radius:12px;background:#E8EBE9;position:relative;overflow:hidden">
+                      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.75) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.75) 1px,transparent 1px);background-size:38px 38px"></div>
+                      <div style="position:absolute;top:50%;right:50%;transform:translate(50%,-50%);width:170px;height:170px;border-radius:999px;background:rgba(18,54,66,.12);border:1.5px dashed rgba(18,54,66,.45)"></div>
+                      <div style="position:absolute;top:50%;right:50%;transform:translate(50%,-50%);width:10px;height:10px;border-radius:999px;background:#123642"></div>
+                    </div>
+                    <div style="font-size:12px;line-height:1.85;color:rgba(45,45,45,.65)">يُعرض الموقع داخل دائرة نصف قطرها 300 متر. يظهر العنوان الدقيق بعد اعتماد الحجز.</div>
+                  </div>
+
+                  <div style="border:1px solid rgba(163,44,34,.22);background:rgba(163,44,34,.03);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">ممنوع تخزينها في المنصة</div>
+                    <div style="font-size:12px;color:rgba(45,45,45,.6)">قائمة موحّدة تطبّق على جميع المساحات في حيزك</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px">
+                      <sc-for list="{{ prohibited }}" as="p" hint-placeholder-count="5">
+                        <div style="display:inline-flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:999px;padding:6px 12px">
+                          <span style="width:18px;height:18px;border-radius:999px;background:rgba(163,44,34,.1);color:#A32C22;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">✕</span>
+                          <span style="font-size:13px;color:#2D2D2D">{{ p }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="width:{{ bookBoxW }};flex:none;border:1px solid #E6E8EA;border-radius:16px;box-shadow:0 1px 3px rgba(18,54,66,.06);padding:20px;display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <div style="display:flex;align-items:baseline;gap:5px">
+                      <span style="font-family:'Montserrat';font-size:30px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ space.price }}</span>
+                      <span style="font-size:13px;font-weight:600;color:#C7A15A">ر.س</span>
+                      <span style="font-size:13px;color:rgba(45,45,45,.55)">/ يوميًا</span>
+                    </div>
+                    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(30,122,95,.1);border-radius:999px;padding:5px 11px">
+                      <span style="width:6px;height:6px;border-radius:999px;background:#1E7A5F"></span>
+                      <span style="font-size:12px;font-weight:600;color:#1E7A5F">متاحة</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:11px;color:rgba(45,45,45,.5)">المكافئ الشهري التقريبي <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ space.monthly }}</span> ر.س</span>
+                    <span style="font-size:11px;color:rgba(45,45,45,.5)">إجمالي المدة المختارة <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ rentText }}</span> ر.س</span>
+                  </div>
+                  <div style="height:1px;background:#F1F3F4"></div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <span style="font-size:12px;color:rgba(45,45,45,.65)">فترة الحجز</span>
+                    <dc-import name="RangeCalendar" start-date="{{ startISO }}" initial-days="{{ days }}" min-days="{{ minDays }}" max-days="{{ maxDays }}" blocked="{{ blockedDays }}" on-change="{{ onRange }}" mobile="{{ isMobile }}" hint-size="100%,130px"></dc-import>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:rgba(45,45,45,.75)">قيمة الإيجار</span><span style="font-family:'Montserrat';font-size:14px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ rentText }}</span></div>
+                    <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:rgba(45,45,45,.75)">عمولة المنصة 5% <span style="color:rgba(45,45,45,.5)">(تُخصم من المؤجر)</span></span><span style="font-family:'Montserrat';font-size:14px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">—</span></div>
+                    <div style="height:1px;background:#F1F3F4"></div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+                      <span style="font-size:14px;font-weight:600;color:#123642">الإجمالي المستحق عليك</span>
+                      <div style="display:flex;align-items:baseline;gap:5px">
+                        <span style="font-family:'Montserrat';font-size:26px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ totalText }}</span>
+                        <span style="font-size:13px;font-weight:600;color:#C7A15A">ر.س</span>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55)">المبلغ شامل جميع الرسوم، ولا تُضاف أي مبالغ لاحقًا.</div>
+                  </div>
+                  <button onClick="{{ startBooking }}" style="height:50px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#0C2731">احجز الآن</button>
+                  <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55);text-align:center">تُحجز التواريخ لك خمس عشرة دقيقة أثناء الدفع، ويُستَرد المبلغ كاملًا عند رفض الطلب.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px;max-width:760px">
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="font-size:24px;font-weight:700;color:#123642">التسجيل لإكمال الحجز</div>
+                <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.72)">التصفح لا يحتاج حسابًا. لإكمال حجز «{{ space.name }}» يلزم إنشاء حساب والتحقق من رقم الجوال، ثم تعود إلى المساحة نفسها وتتابع من النقطة نفسها.</div>
+              </div>
+              <div style="display:grid;grid-template-columns:{{ formCols }};gap:14px">
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">الاسم الكامل</span>
+                  <input value="{{ regName }}" onChange="{{ onRegName }}" placeholder="الاسم الثلاثي" style="height:48px;border:{{ nameBorder }};border-radius:10px;padding:0 14px;font-size:14px;color:#2D2D2D;background:#FFFFFF" />
+                  <sc-if value="{{ nameError }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#A32C22">{{ nameError }}</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">البريد الإلكتروني</span>
+                  <input dir="ltr" value="{{ regEmail }}" onChange="{{ onRegEmail }}" placeholder="name@mail.sa" style="height:48px;border:{{ emailBorder }};border-radius:10px;padding:0 14px;font-family:'Montserrat';font-size:14px;color:#2D2D2D;background:#FFFFFF;unicode-bidi:isolate" />
+                  <sc-if value="{{ emailError }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#A32C22">{{ emailError }}</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">رقم الجوال</span>
+                  <div style="height:48px;border:{{ phoneBorder }};border-radius:10px;display:flex;align-items:center;overflow:hidden;background:#FFFFFF">
+                    <div dir="ltr" style="unicode-bidi:isolate;height:100%;padding:0 12px;background:#F5F5F5;border-left:1px solid #E6E8EA;display:flex;align-items:center;font-family:'Montserrat';font-size:14px;color:#123642;font-weight:600">+966</div>
+                    <input dir="ltr" value="{{ regPhone }}" onChange="{{ onRegPhone }}" placeholder="5XXXXXXXX" style="flex:1;height:100%;border:none;padding:0 12px;font-family:'Montserrat';font-size:14px;color:#2D2D2D;unicode-bidi:isolate;outline:none" />
+                  </div>
+                  <sc-if value="{{ phoneError }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#A32C22">{{ phoneError }}</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">كلمة المرور</span>
+                  <input type="password" value="{{ regPass }}" onChange="{{ onRegPass }}" placeholder="ثمانية أحرف على الأقل" style="height:48px;border:{{ passBorder }};border-radius:10px;padding:0 14px;font-size:14px;color:#2D2D2D;background:#FFFFFF" />
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="flex:1;display:flex;gap:5px">
+                      <div style="flex:1;height:4px;border-radius:999px;background:{{ bar1 }}"></div>
+                      <div style="flex:1;height:4px;border-radius:999px;background:{{ bar2 }}"></div>
+                      <div style="flex:1;height:4px;border-radius:999px;background:{{ bar3 }}"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:600;color:{{ strengthColor }}">{{ strengthLabel }}</span>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">تأكيد كلمة المرور</span>
+                  <input type="password" value="{{ regPass2 }}" onChange="{{ onRegPass2 }}" placeholder="أعد كتابة كلمة المرور" style="height:48px;border:{{ pass2Border }};border-radius:10px;padding:0 14px;font-size:14px;color:#2D2D2D;background:#FFFFFF" />
+                  <sc-if value="{{ pass2Error }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#A32C22">{{ pass2Error }}</span>
+                  </sc-if>
+                </div>
+              </div>
+              <div onClick="{{ toggleTerms }}" tabindex="0" style="display:flex;align-items:flex-start;gap:11px;background:#F7F8F8;border:{{ termsBorder }};border-radius:12px;padding:16px;cursor:pointer">
+                <div style="width:20px;height:20px;border-radius:5px;border:{{ termsBoxBorder }};background:{{ termsBoxBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none;margin-top:2px">{{ termsMark }}</div>
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <span style="font-size:13px;line-height:1.85;color:rgba(45,45,45,.8)">أوافق على الشروط والأحكام وسياسة الخصوصية.</span>
+                  <sc-if value="{{ termsError }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#A32C22">{{ termsError }}</span>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button onClick="{{ submitSignup }}" style="height:48px;border:none;border-radius:10px;background:{{ signupBtnBg }};color:{{ signupBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 26px;cursor:{{ signupCursor }}">إنشاء الحساب والمتابعة</button>
+                <button onClick="{{ backToDetails }}" style="height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 22px;cursor:pointer">العودة إلى المساحة</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isOtp }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px;max-width:640px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:24px;font-weight:700;color:#123642">التحقق من رقم الجوال</div>
+                <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.72)">أُرسل رمز من ست خانات إلى الرقم <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">+966 {{ regPhone }}</span>. الرمز التجريبي المقبول <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:700;color:#123642">492715</span>.</div>
+              </div>
+              <input dir="ltr" value="{{ otpValue }}" onChange="{{ onOtp }}" placeholder="------" style="height:64px;border:{{ otpBorder }};border-radius:12px;padding:0 18px;font-family:'Montserrat';font-size:26px;font-weight:700;letter-spacing:12px;text-align:center;color:#123642;background:#FFFFFF;unicode-bidi:isolate" />
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="display:inline-flex;align-items:center;gap:8px;background:#F5F5F5;border-radius:999px;padding:7px 13px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.65)">صلاحية الرمز</span>
+                  {{ otpTimerEl }}
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:8px;background:{{ attemptsBg }};border-radius:999px;padding:7px 13px">
+                  <span style="width:6px;height:6px;border-radius:999px;background:{{ attemptsDot }}"></span>
+                  <span style="font-size:12px;font-weight:600;color:{{ attemptsColor }}">المحاولات المتبقية <span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ attempts }}</span> من 3</span>
+                </div>
+              </div>
+              <sc-if value="{{ otpError }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(163,44,34,.05);border:1px solid rgba(163,44,34,.25);border-radius:12px;padding:14px">
+                  <span style="width:20px;height:20px;border-radius:999px;background:rgba(163,44,34,.12);color:#A32C22;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">!</span>
+                  <span style="font-size:13px;line-height:1.85;color:#A32C22">{{ otpError }}</span>
+                </div>
+              </sc-if>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button onClick="{{ submitOtp }}" style="height:48px;border:none;border-radius:10px;background:{{ otpBtnBg }};color:{{ otpBtnColor }};font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 30px;cursor:{{ otpCursor }}">تأكيد الرمز</button>
+                <button onClick="{{ backToDetails }}" style="height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 22px;cursor:pointer">العودة إلى المساحة</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="background:#F7F8F8;border-bottom:1px solid #E6E8EA;padding:18px {{ sidePad }};display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+                  <div onClick="{{ s.go }}" tabindex="0" style="display:flex;align-items:center;gap:9px;cursor:{{ s.cursor }}">
+                    <div style="width:30px;height:30px;border-radius:999px;background:{{ s.dotBg }};border:{{ s.dotBorder }};color:{{ s.dotColor }};display:flex;align-items:center;justify-content:center;font-family:'Montserrat';font-size:13px;font-weight:700">{{ s.mark }}</div>
+                    <span style="font-size:13px;font-weight:{{ s.weight }};color:{{ s.color }}">{{ s.label }}</span>
+                  </div>
+                  <div style="flex:1;min-width:20px;height:2px;background:{{ s.lineBg }}"></div>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{ showHoldTimer }}" hint-placeholder-val="{{ false }}">
+                {{ timerBarEl }}
+              </sc-if>
+
+              <div style="padding:{{ pagePad }};display:flex;gap:18px;align-items:flex-start;flex-direction:{{ detailsDir }}">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+                  <sc-if value="{{ isDates }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px">
+                      <div style="font-size:20px;font-weight:700;color:#123642">اختيار فترة الحجز</div>
+                      <dc-import name="RangeCalendar" start-date="{{ startISO }}" initial-days="{{ days }}" min-days="{{ minDays }}" max-days="{{ maxDays }}" blocked="{{ blockedDays }}" on-change="{{ onRange }}" initial-open="true" mobile="{{ isMobile }}" hint-size="100%,560px"></dc-import>
+                      <div style="display:flex;align-items:flex-start;gap:11px;background:rgba(46,110,142,.05);border:1px solid rgba(46,110,142,.25);border-radius:12px;padding:14px">
+                        <span style="width:20px;height:20px;border-radius:999px;background:rgba(46,110,142,.12);color:#2E6E8E;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">i</span>
+                        <div style="font-size:13px;line-height:1.85;color:rgba(45,45,45,.75)">التواريخ لا تُحجز نهائيًا في هذه الخطوة. يبدأ الحجز المؤقت لمدة خمس عشرة دقيقة عند الوصول إلى خطوة توثيق الهوية.</div>
+                      </div>
+                      <div style="display:grid;grid-template-columns:{{ specCols }};gap:12px">
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">أقل مدة</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate">{{ minDays }}</span> أيام</span>
+                        </div>
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">أقصى مدة</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate">{{ maxDays }}</span> يومًا</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ isGoods }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                      <div style="font-size:20px;font-weight:700;color:#123642">وصف البضاعة</div>
+                      <textarea value="{{ goodsText }}" onChange="{{ onGoods }}" placeholder="اكتب وصفًا موجزًا لما ستخزّنه" style="border:{{ goodsBorder }};border-radius:12px;padding:14px;min-height:140px;font-family:'IBM Plex Sans Arabic';font-size:14px;line-height:1.9;color:#2D2D2D;background:#FFFFFF;resize:vertical"></textarea>
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                        <sc-if value="{{ goodsError }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size:11px;color:#A32C22">{{ goodsError }}</span>
+                        </sc-if>
+                        <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:11px;color:rgba(45,45,45,.5);font-variant-numeric:tabular-nums;margin-right:auto">{{ goodsCount }} / 500</span>
+                      </div>
+                    </div>
+
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                      <div style="font-size:20px;font-weight:700;color:#123642">ممنوع تخزينها في المنصة</div>
+                    <div style="font-size:12px;color:rgba(45,45,45,.6)">قائمة موحّدة تطبّق على جميع المساحات في حيزك</div>
+                      <div style="display:flex;flex-wrap:wrap;gap:10px">
+                        <sc-for list="{{ prohibited }}" as="p" hint-placeholder-count="5">
+                          <div style="display:inline-flex;align-items:center;gap:8px;background:#F5F5F5;border-radius:999px;padding:6px 12px">
+                            <span style="width:18px;height:18px;border-radius:999px;background:rgba(163,44,34,.1);color:#A32C22;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">✕</span>
+                            <span style="font-size:13px;color:#2D2D2D">{{ p }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div onClick="{{ toggleAck }}" tabindex="0" style="display:flex;align-items:flex-start;gap:11px;background:{{ ackBg }};border:{{ ackBorder }};border-radius:12px;padding:16px;cursor:pointer">
+                        <div style="width:22px;height:22px;border-radius:6px;border:{{ ackBoxBorder }};background:{{ ackBoxBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;margin-top:1px">{{ ackMark }}</div>
+                        <div style="display:flex;flex-direction:column;gap:5px">
+                          <span style="font-size:14px;font-weight:600;color:#123642">أقرّ بأن البضاعة المخزّنة لا تتضمّن أيًا من الممنوعات أعلاه</span>
+                          <span style="font-size:12px;line-height:1.85;color:rgba(45,45,45,.7)">{{ ackNote }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ isNafath }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:{{ nafPad }};display:flex;flex-direction:column;gap:18px">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+                        <div style="display:flex;flex-direction:column;gap:7px">
+                          <div style="font-size:22px;font-weight:700;color:#123642">توثيق الهوية</div>
+                          <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.72);max-width:52ch">نوثّق هويتك مرة واحدة عبر منصة نفاذ لحماية الطرفين، ولن يُطلب منك ذلك في حجوزاتك القادمة.</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:9px;border:1px solid #E6E8EA;border-radius:12px;padding:9px 13px;flex:none">
+                          <div style="width:32px;height:32px;border-radius:8px;background:#00843D;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex:none">نـ</div>
+                          <div style="display:flex;flex-direction:column;line-height:1.3">
+                            <span style="font-size:14px;font-weight:700;color:#00843D">نفاذ</span>
+                            <span style="font-family:'Montserrat';font-size:9px;letter-spacing:1.6px;color:rgba(45,45,45,.5)">NAFATH</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style="height:1px;background:#F1F3F4"></div>
+
+                      <sc-if value="{{ nafIdle }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex;flex-direction:column;gap:16px">
+                          <div style="display:flex;flex-direction:column;gap:7px">
+                            <span style="font-size:13px;font-weight:600;color:#123642">رقم الهوية الوطنية أو الإقامة</span>
+                            <div style="display:flex;align-items:center;gap:10px;border:1px solid #E6E8EA;border-radius:12px;background:#F7F8F8;padding:0 14px;height:52px">
+                              <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:16px;font-weight:600;color:rgba(45,45,45,.75);letter-spacing:1px;flex:1;text-align:right">{{ idNumber }}</span>
+                              <span style="font-size:11px;color:rgba(45,45,45,.5);flex:none">من بيانات التسجيل</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px">
+                              <span style="font-size:11px;color:rgba(45,45,45,.55)">الحقل غير قابل للتعديل في هذه الخطوة.</span>
+                              <a href="#" onClick="{{ editId }}" style="font-size:11px;font-weight:600;color:#2E6E8E;text-decoration:none;border-bottom:1px solid rgba(46,110,142,.35)">تعديل رقم الهوية</a>
+                            </div>
+                          </div>
+                          <div style="display:flex;align-items:flex-start;gap:11px;background:rgba(46,110,142,.05);border:1px solid rgba(46,110,142,.25);border-radius:12px;padding:14px">
+                            <span style="width:20px;height:20px;border-radius:999px;background:rgba(46,110,142,.12);color:#2E6E8E;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">i</span>
+                            <div style="font-size:13px;line-height:1.85;color:rgba(45,45,45,.75)">يتم التحقق داخل تطبيق نفاذ وحده، ولا نطلب منك رفع أي صورة للهوية.</div>
+                          </div>
+                          <button onClick="{{ startNafath }}" style="height:52px;border:none;border-radius:12px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;align-self:flex-start;padding:0 30px" style-hover="background:#0E2A33">التوثيق عبر نفاذ</button>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ nafWaiting }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;padding:{{ nafStatePad }}">
+                          <div style="width:34px;height:34px;border-radius:999px;border:3px solid #E6E8EA;border-top-color:#00843D;animation:hz-spin .9s linear infinite;flex:none"></div>
+                          <div style="font-size:15px;font-weight:600;color:#123642">افتح تطبيق نفاذ على جوالك واختر الرقم الظاهر أمامك</div>
+                          <div dir="ltr" style="unicode-bidi:isolate;width:{{ nafCodeBox }};height:{{ nafCodeBox }};border-radius:24px;border:2px solid #123642;background:#F7F8F8;display:flex;align-items:center;justify-content:center;font-family:'Montserrat';font-size:{{ nafCodeSize }};font-weight:700;color:#123642;line-height:1;font-variant-numeric:tabular-nums">{{ nafCode }}</div>
+                          <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+                            <span style="font-size:12px;color:rgba(45,45,45,.6)">تنتهي جلسة نفاذ بعد</span>
+                            <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:18px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">{{ nafClock }}</span>
+                          </div>
+                          <button onClick="{{ retryNafath }}" style="height:40px;border:none;border-radius:10px;background:transparent;color:#2E6E8E;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:4px">إعادة المحاولة</button>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ nafSuccess }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;padding:{{ nafStatePad }}">
+                          <div style="width:64px;height:64px;border-radius:999px;background:rgba(30,122,95,.1);color:#1E7A5F;display:flex;align-items:center;justify-content:center;font-size:28px;flex:none">✓</div>
+                          <div style="font-size:20px;font-weight:700;color:#123642">تم توثيق هويتك بنجاح</div>
+                          <div style="background:#F7F8F8;border-radius:12px;padding:16px 22px;display:flex;flex-direction:column;gap:4px">
+                            <span style="font-size:12px;color:rgba(45,45,45,.6)">الاسم كما ورد من نفاذ</span>
+                            <span style="font-size:16px;font-weight:600;color:#123642">فهد بن عبدالله الدوسري</span>
+                          </div>
+                          <div style="font-size:12px;color:rgba(45,45,45,.6)">جارٍ الانتقال إلى خطوة الدفع…</div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ nafFail }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;padding:{{ nafStatePad }}">
+                          <div style="width:64px;height:64px;border-radius:999px;background:rgba(163,44,34,.09);color:#A32C22;display:flex;align-items:center;justify-content:center;font-size:28px;flex:none">!</div>
+                          <div style="font-size:20px;font-weight:700;color:#123642">لم يكتمل التوثيق</div>
+                          <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.72);max-width:46ch">انتهت مهلة جلسة نفاذ قبل اختيار الرقم في التطبيق. الحجز المؤقت ما زال ساريًا، ويمكنك المحاولة مرة أخرى.</div>
+                          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center">
+                            <button onClick="{{ retryNafath }}" style="height:48px;border:none;border-radius:12px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;padding:0 28px" style-hover="background:#0E2A33">إعادة المحاولة</button>
+                            <a href="#" onClick="{{ nafathHelp }}" style="font-size:13px;font-weight:600;color:#2E6E8E;text-decoration:none;border-bottom:1px solid rgba(46,110,142,.35)">تحتاج مساعدة؟</a>
+                          </div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ nafMismatch }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;padding:{{ nafStatePad }}">
+                          <div style="width:64px;height:64px;border-radius:999px;background:rgba(199,161,90,.14);color:#8A6A2A;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none">≠</div>
+                          <div style="font-size:20px;font-weight:700;color:#123642">الاسم المسجّل لديك لا يطابق بيانات نفاذ</div>
+                          <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.72);max-width:46ch">صحّح اسمك في الملف الشخصي ليطابق ما ورد في سجلات الأحوال المدنية، ثم أعد التوثيق.</div>
+                          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center">
+                            <button onClick="{{ editId }}" style="height:48px;border:none;border-radius:12px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:pointer;padding:0 28px" style-hover="background:#0E2A33">تصحيح بياناتي</button>
+                            <a href="#" onClick="{{ nafathHelp }}" style="font-size:13px;font-weight:600;color:#2E6E8E;text-decoration:none;border-bottom:1px solid rgba(46,110,142,.35)">تحتاج مساعدة؟</a>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ isPay }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                      <div style="font-size:20px;font-weight:700;color:#123642">وسيلة الدفع</div>
+                      <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3">
+                        <div onClick="{{ m.pick }}" tabindex="0" style="border:{{ m.border }};border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;background:{{ m.bg }};cursor:pointer">
+                          <div style="width:20px;height:20px;border-radius:999px;border:{{ m.radio }};background:#FFFFFF;flex:none"></div>
+                          <div style="display:flex;flex-direction:column;gap:2px">
+                            <span style="font-size:15px;font-weight:600;color:#123642">{{ m.name }}</span>
+                            <span style="font-size:12px;color:rgba(45,45,45,.6)">{{ m.desc }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                      <div style="font-size:20px;font-weight:700;color:#123642">ملخص الحجز قبل التأكيد</div>
+                      <div style="display:grid;grid-template-columns:{{ specCols }};gap:12px">
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">المساحة</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642">{{ space.name }}</span>
+                          <span style="font-size:11px;color:rgba(45,45,45,.55)">{{ space.district }}، {{ space.city }} · <span dir="ltr" style="unicode-bidi:isolate">{{ space.area }}</span> م²</span>
+                        </div>
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">الفترة</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642">{{ startLabel }} — {{ endLabel }}</span>
+                          <span style="font-size:11px;color:rgba(45,45,45,.55)"><span dir="ltr" style="unicode-bidi:isolate">{{ days }}</span> يومًا</span>
+                        </div>
+                      </div>
+                      <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                        <span style="font-size:12px;color:rgba(45,45,45,.6)">وصف البضاعة</span>
+                        <span style="font-size:14px;line-height:1.85;color:#123642">{{ goodsText }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:10px;background:rgba(30,122,95,.05);border:1px solid rgba(30,122,95,.25);border-radius:12px;padding:14px">
+                        <span style="width:20px;height:20px;border-radius:6px;background:#1E7A5F;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none">✓</span>
+                        <span style="font-size:13px;color:rgba(45,45,45,.78)">أُقرّ بقائمة الممنوعات الموحّدة في المنصة في الخطوة الثانية.</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <div style="width:{{ bookBoxW }};flex:none;border:1px solid #E6E8EA;border-radius:16px;box-shadow:0 1px 3px rgba(18,54,66,.06);padding:20px;display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <div style="width:70px;height:70px;border-radius:12px;background:#F5F5F5;flex:none;overflow:hidden;position:relative">{{ summaryImg }}</div>
+                    <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                      <span style="font-size:14px;font-weight:600;color:#123642">{{ space.name }}</span>
+                      <span style="font-size:12px;color:rgba(45,45,45,.6)">{{ space.district }} · <span dir="ltr" style="unicode-bidi:isolate">{{ space.area }}</span> م²</span>
+                    </div>
+                  </div>
+                  <div style="height:1px;background:#F1F3F4"></div>
+                  <div style="display:flex;flex-direction:column;gap:11px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <div style="display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;color:rgba(45,45,45,.75)">قيمة الإيجار</span>
+                        <span style="font-size:11px;color:rgba(45,45,45,.5)"><span dir="ltr" style="unicode-bidi:isolate">{{ space.price }}</span> ر.س × <span dir="ltr" style="unicode-bidi:isolate">{{ days }}</span> يومًا</span>
+                      </div>
+                      <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ rentText }}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <div style="display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;color:rgba(45,45,45,.75)">عمولة المنصة 5%</span>
+                        <span style="font-size:11px;color:rgba(45,45,45,.5)">تُخصم من المؤجر</span>
+                      </div>
+                      <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">—</span>
+                    </div>
+                    <div style="height:1px;background:#F1F3F4"></div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+                      <span style="font-size:15px;font-weight:600;color:#123642">الإجمالي المستحق عليك</span>
+                      <div style="display:flex;align-items:baseline;gap:6px">
+                        <span style="font-family:'Montserrat';font-size:32px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ totalText }}</span>
+                        <span style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</span>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55)">المبلغ شامل جميع الرسوم، ولا تُضاف أي مبالغ لاحقًا.</div>
+                  </div>
+                  <sc-if value="{{ showPrimary }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ primaryAction }}" style="height:48px;border:none;border-radius:10px;background:{{ primaryBg }};color:{{ primaryColor }};font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;cursor:{{ primaryCursor }};width:100%">{{ primaryLabel }}</button>
+                  </sc-if>
+                  <button onClick="{{ secondaryAction }}" style="height:44px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer">{{ secondaryLabel }}</button>
+                  <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55);text-align:center">{{ boxNote }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px;max-width:760px">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:56px;height:56px;border-radius:999px;background:rgba(30,122,95,.1);color:#1E7A5F;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none">✓</div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="font-size:22px;font-weight:700;color:#123642">تم استلام الدفع</div>
+                  <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:7px;background:rgba(46,110,142,.1);border-radius:999px;padding:5px 11px">
+                    <span style="width:6px;height:6px;border-radius:999px;background:#2E6E8E"></span>
+                    <span style="font-size:12px;font-weight:600;color:#2E6E8E">مدفوع بانتظار الموافقة</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#F7F8F8;border-radius:12px;padding:20px;display:grid;grid-template-columns:{{ specCols }};gap:16px">
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.6)">الرقم المرجعي للحجز</span>
+                  <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;text-align:right">HZ-2026-04871</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.6)">المبلغ المدفوع</span>
+                  <span style="font-size:15px;font-weight:600;color:#123642"><span dir="ltr" style="unicode-bidi:isolate;font-variant-numeric:tabular-nums">{{ totalText }}</span> ر.س</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.6)">المساحة</span>
+                  <span style="font-size:15px;font-weight:600;color:#123642">{{ space.name }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:12px;color:rgba(45,45,45,.6)">الفترة</span>
+                  <span style="font-size:15px;font-weight:600;color:#123642">{{ startLabel }} — {{ endLabel }}</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:11px;background:rgba(46,110,142,.05);border:1px solid rgba(46,110,142,.25);border-radius:12px;padding:16px">
+                <span style="width:20px;height:20px;border-radius:999px;background:rgba(46,110,142,.12);color:#2E6E8E;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">i</span>
+                <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.78)">الحجز قيد مراجعة إدارة المنصة، ومتوسط مدة المراجعة أربع ساعات عمل. عند الاعتماد يظهر العنوان الدقيق في تفاصيل الحجز، وعند الرفض يُستَرد المبلغ كاملًا دون خصم.</div>
+              </div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button onClick="{{ goBookings }}" style="height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 26px;cursor:pointer" style-hover="background:#0C2731">حجوزاتي</button>
+                <button onClick="{{ goResults }}" style="height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 22px;cursor:pointer">استكشاف المساحات</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBookings }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="font-size:24px;font-weight:700;color:#123642">حجوزاتي</div>
+                <div style="font-size:13px;color:rgba(45,45,45,.65)">فهد الدوسري · الحجز المرجعي <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">HZ-2026-04871</span></div>
+              </div>
+              <div style="display:flex;border-bottom:1px solid #E6E8EA;gap:24px">
+                <div onClick="{{ tabCurrent }}" tabindex="0" style="padding:0 2px 12px;font-size:15px;font-weight:{{ curWeight }};color:{{ curColor }};border-bottom:{{ curUnderline }};cursor:pointer">حالية</div>
+                <div onClick="{{ tabPrevious }}" tabindex="0" style="padding:0 2px 12px;font-size:15px;font-weight:{{ prevWeight }};color:{{ prevColor }};border-bottom:{{ prevUnderline }};cursor:pointer">سابقة</div>
+              </div>
+
+              <sc-if value="{{ bookingsEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #E6E8EA;border-radius:16px;padding:44px 28px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+                  <div style="width:60px;height:60px;border-radius:16px;border:1px solid #E6E8EA;color:#C7C9CC;display:flex;align-items:center;justify-content:center;font-size:24px">▤</div>
+                  <div style="font-size:18px;font-weight:700;color:#123642">{{ emptyTitle }}</div>
+                  <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.68);max-width:430px">{{ emptyBody }}</div>
+                  <button onClick="{{ goResults }}" style="height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 26px;cursor:pointer">استكشاف المساحات</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ bookingsReady }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="3">
+                    <div style="border:1px solid #E6E8EA;border-radius:16px;background:#FFFFFF;box-shadow:0 1px 3px rgba(18,54,66,.06);display:flex;flex-direction:{{ cardDir }};overflow:hidden">
+                      <div style="width:{{ resultImgW }};height:{{ resultImgH }};flex:none;background:#F5F5F5;position:relative">{{ b.imgEl }}</div>
+                      <div style="flex:1;min-width:0;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+                        <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                          <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:7px;background:{{ b.badgeBg }};border-radius:999px;padding:5px 11px">
+                            <span style="width:6px;height:6px;border-radius:999px;background:{{ b.badgeDot }}"></span>
+                            <span style="font-size:12px;font-weight:600;color:{{ b.badgeText }}">{{ b.status }}</span>
+                          </div>
+                          <div style="font-size:16px;font-weight:600;color:#123642">{{ b.name }}</div>
+                          <div style="font-size:12px;color:rgba(45,45,45,.65)">{{ b.district }} · {{ b.period }}</div>
+                          <div dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:12px;color:rgba(45,45,45,.55);text-align:right">{{ b.ref }}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+                          <div style="display:flex;align-items:baseline;gap:5px">
+                            <span style="font-family:'Montserrat';font-size:28px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ b.total }}</span>
+                            <span style="font-size:13px;font-weight:600;color:#C7A15A">ر.س</span>
+                          </div>
+                          <button onClick="{{ b.open }}" style="height:42px;border:1px solid #123642;border-radius:10px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:13px;font-weight:600;padding:0 18px;cursor:pointer" style-hover="background:#123642;color:#FFFFFF">تفاصيل الحجز</button>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBookingDetails }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(45,45,45,.6)">
+                <a href="#" onClick="{{ goBookings }}">حجوزاتي</a><span>←</span><span style="color:#123642;font-weight:600">تفاصيل الحجز</span>
+              </div>
+
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <a href="#" onClick="{{ openSpaceBooking }}" style="font-size:24px;font-weight:700;color:#123642">{{ bkName }}</a>
+                    <div style="display:inline-flex;align-items:center;gap:7px;background:{{ bkBadgeBg }};border-radius:999px;padding:5px 12px">
+                      <span style="width:6px;height:6px;border-radius:999px;background:{{ bkBadgeDot }}"></span>
+                      <span style="font-size:12px;font-weight:600;color:{{ bkBadgeText }}">{{ bookingStatus }}</span>
+                    </div>
+                  </div>
+                  <div style="font-size:13px;color:rgba(45,45,45,.65)">الرقم المرجعي <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">{{ bkRef }}</span> · فهد الدوسري</div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <sc-if value="{{ bkShowInvoice }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ goInvoice }}" style="height:46px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 20px;cursor:pointer" style-hover="background:rgba(18,54,66,.06)">عرض الفاتورة</button>
+                  </sc-if>
+                  <sc-if value="{{ bkCanCancel }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ goCancel }}" style="height:46px;border:1px solid rgba(163,44,34,.5);border-radius:10px;background:transparent;color:#A32C22;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 20px;cursor:pointer" style-hover="background:rgba(163,44,34,.06)">إلغاء الحجز</button>
+                  </sc-if>
+                  <button onClick="{{ goBookings }}" style="height:46px;border:1px solid #E6E8EA;border-radius:10px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 18px;cursor:pointer">رجوع إلى حجوزاتي</button>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:18px;align-items:flex-start;flex-direction:{{ detailsDir }}">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">بيانات الحجز</div>
+                    <div style="display:grid;grid-template-columns:{{ specCols }};gap:12px">
+                      <sc-for list="{{ bookingSpecs }}" as="b" hint-placeholder-count="6">
+                        <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                          <span style="font-size:12px;color:rgba(45,45,45,.6)">{{ b.label }}</span>
+                          <span style="font-size:15px;font-weight:600;color:#123642">{{ b.value }}</span>
+                          <span style="font-size:11px;color:rgba(45,45,45,.55)">{{ b.sub }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:#F7F8F8;border-radius:12px;padding:14px 16px;flex-wrap:wrap">
+                      <div style="display:flex;flex-direction:column;gap:3px">
+                        <span style="font-size:12px;color:rgba(45,45,45,.6)">الهوية</span>
+                        <span style="font-size:14px;font-weight:600;color:#123642">فهد الدوسري · <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat'">{{ idMasked }}</span></span>
+                      </div>
+                      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(30,122,95,.1);border-radius:999px;padding:6px 12px;flex:none">
+                        <span style="width:16px;height:16px;border-radius:999px;background:#1E7A5F;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:10px;flex:none">✓</span>
+                        <span style="font-size:12px;font-weight:600;color:#1E7A5F">موثّقة عبر نفاذ</span>
+                      </div>
+                    </div>
+                    <div onClick="{{ openSpaceBooking }}" tabindex="0" style="display:flex;align-items:center;gap:12px;border:1px solid #E6E8EA;border-radius:12px;padding:12px;cursor:pointer" style-hover="border-color:#123642">
+                      <div style="width:64px;height:64px;border-radius:10px;background:#F5F5F5;flex:none;overflow:hidden;position:relative">{{ bkImg }}</div>
+                      <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                        <span style="font-size:14px;font-weight:600;color:#123642">{{ bkName }}</span>
+                        <span style="font-size:12px;color:rgba(45,45,45,.6)">فتح صفحة تفاصيل المساحة</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">مراحل الحجز</div>
+                    <div style="display:flex;flex-direction:column">
+                      <sc-for list="{{ bookingTimeline }}" as="t" hint-placeholder-count="6">
+                        <div style="display:flex;gap:14px;align-items:flex-start">
+                          <div style="display:flex;flex-direction:column;align-items:center;flex:none;width:26px">
+                            <div style="width:26px;height:26px;border-radius:999px;background:{{ t.dotBg }};border:{{ t.dotBorder }};color:{{ t.dotColor }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">{{ t.icon }}</div>
+                            <div style="width:2px;flex:1;min-height:{{ t.lineH }};background:{{ t.lineBg }}"></div>
+                          </div>
+                          <div style="display:flex;flex-direction:column;gap:3px;padding-bottom:18px">
+                            <span style="font-size:14px;font-weight:600;color:{{ t.titleColor }}">{{ t.title }}</span>
+                            <span style="font-size:12px;line-height:1.8;color:rgba(45,45,45,.62)">{{ t.desc }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">موقع المساحة</div>
+                    <sc-if value="{{ bkAddressVisible }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px">
+                        <span style="font-size:12px;color:rgba(45,45,45,.6)">العنوان الدقيق</span>
+                        <span style="font-size:15px;font-weight:600;color:#123642">{{ bkAddress }}</span>
+                      </div>
+                    </sc-if>
+                    <div style="height:220px;border-radius:12px;background:#E8EBE9;position:relative;overflow:hidden">
+                      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.75) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.75) 1px,transparent 1px);background-size:38px 38px"></div>
+                      <div style="position:absolute;top:50%;right:50%;transform:translate(50%,-50%);width:{{ bkPinSize }};height:{{ bkPinSize }};border-radius:999px;background:rgba(18,54,66,.12);border:{{ bkPinBorder }}"></div>
+                      <div style="position:absolute;top:50%;right:50%;transform:translate(50%,-50%);width:10px;height:10px;border-radius:999px;background:#123642"></div>
+                    </div>
+                    <div style="font-size:12px;line-height:1.85;color:rgba(45,45,45,.65)">{{ bkLocationNote }}</div>
+                  </div>
+
+                  <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px">
+                    <div style="font-size:18px;font-weight:700;color:#123642">وصف البضاعة المسجّل</div>
+                    <div style="font-size:14px;line-height:1.9;color:rgba(45,45,45,.78)">{{ bkGoods }}</div>
+                    <div style="display:flex;align-items:center;gap:10px;background:rgba(30,122,95,.05);border:1px solid rgba(30,122,95,.25);border-radius:12px;padding:14px">
+                      <span style="width:20px;height:20px;border-radius:6px;background:#1E7A5F;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none">✓</span>
+                      <span style="font-size:13px;color:rgba(45,45,45,.78)">أُقرّ بقائمة الممنوعات الموحّدة في المنصة عند إنشاء الحجز.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="width:{{ bookBoxW }};flex:none;border:1px solid #E6E8EA;border-radius:16px;box-shadow:0 1px 3px rgba(18,54,66,.06);padding:20px;display:flex;flex-direction:column;gap:16px">
+                  <div style="font-size:16px;font-weight:700;color:#123642">تفصيل السعر</div>
+                  <div style="display:flex;flex-direction:column;gap:11px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <div style="display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;color:rgba(45,45,45,.75)">قيمة الإيجار</span>
+                        <span style="font-size:11px;color:rgba(45,45,45,.5)"><span dir="ltr" style="unicode-bidi:isolate">{{ bkPrice }}</span> ر.س × <span dir="ltr" style="unicode-bidi:isolate">{{ bkDays }}</span> يومًا</span>
+                      </div>
+                      <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ bkRentText }}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <div style="display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;color:rgba(45,45,45,.75)">عمولة المنصة 5%</span>
+                        <span style="font-size:11px;color:rgba(45,45,45,.5)">تُخصم من المؤجر</span>
+                      </div>
+                      <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">—</span>
+                    </div>
+                    <div style="height:1px;background:#F1F3F4"></div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+                      <span style="font-size:15px;font-weight:600;color:#123642">الإجمالي المستحق عليك</span>
+                      <div style="display:flex;align-items:baseline;gap:6px">
+                        <span style="font-family:'Montserrat';font-size:30px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ bkTotalText }}</span>
+                        <span style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</span>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55)">المبلغ شامل جميع الرسوم، ولا تُضاف أي مبالغ لاحقًا.</div>
+                  </div>
+                  <sc-if value="{{ bkShowInvoice }}" hint-placeholder-val="{{ true }}">
+                    <div style="background:#F7F8F8;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px">
+                      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:rgba(45,45,45,.65)">وسيلة الدفع</span><span style="font-size:13px;font-weight:600;color:#123642">بطاقة مدى <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat'">••8130</span></span></div>
+                      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:rgba(45,45,45,.65)">رقم الفاتورة</span><span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:13px;font-weight:600;color:#123642">{{ bkInvoice }}</span></div>
+                    </div>
+                    <button onClick="{{ goInvoice }}" style="height:46px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#0C2731">عرض الفاتورة</button>
+                  </sc-if>
+                  <sc-if value="{{ bkAwaitingPay }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ resumePayment }}" style="height:46px;border:none;border-radius:10px;background:#C7A15A;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer">إتمام الدفع</button>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isInvoice }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px;max-width:820px">
+              <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(45,45,45,.6)">
+                <a href="#" onClick="{{ goBookings }}">حجوزاتي</a><span>←</span><a href="#" onClick="{{ goBookingDetails }}">تفاصيل الحجز</a><span>←</span><span style="color:#123642;font-weight:600">الفاتورة</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:24px;font-weight:700;color:#123642">الفاتورة</div>
+                  <div style="font-size:13px;color:rgba(45,45,45,.65)">رقم الفاتورة <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">{{ bkInvoice }}</span> · الحجز <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">{{ bkRef }}</span></div>
+                </div>
+                <button onClick="{{ goBookingDetails }}" style="height:46px;border:1px solid #E6E8EA;border-radius:10px;background:#FFFFFF;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;padding:0 18px;cursor:pointer">رجوع إلى تفاصيل الحجز</button>
+              </div>
+
+              <div style="border:1px solid #E6E8EA;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px">
+                <div style="display:grid;grid-template-columns:{{ specCols }};gap:12px">
+                  <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                    <span style="font-size:12px;color:rgba(45,45,45,.6)">المستأجر</span>
+                    <span style="font-size:15px;font-weight:600;color:#123642">فهد الدوسري</span>
+                  </div>
+                  <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                    <span style="font-size:12px;color:rgba(45,45,45,.6)">المساحة</span>
+                    <span style="font-size:15px;font-weight:600;color:#123642">{{ bkName }}</span>
+                    <span style="font-size:11px;color:rgba(45,45,45,.55)">{{ bkDistrict }}</span>
+                  </div>
+                  <div style="background:#F7F8F8;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:3px">
+                    <span style="font-size:12px;color:rgba(45,45,45,.6)">الفترة</span>
+                    <span style="font-size:15px;font-weight:600;color:#123642">{{ bkStartLabel }} — {{ bkEndLabel }}</span>
+                    <span style="font-size:11px;color:rgba(45,45,45,.55)">{{ bkStartHijri }} — {{ bkEndHijri }}</span>
+                  </div>
+                </div>
+                <div style="height:1px;background:#F1F3F4"></div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:13px;color:rgba(45,45,45,.75)">قيمة الإيجار</span>
+                      <span style="font-size:11px;color:rgba(45,45,45,.5)"><span dir="ltr" style="unicode-bidi:isolate">{{ bkPrice }}</span> ر.س × <span dir="ltr" style="unicode-bidi:isolate">{{ bkDays }}</span> يومًا</span>
+                    </div>
+                    <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ bkRentText }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:13px;color:rgba(45,45,45,.75)">عمولة المنصة 5%</span>
+                      <span style="font-size:11px;color:rgba(45,45,45,.5)">تُخصم من المؤجر</span>
+                    </div>
+                    <span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">—</span>
+                  </div>
+                  <div style="height:1px;background:#F1F3F4"></div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between">
+                    <span style="font-size:15px;font-weight:600;color:#123642">الإجمالي المدفوع</span>
+                    <div style="display:flex;align-items:baseline;gap:6px">
+                      <span style="font-family:'Montserrat';font-size:32px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ bkTotalText }}</span>
+                      <span style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</span>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;line-height:1.8;color:rgba(45,45,45,.55)">المبلغ شامل جميع الرسوم، ولا تُضاف أي مبالغ لاحقًا.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:{{ pagePad }};display:flex;flex-direction:column;gap:18px;max-width:760px">
+              <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(45,45,45,.6)">
+                <a href="#" onClick="{{ goBookingDetails }}">تفاصيل الحجز</a><span>←</span><span style="color:#123642;font-weight:600">إلغاء الحجز</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:24px;font-weight:700;color:#123642">إلغاء الحجز</div>
+                <div style="font-size:13px;color:rgba(45,45,45,.65)">الرقم المرجعي <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-weight:600;color:#123642">{{ bkRef }}</span> · {{ bkName }}</div>
+              </div>
+
+              <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:16px;font-weight:700;color:#123642">سياسة الإلغاء والاسترداد</div>
+                <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.78)">الإلغاء قبل بداية المدة بأكثر من سبعة أيام: استرداد قيمة الإيجار كاملة. الإلغاء قبل بداية المدة بسبعة أيام أو أقل: استرداد 50% من قيمة الإيجار. بعد بداية المدة: لا يُستَرد المبلغ.</div>
+                <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:7px;background:rgba(46,110,142,.1);border-radius:999px;padding:5px 11px">
+                  <span style="width:6px;height:6px;border-radius:999px;background:#2E6E8E"></span>
+                  <span style="font-size:12px;font-weight:600;color:#2E6E8E">تنطبق الحالة الأولى — تبقى تسعة أيام على بداية المدة</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #E6E8EA;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:16px;font-weight:700;color:#123642">المبلغ المسترَد</div>
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:rgba(45,45,45,.75)">إجمالي المدفوع</span><span style="font-family:'Montserrat';font-size:15px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums">{{ bkTotalText }}</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:rgba(45,45,45,.75)">عمولة المنصة</span><span style="font-size:13px;color:rgba(45,45,45,.6)">تُخصم من المؤجر ولا تؤثر على الاسترداد</span></div>
+                <div style="height:1px;background:#F1F3F4"></div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <span style="font-size:15px;font-weight:600;color:#123642">المبلغ المسترَد إليك</span>
+                    <span style="font-size:11px;color:rgba(45,45,45,.55)">يُعاد إلى بطاقة مدى <span dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat'">••8130</span> خلال 5 إلى 10 أيام عمل</span>
+                  </div>
+                  <div style="display:flex;align-items:baseline;gap:6px">
+                    <span style="font-family:'Montserrat';font-size:30px;font-weight:700;color:#C7A15A;line-height:1;font-variant-numeric:tabular-nums">{{ bkTotalText }}</span>
+                    <span style="font-size:15px;font-weight:600;color:#C7A15A">ر.س</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button onClick="{{ confirmCancel }}" style="height:48px;border:none;border-radius:10px;background:#A32C22;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 26px;cursor:pointer" style-hover="background:#8C2319">تأكيد الإلغاء</button>
+                <button onClick="{{ goBookingDetails }}" style="height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:15px;font-weight:600;padding:0 22px;cursor:pointer">العودة إلى تفاصيل الحجز</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="background:#123642;padding:32px {{ sidePad }};display:grid;grid-template-columns:{{ footerCols }};gap:26px">
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:16px;font-weight:700;color:#FFFFFF">حيزك</div>
+              <div style="font-size:13px;font-weight:600;color:#C7A15A">كل مساحة لها قيمة</div>
+              <div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)">جدة — حي الروضة، شارع صاري، مبنى 220، الدور الرابع.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:14px;font-weight:600;color:#FFFFFF">المنصة</div>
+              <sc-for list="{{ footerPlatform }}" as="f" hint-placeholder-count="3">
+                <a href="#" onClick="{{ f.go }}" style="font-size:13px;color:rgba(255,255,255,.68)">{{ f.label }}</a>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:14px;font-weight:600;color:#FFFFFF">السياسات</div>
+              <sc-for list="{{ footerPolicies }}" as="f" hint-placeholder-count="3">
+                <a href="#" onClick="{{ f.go }}" style="font-size:13px;color:rgba(255,255,255,.68)">{{ f.label }}</a>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:14px;font-weight:600;color:#FFFFFF">التواصل معنا</div>
+              <div dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:13px;color:rgba(255,255,255,.68);text-align:right">+966 12 651 4420</div>
+              <div dir="ltr" style="unicode-bidi:isolate;font-family:'Montserrat';font-size:13px;color:rgba(255,255,255,.68);text-align:right">care@hayzak.sa</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(18,54,66,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60">
+      <div style="background:#FFFFFF;border-radius:16px;padding:26px;width:460px;max-width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 44px rgba(18,54,66,.3)">
+        <div style="width:52px;height:52px;border-radius:999px;background:{{ modalIconBg }};color:{{ modalIconColor }};display:flex;align-items:center;justify-content:center;font-size:22px">{{ modalIcon }}</div>
+        <div style="font-size:19px;font-weight:700;color:#123642">{{ modalTitle }}</div>
+        <div style="font-size:13px;line-height:1.9;color:rgba(45,45,45,.75)">{{ modalBody }}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onClick="{{ modalConfirm }}" style="flex:1;min-width:140px;height:48px;border:none;border-radius:10px;background:#123642;color:#FFFFFF;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer">{{ modalConfirmLabel }}</button>
+          <button onClick="{{ closeModal }}" style="flex:1;min-width:120px;height:48px;border:1px solid #123642;border-radius:10px;background:transparent;color:#123642;font-family:'IBM Plex Sans Arabic';font-size:14px;font-weight:600;cursor:pointer">إغلاق</button>
+        </div>
+        <div style="font-size:11px;color:rgba(45,45,45,.5);text-align:center">الإغلاق أيضًا بمفتاح Esc أو بالنقر خارج النافذة</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const U = (id, w) => 'https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=' + w + '&q=75';
+const hideOnError = (e) => { e.currentTarget.style.visibility = 'hidden'; };
+const COVER = { position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' };
+const photo = (id, alt, w) => React.createElement('img', { src: U(id, w), alt, onError: hideOnError, style: COVER });
+const nf = (n) => n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const nf0 = (n) => n.toLocaleString('en-US');
+
+const SPACES = [
+  { id:1, name:'مستودع مكيّف — النرجس', category:'مستودع', district:'حي النرجس', city:'الرياض', distance:2.4, area:35, price:75, minDays:3, maxDays:90, tag1:'مكيّفة', tag2:'مدخل واسع', photos:['photo-1553413077-190dd305871c','photo-1586528116311-ad8dd3c8310d','photo-1601598851547-4302969d0614'], desc:'مستودع أرضي مكيّف بمدخل واسع من الشارع، يتسع للأثاث والصناديق والمخزون الموسمي. الأرضية إسمنتية مستوية، والإضاءة كافية للعمل داخل المساحة.', pinTop:'22%', pinRight:'28%' },
+  { id:2, name:'غرفة تخزين نظيفة — الياسمين', category:'غرفة', district:'حي الياسمين', city:'الرياض', distance:3.1, area:18, price:45, minDays:3, maxDays:60, tag1:'مدخل مستقل', tag2:'إضاءة داخلية', photos:['photo-1493809842364-78817add7ffb','photo-1558618666-fcd25c85cd64','photo-1553413077-190dd305871c'], desc:'غرفة داخلية بمدخل مستقل وإضاءة داخلية، مناسبة للأمتعة والصناديق الصغيرة والكتب. جافة ومهوّاة، وتصلح للتخزين متوسط المدة.', pinTop:'38%', pinRight:'52%' },
+  { id:3, name:'قراج مغلق — الملقا', category:'قراج', district:'حي الملقا', city:'الرياض', distance:1.8, area:22, price:60, minDays:3, maxDays:90, tag1:'باب أوتوماتيكي', tag2:'قريبة من الشارع', photos:['photo-1667878604760-ea68d0fd321f','photo-1553413077-190dd305871c','photo-1601598851547-4302969d0614'], desc:'قراج منزلي مغلق بباب أوتوماتيكي وقريب من الشارع، يتسع لصناديق مرتّبة أو أدوات أو سيارة واحدة. مناسب للتخزين قصير ومتوسط المدة.', pinTop:'56%', pinRight:'34%' },
+  { id:4, name:'مستودع أرضي — الصحافة', category:'مستودع', district:'حي الصحافة', city:'الرياض', distance:4.2, area:50, price:95, minDays:5, maxDays:120, tag1:'أرضية إسمنتية', tag2:'مدخل واسع', photos:['photo-1586528116311-ad8dd3c8310d','photo-1553413077-190dd305871c','photo-1601598851547-4302969d0614'], desc:'مستودع أرضي بمدخل واسع وأرضية إسمنتية تتحمل الأوزان، يسهّل ترتيب الصناديق والمخزون التجاري.', pinTop:'64%', pinRight:'60%' },
+  { id:5, name:'مستودع كبير — حطين', category:'مستودع', district:'حي حطين', city:'الرياض', distance:7.1, area:120, price:150, minDays:7, maxDays:180, tag1:'أرضية إسمنتية', tag2:'إضاءة داخلية', photos:['photo-1587293852726-70cdb56c2866','photo-1586528116311-ad8dd3c8310d','photo-1553413077-190dd305871c'], desc:'مستودع كبير بسقف عالٍ وإضاءة داخلية، يصلح للمخزون التجاري وللأثاث بكميات كبيرة.', pinTop:'30%', pinRight:'74%' },
+  { id:6, name:'مساحة مكشوفة — العارض', category:'مكان مكشوف', district:'حي العارض', city:'الرياض', distance:9.3, area:40, price:55, minDays:3, maxDays:90, tag1:'قريبة من الشارع', tag2:'أرضية إسمنتية', photos:['photo-1524230572899-a752b3835840','photo-1487958449943-2429e8be8625','photo-1586528116311-ad8dd3c8310d'], desc:'مساحة مكشوفة مسوّرة بأرضية مستوية قريبة من الشارع، تصلح للمعدات والمواد التي تتحمل الأجواء.', pinTop:'72%', pinRight:'44%' }
+];
+
+const GREG_MONTH_NAMES2 = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const HIJRI_RAW = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', { day:'numeric', month:'long', year:'numeric' });
+const HIJRI_FMT = { format: (d) => HIJRI_RAW.format(d).replace(/\s*هـ\s*$/, '') };
+
+const svgIcon = (children) => React.createElement('svg', {
+  width:32, height:32, viewBox:'0 0 32 32', fill:'none', stroke:'currentColor',
+  strokeWidth:1.75, strokeLinecap:'round', strokeLinejoin:'round', 'aria-hidden':'true'
+}, children);
+const iel = (t, p, k) => React.createElement(t, { ...p, key:k });
+
+const ICONS = {
+  'مستودع': () => svgIcon([
+    iel('rect', { x:4, y:5, width:24, height:22, rx:2 }, 'a'),
+    iel('line', { x1:4, y1:12.5, x2:28, y2:12.5 }, 'b'),
+    iel('line', { x1:4, y1:19.5, x2:28, y2:19.5 }, 'c'),
+    iel('line', { x1:11, y1:5, x2:11, y2:27 }, 'd'),
+    iel('line', { x1:21, y1:5, x2:21, y2:27 }, 'e')
+  ]),
+  'غرفة': () => svgIcon([
+    iel('path', { d:'M6 27V6a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v21' }, 'a'),
+    iel('rect', { x:11, y:10, width:10, height:17, rx:1 }, 'b'),
+    iel('circle', { cx:13.5, cy:19, r:1 }, 'c'),
+    iel('line', { x1:4, y1:27, x2:28, y2:27 }, 'd')
+  ]),
+  'مكان مكشوف': () => svgIcon([
+    iel('line', { x1:4, y1:20, x2:28, y2:20 }, 'a'),
+    iel('line', { x1:4, y1:24, x2:28, y2:24 }, 'b'),
+    iel('line', { x1:8, y1:14, x2:8, y2:28 }, 'c'),
+    iel('line', { x1:16, y1:14, x2:16, y2:28 }, 'd'),
+    iel('line', { x1:24, y1:14, x2:24, y2:28 }, 'e'),
+    iel('path', { d:'M6 9h20' }, 'f'),
+    iel('path', { d:'M9 5h14' }, 'g')
+  ]),
+  'قراج': () => svgIcon([
+    iel('path', { d:'M3 14 16 6l13 8' }, 'a'),
+    iel('path', { d:'M6 27V14h20v13' }, 'b'),
+    iel('line', { x1:10, y1:18.5, x2:22, y2:18.5 }, 'c'),
+    iel('line', { x1:10, y1:23, x2:22, y2:23 }, 'd'),
+    iel('line', { x1:3, y1:27, x2:29, y2:27 }, 'e')
+  ])
+};
+
+const BLOCKED_DAYS = '2026-09-20,2026-09-21,2026-09-22,2026-09-23,2026-09-24';
+
+const CATS = [
+  { key:'مستودع', count:19 },
+  { key:'غرفة', count:14 },
+  { key:'مكان مكشوف', count:8 },
+  { key:'قراج', count:7 }
+];
+
+const PROHIBITED = ['مواد قابلة للاشتعال أو الانفجار','مواد كيميائية خطرة','ممنوعات قانونية','حيوانات حية','مواد سريعة التلف'];
+
+const MONTHS = [
+  { name:'أغسطس 2026', sub:'صفر — ربيع الأول 1448', lead:6, len:31, past:11, booked:[5,6,7,8,9], hijriStart:17, hijriMonth:'صفر' },
+  { name:'سبتمبر 2026', sub:'ربيع الأول — ربيع الآخر 1448', lead:2, len:30, past:0, booked:[18,19,20], hijriStart:18, hijriMonth:'ربيع الأول' }
+];
+
+const GREG_MONTH_NAMES = ['أغسطس','سبتمبر','أكتوبر'];
+
+const FLOW = {
+  'مسودة': { stage:0, invoice:false, canCancel:false, address:false, note:'حجز محفوظ دون إكمال الخطوات ولا يحجز أي تواريخ.' },
+  'بانتظار الدفع': { stage:1, invoice:false, canCancel:true, address:false, note:'اكتملت البيانات ولم يُتمّ الدفع بعد.' },
+  'مدفوع بانتظار الموافقة': { stage:2, invoice:true, canCancel:true, address:false, note:'تم الدفع والطلب في مراجعة إدارة المنصة.' },
+  'موافَق عليه': { stage:3, invoice:true, canCancel:true, address:true, note:'اعتُمد الطلب وظهر العنوان الدقيق.' },
+  'نشط': { stage:4, invoice:true, canCancel:false, address:true, note:'المدة جارية حاليًا.' },
+  'مكتمل': { stage:5, invoice:true, canCancel:false, address:true, note:'انتهت المدة وأُغلق الحجز.' },
+  'مرفوض ومسترد': { stage:2, invoice:true, canCancel:false, address:false, note:'رُفض الطلب وأُعيد المبلغ كاملًا.' },
+  'ملغى': { stage:2, invoice:true, canCancel:false, address:false, note:'أُلغي بطلب المستأجر والمبلغ المسترد وفق سياسة الإلغاء.' },
+  'منتهي الصلاحية': { stage:1, invoice:false, canCancel:false, address:false, note:'انتهى الحجز المؤقت دون دفع وحُرِّرت التواريخ.' }
+};
+
+const TIMELINE_STEPS = [
+  { title:'إنشاء الحجز', desc:'اختيار التواريخ وتسجيل وصف البضاعة والإقرار بالممنوعات.' },
+  { title:'استلام الدفع', desc:'دفع قيمة الإيجار كاملة عبر وسيلة الدفع المختارة.' },
+  { title:'مراجعة الإدارة', desc:'مطابقة بيانات المستأجر والمساحة ووصف البضاعة.' },
+  { title:'اعتماد الحجز', desc:'ظهور العنوان الدقيق وحجز التواريخ في تقويم المساحة.' },
+  { title:'بداية المدة', desc:'يبدأ التخزين الفعلي في تاريخ البداية.' },
+  { title:'انتهاء المدة', desc:'تُخلى المساحة وينتقل الحجز إلى الحجوزات السابقة.' }
+];
+
+const STATUS = {
+  'مسودة':{ badgeBg:'rgba(107,112,117,.1)', badgeDot:'#6B7075', badgeText:'#5A5F63' },
+  'بانتظار الدفع':{ badgeBg:'rgba(199,161,90,.12)', badgeDot:'#C7A15A', badgeText:'#8A6B2E' },
+  'مدفوع بانتظار الموافقة':{ badgeBg:'rgba(46,110,142,.1)', badgeDot:'#2E6E8E', badgeText:'#2E6E8E' },
+  'موافَق عليه':{ badgeBg:'rgba(30,122,95,.1)', badgeDot:'#1E7A5F', badgeText:'#1E7A5F' },
+  'نشط':{ badgeBg:'rgba(30,122,95,.16)', badgeDot:'#1E7A5F', badgeText:'#14614A' },
+  'مكتمل':{ badgeBg:'rgba(107,112,117,.1)', badgeDot:'#6B7075', badgeText:'#5A5F63' },
+  'مرفوض ومسترد':{ badgeBg:'rgba(163,44,34,.08)', badgeDot:'#A32C22', badgeText:'#A32C22' },
+  'ملغى':{ badgeBg:'rgba(163,44,34,.08)', badgeDot:'#A32C22', badgeText:'#A32C22' },
+  'منتهي الصلاحية':{ badgeBg:'rgba(107,112,117,.1)', badgeDot:'#6B7075', badgeText:'#5A5F63' }
+};
+
+const NOTIFS = [
+  { id:1, title:'اعتُمد حجزك في قراج الملقا', body:'ظهر العنوان الدقيق في تفاصيل الحجز، وتبدأ المدة اليوم.', time:'01:40 مساءً', icon:'✓', iconBg:'rgba(30,122,95,.1)', iconColor:'#1E7A5F' },
+  { id:2, title:'استُلم مبلغ الحجز وصدرت الفاتورة', body:'الفاتورة INV-2026-04871 متاحة في تفاصيل الحجز.', time:'09:26 صباحًا', icon:'i', iconBg:'rgba(46,110,142,.1)', iconColor:'#2E6E8E' },
+  { id:3, title:'حجز بانتظار الدفع في مستودع الروضة', body:'أكمل الدفع لتثبيت الفترة المحددة.', time:'أمس 07:15 مساءً', icon:'⏱︎', iconBg:'rgba(199,161,90,.14)', iconColor:'#8A6B2E' }
+];
+
+const NOTIF_RECS = {
+  1: { spaceId:3, ref:'HZ-2026-04871', invoice:'INV-2026-04871', start:'2026-08-12', end:'2026-09-11', status:'موافَق عليه' },
+  2: { spaceId:3, ref:'HZ-2026-04871', invoice:'INV-2026-04871', start:'2026-08-12', end:'2026-09-11', status:'مدفوع بانتظار الموافقة' },
+  3: { spaceId:4, ref:'HZ-2026-04512', invoice:'INV-2026-04512', start:'2026-09-05', end:'2026-10-05', status:'بانتظار الدفع' }
+};
+
+const HOW_STEPS = [
+  { num:'٠١', icon:'⌕', title:'البحث والاختيار', desc:'حدّد المدينة أو الحي والفئة وتاريخ البداية والمدة، ثم قارن بين المساحات بالسعر اليومي والمسافة والمساحة التقريبية.' },
+  { num:'٠٢', icon:'▤', title:'تعبئة بيانات الحجز', desc:'اختر التواريخ، واكتب وصف البضاعة، وأقرّ بقائمة الممنوعات، ثم راجع تفصيل السعر كاملًا قبل الدفع.' },
+  { num:'٠٣', icon:'✓', title:'الاعتماد وبداية المدة', desc:'تراجع إدارة المنصة الطلب. عند الاعتماد يظهر العنوان الدقيق وتبدأ المدة، وعند الرفض يُستَرد المبلغ كاملًا.' }
+];
+
+const WHY_FEATURES = [
+  { icon:'▦', title:'مساحات متنوعة', desc:'أربع فئات تغطي احتياجات التخزين المختلفة.' },
+  { icon:'◈', title:'تعامل موثوق', desc:'الحجز والدفع والفاتورة داخل المنصة.' },
+  { icon:'⇄', title:'سهولة التعامل', desc:'ثلاث خطوات من البحث إلى الدفع.' },
+  { icon:'◉', title:'مواقع مميزة', desc:'أحياء قريبة في اثنتي عشرة مدينة.' },
+  { icon:'⌗', title:'أسعار مرنة', desc:'سعر يومي معروض، والمدة تبدأ من ثلاثة أيام.' }
+];
+
+const INDEX_GROUPS = [
+  { title:'الواجهة العامة', note:'متاحة بدون تسجيل', items:[
+    { code:'PUB-01', screen:'home', name:'الصفحة الرئيسية', desc:'شريط البحث والتصنيفات وأحدث المساحات.', thumbAccent:'#E8EBE9', thumbSide:'34%' },
+    { code:'PUB-02', screen:'results', name:'نتائج البحث', desc:'فلاتر عاملة وترتيب ومبدّل قائمة وخريطة.', thumbAccent:'#DCE3E1', thumbSide:'26%' },
+    { code:'PUB-04', screen:'details', name:'تفاصيل المساحة', desc:'معرض صور وصندوق حجز يحسب السعر فورًا.', thumbAccent:'#E6E8EA', thumbSide:'44%' }
+  ]},
+  { title:'شاشات الحساب', note:'التسجيل يُطلب عند الحجز فقط', items:[
+    { code:'PUB-07', screen:'signup', name:'التسجيل داخل المسار', desc:'تحقق حي للحقول ومؤشر قوة كلمة المرور.', thumbAccent:'#F1F3F4', thumbSide:'40%' },
+    { code:'PUB-08', screen:'otp', name:'التحقق برمز', desc:'رمز واحد مقبول وعدّاد محاولات ومؤقت صلاحية.', thumbAccent:'#EDEFF0', thumbSide:'30%' }
+  ]},
+  { title:'مسار الحجز', note:'أربع خطوات ثم نتيجة الدفع', items:[
+    { code:'RNT-03', screen:'dates', name:'الخطوة الأولى: التواريخ', desc:'تقويم قابل للتصفّح يمنع الماضي والمحجوز.', thumbAccent:'#E8EBE9', thumbSide:'50%' },
+    { code:'RNT-04', screen:'goods', name:'الخطوة الثانية: البضاعة', desc:'وصف إلزامي وإقرار يفعّل زر المتابعة.', thumbAccent:'#F1F3F4', thumbSide:'36%' },
+    { code:'RNT-09', screen:'nafath', name:'الخطوة الثالثة: توثيق الهوية', desc:'خمس حالات لنفاذ عبر مبدّل شريط التحكم.', thumbAccent:'#E6F0EA', thumbSide:'32%' },
+    { code:'RNT-05', screen:'pay', name:'الخطوة الرابعة: الدفع', desc:'مؤقت خمس عشرة دقيقة يعدّ تنازليًا فعليًا.', thumbAccent:'#EDEFF0', thumbSide:'32%' },
+    { code:'RNT-06', screen:'result', name:'نتيجة الدفع', desc:'رقم مرجعي وشارة انتظار الموافقة.', thumbAccent:'#E6F0EA', thumbSide:'28%' }
+  ]},
+  { title:'حساب المستأجر', note:'يتطلب حالة مسجّل الدخول', items:[
+    { code:'RNT-01', screen:'bookings', name:'حجوزاتي', desc:'تبويبان يبدّلان المحتوى وحالات الحجز التسع.', thumbAccent:'#E6E8EA', thumbSide:'30%' },
+    { code:'RNT-02', screen:'bdetails', name:'تفاصيل الحجز', desc:'خط زمني وروابط شرطية تتغير مع الحالة.', thumbAccent:'#E8EBE9', thumbSide:'34%' },
+    { code:'RNT-07', screen:'invoice', name:'الفاتورة', desc:'تفصيل السعر نفسه مع رقم الفاتورة.', thumbAccent:'#F1F3F4', thumbSide:'28%' },
+    { code:'RNT-08', screen:'cancel', name:'إلغاء الحجز', desc:'سياسة الإلغاء وحساب المبلغ المسترد.', thumbAccent:'#EDEFF0', thumbSide:'26%' }
+  ]},
+  { title:'الصفحات الثابتة', note:'تُعرض بالحالتين', items:[
+    { code:'PUB-12', screen:'static', name:'الصفحات الثابتة', desc:'القالب السبعة في ملف مستقل — يفتح للعرض.', thumbAccent:'#F1F3F4', thumbSide:'38%' }
+  ]}
+];
+
+const h = (t, p, ...c) => React.createElement(t, p, ...c);
+const clockText = (secs) => String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0');
+
+class Ticker extends React.Component {
+  constructor(props) { super(props); this.state = { now: Date.now() }; }
+  componentDidMount() { this.t = setInterval(() => this.setState({ now: Date.now() }), 1000); }
+  componentWillUnmount() { clearInterval(this.t); }
+  secs() { return Math.max(0, Math.ceil((this.props.deadline - this.state.now) / 1000)); }
+}
+
+class HoldBar extends Ticker {
+  render() {
+    const secs = this.secs();
+    const crit = secs <= 180;
+    const color = crit ? '#A32C22' : '#123642';
+    const note = secs === 0
+      ? 'انتهى الحجز المؤقت وحُرِّرت التواريخ. أعد بدء الحجز.'
+      : crit
+        ? 'أقل من ثلاث دقائق على انتهاء الحجز المؤقت. أكمل الدفع أو أعد بدء الحجز.'
+        : 'التواريخ محجوزة لك مؤقتًا حتى إتمام الدفع';
+    return h('div', { style:{ background: crit ? 'rgba(163,44,34,.05)' : 'rgba(18,54,66,.04)', borderBottom:'1px solid ' + (crit ? 'rgba(163,44,34,.25)' : '#E6E8EA'), padding:'14px ' + this.props.sidePad, display:'flex', alignItems:'center', justifyContent:'space-between', gap:'16px', flexWrap:'wrap' } },
+      h('div', { style:{ display:'flex', alignItems:'center', gap:'11px' } },
+        h('span', { style:{ width:'22px', height:'22px', borderRadius:'999px', background: crit ? 'rgba(163,44,34,.12)' : 'rgba(18,54,66,.1)', color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px' } }, '⏱︎'),
+        h('span', { style:{ fontSize:'13px', color: crit ? '#A32C22' : 'rgba(45,45,45,.78)' } }, note)
+      ),
+      h('div', { style:{ display:'flex', alignItems:'center', gap:'12px' } },
+        h('span', { style:{ fontSize:'12px', color:'rgba(45,45,45,.65)' } }, 'الوقت المتبقي'),
+        h('div', { style:{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#FFFFFF', border: crit ? '1.5px solid #A32C22' : '1px solid #E6E8EA', borderRadius:'10px', padding:'8px 16px' } },
+          h('span', { dir:'ltr', style:{ unicodeBidi:'isolate', fontFamily:'Montserrat', fontSize:'20px', fontWeight:700, color, fontVariantNumeric:'tabular-nums' } }, clockText(secs)),
+          h('span', { style:{ fontSize:'12px', color } }, 'دقيقة')
+        )
+      )
+    );
+  }
+}
+
+class OtpClock extends Ticker {
+  render() {
+    const secs = this.secs();
+    return h('span', { dir:'ltr', style:{ unicodeBidi:'isolate', fontFamily:'Montserrat', fontSize:'14px', fontWeight:700, color: secs === 0 ? '#A32C22' : '#123642', fontVariantNumeric:'tabular-nums' } }, clockText(secs));
+  }
+}
+
+class Component extends DCLogic {
+  state = {
+    screen:'index', auth:'زائر', viewport:'ديسكتوب', uiState:'عادية', bookingStatus:'موافَق عليه',
+    spaceId:1, photo:0, days:30, startISO:'2026-08-12', endISO:'2026-09-11', monthIdx:0, startDay:12, startMonth:0, calendar:'ميلادي', dateNotice:'',
+    city:'الرياض', homeCategory:'كل الفئات', maxDistance:10, maxPrice:150, minArea:8, picked:['مستودع','غرفة','مكان مكشوف','قراج'], sort:'الأقرب', view:'قائمة',
+    tab:'حالية', openBooking:null, notifOpen:false, menuOpen:false, readIds:[], modal:null, nowTick:0, payDeadline:null, otpDeadline:null, searchSheet:false,
+    regName:'', regEmail:'', regPhone:'', regPass:'', regPass2:'', terms:false, regTouched:false,
+    otpValue:'', attempts:3, otpError:'', otpSecs:300,
+    goodsText:'', goodsTouched:false, ack:false, method:'مدى', paySecs:900,
+    nafathState:'قبل البدء', idVerified:false, nafathDeadline:null, nafathCode:47,
+    booked:false
+  };
+
+  componentDidMount() {
+    this.tick = setInterval(() => this.setState({ nowTick: Date.now() }), 1000);
+    this.onKey = (e) => { if (e.key === 'Escape') this.setState({ modal:null, notifOpen:false, menuOpen:false }); };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { clearInterval(this.tick); clearTimeout(this.nafTimer); window.removeEventListener('keydown', this.onKey); }
+
+  go = (screen) => this.setState({ screen, notifOpen:false, menuOpen:false, dateNotice:'' });
+  space = () => SPACES.find(s => s.id === this.state.spaceId) || SPACES[0];
+  money = () => {
+    const rent = this.space().price * this.state.days;
+    return { rent, fee: rent * 0.05, total: rent };
+  };
+  clock = (secs) => String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0');
+  strength = () => {
+    const p = this.state.regPass;
+    let n = 0;
+    if (p.length >= 8) n++;
+    if (/[A-Z\u0600-\u06FF]/.test(p) && /[a-z0-9]/.test(p)) n++;
+    if (/\d/.test(p) && p.length >= 10) n++;
+    return n;
+  };
+  regErrors = () => {
+    const s = this.state;
+    return {
+      name: s.regName.trim().length < 3 ? 'اكتب الاسم الكامل كما في الهوية.' : '',
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.regEmail) ? '' : 'صيغة البريد غير صحيحة. الصيغة المقبولة name@mail.sa',
+      phone: /^5\d{8}$/.test(s.regPhone) ? '' : 'رقم الجوال السعودي يبدأ بالرقم 5 ويتكوّن من تسع خانات.',
+      pass: this.strength() >= 2 ? '' : 'كلمة المرور ضعيفة. استخدم ثمانية أحرف على الأقل مع رقم.',
+      pass2: s.regPass2 && s.regPass2 === s.regPass ? '' : 'الكلمتان غير متطابقتين.',
+      terms: s.terms ? '' : 'الموافقة على الشروط والأحكام إلزامية.'
+    };
+  };
+  monthDays = () => {
+    const s = this.state;
+    const m = MONTHS[s.monthIdx];
+    const out = [];
+    for (let i = 0; i < m.lead; i++) out.push({ main:'', sub:'', bg:'transparent', border:'none', color:'transparent', subColor:'transparent', cursor:'default', weight:400, pick:()=>{} });
+    for (let n = 1; n <= m.len; n++) {
+      const isPast = n <= m.past;
+      const isBooked = m.booked.indexOf(n) !== -1;
+      const hijriNum = m.hijriStart + n - 1;
+      const hijri = hijriNum <= 29 ? hijriNum : hijriNum - 29;
+      let d = {
+        main: s.calendar === 'ميلادي' ? String(n) : String(hijri),
+        sub: s.calendar === 'ميلادي' ? String(hijri) : String(n),
+        bg:'#FFFFFF', border:'1px solid #E6E8EA', color:'#2D2D2D', subColor:'rgba(45,45,45,.45)', cursor:'pointer', weight:500
+      };
+      if (isPast) d = { ...d, bg:'#F7F8F8', color:'#A3A7AB', subColor:'#C7C9CC', cursor:'not-allowed' };
+      if (isBooked) d = { ...d, bg:'rgba(163,44,34,.08)', border:'1px solid rgba(163,44,34,.3)', color:'#A32C22', subColor:'rgba(163,44,34,.6)', cursor:'not-allowed' };
+      const isStart = this.state.monthIdx === this.state.startMonth && n === this.state.startDay;
+      const inRange = this.state.monthIdx === this.state.startMonth && n > this.state.startDay && n < this.state.startDay + this.state.days;
+      if (inRange && !isPast && !isBooked) d = { ...d, bg:'rgba(18,54,66,.1)', border:'1px solid rgba(18,54,66,.12)', color:'#123642', weight:600, subColor:'rgba(18,54,66,.55)' };
+      if (isStart) d = { ...d, bg:'#123642', border:'1px solid #123642', color:'#FFFFFF', subColor:'rgba(255,255,255,.7)', weight:700 };
+      d.pick = () => {
+        if (isPast) return this.setState({ dateNotice:'هذا التاريخ ماضٍ ولا يمكن اختياره. اختر تاريخًا من اليوم أو بعده.' });
+        if (isBooked) return this.setState({ dateNotice:'هذه الفترة محجوزة لعميل آخر. اختر تاريخًا آخر أو غيّر الشهر.' });
+        this.setState({ startDay:n, startMonth:this.state.monthIdx, dateNotice:'' });
+      };
+      out.push(d);
+    }
+    return out;
+  };
+  startMonthIdx = () => (this.state.startMonth === undefined ? 0 : this.state.startMonth);
+  bookingRecord = (rec) => {
+    const sp = SPACES.find(x => x.id === rec.spaceId) || SPACES[0];
+    const d = (iso) => new Date(Number(iso.slice(0,4)), Number(iso.slice(5,7)) - 1, Number(iso.slice(8,10)));
+    const days = Math.round((d(rec.end) - d(rec.start)) / 86400000);
+    return {
+      ...rec, space: sp, name: sp.name, district: sp.district + '، ' + sp.city, photo: sp.photos[0],
+      days, rent: sp.price * days,
+      startLabel: this.isoLabel(rec.start), endLabel: this.isoLabel(rec.end),
+      startHijri: HIJRI_FMT.format(d(rec.start)) + ' هـ', endHijri: HIJRI_FMT.format(d(rec.end)) + ' هـ'
+    };
+  };
+  isoLabel = (iso) => { const d = new Date(Number(iso.slice(0,4)), Number(iso.slice(5,7)) - 1, Number(iso.slice(8,10))); return d.getDate() + ' ' + GREG_MONTH_NAMES2[d.getMonth()] + ' ' + d.getFullYear(); };
+  dateLabelsNew = () => ({
+    startLabel: this.isoLabel(this.state.startISO),
+    endLabel: this.isoLabel(this.state.endISO),
+    startHijri: HIJRI_FMT.format(new Date(Number(this.state.startISO.slice(0,4)), Number(this.state.startISO.slice(5,7)) - 1, Number(this.state.startISO.slice(8,10)))) + ' هـ',
+    endHijri: HIJRI_FMT.format(new Date(Number(this.state.endISO.slice(0,4)), Number(this.state.endISO.slice(5,7)) - 1, Number(this.state.endISO.slice(8,10)))) + ' هـ'
+  });
+  dateLabelsOld = () => {
+    const mi = this.startMonthIdx();
+    const m = MONTHS[mi];
+    const start = this.state.startDay;
+    const endRaw = start + this.state.days - 1;
+    const endMonthIdx = endRaw > m.len ? mi + 1 : mi;
+    const endDay = endRaw > m.len ? endRaw - m.len : endRaw;
+    const hijriStart = m.hijriStart + start - 1;
+    return {
+      startLabel: start + ' ' + GREG_MONTH_NAMES[mi] + ' 2026',
+      startHijri: (hijriStart <= 29 ? hijriStart : hijriStart - 29) + ' ' + (hijriStart <= 29 ? m.hijriMonth : 'ربيع الأول') + ' 1448',
+      endLabel: endDay + ' ' + GREG_MONTH_NAMES[endMonthIdx] + ' 2026',
+      endHijri: 'التقويم الهجري يُحدَّث تلقائيًا'
+    };
+  };
+
+  renderVals() {
+    const s = this.state;
+    const sp = this.space();
+    const m = this.money();
+    const mob = s.viewport === 'موبايل';
+    const guest = s.auth === 'زائر';
+    const errs = this.regErrors();
+    const str = this.strength();
+    const dl = this.dateLabelsNew();
+    const bk = this.bookingRecord(s.openBooking || { spaceId: s.spaceId, ref:'HZ-2026-04912', invoice:'INV-2026-04912', start: s.startISO, end: s.endISO, status: s.bookingStatus });
+    const left = (deadline, fallbackMs) => Math.max(0, Math.ceil((((deadline || (Date.now() + fallbackMs))) - Date.now()) / 1000));
+    const paySecs = left(s.payDeadline, 900000);
+    const otpSecs = left(s.otpDeadline, 300000);
+    const nafSecs = left(s.nafathDeadline, 120000);
+    const critical = paySecs <= 180;
+    const on = (v) => v ? { bg:'#123642', color:'#FFFFFF' } : { bg:'transparent', color:'rgba(45,45,45,.7)' };
+    const bd = (bad) => bad ? '1px solid #A32C22' : '1px solid #E6E8EA';
+
+    const filtered = SPACES.filter(x =>
+      x.distance <= s.maxDistance && x.price <= s.maxPrice && x.area >= s.minArea &&
+      s.picked.indexOf(x.category) !== -1 && (s.city === 'كل المدن' || x.city === s.city) &&
+      (s.homeCategory === 'كل الفئات' || x.category === s.homeCategory)
+    );
+    const sorted = filtered.slice().sort((a, b) =>
+      s.sort === 'الأقل سعرًا' ? a.price - b.price : s.sort === 'الأحدث' ? b.id - a.id : a.distance - b.distance
+    );
+    const withView = (x, w) => ({
+      ...x, imgEl: photo(x.photos[0], x.name, w),
+      monthly: nf0(x.price * 30), periodTotal: nf0(x.price * s.days),
+      pinBg: x.id === s.spaceId ? '#123642' : '#FFFFFF', pinColor: x.id === s.spaceId ? '#FFFFFF' : '#123642',
+      pinBorder: x.id === s.spaceId ? '#123642' : '#E6E8EA', pinZ: x.id === s.spaceId ? 5 : 2,
+      pinTop:x.pinTop, pinRight:x.pinRight,
+      open: () => this.setState({ spaceId:x.id, photo:0, screen:'details', notifOpen:false })
+    });
+
+    const liveRec = { spaceId: sp.id, ref:'HZ-2026-04912', invoice:'INV-2026-04912', start: s.startISO, end: s.endISO, status: s.bookingStatus };
+    const bookingsAll = [
+      liveRec,
+      { spaceId:3, ref:'HZ-2026-04871', invoice:'INV-2026-04871', start:'2026-08-12', end:'2026-09-11', status:'مدفوع بانتظار الموافقة' },
+      { spaceId:1, ref:'HZ-2026-04688', invoice:'INV-2026-04688', start:'2026-08-01', end:'2026-08-30', status:'نشط' },
+      { spaceId:4, ref:'HZ-2026-04512', invoice:'INV-2026-04512', start:'2026-09-05', end:'2026-10-05', status:'بانتظار الدفع' }
+    ];
+    const bookingsPrev = [
+      { spaceId:4, ref:'HZ-2026-04277', invoice:'INV-2026-04277', start:'2026-05-01', end:'2026-06-30', status:'مكتمل' },
+      { spaceId:2, ref:'HZ-2026-04155', invoice:'INV-2026-04155', start:'2026-06-12', end:'2026-06-26', status:'مرفوض ومسترد' }
+    ];
+    const bookingList = (s.tab === 'حالية' ? bookingsAll : bookingsPrev).map(rec => {
+      const r = this.bookingRecord(rec);
+      return {
+        ...STATUS[rec.status], status: rec.status, name: r.name, district: r.district,
+        period: r.startLabel + ' — ' + r.endLabel, ref: r.ref, total: nf0(Math.round(r.rent)),
+        imgEl: photo(r.photo, r.name, 360),
+        open: () => this.setState({ bookingStatus: rec.status, openBooking: rec, screen:'bdetails', notifOpen:false, menuOpen:false })
+      };
+    });
+
+    const stepDefs = [
+      { key:'dates', label:'التواريخ والمدة' },
+      { key:'goods', label:'وصف البضاعة' },
+      { key:'nafath', label:'توثيق الهوية' },
+      { key:'pay', label:'تفصيل السعر والدفع' }
+    ];
+    const stepIdx = { dates:0, goods:1, nafath:2, pay:3 }[s.screen] ?? 0;
+
+    const goodsOk = s.goodsText.trim().length >= 20;
+    const canPay = s.ack && goodsOk;
+
+    const primary = s.screen === 'dates'
+      ? { label:'المتابعة إلى وصف البضاعة', enabled:true, action:() => this.go('goods') }
+      : s.screen === 'goods'
+        ? { label: s.idVerified ? 'المتابعة إلى الدفع' : 'المتابعة إلى توثيق الهوية', enabled:canPay, action:() => { if (!canPay) { this.setState({ goodsTouched:true }); return; } this.setState(s.idVerified ? { screen:'pay', payDeadline: Date.now() + 900000 } : { screen:'nafath', nafathState:'قبل البدء', payDeadline: Date.now() + 900000 }); } }
+        : { label:'تأكيد الدفع', enabled:paySecs > 0, action:() => paySecs > 0 ? this.setState({ screen:'result', booked:true }) : null };
+
+    return {
+      isIndex: s.screen === 'index',
+      showApp: s.screen !== 'index',
+      isHome: s.screen === 'home', isResults: s.screen === 'results', isDetails: s.screen === 'details',
+      isAccountType: s.screen === 'account',
+      goAccountType: () => this.go('account'),
+      goSignupRenter: () => this.go('signup'),
+      goSignupLessor: () => this.setState({ modal:{ kind:'lessor', title:'تسجيل مؤجر', desc:'', body:'مسار المؤجر خارج نطاق الشاشات المبنية حتى الآن. المبني هو مسار المستأجر كاملًا من البحث حتى الفاتورة.' } }),
+      exploreAll: () => this.setState({ screen:'results', city:'كل المدن', homeCategory:'كل الفئات', picked:CATS.map(c => c.key), maxDistance:10, maxPrice:150, minArea:8, notifOpen:false, menuOpen:false }),
+      heroH: mob ? '560px' : '640px',
+      heroSubSize: mob ? '17px' : '22px',
+      searchRadius: mob ? '20px' : '999px',
+      searchDir: mob ? 'column' : 'row',
+      searchGap: mob ? '12px' : '0',
+      dividerDisplay: mob ? 'none' : 'block',
+      searchBtnW: mob ? '100%' : '56px',
+      heroChips: ['مستودع', 'غرفة', 'قراج'].map(key => ({
+        name: key,
+        go: () => this.setState({ screen:'results', homeCategory:key, picked:[key], notifOpen:false, menuOpen:false })
+      })),
+      mobileSearchPill: mob && !s.searchSheet,
+      showSearchBar: !mob || s.searchSheet,
+      openSearchSheet: () => this.setState({ searchSheet:true }),
+      searchBtnLabel: mob ? 'البحث' : '⌕',
+      searchBtnFont: mob ? '15px' : '20px',
+      catsPad: mob ? '32px 0' : '48px 0',
+      catsTitleSize: mob ? '22px' : '34px',
+      catsSubSize: mob ? '14px' : '16px',
+      catsCols: mob ? '1fr 1fr' : 'repeat(4,150px)',
+      catsWidth: mob ? '100%' : 'auto',
+      catCardW: mob ? '100%' : '150px',
+      homeCats: CATS.map(c => {
+        const active = s.homeCategory === c.key;
+        return {
+          name: c.key, count: c.count,
+          iconEl: ICONS[c.key](),
+          bg: active ? '#123642' : '#FFFFFF',
+          color: active ? '#FFFFFF' : '#123642',
+          border: active ? '1px solid #123642' : '1px solid #E6E8EA',
+          go: () => this.setState({ screen:'results', homeCategory:c.key, picked:[c.key], notifOpen:false, menuOpen:false })
+        };
+      }),
+      ctaDir: mob ? 'column' : 'row',
+      ctaAlign: mob ? 'flex-start' : 'center',
+      startDayOptions: [10, 12, 14, 16, 18, 20].map(d => ({
+        value: String(d),
+        label: s.calendar === 'هجري' ? (d + 16) + ' صفر 1448' : d + ' أغسطس 2026'
+      })),
+      startDayValue: String(s.startDay),
+      onStartDay: (e) => this.setState({ startDay: Number(e.target.value) }),
+      isSignup: s.screen === 'signup', isOtp: s.screen === 'otp', isResult: s.screen === 'result',
+      isBookings: s.screen === 'bookings',
+      isBookingDetails: s.screen === 'bdetails', isInvoice: s.screen === 'invoice', isCancel: s.screen === 'cancel',
+      goBookingDetails: () => this.go('bdetails'),
+      goInvoice: () => this.go('invoice'),
+      goCancel: () => this.go('cancel'),
+      confirmCancel: () => this.setState({ bookingStatus:'ملغى', screen:'bdetails', notifOpen:false, menuOpen:false }),
+      resumePayment: () => this.setState({ screen:'pay', payDeadline: Date.now() + 900000, notifOpen:false, menuOpen:false }),
+      openSpace: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen:'details', notifOpen:false, menuOpen:false }); },
+      bkName: bk.name, bkDistrict: bk.district, bkPrice: bk.space.price, bkDays: bk.days,
+      bkRentText: nf(bk.rent), bkTotalText: nf(bk.rent),
+      bkStartLabel: bk.startLabel, bkEndLabel: bk.endLabel, bkStartHijri: bk.startHijri, bkEndHijri: bk.endHijri,
+      bkRef: bk.ref, bkInvoice: bk.invoice, bkImg: photo(bk.photo, bk.name, 220),
+      openSpaceBooking: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ spaceId: bk.space.id, photo:0, screen:'details', notifOpen:false, menuOpen:false }); },
+      bkBadgeBg: STATUS[s.bookingStatus].badgeBg, bkBadgeDot: STATUS[s.bookingStatus].badgeDot, bkBadgeText: STATUS[s.bookingStatus].badgeText,
+      bkShowInvoice: FLOW[s.bookingStatus].invoice,
+      bkCanCancel: FLOW[s.bookingStatus].canCancel,
+      bkAwaitingPay: s.bookingStatus === 'بانتظار الدفع',
+      bkAddressVisible: FLOW[s.bookingStatus].address,
+      bkAddress: 'الرياض — ' + bk.space.district + '، شارع الأمير سلطان، مبنى 42، مدخل مستقل',
+      bkPinSize: FLOW[s.bookingStatus].address ? '18px' : '170px',
+      bkPinBorder: FLOW[s.bookingStatus].address ? 'none' : '1.5px dashed rgba(18,54,66,.45)',
+      bkLocationNote: FLOW[s.bookingStatus].address
+        ? 'اعتُمد الحجز، فظهر العنوان الدقيق للمساحة.'
+        : 'يُعرض الموقع داخل دائرة نصف قطرها 300 متر. يظهر العنوان الدقيق بعد اعتماد الحجز.',
+      bkGoods: s.goodsText.trim().length >= 20 ? s.goodsText : 'أثاث منزلي مفكّك وصناديق أدوات منزلية وكتب. لا توجد أجهزة تعمل بالوقود.',
+      bookingSpecs: [
+        { label:'المساحة', value: bk.name, sub: bk.district + ' · ' + bk.space.area + ' م²' },
+        { label:'التصنيف', value: bk.space.category, sub:'السعر اليومي ' + bk.space.price + ' ر.س' },
+        { label:'الفترة', value: bk.startLabel + ' — ' + bk.endLabel, sub: bk.startHijri + ' — ' + bk.endHijri },
+        { label:'المدة', value: bk.days + ' يومًا', sub:'أقل مدة ' + bk.space.minDays + ' أيام' },
+        { label:'حالة الحجز', value: s.bookingStatus, sub: FLOW[s.bookingStatus].note },
+        { label:'قيمة الحجز', value: nf(bk.rent) + ' ر.س', sub:'العمولة تُخصم من المؤجر' }
+      ],
+      bookingTimeline: TIMELINE_STEPS.map((t, i) => {
+        const stage = FLOW[s.bookingStatus].stage;
+        const done = i < stage, current = i === stage;
+        return {
+          title: t.title, desc: t.desc,
+          icon: done ? '✓' : current ? '●' : '○',
+          dotBg: done ? '#1E7A5F' : current ? '#123642' : '#FFFFFF',
+          dotBorder: done || current ? 'none' : '1px solid #C7C9CC',
+          dotColor: done || current ? '#FFFFFF' : '#A3A7AB',
+          lineBg: done ? '#1E7A5F' : '#E6E8EA',
+          titleColor: done || current ? '#123642' : '#A3A7AB',
+          lineH: i === TIMELINE_STEPS.length - 1 ? '0px' : '26px'
+        };
+      }),
+      startHijri: dl.startHijri, endHijri: dl.endHijri,
+      isStep: ['dates','goods','nafath','pay'].indexOf(s.screen) !== -1,
+      isDates: s.screen === 'dates', isGoods: s.screen === 'goods', isPay: s.screen === 'pay',
+
+      frameW: mob ? '375px' : '1440px',
+      isDesktop: !mob, isMobile: mob,
+      indexCols: mob ? '1fr' : 'repeat(3,1fr)',
+      pagePad: mob ? '18px 16px 26px' : '30px 40px 40px',
+      sidePad: mob ? '16px' : '40px',
+      barH: mob ? '64px' : '80px',
+      barPad: mob ? '0 20px' : '20px 40px',
+      barGap: mob ? '12px' : '28px',
+      logoSize: mob ? '32px' : '40px',
+      authGap: mob ? '12px' : '20px',
+      heroPad: mob ? '20px 16px' : '40px',
+      heroDir: mob ? 'column' : 'row',
+      heroTitleSize: mob ? '36px' : '60px',
+      heroImgW: mob ? '100%' : '520px',
+      searchCols: mob ? '1fr' : '1.4fr 1fr 1fr auto',
+      cardCols: mob ? '1fr' : 'repeat(4,1fr)',
+      howCols: mob ? '1fr' : 'repeat(3,1fr)',
+      featCols: mob ? '1fr' : 'repeat(5,1fr)',
+      howSteps: HOW_STEPS.map((st, i) => ({
+        ...st,
+        cursor: i === 0 ? 'pointer' : 'default',
+        go: i === 0 ? () => this.go('results') : undefined
+      })),
+      whyFeatures: WHY_FEATURES,
+      specCols: mob ? '1fr' : '1fr 1fr',
+      formCols: mob ? '1fr' : '1fr 1fr',
+      footerCols: mob ? '1fr' : '1.4fr 1fr 1fr 1fr',
+      resultsDir: mob ? 'column' : 'row',
+      detailsDir: mob ? 'column' : 'row',
+      cardDir: mob ? 'column' : 'row',
+      filterW: mob ? '100%' : '280px',
+      bookBoxW: mob ? '100%' : '380px',
+      resultImgW: mob ? '100%' : '190px',
+      resultImgH: mob ? '150px' : 'auto',
+      galleryH: mob ? '220px' : '380px',
+
+      guestBtnBg: guest ? '#C7A15A' : 'transparent', guestBtnColor: guest ? '#14181B' : 'rgba(255,255,255,.75)',
+      signedBtnBg: guest ? 'transparent' : '#C7A15A', signedBtnColor: guest ? 'rgba(255,255,255,.75)' : '#14181B',
+      deskBtnBg: mob ? 'transparent' : '#C7A15A', deskBtnColor: mob ? 'rgba(255,255,255,.75)' : '#14181B',
+      mobBtnBg: mob ? '#C7A15A' : 'transparent', mobBtnColor: mob ? '#14181B' : 'rgba(255,255,255,.75)',
+      setGuest: () => this.setState({ auth:'زائر' }), setSigned: () => this.setState({ auth:'مسجّل' }),
+      setDesktop: () => this.setState({ viewport:'ديسكتوب' }), setMobile: () => this.setState({ viewport:'موبايل' }),
+      statusOptions: Object.keys(STATUS), bookingStatus: s.bookingStatus, uiState: s.uiState,
+      onStatus: (e) => this.setState({ bookingStatus: e.target.value }),
+      onUiState: (e) => this.setState({ uiState: e.target.value }),
+      goIndex: () => this.go('index'),
+
+      isGuest: guest, isSigned: !guest,
+      navLinks: [
+        { label:'استكشاف المساحات', screen:'results' },
+        { label:'كيف تعمل المنصة', screen:'static' },
+        { label:'الأسئلة الشائعة', screen:'static' },
+        { label:'التواصل معنا', screen:'static' }
+      ].map(n => ({
+        label:n.label,
+        weight: (n.screen === 'results' && s.screen === 'results') ? 600 : 400,
+        color: (n.screen === 'results' && s.screen === 'results') ? '#FFFFFF' : 'rgba(255,255,255,.8)',
+        underline: (n.screen === 'results' && s.screen === 'results') ? '2px solid #C7A15A' : 'none',
+        go: (e) => { e.preventDefault(); n.screen === 'static' ? this.setState({ modal:{ kind:'static', title:'الصفحات الثابتة', body:'الصفحات السبع (من نحن وكيف تعمل المنصة والأسئلة الشائعة والشروط والسياسات والتواصل معنا) مبنية بالكامل في ملف «الصفحات الثابتة» بنسختَي 1440 و375. سأربطها داخل هذا النموذج في الدفعة التالية.', confirmLabel:'حسنًا' } }) : this.go(n.screen); }
+      })),
+      goHome: () => this.go('home'), goResults: () => this.go('results'), goBookings: () => guest ? this.setState({ auth:'مسجّل', screen:'bookings' }) : this.go('bookings'),
+      goLoginScreen: () => this.setState({ auth:'مسجّل', modal:{ kind:'login', title:'تسجيل الدخول', body:'شاشة تسجيل الدخول الكاملة مبنية في ملف «شاشات الحساب». في هذا النموذج بدّلت الحالة إلى مسجّل الدخول لتتابع التجربة.', confirmLabel:'متابعة' } }),
+      goNotifications: () => this.setState({ notifOpen:false, modal:{ kind:'notif', title:'مركز الإشعارات', body:'شاشة الإشعارات الكاملة المجمّعة بالتاريخ مبنية في ملف «حساب المستأجر»، وستُربط في الدفعة التالية.', confirmLabel:'حسنًا' } }),
+      noop: () => this.setState({ modal:{ kind:'lessor', title:'إضافة مساحتك', desc:'', body:'مسار المؤجر خارج نطاق ما بُني حتى الآن. الشاشات المتاحة في النموذج هي مسار المستأجر كاملًا.', confirmLabel:'حسنًا' } }),
+
+      notifOpen: s.notifOpen, menuOpen: s.menuOpen,
+      toggleNotif: () => this.setState({ notifOpen: !s.notifOpen, menuOpen:false }),
+      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen, notifOpen:false }),
+      hasUnread: NOTIFS.some(n => s.readIds.indexOf(n.id) === -1),
+      unreadCount: NOTIFS.filter(n => s.readIds.indexOf(n.id) === -1).length,
+      markAllRead: () => this.setState({ readIds: NOTIFS.map(n => n.id) }),
+      notifs: NOTIFS.map(n => {
+        const unread = s.readIds.indexOf(n.id) === -1;
+        return { ...n, unread, weight: unread ? 700 : 500,
+          bg: unread ? 'rgba(18,54,66,.03)' : '#FFFFFF',
+          border: unread ? '1px solid rgba(18,54,66,.18)' : '1px solid #E6E8EA',
+          open: () => this.setState({ readIds: s.readIds.concat([n.id]), notifOpen:false, screen:'bdetails', openBooking: NOTIF_RECS[n.id], bookingStatus: NOTIF_RECS[n.id].status, auth:'مسجّل' }) };
+      }),
+      menuItems: [
+        { label:'حجوزاتي', go:() => this.go('bookings'), weight:600, color:'#123642' },
+        { label:'الملف الشخصي', go:() => this.setState({ menuOpen:false, modal:{ kind:'profile', title:'الملف الشخصي والإعدادات', body:'الشاشة مبنية بالكامل في ملف «حساب المستأجر» وستُربط في الدفعة التالية.', confirmLabel:'حسنًا' } }), weight:400, color:'rgba(45,45,45,.8)' },
+        { label:'الإشعارات', go:() => this.setState({ menuOpen:false, notifOpen:true }), weight:400, color:'rgba(45,45,45,.8)' },
+        { label:'تسجيل الخروج', go:() => this.setState({ auth:'زائر', menuOpen:false, screen:'home' }), weight:600, color:'#A32C22' }
+      ],
+
+      startJourney: () => this.setState({ screen:'home', auth:'زائر', spaceId:1, days:30, goodsText:'', ack:false, payDeadline:null, otpDeadline:null }),
+      browseGuest: () => this.setState({ screen:'home', auth:'زائر' }),
+      browseSigned: () => this.setState({ screen:'home', auth:'مسجّل' }),
+      indexGroups: INDEX_GROUPS.map(g => ({ ...g, items: g.items.map(it => ({ ...it,
+        open: () => it.screen === 'static'
+          ? this.setState({ modal:{ kind:'static', title:'الصفحات الثابتة', body:'الصفحات السبع مبنية في ملف «الصفحات الثابتة». سأربطها داخل النموذج في الدفعة التالية.', confirmLabel:'حسنًا' } })
+          : this.setState({ screen: it.screen, auth: ['bookings'].indexOf(it.screen) !== -1 ? 'مسجّل' : s.auth })
+      })) })),
+
+      heroImg: photo('photo-1553413077-190dd305871c', 'مساحة تخزين برفوف وصناديق مرتبة', 1600),
+      latest: SPACES.slice(0, 4).map(x => withView(x, 520)),
+      cityOptions: ['الرياض','كل المدن'], city: s.city,
+      onCity: (e) => this.setState({ city: e.target.value }),
+      categoryOptions: ['كل الفئات','مستودع','غرفة','مكان مكشوف','قراج'], homeCategory: s.homeCategory,
+      onHomeCategory: (e) => this.setState({ homeCategory: e.target.value }),
+
+      resultCount: sorted.length,
+      visible: sorted.map(x => withView(x, 420)),
+      resultsLoading: s.screen === 'results' && s.uiState === 'تحميل',
+      resultsError: s.screen === 'results' && s.uiState === 'خطأ',
+      resultsEmpty: s.screen === 'results' && (s.uiState === 'فارغة' || (s.uiState === 'عادية' && sorted.length === 0)),
+      resultsReady: s.screen === 'results' && s.uiState === 'عادية' && sorted.length > 0,
+      retryResults: () => this.setState({ uiState:'عادية' }),
+      skeleton: [1,2,3],
+      maxDistance: s.maxDistance, maxPrice: s.maxPrice, minArea: s.minArea,
+      onDistance: (e) => this.setState({ maxDistance: Number(e.target.value) }),
+      onPrice: (e) => this.setState({ maxPrice: Number(e.target.value) }),
+      onArea: (e) => this.setState({ minArea: Number(e.target.value) }),
+      resetFilters: () => this.setState({ maxDistance:10, maxPrice:150, minArea:8, picked:CATS.map(c => c.key), city:'الرياض', homeCategory:'كل الفئات', uiState:'عادية' }),
+      categories: CATS.map(c => {
+        const active = s.picked.indexOf(c.key) !== -1;
+        return { name:c.key, count:c.count, mark: active ? '✓' : '',
+          boxBg: active ? '#123642' : '#FFFFFF', boxBorder: active ? '1px solid #123642' : '1.5px solid #C7C9CC',
+          toggle: () => this.setState({ picked: active ? s.picked.filter(k => k !== c.key) : s.picked.concat([c.key]) }) };
+      }),
+      sortOptions: ['الأقرب','الأقل سعرًا','الأحدث'].map(label => ({
+        label, pick: () => this.setState({ sort: label }),
+        bg: s.sort === label ? '#123642' : '#FFFFFF', color: s.sort === label ? '#FFFFFF' : '#123642',
+        border: s.sort === label ? '1px solid #123642' : '1px solid #E6E8EA'
+      })),
+      mapMode: s.view === 'خريطة',
+      listBg: s.view === 'قائمة' ? '#123642' : 'transparent', listColor: s.view === 'قائمة' ? '#FFFFFF' : 'rgba(45,45,45,.7)',
+      mapBg: s.view === 'خريطة' ? '#123642' : 'transparent', mapColor: s.view === 'خريطة' ? '#FFFFFF' : 'rgba(45,45,45,.7)',
+      showList: () => this.setState({ view:'قائمة' }), showMap: () => this.setState({ view:'خريطة' }),
+
+      space: { ...sp, monthly: nf0(sp.price * 30) },
+      galleryImg: photo(sp.photos[s.photo], sp.name, 1100),
+      photoLabel: (s.photo + 1) + ' / ' + sp.photos.length,
+      prevPhoto: () => this.setState({ photo: (s.photo + sp.photos.length - 1) % sp.photos.length }),
+      nextPhoto: () => this.setState({ photo: (s.photo + 1) % sp.photos.length }),
+      thumbs: sp.photos.map((p, i) => ({ imgEl: photo(p, sp.name, 240), border: i === s.photo ? '2px solid #123642' : '1px solid #E6E8EA', pick: () => this.setState({ photo:i }) })),
+      specs: [
+        { label:'التصنيف', value: sp.category },
+        { label:'المساحة التقريبية', value: sp.area + ' م²' },
+        { label:'الدور', value:'أرضي' },
+        { label:'أقل مدة', value: sp.minDays + ' أيام' },
+        { label:'أقصى مدة', value: sp.maxDays + ' يومًا' }
+      ],
+      detailSpecCols: mob ? '1fr 1fr' : 'repeat(5,1fr)',
+      prohibited: PROHIBITED,
+      days: s.days,
+      minDays: sp.minDays, maxDays: sp.maxDays,
+      startISO: s.startISO, blockedDays: BLOCKED_DAYS,
+      onRange: (r) => this.setState({ days: r.days, startISO: r.start, endISO: r.end }),
+      rentText: nf(m.rent), totalText: nf(m.total),
+      startBooking: () => guest ? this.go('signup') : this.setState({ screen:'dates' }),
+      summaryImg: photo(sp.photos[0], sp.name, 220),
+
+      regName: s.regName, regEmail: s.regEmail, regPhone: s.regPhone, regPass: s.regPass, regPass2: s.regPass2,
+      onRegName: (e) => this.setState({ regName: e.target.value }),
+      onRegEmail: (e) => this.setState({ regEmail: e.target.value }),
+      onRegPhone: (e) => this.setState({ regPhone: e.target.value.replace(/\D/g, '').slice(0, 9) }),
+      onRegPass: (e) => this.setState({ regPass: e.target.value }),
+      onRegPass2: (e) => this.setState({ regPass2: e.target.value }),
+      nameError: s.regTouched ? errs.name : '', emailError: s.regTouched ? errs.email : '',
+      phoneError: s.regTouched ? errs.phone : '', pass2Error: s.regTouched ? errs.pass2 : '',
+      termsError: s.regTouched ? errs.terms : '',
+      nameBorder: bd(s.regTouched && errs.name), emailBorder: bd(s.regTouched && errs.email),
+      phoneBorder: bd(s.regTouched && errs.phone), passBorder: bd(s.regTouched && errs.pass),
+      pass2Border: bd(s.regTouched && errs.pass2),
+      bar1: str >= 1 ? (str === 1 ? '#A32C22' : '#1E7A5F') : '#E6E8EA',
+      bar2: str >= 2 ? '#1E7A5F' : '#E6E8EA',
+      bar3: str >= 3 ? '#1E7A5F' : '#E6E8EA',
+      strengthLabel: s.regPass === '' ? 'لم تُكتب بعد' : str <= 1 ? 'قوة ضعيفة' : str === 2 ? 'قوة جيدة' : 'قوة عالية',
+      strengthColor: s.regPass === '' ? 'rgba(45,45,45,.5)' : str <= 1 ? '#A32C22' : str === 2 ? '#1E7A5F' : '#1E7A5F',
+      terms: s.terms, termsMark: s.terms ? '✓' : '',
+      termsBoxBg: s.terms ? '#123642' : '#FFFFFF',
+      termsBoxBorder: s.terms ? '1px solid #123642' : '1.5px solid #C7C9CC',
+      termsBorder: s.regTouched && !s.terms ? '1px solid #A32C22' : '1px solid #E6E8EA',
+      toggleTerms: () => this.setState({ terms: !s.terms }),
+      signupValid: !errs.name && !errs.email && !errs.phone && !errs.pass && !errs.pass2 && !errs.terms,
+      signupBtnBg: (!errs.name && !errs.email && !errs.phone && !errs.pass && !errs.pass2 && !errs.terms) ? '#123642' : '#F0F1F2',
+      signupBtnColor: (!errs.name && !errs.email && !errs.phone && !errs.pass && !errs.pass2 && !errs.terms) ? '#FFFFFF' : '#A3A7AB',
+      signupCursor: (!errs.name && !errs.email && !errs.phone && !errs.pass && !errs.pass2 && !errs.terms) ? 'pointer' : 'not-allowed',
+      submitSignup: () => {
+        const e2 = this.regErrors();
+        const ok = !e2.name && !e2.email && !e2.phone && !e2.pass && !e2.pass2 && !e2.terms;
+        this.setState({ regTouched:true });
+        if (ok) this.setState({ screen:'otp', otpValue:'', otpError:'', attempts:3, otpDeadline: Date.now() + 300000 });
+      },
+      backToDetails: () => this.go('details'),
+
+      otpValue: s.otpValue, otpTimer: this.clock(otpSecs), attempts: s.attempts, otpError: s.otpError,
+      otpBorder: s.otpError ? '1px solid #A32C22' : '1px solid #123642',
+      attemptsBg: s.attempts === 0 ? 'rgba(163,44,34,.08)' : 'rgba(199,161,90,.12)',
+      attemptsDot: s.attempts === 0 ? '#A32C22' : '#C7A15A',
+      attemptsColor: s.attempts === 0 ? '#A32C22' : '#8A6B2E',
+      onOtp: (e) => this.setState({ otpValue: e.target.value.replace(/\D/g, '').slice(0, 6), otpError:'' }),
+      otpBtnBg: s.attempts > 0 && otpSecs > 0 ? '#123642' : '#F0F1F2',
+      otpBtnColor: s.attempts > 0 && otpSecs > 0 ? '#FFFFFF' : '#A3A7AB',
+      otpCursor: s.attempts > 0 && otpSecs > 0 ? 'pointer' : 'not-allowed',
+      submitOtp: () => {
+        if (s.attempts === 0 || otpSecs === 0) return;
+        if (s.otpValue === '492715') { this.setState({ auth:'مسجّل', screen:'details', otpError:'' }); }
+        else {
+          const left = s.attempts - 1;
+          this.setState({ attempts:left, otpError: left > 0 ? 'الرمز غير صحيح. بقيت لك ' + left + ' محاولة قبل إيقاف المحاولات مؤقتًا.' : 'انتهت المحاولات الثلاث. المحاولة التالية متاحة بعد خمس عشرة دقيقة.' });
+        }
+      },
+
+      steps: stepDefs.map((st, i) => {
+        const done = i < stepIdx || (st.key === 'nafath' && s.idVerified && i !== stepIdx);
+        const here = i === stepIdx;
+        return {
+          label: st.label, mark: done ? '✓' : String(i + 1),
+          dotBg: done ? 'rgba(30,122,95,.12)' : here ? '#123642' : '#FFFFFF',
+          dotBorder: (!done && !here) ? '1px solid #C7C9CC' : 'none',
+          dotColor: done ? '#1E7A5F' : here ? '#FFFFFF' : '#A3A7AB',
+          color: (done || here) ? '#123642' : '#A3A7AB', weight: here ? 600 : 400,
+          lineBg: i < stepIdx ? 'rgba(30,122,95,.35)' : '#E6E8EA',
+          cursor: i < stepIdx ? 'pointer' : 'default',
+          go: () => { if (i < stepIdx) this.go(st.key); }
+        };
+      }),
+
+      weekdays: ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'],
+      days31: this.monthDays(),
+      monthTitle: s.calendar === 'ميلادي' ? MONTHS[s.monthIdx].name : MONTHS[s.monthIdx].sub,
+      monthSub: s.calendar === 'ميلادي' ? MONTHS[s.monthIdx].sub : MONTHS[s.monthIdx].name,
+      gregBg: s.calendar === 'ميلادي' ? '#123642' : 'transparent',
+      gregColor: s.calendar === 'ميلادي' ? '#FFFFFF' : 'rgba(45,45,45,.7)',
+      hijriBg: s.calendar === 'هجري' ? '#123642' : 'transparent',
+      hijriColor: s.calendar === 'هجري' ? '#FFFFFF' : 'rgba(45,45,45,.7)',
+      setGregorian: () => this.setState({ calendar:'ميلادي' }), setHijri: () => this.setState({ calendar:'هجري' }),
+      prevMonth: () => this.setState({ monthIdx: Math.max(0, s.monthIdx - 1) }),
+      nextMonth: () => this.setState({ monthIdx: Math.min(MONTHS.length - 1, s.monthIdx + 1) }),
+      prevMonthColor: s.monthIdx === 0 ? '#C7C9CC' : '#123642',
+      prevMonthCursor: s.monthIdx === 0 ? 'not-allowed' : 'pointer',
+      dateNotice: s.dateNotice,
+      startLabel: dl.startLabel, startHijri: dl.startHijri, endLabel: dl.endLabel, endHijri: dl.endHijri,
+
+      goodsText: s.goodsText, goodsCount: s.goodsText.length,
+      onGoods: (e) => this.setState({ goodsText: e.target.value.slice(0, 500) }),
+      goodsBorder: s.goodsTouched && !goodsOk ? '1px solid #A32C22' : '1px solid #E6E8EA',
+      goodsError: s.goodsTouched && !goodsOk ? 'وصف البضاعة إلزامي، ولا يقل عن عشرين حرفًا.' : '',
+      ack: s.ack, ackMark: s.ack ? '✓' : '',
+      ackBg: s.ack ? 'rgba(30,122,95,.04)' : 'rgba(163,44,34,.04)',
+      ackBorder: s.ack ? '1px solid rgba(30,122,95,.28)' : '1px solid rgba(163,44,34,.22)',
+      ackBoxBg: s.ack ? '#1E7A5F' : '#FFFFFF',
+      ackBoxBorder: s.ack ? 'none' : '1.5px solid #A32C22',
+      ackNote: s.ack ? 'سُجّل الإقرار مع وقت التعليم ورقم إصدار قائمة الممنوعات.' : 'الإقرار إلزامي للمتابعة إلى الدفع، وزر المتابعة معطّل قبل تعليمه.',
+      toggleAck: () => this.setState({ ack: !s.ack }),
+
+      methods: [
+        { name:'بطاقة مدى', desc:'خصم مباشر من الحساب البنكي' },
+        { name:'بطاقة ائتمانية', desc:'تُقبل البطاقات الصادرة داخل المملكة وخارجها' },
+        { name:'المحفظة الإلكترونية', desc:'الدفع عبر محفظة الجهاز المرتبطة بالبطاقة' }
+      ].map(mm => ({ ...mm, pick: () => this.setState({ method: mm.name }),
+        border: s.method === mm.name ? '1.5px solid #123642' : '1px solid #E6E8EA',
+        bg: s.method === mm.name ? 'rgba(18,54,66,.03)' : '#FFFFFF',
+        radio: s.method === mm.name ? '5px solid #123642' : '1.5px solid #C7C9CC' })),
+
+      timerBarEl: h(HoldBar, { deadline: s.payDeadline || (Date.now() + 900000), sidePad: mob ? '16px' : '40px' }),
+      otpTimerEl: h(OtpClock, { deadline: s.otpDeadline || (Date.now() + 300000) }),
+      timerText: this.clock(paySecs),
+      timerColor: critical ? '#A32C22' : '#123642',
+      timerTextColor: critical ? '#A32C22' : 'rgba(45,45,45,.78)',
+      timerBarBg: critical ? 'rgba(163,44,34,.05)' : 'rgba(18,54,66,.04)',
+      timerBarBorder: critical ? 'rgba(163,44,34,.25)' : '#E6E8EA',
+      timerIconBg: critical ? 'rgba(163,44,34,.12)' : 'rgba(18,54,66,.1)',
+      timerBoxBorder: critical ? '1.5px solid #A32C22' : '1px solid #E6E8EA',
+      timerNote: paySecs === 0 ? 'انتهى الحجز المؤقت وحُرِّرت التواريخ. أعد بدء الحجز.' : critical ? 'أقل من ثلاث دقائق على انتهاء الحجز المؤقت. أكمل الدفع أو أعد بدء الحجز.' : 'التواريخ محجوزة لك مؤقتًا حتى إتمام الدفع',
+
+      primaryLabel: primary.label,
+      primaryBg: primary.enabled ? '#123642' : '#F0F1F2',
+      primaryColor: primary.enabled ? '#FFFFFF' : '#A3A7AB',
+      primaryCursor: primary.enabled ? 'pointer' : 'not-allowed',
+      primaryAction: primary.action,
+      secondaryLabel: s.screen === 'dates' ? 'العودة إلى تفاصيل المساحة' : s.screen === 'goods' ? 'العودة إلى التواريخ' : 'العودة إلى وصف البضاعة',
+      secondaryAction: () => this.go(s.screen === 'dates' ? 'details' : s.screen === 'goods' ? 'dates' : 'goods'),
+      boxNote: s.screen === 'pay' ? 'يُدفع المبلغ الآن، ثم تراجع إدارة المنصة الطلب. عند الرفض يُستَرد المبلغ كاملًا.' : s.screen === 'nafath' ? 'التواريخ محجوزة مؤقتًا حتى انتهاء المؤقت. لن يُطلب التوثيق في حجوزاتك القادمة.' : 'تُدفع القيمة كاملة في الخطوة الرابعة، ويُستَرد المبلغ عند رفض الطلب.',
+
+      isNafath: s.screen === 'nafath',
+      showPrimary: s.screen !== 'nafath',
+      showHoldTimer: s.screen === 'pay' || s.screen === 'nafath',
+      nafPad: mob ? '18px' : '26px',
+      nafStatePad: mob ? '10px 0' : '18px 0',
+      nafCodeBox: mob ? '128px' : '112px',
+      nafCodeSize: mob ? '64px' : '54px',
+      nafCode: String(s.nafathCode),
+      nafClock: this.clock(nafSecs),
+      idNumber: '1 0 8 4 3 2 9 5 7 1',
+      idMasked: '•••••••1234',
+      nafathState: s.nafathState,
+      nafIdle: s.nafathState === 'قبل البدء',
+      nafWaiting: s.nafathState === 'بانتظار التأكيد',
+      nafSuccess: s.nafathState === 'نجاح',
+      nafFail: s.nafathState === 'فشل',
+      nafMismatch: s.nafathState === 'عدم تطابق',
+      onNafathState: (e) => {
+        const v = e.target.value;
+        if (v === 'موثّق مسبقًا') { this.setState({ idVerified:true, nafathState:'نجاح' }); return; }
+        this.setState({ nafathState:v, idVerified: v === 'نجاح', nafathDeadline: v === 'بانتظار التأكيد' ? Date.now() + 120000 : null, screen: s.screen === 'pay' || ['dates','goods','nafath'].indexOf(s.screen) !== -1 ? 'nafath' : s.screen });
+      },
+      startNafath: () => {
+        this.setState({ nafathState:'بانتظار التأكيد', nafathCode: 10 + Math.floor(Math.random() * 89), nafathDeadline: Date.now() + 120000 });
+        this.nafTimer = setTimeout(() => this.setState({ nafathState:'نجاح', idVerified:true }, () => {
+          this.nafTimer = setTimeout(() => { if (this.state.screen === 'nafath') this.setState({ screen:'pay' }); }, 2000);
+        }), 4000);
+      },
+      retryNafath: () => { clearTimeout(this.nafTimer); this.setState({ nafathState:'قبل البدء', nafathDeadline:null }); },
+      editId: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ modal:{ kind:'profile', title:'الملف الشخصي — بياناتي', body:'قسم «التوثيق» في الملف الشخصي مبني بالكامل في ملف «حساب المستأجر»، ويعرض رقم الهوية مقنّعًا وشارة الحالة وتاريخ التوثيق.' } }); },
+      nafathHelp: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ modal:{ kind:'help', title:'مساعدة في التوثيق', body:'تأكّد من تحديث تطبيق نفاذ وتفعيل الإشعارات، ومن أن رقم الهوية في حسابك يطابق هويتك. إن تكرّر التعذّر تواصل مع دعم حيزك.' } }); },
+
+      tab: s.tab, tabCurrent: () => this.setState({ tab:'حالية' }), tabPrevious: () => this.setState({ tab:'سابقة' }),
+      curWeight: s.tab === 'حالية' ? 600 : 400, curColor: s.tab === 'حالية' ? '#123642' : 'rgba(45,45,45,.6)',
+      curUnderline: s.tab === 'حالية' ? '2px solid #C7A15A' : 'none',
+      prevWeight: s.tab === 'سابقة' ? 600 : 400, prevColor: s.tab === 'سابقة' ? '#123642' : 'rgba(45,45,45,.6)',
+      prevUnderline: s.tab === 'سابقة' ? '2px solid #C7A15A' : 'none',
+      bookings: bookingList,
+      bookingsEmpty: s.screen === 'bookings' && s.uiState === 'فارغة',
+      bookingsReady: s.screen === 'bookings' && s.uiState !== 'فارغة',
+      emptyTitle: s.tab === 'حالية' ? 'لا توجد حجوزات حالية' : 'لا توجد حجوزات سابقة',
+      emptyBody: s.tab === 'حالية' ? 'لم يبدأ أي حجز بعد. ابحث عن مساحة قريبة، واختر المدة المناسبة، ويظهر الحجز هنا بعد الدفع.' : 'تظهر هنا الحجوزات المكتملة والملغاة والمرفوضة مع فواتيرها بعد انتهاء مدتها.',
+
+      footerPlatform: [
+        { label:'من نحن' }, { label:'كيف تعمل المنصة' }, { label:'الأسئلة الشائعة' }
+      ].map(f => ({ ...f, go: (e) => { e.preventDefault(); this.setState({ modal:{ kind:'static', title:f.label, body:'صفحة «' + f.label + '» مبنية بالكامل في ملف «الصفحات الثابتة» بنسختَي 1440 و375، وستُربط داخل النموذج في الدفعة التالية.', confirmLabel:'حسنًا' } }); } })),
+      footerPolicies: [
+        { label:'الشروط والأحكام' }, { label:'سياسة الخصوصية' }, { label:'سياسة الإلغاء والاسترداد' }
+      ].map(f => ({ ...f, go: (e) => { e.preventDefault(); this.setState({ modal:{ kind:'static', title:f.label, body:'صفحة «' + f.label + '» مبنية بالكامل في ملف «الصفحات الثابتة»، وفهرسها الجانبي ينتقل إلى الأقسام. ستُربط داخل النموذج في الدفعة التالية.', confirmLabel:'حسنًا' } }); } })),
+
+      modalOpen: !!s.modal,
+      modalTitle: s.modal ? s.modal.title : '',
+      modalBody: s.modal ? s.modal.body : '',
+      modalConfirmLabel: s.modal ? s.modal.confirmLabel : 'حسنًا',
+      modalIcon: 'i', modalIconBg: 'rgba(46,110,142,.1)', modalIconColor: '#2E6E8E',
+      closeModal: () => this.setState({ modal:null }),
+      modalConfirm: () => this.setState({ modal:null })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

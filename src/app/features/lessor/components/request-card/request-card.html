@@ -1,0 +1,40 @@
+@let b = booking();
+
+<!-- A draft booking has no detail page to open — the renter never finished it. -->
+@if (isDraft()) {
+  <article class="req req--draft">
+    <ng-container *ngTemplateOutlet="content" />
+  </article>
+} @else {
+  <a class="req" [routerLink]="['/lessor/requests', b.id]">
+    <ng-container *ngTemplateOutlet="content" />
+  </a>
+}
+
+<ng-template #content>
+  <app-ui-badge [tone]="status().tone" [dashed]="isDraft()">{{ status().ar }}</app-ui-badge>
+
+  <div class="req__head">
+    <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="sm" />
+    <div class="req__titles">
+      <h3 class="req__title">{{ b.unit?.title }}</h3>
+      @if (isDraft()) {
+        <p class="req__meta">لم يستكمل المستأجر الطلب حتى الآن.</p>
+      } @else {
+        <p class="req__meta num">{{ period() }}</p>
+      }
+    </div>
+  </div>
+
+  @if (!isDraft()) {
+    <p class="req__goods">{{ b.goodsDescription }}</p>
+
+    @if (renterName()) {
+      <p class="req__renter">{{ renterName() }}</p>
+    } @else {
+      <p class="req__renter req__renter--hidden">تظهر بيانات المستأجر بعد موافقة الإدارة</p>
+    }
+
+    <app-ui-money [amount]="b.totalAmount" [strong]="true" />
+  }
+</ng-template>

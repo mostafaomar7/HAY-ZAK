@@ -1,0 +1,173 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.layout {
+  display: grid;
+  gap: a.$space-16;
+  align-items: start;
+
+  @include a.up(lg) {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+// ── Page list ────────────────────────────────────────────────────────────
+.pages {
+  @include a.surface(a.$radius-lg);
+
+  overflow: hidden;
+}
+
+.pages__title {
+  margin: 0;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.pages__item {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-2;
+  width: 100%;
+  padding: a.$space-12 a.$space-16;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+// Marked on the inline-start edge, mirroring automatically in English.
+.pages__item--on {
+  border-inline-end: 3px solid var(--color-primary);
+  background: var(--color-primary-soft);
+
+  .pages__name {
+    font-weight: a.$fw-semibold;
+    color: var(--color-primary);
+  }
+}
+
+.pages__name {
+  font-size: a.$fs-label;
+}
+
+.pages__meta {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+// ── Editor ───────────────────────────────────────────────────────────────
+.editor {
+  @include a.stack(a.$space-16);
+
+  min-width: 0;
+}
+
+.card {
+  @include a.surface(a.$radius-lg);
+
+  overflow: hidden;
+}
+
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-16;
+  padding: a.$space-12 a.$space-18;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.card__text {
+  @include a.stack(a.$space-2);
+
+  min-width: 0;
+}
+
+.card__title {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.card__title--pad {
+  padding: a.$space-14 a.$space-18 0;
+}
+
+.card__meta {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.card__actions {
+  display: flex;
+  gap: a.$space-8;
+}
+
+.card__body {
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-14 a.$space-18 a.$space-18;
+}
+
+.field {
+  @include a.stack(a.$space-6);
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.field__input {
+  @include a.control;
+
+  font-size: a.$fs-label;
+}
+
+.field__input--area {
+  min-height: 120px;
+  padding: a.$space-12 a.$space-14;
+  line-height: 1.9;
+  resize: vertical;
+}
+
+.field__hint {
+  display: flex;
+  gap: a.$space-8;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+// The counter turns, not the border: the limit is a recommendation from the
+// search engines, not a validation rule, so the field stays usable past it.
+.field__hint--over .num {
+  color: var(--color-warning-fg);
+  font-weight: a.$fw-semibold;
+}

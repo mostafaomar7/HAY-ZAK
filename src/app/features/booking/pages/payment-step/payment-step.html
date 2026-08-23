@@ -1,0 +1,96 @@
+@if (isLoading()) {
+  <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+} @else {
+  <div class="step">
+    <section class="step__main">
+      <fieldset class="panel">
+        <legend class="panel__title">{{ i18n.t('booking.paymentMethod') }}</legend>
+
+        <ul class="methods">
+          @for (option of methods; track option.method) {
+            <li>
+              <label class="method" [class.method--on]="method() === option.method">
+                <input
+                  class="method__input sr-only"
+                  type="radio"
+                  name="paymentMethod"
+                  [value]="option.method"
+                  [checked]="method() === option.method"
+                  (change)="setMethod(option.method)"
+                />
+                <span class="method__dot" aria-hidden="true"></span>
+                <span class="method__text">
+                  <span class="method__label">{{ i18n.t(option.labelKey) }}</span>
+                  <span class="method__hint">{{ i18n.t(option.hintKey) }}</span>
+                </span>
+              </label>
+            </li>
+          }
+        </ul>
+      </fieldset>
+
+      <section class="panel">
+        <h2 class="panel__title">{{ i18n.t('booking.summaryBeforeConfirm') }}</h2>
+
+        <dl class="recap">
+          <div class="recap__row">
+            <dt class="recap__label">{{ i18n.t('booking.space') }}</dt>
+            <dd class="recap__value">{{ unit()?.title ?? booking()?.unit?.title }}</dd>
+          </div>
+
+          <div class="recap__row">
+            <dt class="recap__label">{{ i18n.t('booking.period') }}</dt>
+            <dd class="recap__value num">{{ booking()?.startDate }} — {{ booking()?.endDate }}</dd>
+          </div>
+
+          <div class="recap__row">
+            <dt class="recap__label">{{ i18n.t('booking.duration') }}</dt>
+            <dd class="recap__value num">
+              {{ i18n.t('booking.days', { count: booking()?.daysCount ?? 0 }) }}
+            </dd>
+          </div>
+
+          <div class="recap__row">
+            <dt class="recap__label">{{ i18n.t('booking.goodsRecorded') }}</dt>
+            <dd class="recap__value recap__value--prose">{{ booking()?.goodsDescription }}</dd>
+          </div>
+        </dl>
+
+        <p class="ackDone">
+          <span class="ackDone__mark" aria-hidden="true">✓</span>
+          {{ i18n.t('booking.ackDone') }}
+        </p>
+      </section>
+    </section>
+
+    <aside class="step__side">
+      <div class="pay">
+        <h2 class="pay__title">{{ i18n.t('booking.priceBreakdown') }}</h2>
+
+        <app-ui-price-breakdown [price]="price()" [note]="i18n.t('details.allInclusive')" />
+
+        <button
+          appUiButton
+          variant="primary"
+          type="button"
+          fullWidth
+          [disabled]="paying()"
+          (click)="pay()"
+        >
+          {{ i18n.t('booking.confirmPayment') }}
+        </button>
+
+        <app-ui-notice tone="info">{{ i18n.t('booking.payNote') }}</app-ui-notice>
+
+        <a
+          appUiButton
+          variant="ghost"
+          class="pay__back"
+          [routerLink]="['/booking', bookingId(), 'identity']"
+        >
+          {{ i18n.t('booking.backToGoods') }}
+        </a>
+      </div>
+    </aside>
+  </div>
+}

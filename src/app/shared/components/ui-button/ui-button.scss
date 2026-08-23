@@ -1,0 +1,70 @@
+@use 'abstracts' as a;
+
+:host {
+  @include a.button-base;
+
+  text-decoration: none;
+}
+
+:host(.btn--sm) {
+  min-height: 34px;
+  padding-inline: a.$space-14;
+  border-radius: a.$radius-sm;
+  font-size: a.$fs-xs;
+}
+
+:host(.btn--lg) {
+  min-height: a.$control-height-lg;
+  font-size: a.$fs-lg;
+}
+
+:host(.btn--block) {
+  width: 100%;
+}
+
+:host(.btn--primary) {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+}
+
+:host(.btn--accent) {
+  background: var(--color-accent);
+  color: white;
+  font-weight: a.$fw-bold;
+
+  &:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+  }
+}
+
+:host(.btn--outline) {
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-soft);
+  }
+}
+
+:host(.btn--ghost) {
+  background: transparent;
+  color: var(--color-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg);
+  }
+}
+
+:host(.btn--danger) {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+
+  &:hover:not(:disabled) {
+    background: var(--color-danger-fg);
+  }
+}

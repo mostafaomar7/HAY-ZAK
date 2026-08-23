@@ -1,0 +1,53 @@
+<article class="card" [class.card--rejected]="isRejected()" [class.card--draft]="isDraft()">
+  <div class="card__body">
+    <app-ui-thumbnail [src]="coverImage()" [alt]="unit().title" size="md" />
+
+    <div class="card__info">
+      <app-ui-badge [tone]="status().tone" [dashed]="isDraft()" size="sm">
+        {{ status().ar }}
+      </app-ui-badge>
+
+      <h3 class="card__title">{{ unit().title }}</h3>
+
+      <p class="card__meta">
+        {{ categoryLabel() }}
+        <span class="num" dir="ltr">{{ unit().areaSqm }} م²</span>
+      </p>
+
+      <p class="card__price num" dir="rtl">{{ unit().dailyPrice }} ر.س / يوم</p>
+    </div>
+  </div>
+
+  @if (isRejected()) {
+    <app-ui-notice tone="danger" title="سبب الرفض من الإدارة">
+      {{ unit().rejectionReason }}
+    </app-ui-notice>
+    <div class="card__resubmit">
+      <a
+        appUiButton
+        variant="primary"
+        size="lg"
+        [fullWidth]="true"
+        [routerLink]="['/lessor/units', unit().id, 'edit']"
+      >
+        تعديل وإعادة الإرسال
+      </a>
+    </div>
+  } @else if (isPendingReview()) {
+    <p class="card__hint">أُرسلت إلى الإدارة، ويصلك إشعار بالنتيجة.</p>
+  } @else {
+    <div class="card__actions">
+      <a class="card__action" [routerLink]="['/lessor/units', unit().id]">التفاصيل</a>
+
+      @if (canEdit()) {
+        <a class="card__action" [routerLink]="['/lessor/units', unit().id, 'edit']">تعديل</a>
+      }
+
+      @if (canSuspend()) {
+        <button type="button" class="card__action" (click)="suspendRequested.emit(unit())">
+          إيقاف مؤقت
+        </button>
+      }
+    </div>
+  }
+</article>

@@ -1,0 +1,57 @@
+<div class="shell">
+  <app-public-topbar (toggleLanguage)="i18n.toggle()" />
+
+  @if (loading.isLoading()) {
+    <div
+      class="shell__progress"
+      role="progressbar"
+      [attr.aria-label]="i18n.t('common.loading')"
+    ></div>
+  }
+
+  <main class="shell__content" tabindex="-1">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <p class="footer__name">
+          {{ i18n.t('nav.brand') }}
+          <span class="footer__latin">{{ i18n.t('public.brandLatin') }}</span>
+        </p>
+        <p class="footer__tagline">{{ i18n.t('auth.tagline') }}</p>
+      </div>
+
+      <!-- The seven CMS pages, grouped as the design lays them out (FR-CMS-01). -->
+      <nav class="footer__nav" [attr.aria-label]="i18n.t('pages.related')">
+        <div class="footer__group">
+          <h2 class="footer__groupTitle">{{ i18n.t('nav.brand') }}</h2>
+          <a class="footer__link" routerLink="/pages/about">{{ i18n.t('pages.about') }}</a>
+          <a class="footer__link" routerLink="/pages/how-it-works">{{
+            i18n.t('pages.howItWorks')
+          }}</a>
+          <a class="footer__link" routerLink="/pages/faq">{{ i18n.t('pages.faq') }}</a>
+        </div>
+
+        <div class="footer__group">
+          <h2 class="footer__groupTitle">{{ i18n.t('account.sectionLegal') }}</h2>
+          <a class="footer__link" routerLink="/pages/terms">{{ i18n.t('pages.terms') }}</a>
+          <a class="footer__link" routerLink="/pages/privacy">{{ i18n.t('pages.privacy') }}</a>
+          <a class="footer__link" routerLink="/pages/refund-policy">{{
+            i18n.t('pages.refundPolicy')
+          }}</a>
+        </div>
+
+        <div class="footer__group">
+          <h2 class="footer__groupTitle">{{ i18n.t('pages.contactUs') }}</h2>
+          <a class="footer__link" routerLink="/pages/contact">{{ i18n.t('pages.contact') }}</a>
+          <a class="footer__link" routerLink="/units">{{ i18n.t('public.browse') }}</a>
+          <a class="footer__link" routerLink="/auth/account-type">
+            {{ i18n.t('public.listYourSpace') }}
+          </a>
+        </div>
+      </nav>
+    </div>
+  </footer>
+</div>

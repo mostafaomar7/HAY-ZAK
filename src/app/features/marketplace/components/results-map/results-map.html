@@ -1,0 +1,36 @@
+<section class="map" (mouseleave)="hovered.emit(null)">
+  <span class="map__grid" aria-hidden="true"></span>
+  <span class="map__road map__road--v" aria-hidden="true"></span>
+  <span class="map__road map__road--h" aria-hidden="true"></span>
+
+  @if (cityLabel()) {
+    <div class="map__badge">
+      <span class="map__city">{{ cityLabel() }}</span>
+      <span class="map__hint">{{ i18n.t('results.mapPinHint') }}</span>
+    </div>
+  }
+
+  @for (pin of pins(); track pin.id) {
+    <button
+      type="button"
+      class="pin"
+      [class.pin--active]="pin.id === activeId()"
+      [style.top]="pin.top"
+      [style.inset-inline-end]="pin.end"
+      [attr.aria-label]="pin.title"
+      (mouseenter)="hovered.emit(pin.id)"
+      (focus)="hovered.emit(pin.id)"
+      (blur)="hovered.emit(null)"
+    >
+      <span class="pin__bubble">
+        <span class="pin__price num" dir="ltr">{{ pin.price }}</span>
+        <span class="pin__currency">{{ i18n.t('common.currency') }}</span>
+      </span>
+      <span class="pin__stem" aria-hidden="true"></span>
+    </button>
+  }
+
+  <p class="map__status" aria-live="polite">
+    {{ hoveredTitle() || i18n.t('results.mapHoverHint') }}
+  </p>
+</section>

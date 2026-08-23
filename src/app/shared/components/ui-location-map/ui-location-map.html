@@ -1,0 +1,34 @@
+<figure class="map" [class.map--sm]="height() === 'sm'">
+  <div class="map__canvas" role="img" [attr.aria-label]="precise() ? areaLabel() : circleLabel()">
+    <span class="map__grid" aria-hidden="true"></span>
+    <span class="map__road map__road--v" aria-hidden="true"></span>
+    <span class="map__road map__road--h" aria-hidden="true"></span>
+
+    @if (precise()) {
+      <span class="map__pin" aria-hidden="true"></span>
+    } @else {
+      <span class="map__circle" aria-hidden="true">
+        <span class="map__circleLabel num">{{ circleLabel() }}</span>
+      </span>
+    }
+
+    @if (areaLabel()) {
+      <span class="map__area">{{ areaLabel() }}</span>
+    }
+  </div>
+
+  @if (showNote()) {
+    <figcaption class="map__note">
+      <span class="map__noteMark" aria-hidden="true">i</span>
+      <span>
+        @if (precise()) {
+          {{ i18n.t('bookingDetail.addressReleased') }}
+        } @else {
+          {{ i18n.t('details.locationNote', { metres: radiusMetres }) }}
+          <strong>{{ i18n.t('details.locationNoteStrong') }}</strong
+          >.
+        }
+      </span>
+    </figcaption>
+  }
+</figure>

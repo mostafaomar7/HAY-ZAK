@@ -1,0 +1,33 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+@include a.admin-panel-blocks;
+
+.block__title .num {
+  @include a.numeric;
+
+  font-weight: a.$fw-regular;
+  color: var(--color-text-muted);
+}
+
+.links {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links__item {
+  padding: a.$space-10 a.$space-12;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  font-size: a.$fs-label;
+
+  &.num {
+    @include a.numeric;
+  }
+}

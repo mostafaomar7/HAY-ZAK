@@ -1,0 +1,142 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.head {
+  @include a.surface(a.$radius-lg);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  max-width: 1100px;
+  padding: a.$space-8 a.$space-12;
+}
+
+.list {
+  @include a.surface(a.$radius-lg);
+
+  max-width: 1100px;
+  overflow: hidden;
+}
+
+.list__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.list__caption {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+
+  .num {
+    @include a.numeric;
+
+    font-weight: a.$fw-semibold;
+    color: var(--color-text);
+  }
+}
+
+.list__hint {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 110px 2.2fr 1.4fr 1.4fr;
+  align-items: center;
+  gap: a.$space-8;
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-label;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.row--head {
+  background: var(--color-bg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+.row__order {
+  display: flex;
+  align-items: center;
+  gap: a.$space-4;
+
+  .num {
+    @include a.numeric;
+
+    margin-inline-start: a.$space-4;
+    color: var(--color-text-muted);
+  }
+}
+
+.move {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 10px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-soft);
+  }
+
+  &:disabled {
+    color: var(--color-text-faint);
+    cursor: not-allowed;
+  }
+}
+
+.row__name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row__linked {
+  @include a.numeric;
+
+  color: var(--color-text-muted);
+}
+
+.row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+}
+
+.field {
+  @include a.stack(a.$space-6);
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.field__input {
+  @include a.control;
+
+  font-size: a.$fs-label;
+}

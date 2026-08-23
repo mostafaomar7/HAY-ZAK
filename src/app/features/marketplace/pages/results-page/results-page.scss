@@ -1,0 +1,272 @@
+@use 'abstracts' as a;
+
+.results {
+  position: relative;
+  background: var(--color-surface);
+}
+
+.results__layout {
+  display: flex;
+  align-items: stretch;
+  min-height: 60vh;
+}
+
+// ── Filter rail: desktop only; the phone gets the sheet ───────────────────
+.results__rail {
+  display: none;
+  width: 280px;
+  flex: none;
+  border-inline-end: 1px solid var(--color-border-divider);
+
+  @include a.up(lg) {
+    display: block;
+  }
+}
+
+.results__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.results__map {
+  display: block;
+  padding: a.$space-18 a.$space-16 0;
+
+  @include a.up(md) {
+    padding-inline: a.$space-24;
+  }
+}
+
+// ── Toolbar ──────────────────────────────────────────────────────────────
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+  padding: a.$space-16 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: a.$space-24;
+  }
+}
+
+.toolbar__count {
+  @include a.stack(a.$space-2);
+}
+
+.toolbar__title {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.toolbar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-6;
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.toolbar__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-10;
+}
+
+.toolbar__sort {
+  display: none;
+  align-items: center;
+  gap: a.$space-8;
+
+  @include a.up(md) {
+    display: flex;
+  }
+}
+
+// ── List / map switch ────────────────────────────────────────────────────
+.view {
+  display: flex;
+  gap: a.$space-2;
+  padding: 3px;
+  border-radius: a.$radius-pill;
+  background: var(--color-bg);
+}
+
+.view__btn {
+  @include a.focus-ring;
+
+  min-height: 34px;
+  padding: 0 a.$space-14;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.view__btn--on {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.toolbar__sortLabel {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.sort {
+  @include a.focus-ring;
+
+  min-height: a.$control-touch-min;
+  padding: 0 a.$space-14;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.sort--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+// ── Phone chip row ───────────────────────────────────────────────────────
+.chips {
+  display: flex;
+  gap: a.$space-8;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  overflow-x: auto;
+
+  @include a.scrollbar(4px);
+
+  @include a.up(lg) {
+    display: none;
+  }
+}
+
+.chips__filters,
+.chips__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  flex: none;
+  padding: 0 a.$space-14;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-pill;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  white-space: nowrap;
+}
+
+.chips__filters {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.chips__item {
+  @include a.numeric;
+}
+
+// ── List ─────────────────────────────────────────────────────────────────
+.results__list {
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-18 a.$space-16 a.$space-32;
+
+  @include a.up(md) {
+    padding-inline: a.$space-24;
+  }
+}
+
+.more {
+  @include a.stack(a.$space-10);
+
+  align-items: center;
+  padding: a.$space-14 0 a.$space-8;
+}
+
+.more__count {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+// ── Filter bottom sheet ──────────────────────────────────────────────────
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+
+  @include a.up(lg) {
+    display: none;
+  }
+}
+
+.sheet__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--color-overlay);
+  cursor: pointer;
+}
+
+.sheet__panel {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: 86vh;
+  overflow-y: auto;
+  border-radius: a.$radius-3xl a.$radius-3xl 0 0;
+  background: var(--color-surface);
+
+  @include a.scrollbar;
+}
+
+.sheet__grab {
+  display: block;
+  width: 44px;
+  height: 4px;
+  margin: a.$space-14 auto 0;
+  border-radius: a.$radius-pill;
+  background: var(--color-border);
+}
+
+.results__back {
+  margin: 0;
+  padding: 0 a.$space-16 a.$space-24;
+  font-size: a.$fs-xs;
+
+  @include a.up(md) {
+    padding-inline: a.$space-24;
+  }
+}

@@ -1,0 +1,41 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+@include a.admin-panel-blocks;
+
+.diff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: a.$space-12;
+}
+
+.diff__box {
+  @include a.stack(a.$space-6);
+
+  padding: a.$space-14;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+}
+
+.diff__box--new {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.diff__label {
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+.diff__value {
+  @include a.numeric;
+
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  line-height: 1.8;
+}

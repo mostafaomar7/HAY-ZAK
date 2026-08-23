@@ -1,0 +1,36 @@
+<section class="page">
+  <!-- FR-LSR-06: the lessor is informed, never asked. This notice is the design's
+       way of making the absence of approve/reject buttons feel intentional. -->
+  <app-ui-notice tone="info">
+    تراجع إدارة المنصة كل طلب، ويصلك إشعار فور صدور القرار.
+  </app-ui-notice>
+
+  <app-ui-tabs
+    label="أقسام الطلبات"
+    [tabs]="tabs()"
+    [selected]="tab()"
+    (selectionChange)="onTab($event)"
+  />
+
+  <div role="tabpanel" class="page__panel">
+    @if (isLoading()) {
+      <app-ui-skeleton [count]="6" label="جارٍ تحميل الطلبات..." />
+    } @else if (failed()) {
+      <app-ui-empty-state
+        tone="error"
+        title="تعذّر تحميل الطلبات"
+        hint="تحقّق من الاتصال بالإنترنت ثم أعد المحاولة."
+      >
+        <button appUiButton variant="primary" (click)="fetch()">إعادة المحاولة</button>
+      </app-ui-empty-state>
+    } @else if (visibleRequests().length === 0) {
+      <app-ui-empty-state title="لا توجد طلبات" [hint]="emptyMessage()" />
+    } @else {
+      <div class="page__grid">
+        @for (booking of visibleRequests(); track booking.id) {
+          <app-request-card [booking]="booking" />
+        }
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,130 @@
+@use 'abstracts' as a;
+
+.stepper {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepper--horizontal {
+  overflow-x: auto;
+
+  @include a.scrollbar(6px);
+}
+
+.stepper--vertical {
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+}
+
+.stepper--horizontal .step {
+  flex: 1;
+  min-width: 92px;
+  flex-direction: column;
+  align-items: center;
+  gap: a.$space-8;
+  text-align: center;
+}
+
+.stepper--vertical .step {
+  gap: a.$space-12;
+  padding-bottom: a.$space-18;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.step__marker {
+  @include a.flex-center;
+
+  position: relative;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 2px solid var(--color-border);
+  border-radius: a.$radius-pill;
+  background: var(--color-surface);
+  font-weight: a.$fw-bold;
+  line-height: 1;
+}
+
+// The connector between markers. Drawn from the marker rather than as a
+// separate element so it can never fall out of alignment with it.
+.stepper--vertical .step:not(:last-child) .step__marker::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + 2px);
+  inset-inline-start: calc(50% - 1px);
+  width: 2px;
+  height: calc(100% + #{a.$space-18} - 4px);
+  background: var(--color-border-subtle);
+}
+
+.stepper--vertical .step--done .step__marker::after {
+  background: var(--color-success);
+}
+
+.step__body {
+  @include a.stack(a.$space-2);
+
+  min-width: 0;
+}
+
+.stepper--horizontal .step__body {
+  align-items: center;
+}
+
+.step__label {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.step__desc {
+  font-size: a.$fs-label;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.step__meta {
+  @include a.numeric;
+
+  font-size: a.$fs-label;
+  color: var(--color-text-subtle);
+}
+
+.step--done .step__marker {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: var(--color-text-inverse);
+}
+
+.step--current .step__marker {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.step--failed .step__marker {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+
+.step--upcoming {
+  .step__label {
+    color: var(--color-text-faint);
+    font-weight: a.$fw-regular;
+  }
+
+  .step__desc,
+  .step__meta {
+    color: var(--color-text-faint);
+  }
+}

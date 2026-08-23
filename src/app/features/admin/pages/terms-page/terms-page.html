@@ -1,0 +1,169 @@
+<header class="head">
+  <app-ui-tabs
+    [tabs]="tabs()"
+    [selected]="document()"
+    [label]="i18n.t('adminNav.terms')"
+    (selectionChange)="setDocument($event)"
+  />
+  <button appUiButton variant="primary" size="sm" type="button" (click)="createVersion()">
+    {{ i18n.t('terms.newVersion') }}
+  </button>
+</header>
+
+<section class="list">
+  <div class="list__bar">
+    {{ i18n.t('terms.versionsOf', { document: documentLabel() }) }}
+  </div>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('terms.error')"
+      [hint]="i18n.t('terms.errorHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="fetch()">
+        {{ i18n.t('common.retry') }}
+      </button>
+    </app-ui-empty-state>
+  } @else if (rows().length === 0) {
+    <app-ui-empty-state [title]="i18n.t('terms.empty')" [hint]="i18n.t('terms.emptyHint')">
+      <button appUiButton variant="primary" type="button" (click)="createVersion()">
+        {{ i18n.t('terms.newVersion') }}
+      </button>
+    </app-ui-empty-state>
+  } @else {
+    <div class="row row--head">
+      <span>{{ i18n.t('terms.version') }}</span>
+      <span>{{ i18n.t('terms.publishedAt') }}</span>
+      <span>{{ i18n.t('admin.status') }}</span>
+      <span>{{ i18n.t('terms.approvals') }}</span>
+      <span>{{ i18n.t('admin.action') }}</span>
+    </div>
+
+    @for (version of rows(); track version.id) {
+      <div class="version">
+        <div class="row">
+          <span class="cell--strong num">{{ version.versionNo }}</span>
+          <span class="num">
+            @if (version.publishedAt) {
+              {{ version.publishedAt | date: 'd MMM y' }}
+            } @else {
+              <span class="muted">{{ i18n.t('terms.notPublished') }}</span>
+            }
+          </span>
+          <span>
+            <app-ui-badge [tone]="statusTone(version.status)">
+              {{ statusLabel(version.status) }}
+            </app-ui-badge>
+          </span>
+          <span class="cell--strong num">{{ version.approvalCount }}</span>
+          <span class="row__actions">
+            <button
+              appUiButton
+              variant="outline"
+              size="sm"
+              type="button"
+              (click)="openApprovals(version)"
+            >
+              {{ i18n.t('terms.viewApprovals') }}
+            </button>
+            @if (isDraft(version)) {
+              <button
+                appUiButton
+                variant="primary"
+                size="sm"
+                type="button"
+                (click)="askPublish(version)"
+              >
+                {{ i18n.t('terms.publish') }}
+              </button>
+            }
+            @if (isPublished(version)) {
+              <button
+                appUiButton
+                variant="outline"
+                size="sm"
+                type="button"
+                (click)="askArchive(version)"
+              >
+                {{ i18n.t('terms.archive') }}
+              </button>
+            }
+          </span>
+        </div>
+
+        @if (version.changeNote) {
+          <p class="version__note">{{ version.changeNote }}</p>
+        }
+      </div>
+    }
+  }
+</section>
+
+<app-ui-modal
+  showIcon="false"
+  [open]="dialog() === 'approvals'"
+  [title]="i18n.t('terms.approvalsTitle', { version: target()?.versionNo ?? '' })"
+  (dismissed)="close()"
+>
+  <p class="count num">
+    {{ i18n.t('terms.approvalsCount', { count: target()?.approvalCount ?? 0 }) }}
+  </p>
+
+  <div class="approvals">
+    <div class="approvals__row approvals__row--head">
+      <span>{{ i18n.t('terms.approvalUser') }}</span>
+      <span>{{ i18n.t('terms.approvalRole') }}</span>
+      <span>{{ i18n.t('terms.approvalDate') }}</span>
+    </div>
+    @for (approval of approvals(); track approval.userId) {
+      <div class="approvals__row">
+        <span class="cell--strong">{{ approval.fullName }}</span>
+        <span class="muted">{{ roleLabel(approval.role) }}</span>
+        <span class="num">{{ approval.acceptedAt | date: 'd MMM y · HH:mm' }}</span>
+      </div>
+    }
+  </div>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.close') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<app-ui-modal
+  [open]="dialog() === 'publish'"
+  [title]="i18n.t('terms.publishTitle')"
+  (dismissed)="close()"
+>
+  <p>{{ i18n.t('terms.publishBody') }}</p>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button appUiButton variant="primary" type="button" (click)="publish()">
+      {{ i18n.t('terms.publish') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<app-ui-modal
+  [open]="dialog() === 'archive'"
+  [title]="i18n.t('terms.archiveTitle')"
+  (dismissed)="close()"
+>
+  <p>{{ i18n.t('terms.archiveBody') }}</p>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button appUiButton variant="primary" type="button" (click)="archive()">
+      {{ i18n.t('terms.archive') }}
+    </button>
+  </ng-container>
+</app-ui-modal>

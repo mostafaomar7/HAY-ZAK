@@ -1,0 +1,27 @@
+@use 'abstracts' as a;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-18;
+}
+
+.page__panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-14;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: a.$space-18;
+  }
+
+  @include a.up(xxl) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

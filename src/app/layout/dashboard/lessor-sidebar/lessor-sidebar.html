@@ -1,0 +1,23 @@
+<nav class="sidebar" [attr.aria-label]="i18n.t('nav.menu')">
+  <a class="sidebar__brand" routerLink="/lessor/dashboard" (click)="navigate.emit()">{{
+    i18n.t('nav.brand')
+  }}</a>
+
+  <ul class="sidebar__list">
+    @for (item of items(); track item.route) {
+      <li>
+        <a
+          class="sidebar__item"
+          [routerLink]="item.route"
+          routerLinkActive="sidebar__item--active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/lessor/dashboard' }"
+          ariaCurrentWhenActive="page"
+          (click)="navigate.emit()"
+        >
+          <app-ui-icon [name]="item.icon" />
+          {{ i18n.t(item.labelKey) }}
+        </a>
+      </li>
+    }
+  </ul>
+</nav>

@@ -1,0 +1,113 @@
+@use 'abstracts' as a;
+
+// The dialog is pinned to the inline-start edge and full height. `inset` with
+// `auto` on the opposite side lets the logical direction pick the side, so an
+// English build slides in from the left with no override.
+.panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100vw);
+  max-width: none;
+  max-height: 100dvh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 0 28px rgb(18 54 66 / 18%);
+
+  &::backdrop {
+    background: rgb(18 54 66 / 42%);
+  }
+
+  &[open] {
+    animation: panel-in 0.22s ease;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    transform: translateX(calc(-100% * var(--panel-dir, 1)));
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+:host-context([dir='rtl']) .panel {
+  --panel-dir: -1;
+}
+
+.panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: a.$space-12;
+  flex: none;
+  padding: a.$space-16 a.$space-20;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.panel__heading {
+  @include a.stack(a.$space-4);
+
+  min-width: 0;
+}
+
+.panel__eyebrow {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.panel__close {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: a.$fs-sm;
+  cursor: pointer;
+}
+
+.panel__body {
+  @include a.stack(a.$space-20);
+  @include a.scrollbar;
+
+  flex: 1;
+  overflow-y: auto;
+  padding: a.$space-20;
+}
+
+.panel__foot {
+  display: flex;
+  gap: a.$space-10;
+  flex: none;
+  padding: a.$space-14 a.$space-20;
+  border-top: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+
+  // Collapses when nothing is projected, so a read-only panel has no dead bar.
+  &:empty {
+    display: none;
+  }
+}

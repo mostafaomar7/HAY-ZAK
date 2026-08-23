@@ -1,0 +1,254 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: a.$space-16;
+  min-height: 60px;
+  padding: a.$space-10 a.$space-20;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-surface);
+}
+
+.bar__menu {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+
+  @include a.up(lg) {
+    display: none;
+  }
+}
+
+.bar__title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+
+  @include a.truncate;
+}
+
+.bar__tools {
+  display: flex;
+  align-items: center;
+  gap: a.$space-12;
+}
+
+// ── Global search ────────────────────────────────────────────────────────
+.search {
+  display: none;
+  align-items: center;
+  gap: a.$space-8;
+  width: 280px;
+  padding: a.$space-8 a.$space-12;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+
+  @include a.up(xl) {
+    display: flex;
+  }
+}
+
+.search__icon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.search__input {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: a.$fs-xs;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// ── Icon buttons ─────────────────────────────────────────────────────────
+.bar__icon {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  position: relative;
+  gap: a.$space-4;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 a.$space-8;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-primary-soft);
+  }
+}
+
+.bar__lang {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+}
+
+.bar__count {
+  @include a.numeric;
+
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 a.$space-4;
+  border: 2px solid var(--color-surface);
+  border-radius: a.$radius-pill;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: a.$fw-semibold;
+  line-height: 13px;
+  text-align: center;
+}
+
+.bar__rule {
+  width: 1px;
+  height: 24px;
+  flex: none;
+  background: var(--color-border);
+}
+
+// ── Account menu ─────────────────────────────────────────────────────────
+.account {
+  position: relative;
+}
+
+.account__trigger {
+  @include a.focus-ring;
+
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  padding: a.$space-4;
+  border: 0;
+  border-radius: a.$radius-sm;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+.account__text {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+
+  @include a.up(md) {
+    display: flex;
+  }
+}
+
+.account__name {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+}
+
+.account__role {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.account__avatar {
+  @include a.flex-center;
+
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 30;
+  width: 236px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  box-shadow: 0 10px 26px rgb(18 54 66 / 16%);
+}
+
+.menu__head {
+  @include a.stack(a.$space-2);
+
+  padding: a.$space-12 a.$space-14;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.menu__name {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.menu__role {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.menu__item {
+  display: block;
+  width: 100%;
+  padding: a.$space-12 a.$space-14;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: a.$fs-label;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+.menu__item--danger {
+  color: var(--color-danger);
+  font-weight: a.$fw-semibold;
+
+  &:hover {
+    background: var(--color-danger-bg);
+  }
+}

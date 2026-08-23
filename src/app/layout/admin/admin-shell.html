@@ -1,0 +1,79 @@
+<div class="shell">
+  <div class="shell__rail">
+    <app-admin-sidebar [counts]="queues.counts()" />
+  </div>
+
+  @if (drawerOpen()) {
+    <button type="button" class="shell__scrim" (click)="closeDrawer()">
+      <span class="sr-only">{{ i18n.t('nav.closeMenu') }}</span>
+    </button>
+    <div
+      class="shell__drawer"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="i18n.t('adminNav.menu')"
+      (keydown.escape)="closeDrawer()"
+    >
+      <app-admin-sidebar [counts]="queues.counts()" (navigate)="closeDrawer()" />
+    </div>
+  }
+
+  <div class="shell__main">
+    <app-admin-topbar
+      [title]="title()"
+      [unreadCount]="queues.counts().listings + queues.counts().bookings"
+      (openMenu)="openDrawer()"
+      (loggedOut)="askLogout()"
+    />
+
+    @if (loading.isLoading()) {
+      <div
+        class="shell__progress"
+        role="progressbar"
+        [attr.aria-label]="i18n.t('common.loading')"
+      ></div>
+    }
+
+    <main class="shell__content" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<!-- Session about to expire. Dismissing it is not an option: the only two ways
+     out are staying signed in or leaving. -->
+<app-ui-modal
+  showIcon
+  [open]="session.warning() && !session.expired()"
+  [title]="i18n.t('session.title')"
+>
+  <p>{{ i18n.t('session.body') }}</p>
+  <app-ui-countdown tone="danger" [seconds]="session.secondsLeft()" />
+
+  <ng-container slot="actions">
+    <button appUiButton variant="primary" type="button" (click)="session.resume()">
+      {{ i18n.t('session.stay') }}
+    </button>
+    <button appUiButton variant="outline" type="button" (click)="logout()">
+      {{ i18n.t('topbar.logout') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<app-ui-modal
+  tone="danger"
+  [open]="logoutOpen()"
+  [title]="i18n.t('logout.title')"
+  (dismissed)="logoutOpen.set(false)"
+>
+  <p>{{ i18n.t('logout.body') }}</p>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="logoutOpen.set(false)">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button appUiButton variant="danger" type="button" (click)="logout()">
+      {{ i18n.t('topbar.logout') }}
+    </button>
+  </ng-container>
+</app-ui-modal>

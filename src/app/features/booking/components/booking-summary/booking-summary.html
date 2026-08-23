@@ -1,0 +1,68 @@
+<section class="summary" [attr.aria-label]="i18n.t('booking.summary')">
+  @if (unit(); as space) {
+    <div class="summary__unit">
+      <app-ui-thumbnail class="summary__thumb" [src]="space.images[0]?.url" [alt]="space.title" />
+
+      <div class="summary__unitText">
+        <h2 class="summary__title">{{ space.title }}</h2>
+        <p class="summary__place num">
+          {{ place() }} · <span dir="ltr">{{ space.areaSqm }}</span> {{ i18n.t('common.sqm') }}
+        </p>
+        <app-ui-badge tone="success" size="sm">{{ i18n.t('details.available') }}</app-ui-badge>
+      </div>
+    </div>
+
+    @if (showPrice()) {
+      <hr class="summary__rule" />
+
+      <div class="summary__price">
+        <p class="summary__daily">
+          <span class="summary__amount num" dir="ltr">{{ space.dailyPrice }}</span>
+          <span class="summary__currency">{{ i18n.t('common.currency') }}</span>
+          <span class="summary__per">{{ i18n.t('results.perDay') }}</span>
+        </p>
+        <p class="summary__hint num">
+          {{ i18n.t('booking.monthlyApprox') }} <span dir="ltr">{{ monthly() }}</span>
+          {{ i18n.t('common.currency') }}
+        </p>
+        <p class="summary__hint num">
+          {{ i18n.t('booking.periodTotal') }} <span dir="ltr">{{ periodTotal() }}</span>
+          {{ i18n.t('common.currency') }}
+        </p>
+      </div>
+    }
+  }
+
+  <hr class="summary__rule" />
+
+  <dl class="summary__facts">
+    <div class="fact">
+      <dt class="fact__label">{{ i18n.t('booking.startDate') }}</dt>
+      <dd class="fact__value num">
+        {{ startLabel() }}
+        @if (showHijri() && startHijri()) {
+          <span class="fact__sub num">{{ startHijri() }}</span>
+        }
+      </dd>
+    </div>
+
+    <div class="fact">
+      <dt class="fact__label">{{ i18n.t('booking.endDate') }}</dt>
+      <dd class="fact__value num">
+        {{ endLabel() }}
+        @if (showHijri() && endHijri()) {
+          <span class="fact__sub num">{{ endHijri() }}</span>
+        }
+      </dd>
+    </div>
+
+    <div class="fact">
+      <dt class="fact__label">{{ i18n.t('booking.duration') }}</dt>
+      <dd class="fact__value num">
+        {{ i18n.t('booking.days', { count: draft()?.daysCount ?? 0 }) }}
+      </dd>
+    </div>
+  </dl>
+
+  <ng-content />
+</section>

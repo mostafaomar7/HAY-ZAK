@@ -1,0 +1,115 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.rail {
+  @include a.scrollbar(6px);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: a.$space-24;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.rail__brand {
+  @include a.stack(a.$space-6);
+
+  padding: a.$space-20 a.$space-20 a.$space-18;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
+.rail__name {
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+}
+
+.rail__latin {
+  font-family: a.$font-latin;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-medium;
+  letter-spacing: 4px;
+  color: var(--color-accent);
+}
+
+.group {
+  padding-bottom: a.$space-8;
+  margin-bottom: a.$space-8;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.group__title {
+  margin: 0;
+  padding: a.$space-12 a.$space-20 a.$space-6;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  letter-spacing: 0.08em;
+  color: rgb(255 255 255 / 55%);
+}
+
+.group__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  @include a.focus-ring;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-8;
+  min-height: 40px;
+  padding: a.$space-8 a.$space-20;
+  color: rgb(255 255 255 / 82%);
+  font-size: a.$fs-label;
+  text-decoration: none;
+
+  &:hover {
+    background: rgb(255 255 255 / 8%);
+    color: var(--color-on-primary);
+  }
+}
+
+// Pinned to the inline-start edge with logical radii, so an English build
+// mirrors it without an override.
+.item--on {
+  margin: 2px 0;
+  border-radius: a.$radius-sm 0 0 a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: a.$fw-semibold;
+  box-shadow: 0 1px 2px rgb(18 54 66 / 18%);
+
+  &:hover {
+    background: var(--color-surface);
+    color: var(--color-primary);
+  }
+}
+
+.item__badge {
+  @include a.numeric;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 19px;
+  flex: none;
+  padding: 0 a.$space-6;
+  border-radius: a.$radius-pill;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+}

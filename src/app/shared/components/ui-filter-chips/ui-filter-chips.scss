@@ -1,0 +1,45 @@
+@use 'abstracts' as a;
+
+.chips {
+  display: flex;
+  gap: a.$space-8;
+  overflow-x: auto;
+  padding-bottom: a.$space-4;
+
+  @include a.scrollbar(6px);
+}
+
+.chip {
+  @include a.pill(a.$control-touch-min, a.$space-14);
+  @include a.focus-ring;
+
+  flex: none;
+  border: 1px solid var(--color-border-input);
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  font-weight: a.$fw-regular;
+  font-size: a.$fs-md;
+  cursor: pointer;
+  transition:
+    background-color a.$transition-fast,
+    border-color a.$transition-fast;
+
+  &:hover:not(.chip--active) {
+    background: var(--color-bg);
+  }
+}
+
+.chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: a.$fw-semibold;
+}
+
+.chip__count {
+  @include a.numeric;
+
+  margin-inline-start: a.$space-6;
+  opacity: 0.75;
+}

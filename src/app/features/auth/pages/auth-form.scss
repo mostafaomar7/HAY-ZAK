@@ -1,0 +1,184 @@
+@use 'abstracts' as a;
+
+// Shared by all three auth forms — one stylesheet rather than three copies.
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-16;
+}
+
+.authForm__head {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-6;
+}
+
+.authForm__title {
+  margin: 0;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.authForm__sub {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.authForm__link {
+  align-self: flex-start;
+  min-height: a.$control-touch-min;
+  display: inline-flex;
+  align-items: center;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+}
+
+.authForm__foot {
+  margin: 0;
+  padding-top: a.$space-8;
+  border-top: 1px solid var(--color-border-divider);
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-align: center;
+
+  a {
+    font-weight: a.$fw-semibold;
+  }
+}
+
+.authForm__error {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-danger-fg);
+}
+
+.authForm__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-16;
+
+  @include a.up(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Mobile number: fixed +966 prefix beside the subscriber number.
+.phone {
+  display: flex;
+  gap: a.$space-8;
+  align-items: stretch;
+}
+
+.phone__code {
+  @include a.flex-center;
+  @include a.numeric;
+
+  flex: none;
+  min-height: a.$control-height;
+  padding: 0 a.$space-12;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-md;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-weight: a.$fw-semibold;
+}
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: a.$space-10;
+  font-size: a.$fs-md;
+  color: var(--color-text);
+
+  input {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin: 2px 0 0;
+    accent-color: var(--color-primary);
+  }
+}
+
+// ── OTP screen ───────────────────────────────────────────────────────────
+.otpMeta {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-8;
+  align-items: center;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.otpMeta__target {
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.otpMeta__row {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+}
+
+// ── Password recovery (PUB-10, PUB-11) ───────────────────────────────────
+// The confirmation and success screens share the form's frame, so their few
+// extra pieces live here rather than in two near-identical stylesheets.
+.sentMark {
+  @include a.flex-center;
+
+  width: 52px;
+  height: 52px;
+  margin-bottom: a.$space-4;
+  border-radius: a.$radius-pill;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: a.$fs-2xl;
+}
+
+.sentMark--ok {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.resend {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: a.$space-8;
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+}
+
+.channel {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  border-radius: a.$radius-pill;
+  background: var(--color-bg);
+}
+
+.channel__opt {
+  @include a.focus-ring;
+
+  min-height: 34px;
+  padding: 0 a.$space-14;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.channel__opt--on {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

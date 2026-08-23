@@ -1,0 +1,57 @@
+<dl class="price" [class.price--compact]="compact()">
+  <div class="price__row">
+    <dt class="price__term">
+      <span class="price__label">{{ i18n.t('details.rentValue') }}</span>
+      <span class="price__sub num">{{ rentLine() }}</span>
+    </dt>
+    <dd class="price__value">
+      <app-ui-money [amount]="price().subtotal" [showCurrency]="false" />
+    </dd>
+  </div>
+
+  <div class="price__row">
+    <dt class="price__term">
+      <span class="price__label">{{
+        i18n.t('details.commission', { rate: commissionRate() })
+      }}</span>
+      @if (commissionOnLessor()) {
+        <span class="price__sub">{{ i18n.t('details.commissionFromLessor') }}</span>
+      }
+    </dt>
+    <dd class="price__value">
+      @if (commissionOnLessor()) {
+        <span class="price__dash" [attr.aria-label]="i18n.t('details.commissionFromLessor')">
+          {{ i18n.t('common.notAvailable') }}
+        </span>
+      } @else {
+        <app-ui-money [amount]="price().commissionAmount" [showCurrency]="false" />
+      }
+    </dd>
+  </div>
+
+  @if (price().vatAmount > 0 && !commissionOnLessor()) {
+    <div class="price__row">
+      <dt class="price__term">
+        <span class="price__label">{{ i18n.t('details.vat', { rate: vatRate() }) }}</span>
+      </dt>
+      <dd class="price__value">
+        <app-ui-money [amount]="price().vatAmount" [showCurrency]="false" />
+      </dd>
+    </div>
+  }
+
+  <div class="price__rule" aria-hidden="true"></div>
+
+  <div class="price__row price__row--total">
+    <dt class="price__term">
+      <span class="price__totalLabel">{{ total() }}</span>
+    </dt>
+    <dd class="price__value">
+      <app-ui-money class="price__totalValue" [amount]="price().totalAmount" strong />
+    </dd>
+  </div>
+</dl>
+
+@if (note()) {
+  <p class="price__note">{{ note() }}</p>
+}

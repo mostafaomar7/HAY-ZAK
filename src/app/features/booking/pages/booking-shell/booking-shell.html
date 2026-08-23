@@ -1,0 +1,29 @@
+<div class="wizard">
+  <app-ui-wizard-steps
+    class="wizard__steps"
+    [steps]="steps()"
+    [current]="currentIndex()"
+    [label]="i18n.t('booking.summary')"
+  />
+
+  @if (showHold()) {
+    <div class="hold" [class.hold--urgent]="holdUrgent()" role="status">
+      <p class="hold__text">
+        <span class="hold__mark" aria-hidden="true">⏱</span>
+        {{ holdUrgent() ? i18n.t('booking.holdBannerUrgent') : i18n.t('booking.holdBanner') }}
+      </p>
+
+      <p class="hold__timer">
+        <span class="hold__timerLabel">{{ i18n.t('booking.holdRemaining') }}</span>
+        <app-ui-countdown
+          tone="inherit"
+          [seconds]="holdSeconds() ?? 0"
+          (finished)="onHoldExpired()"
+        />
+        <span class="hold__timerUnit">{{ i18n.t('booking.holdMinutes') }}</span>
+      </p>
+    </div>
+  }
+
+  <router-outlet />
+</div>

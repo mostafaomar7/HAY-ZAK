@@ -1,0 +1,32 @@
+@use 'abstracts' as a;
+
+.thumb {
+  @include a.thumb-placeholder;
+  @include a.flex-center;
+
+  flex: none;
+  overflow: hidden;
+  border-radius: a.$radius-md;
+}
+
+.thumb--sm {
+  width: a.$thumb-sm;
+  height: a.$thumb-sm;
+}
+
+.thumb--md {
+  width: a.$thumb-md;
+  height: a.$thumb-md;
+}
+
+.thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb__placeholder {
+  font-family: a.$font-mono;
+  font-size: 10px;
+  color: var(--color-text-subtle);
+}

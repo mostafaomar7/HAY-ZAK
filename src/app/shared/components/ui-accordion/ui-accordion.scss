@@ -1,0 +1,95 @@
+@use 'abstracts' as a;
+
+.accordion {
+  @include a.stack(a.$space-10);
+}
+
+.item {
+  @include a.surface(a.$radius-lg);
+
+  overflow: hidden;
+
+  &[open] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+  }
+}
+
+.item__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  min-height: a.$control-height;
+  padding: a.$space-12 a.$space-16;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  cursor: pointer;
+  list-style: none;
+
+  // Safari still paints its own triangle without this.
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.item__text {
+  text-wrap: pretty;
+}
+
+.item__sign {
+  @include a.flex-center;
+
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+  color: var(--color-primary);
+
+  // A drawn plus/minus rather than a glyph: it does not depend on a font
+  // shipping the character, and the minus is the same bar with the other hidden.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background: currentcolor;
+    border-radius: 1px;
+  }
+
+  &::before {
+    width: 11px;
+    height: 2px;
+  }
+
+  &::after {
+    width: 2px;
+    height: 11px;
+    transition: opacity a.$transition-fast;
+  }
+
+  .item[open] & {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+
+    &::after {
+      opacity: 0;
+    }
+  }
+}
+
+.item__a {
+  margin: 0;
+  padding: 0 a.$space-16 a.$space-16;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}

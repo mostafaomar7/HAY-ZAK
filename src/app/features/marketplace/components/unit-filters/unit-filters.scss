@@ -1,0 +1,210 @@
+@use 'abstracts' as a;
+
+.filters {
+  @include a.stack(a.$space-20);
+
+  padding: a.$space-20;
+}
+
+.filters--sheet {
+  padding-bottom: a.$space-24;
+}
+
+.filters__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+}
+
+.filters__title {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.filters__clear {
+  @include a.focus-ring;
+
+  min-height: a.$control-touch-min;
+  padding: 0 a.$space-8;
+  border: 0;
+  border-radius: a.$radius-sm;
+  background: transparent;
+  color: var(--color-link);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+.filters__rule {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border-divider);
+}
+
+// ── Groups ───────────────────────────────────────────────────────────────
+.group {
+  @include a.stack(a.$space-10);
+
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.group__title {
+  margin: 0;
+  padding: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.group__pair {
+  display: flex;
+  gap: a.$space-8;
+}
+
+.group__hint {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+// ── Number boxes ─────────────────────────────────────────────────────────
+.box {
+  @include a.stack(0);
+
+  flex: 1;
+  min-width: 0;
+  padding: a.$space-4 a.$space-10;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  cursor: text;
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.box__label {
+  font-size: 9px;
+  color: var(--color-text-faint);
+}
+
+.box__control {
+  display: flex;
+  align-items: baseline;
+  gap: a.$space-4;
+  min-width: 0;
+}
+
+.box__input {
+  @include a.numeric;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-family: a.$font-latin;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.box__unit {
+  flex: none;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+// ── Category checkboxes ──────────────────────────────────────────────────
+.cats {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  min-height: a.$control-touch-min;
+  padding: 0 a.$space-12;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  cursor: pointer;
+
+  &:has(:focus-visible) {
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.cat--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.cat__box {
+  @include a.flex-center;
+
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: a.$radius-sm;
+  background: var(--color-surface);
+  color: var(--color-on-primary);
+  font-size: a.$fs-2xs;
+
+  .cat--on & {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+}
+
+.cat__name {
+  flex: 1;
+  font-size: a.$fs-label;
+  color: var(--color-text);
+}
+
+.cat__count {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+.filters__apply {
+  @include a.button-base(a.$control-height-lg);
+
+  width: 100%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-lg;
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}

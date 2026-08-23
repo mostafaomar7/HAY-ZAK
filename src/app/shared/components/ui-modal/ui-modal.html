@@ -1,0 +1,24 @@
+<dialog
+  #dialog
+  class="modal"
+  [class.modal--danger]="tone() === 'danger'"
+  closedby="none"
+  [attr.aria-labelledby]="'modal-title'"
+  (cancel)="onCancel($event)"
+>
+  <div class="modal__body">
+    @if (showIcon()) {
+      <span class="modal__icon" aria-hidden="true">{{ tone() === 'danger' ? '!' : 'i' }}</span>
+    }
+
+    <h2 class="modal__title" id="modal-title">{{ title() }}</h2>
+
+    <div class="modal__content">
+      <ng-content />
+    </div>
+
+    <div class="modal__actions">
+      <ng-content select="[slot=actions]" />
+    </div>
+  </div>
+</dialog>

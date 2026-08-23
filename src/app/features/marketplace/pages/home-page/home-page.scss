@@ -1,0 +1,228 @@
+@use 'abstracts' as a;
+
+// ── Hero ─────────────────────────────────────────────────────────────────
+.hero {
+  padding: a.$space-32 a.$space-16 a.$space-40;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  @include a.up(lg) {
+    padding: a.$space-56 a.$space-32;
+  }
+}
+
+.hero__inner,
+.section__inner {
+  width: 100%;
+  max-width: a.$content-max-width;
+  margin-inline: auto;
+}
+
+.hero__title {
+  margin: 0 0 a.$space-8;
+  font-size: clamp(#{a.$fs-3xl}, 5vw, #{a.$fs-4xl});
+  font-weight: a.$fw-bold;
+  color: var(--color-on-primary);
+}
+
+.hero__sub {
+  margin: 0 0 a.$space-24;
+  max-width: 60ch;
+  font-size: a.$fs-lg;
+  color: color-mix(in srgb, var(--color-on-primary) 78%, transparent);
+  text-wrap: pretty;
+}
+
+// ── Search card ──────────────────────────────────────────────────────────
+.search {
+  @include a.surface(a.$radius-2xl);
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-16;
+  padding: a.$space-20;
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+
+  @include a.up(md) {
+    padding: a.$space-24;
+  }
+}
+
+.search__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.search__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-16;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include a.up(xl) {
+    grid-template-columns: repeat(4, 1fr);
+    align-items: start;
+  }
+}
+
+.search__submit {
+  align-self: stretch;
+
+  @include a.up(md) {
+    align-self: flex-start;
+    min-width: 200px;
+  }
+}
+
+// ── Calendar toggle ──────────────────────────────────────────────────────
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-8;
+}
+
+.calendar__toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  border-radius: a.$radius-pill;
+  background: var(--color-bg);
+}
+
+.calendar__opt {
+  @include a.focus-ring;
+
+  min-height: 32px;
+  padding: 0 a.$space-12;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.calendar__opt--on {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+// ── Sections ─────────────────────────────────────────────────────────────
+.section {
+  padding: a.$space-40 a.$space-16;
+  background: var(--color-surface);
+
+  @include a.up(lg) {
+    padding-inline: a.$space-32;
+  }
+}
+
+.section--alt {
+  background: var(--color-bg-shell);
+}
+
+.section__title {
+  margin: 0 0 a.$space-6;
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.section__sub {
+  margin: 0 0 a.$space-24;
+  font-size: a.$fs-lg;
+  color: var(--color-text-muted);
+}
+
+// ── Category tiles ───────────────────────────────────────────────────────
+.cats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: a.$space-16;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cat {
+  @include a.surface(a.$radius-xl);
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  min-height: 96px;
+  padding: a.$space-16;
+  color: var(--color-text);
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color a.$transition-fast,
+    transform a.$transition-fast;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.cat__name {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+}
+
+// ── How it works ─────────────────────────────────────────────────────────
+.steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-20;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.step {
+  @include a.surface(a.$radius-xl);
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-8;
+  padding: a.$space-20;
+}
+
+.step__num {
+  @include a.flex-center;
+
+  width: 36px;
+  height: 36px;
+  border-radius: a.$radius-pill;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+}
+
+.step__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.step__text {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}

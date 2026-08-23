@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #EDEFF0; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; color: #2D2D2D; line-height: 1.7; }
+  * { box-sizing: border-box; }
+  input { font-family: inherit; }
+  a { color: #123642; }
+  a:hover { color: #0B242C; }
+</style>
+</helmet>
+
+<section dir="rtl" style="display:flex;flex-direction:column;gap:56px;padding:56px 48px 40px">
+
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border:1px solid #DDE2E4;border-radius:12px;background:#FFFFFF">
+    <span style="font-size:15px;color:#55666D">ملفات المشروع</span>
+    <a href="./بوابة المؤجر - المساحات والطلبات.dc.html" style="display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid #123642;color:#123642;font-size:15px;font-weight:600;text-decoration:none">المساحات والطلبات والمسارات</a>
+    <span style="display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;background:#123642;color:#FFFFFF;font-size:15px;font-weight:600">الدخول والحساب</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-size:13px;font-weight:600;letter-spacing:0.06em;color:#6B7B82">حيزك · بوابة المؤجر · الدفعة 2</div>
+    <h1 style="margin:0;font-size:34px;font-weight:700;color:#123642;line-height:1.4">اللوحة والبيانات البنكية والملف الشخصي</h1>
+    <p style="margin:0;font-size:16px;color:#55666D;max-width:60ch;text-wrap:pretty">لا يوجد في أي شاشة زر قبول أو رفض للحجوزات — القرار لإدارة المنصة، والمؤجر يرى الحالة فقط.</p>
+  </div>
+
+  <!-- ============ LSR-01 ============ -->
+  <div id="2a" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">2a</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-01 — لوحة التحكم</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <!-- blocked mobile -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · محجوبة (بيانات بنكية ناقصة)</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 16px">
+            <div style="font-size:20px;font-weight:700;color:#123642">حيزك</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:#F5F5F5;color:#123642;font-size:18px;cursor:pointer" style-hover="background:#E7EBEC">◉</button>
+              <div style="width:44px;height:44px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">ف</div>
+            </div>
+          </div>
+
+          <div style="padding:0 20px 28px;display:flex;flex-direction:column;gap:22px">
+            <div style="padding:18px;border:1.5px solid #C7A15A;border-radius:14px;background:#F7EFDF;display:flex;flex-direction:column;gap:12px">
+              <h3 style="margin:0;font-size:19px;font-weight:700;color:#123642">خطوة واحدة تفصلك عن نشر مساحتك</h3>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">البيانات البنكية غير مكتملة، ويتعذّر تحويل المستحقات دونها. تُطلب إضافة اسم صاحب الحساب والبنك ورقم الآيبان؛ لا تستغرق العملية سوى دقيقة.</p>
+              <button type="button" style="height:52px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">إضافة البيانات البنكية</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button type="button" disabled="{{ true }}" aria-disabled="true" style="height:56px;border:0;border-radius:12px;background:#EDE6D8;color:#9C8F79;font-family:inherit;font-size:17px;font-weight:600;cursor:not-allowed">إضافة مساحة جديدة</button>
+              <div style="font-size:14px;color:#6B7B82">تنفتح إضافة المساحة بعد إكمال بياناتك البنكية.</div>
+            </div>
+
+            <div>
+              <div style="font-size:16px;font-weight:600;color:#2D2D2D;margin-bottom:12px">المساحات المسجّلة</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:14px;color:#55666D">إجمالي وحداتي</div>
+                  <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">3</div>
+                </div>
+                <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:14px;color:#55666D">الوحدات المتاحة</div>
+                  <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">3</div>
+                </div>
+                <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:14px;color:#55666D">الوحدات المحجوزة</div>
+                  <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div>
+                </div>
+                <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:14px;color:#55666D">الحجوزات النشطة</div>
+                  <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:18px;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:14px;color:#55666D">إجمالي المستحقات</div>
+              <div dir="ltr" style="font-size:26px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">0 ر.س</div>
+              <div style="font-size:14px;color:#6B7B82">يبدأ التحويل بعد إضافة بياناتك البنكية.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:16px;font-weight:600;color:#2D2D2D">آخر الإشعارات</div>
+              <div style="padding:16px;border:1px dashed #D3DADD;border-radius:14px;font-size:15px;color:#55666D;text-wrap:pretty">لم تصلك أي إشعارات حتى الآن. تظهر جميع التحديثات هنا بعد نشر أول مساحة.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- open mobile -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · مفتوحة</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 16px">
+            <div style="display:flex;flex-direction:column">
+              <div style="font-size:14px;color:#55666D">مساء الخير</div>
+              <div style="font-size:19px;font-weight:700;color:#123642">فهد العمري</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button type="button" style="position:relative;width:44px;height:44px;border:0;border-radius:10px;background:#F5F5F5;color:#123642;font-size:18px;cursor:pointer" style-hover="background:#E7EBEC">◉</button>
+              <div style="width:44px;height:44px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">ف</div>
+            </div>
+          </div>
+
+          <div style="padding:0 20px 28px;display:flex;flex-direction:column;gap:22px">
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#8A6D2F;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer" style-hover="background:#7A6029">إضافة مساحة جديدة</button>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:14px;color:#55666D">إجمالي وحداتي</div>
+                <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">4</div>
+              </div>
+              <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:14px;color:#55666D">الوحدات المتاحة</div>
+                <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div>
+              </div>
+              <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:14px;color:#55666D">الوحدات المحجوزة</div>
+                <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div>
+              </div>
+              <div style="padding:16px;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:14px;color:#55666D">الحجوزات النشطة</div>
+                <div style="font-size:28px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div>
+              </div>
+            </div>
+
+            <div style="padding:20px;border-radius:14px;background:#123642;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:15px;color:#C9D6DB">إجمالي المستحقات</div>
+              <div dir="ltr" style="font-size:32px;font-weight:700;color:#FFFFFF;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">3,750 ر.س</div>
+              <button type="button" style="align-self:flex-start;min-height:44px;padding:0 14px;border:1px solid #4A6670;border-radius:10px;background:transparent;color:#FFFFFF;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تفاصيل المستحقات</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:16px;font-weight:600;color:#2D2D2D">آخر الإشعارات</div>
+                <a href="#2a" style="font-size:15px;font-weight:600;color:#123642">الكل</a>
+              </div>
+              <div style="display:flex;flex-direction:column;border:1px solid #E7EBEC;border-radius:14px;overflow:hidden">
+                <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #EDEFF0">
+                  <span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none;margin-top:8px"></span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:15px;color:#2D2D2D;text-wrap:pretty">وصل طلب حجز على «غرفة الدور الأرضي» — قيد مراجعة إدارة المنصة</div>
+                    <div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">قبل 20 دقيقة</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #EDEFF0">
+                  <span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none;margin-top:8px"></span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:15px;color:#2D2D2D;text-wrap:pretty">وافقت الإدارة على حجز «مستودع السطح» — بيانات المستأجر ظاهرة لك الآن</div>
+                    <div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">أمس</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #EDEFF0">
+                  <span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:8px"></span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:15px;color:#2D2D2D;text-wrap:pretty">حوّلنا <span dir="rtl" style="font-variant-numeric:tabular-nums;unicode-bidi:isolate">1,250 ر.س</span> على حسابك البنكي</div>
+                    <div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">3 أغسطس</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #EDEFF0">
+                  <span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:8px"></span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:15px;color:#2D2D2D">انتهى حجز «الجراج» ورجعت الوحدة متاحة</div>
+                    <div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">28 يوليو</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;padding:14px 16px">
+                  <span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:8px"></span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:15px;color:#2D2D2D">حدّثنا الشروط والأحكام</div>
+                    <div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">21 يوليو</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;border-top:1px solid #EDEFF0">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 14px;color:#123642;font-size:12px;font-weight:600"><span style="font-size:18px">▣</span>اللوحة</div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 14px;color:#6B7B82;font-size:12px"><span style="font-size:18px">▤</span>المساحات المسجّلة</div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 14px;color:#6B7B82;font-size:12px"><span style="font-size:18px">☰</span>الطلبات</div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 14px;color:#6B7B82;font-size:12px"><span style="font-size:18px">◍</span>حسابي</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- empty mobile -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · مؤجر جديد بلا وحدات</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 16px">
+            <div style="font-size:20px;font-weight:700;color:#123642">حيزك</div>
+            <div style="width:44px;height:44px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">ن</div>
+          </div>
+          <div style="padding:0 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:36px 16px;border:1px solid #E7EBEC;border-radius:16px;background:#F5F5F5;text-align:center">
+              <div style="width:112px;height:112px;border-radius:16px;background:repeating-linear-gradient(135deg,#E4E8EA 0 8px,#F5F5F5 8px 16px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;color:#6B7B82;padding:8px;text-align:center">صورة مساحة</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:20px;font-weight:700;color:#123642">لم تقم بإضافة أي مساحة حتى الآن</div>
+                <p style="margin:0;font-size:15px;color:#55666D;text-wrap:pretty">إضافة أول مساحة لبدء تحقيق دخل. تُطلب صور المساحة، ومساحتها بالمتر المربع، والسعر الشهري.</p>
+              </div>
+              <button type="button" style="width:100%;height:56px;border:0;border-radius:12px;background:#8A6D2F;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer" style-hover="background:#7A6029">إضافة مساحة</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:16px;font-weight:600;color:#2D2D2D">كيف تمشي الأمور</div>
+              <div style="display:flex;gap:12px;align-items:flex-start"><span style="width:26px;height:26px;flex:none;border-radius:99px;background:#F5F5F5;color:#123642;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums">1</span><span style="font-size:15px;color:#2D2D2D">تضيف مساحتك وتحدد سعرها الشهري.</span></div>
+              <div style="display:flex;gap:12px;align-items:flex-start"><span style="width:26px;height:26px;flex:none;border-radius:99px;background:#F5F5F5;color:#123642;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums">2</span><span style="font-size:15px;color:#2D2D2D">يوصلك طلب حجز، وإدارة المنصة تراجعه وتقرر.</span></div>
+              <div style="display:flex;gap:12px;align-items:flex-start"><span style="width:26px;height:26px;flex:none;border-radius:99px;background:#F5F5F5;color:#123642;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums">3</span><span style="font-size:15px;color:#2D2D2D">بعد الموافقة، تصلك بيانات المستأجر ومستحقاتك على حسابك.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- dashboard desktop open -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px · مفتوحة</div>
+        <div style="width:1440px;height:900px;background:#F7F8F8;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+
+          <div style="width:240px;flex:none;align-self:stretch;background:#123642;display:flex;flex-direction:column">
+            <div style="padding:24px;font-size:22px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding:8px 0 24px 0">
+              <a href="#2a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:0 10px 10px 0;background:#FFFFFF;color:#123642;font-size:16px;font-weight:600;text-decoration:none" style-hover="background:#FFFFFF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>اللوحة</a>
+              <a href="#3b" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"></path><path d="M3 8l9 5 9-5"></path><path d="M12 13v8"></path></svg>المساحات المسجّلة</a>
+              <a href="#4a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3.5 6h.01"></path><path d="M3.5 12h.01"></path><path d="M3.5 18h.01"></path></svg>الطلبات</a>
+              <a href="#4c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18"></path><path d="M16 15h2"></path></svg>المستحقات</a>
+              <a href="#2c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"></path></svg>حسابي</a>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div style="height:72px;flex:none;background:#FFFFFF;border-bottom:1px solid #E2E4E6;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px">
+              <div style="font-size:22px;font-weight:700;color:#123642">اللوحة</div>
+              <div style="display:flex;align-items:center;gap:8px"><button type="button" style="height:44px;padding:0 18px;border:0;border-radius:10px;margin-left:8px;background:#C7A15A;color:#123642;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer" style-hover="background:#B58F49">إضافة مساحة جديدة</button><button type="button" aria-label="اللغة" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer;gap:4px;font-size:13px;font-weight:600" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.6 2.5 15.4 0 18"></path><path d="M12 3c-2.5 2.6-2.5 15.4 0 18"></path></svg><span dir="ltr" style="unicode-bidi:isolate">AR</span></button><div style="position:relative;display:flex"><button type="button" aria-label="الإشعارات" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path></svg><span aria-hidden="true" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">3</span></button></div></div>
+            </div>
+
+            <div style="flex:1;background:#F5F5F5;padding:32px;display:flex;flex-direction:column;gap:24px;overflow:auto">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <div style="font-size:24px;font-weight:700;color:#2D2D2D">مساء الخير، فهد</div>
+                  <div style="font-size:16px;color:#55666D">عندك حجزان نشطان الآن.</div>
+                </div>
+                <button type="button" style="height:56px;padding:0 28px;border:0;border-radius:12px;background:#8A6D2F;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer" style-hover="background:#7A6029">إضافة مساحة جديدة</button>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">إجمالي وحداتي</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">4</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الوحدات المتاحة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الوحدات المحجوزة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الحجوزات النشطة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">2</div></div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;align-items:start">
+                <div style="padding:24px;background:#123642;border-radius:14px;display:flex;flex-direction:column;gap:10px">
+                  <div style="font-size:16px;color:#C9D6DB">إجمالي المستحقات</div>
+                  <div dir="ltr" style="font-size:40px;font-weight:700;color:#FFFFFF;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">3,750 ر.س</div>
+                  <div style="font-size:15px;color:#C9D6DB">آخر تحويل: <span dir="rtl" style="font-variant-numeric:tabular-nums;unicode-bidi:isolate">1,250 ر.س</span> في 3 أغسطس</div>
+                  <button type="button" style="align-self:flex-start;margin-top:8px;min-height:44px;padding:0 16px;border:1px solid #4A6670;border-radius:10px;background:transparent;color:#FFFFFF;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تفاصيل المستحقات</button>
+                </div>
+
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;overflow:hidden">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #EDEFF0"><div style="font-size:17px;font-weight:600;color:#2D2D2D">آخر 5 إشعارات</div><a href="#2a" style="font-size:15px;font-weight:600;color:#123642">اعرض الكل</a></div>
+                  <div style="display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #EDEFF0"><span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none;margin-top:9px"></span><div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;color:#2D2D2D">وصل طلب حجز على «غرفة الدور الأرضي» — قيد مراجعة إدارة المنصة</div><div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">قبل 20 دقيقة</div></div></div>
+                  <div style="display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #EDEFF0"><span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none;margin-top:9px"></span><div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;color:#2D2D2D">وافقت الإدارة على حجز «مستودع السطح» — بيانات المستأجر ظاهرة لك الآن</div><div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">أمس</div></div></div>
+                  <div style="display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #EDEFF0"><span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:9px"></span><div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;color:#2D2D2D">حوّلنا <span dir="rtl" style="font-variant-numeric:tabular-nums;unicode-bidi:isolate">1,250 ر.س</span> على حسابك البنكي</div><div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">3 أغسطس</div></div></div>
+                  <div style="display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid #EDEFF0"><span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:9px"></span><div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;color:#2D2D2D">انتهى حجز «الجراج» ورجعت الوحدة متاحة</div><div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">28 يوليو</div></div></div>
+                  <div style="display:flex;gap:12px;padding:14px 20px"><span style="width:8px;height:8px;border-radius:99px;background:#E7EBEC;flex:none;margin-top:9px"></span><div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;color:#2D2D2D">حدّثنا الشروط والأحكام</div><div style="font-size:13px;color:#6B7B82;font-variant-numeric:tabular-nums">21 يوليو</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- dashboard desktop blocked -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px · محجوبة (الجوال غير مفعّل)</div>
+        <div style="width:1440px;height:900px;background:#F7F8F8;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:240px;flex:none;align-self:stretch;background:#123642;display:flex;flex-direction:column">
+            <div style="padding:24px;font-size:22px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding:8px 0 24px 0">
+              <a href="#2a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:0 10px 10px 0;background:#FFFFFF;color:#123642;font-size:16px;font-weight:600;text-decoration:none" style-hover="background:#FFFFFF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>اللوحة</a>
+              <a href="#3b" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"></path><path d="M3 8l9 5 9-5"></path><path d="M12 13v8"></path></svg>المساحات المسجّلة</a>
+              <a href="#4a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3.5 6h.01"></path><path d="M3.5 12h.01"></path><path d="M3.5 18h.01"></path></svg>الطلبات</a>
+              <a href="#4c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18"></path><path d="M16 15h2"></path></svg>المستحقات</a>
+              <a href="#2c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"></path></svg>حسابي</a>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column">
+            <div style="height:72px;flex:none;background:#FFFFFF;border-bottom:1px solid #E2E4E6;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px">
+              <div style="font-size:22px;font-weight:700;color:#123642">اللوحة</div>
+              <div style="display:flex;align-items:center;gap:8px"><button type="button" disabled="{{ true }}" aria-disabled="true" title="يلزم استكمال البيانات البنكية وتفعيل الجوال قبل إضافة مساحة" style="height:44px;padding:0 18px;border:0;border-radius:10px;margin-left:8px;background:#E7EBEC;color:#9BA8AD;font-family:inherit;font-size:15px;font-weight:600;cursor:not-allowed">إضافة مساحة جديدة</button><button type="button" aria-label="اللغة" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer;gap:4px;font-size:13px;font-weight:600" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.6 2.5 15.4 0 18"></path><path d="M12 3c-2.5 2.6-2.5 15.4 0 18"></path></svg><span dir="ltr" style="unicode-bidi:isolate">AR</span></button><div style="position:relative;display:flex"><button type="button" aria-label="الإشعارات" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path></svg><span aria-hidden="true" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">3</span></button></div></div>
+            </div>
+            <div style="flex:1;background:#F5F5F5;padding:32px;display:flex;flex-direction:column;gap:24px">
+              <div style="padding:24px 28px;border:1.5px solid #C7A15A;border-radius:16px;background:#F7EFDF;display:flex;align-items:center;justify-content:space-between;gap:32px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <h3 style="margin:0;font-size:22px;font-weight:700;color:#123642">خطوة واحدة تفصلك عن نشر مساحتك</h3>
+                  <p style="margin:0;font-size:16px;color:#2D2D2D;max-width:70ch;text-wrap:pretty">رقم جوالك <span dir="ltr" style="font-variant-numeric:tabular-nums;unicode-bidi:isolate">+966 55 987 6543</span> غير مفعّل. نحتاج نتأكد منه حتى تصلك تنبيهات الطلبات، وبعده تنفتح إضافة المساحة.</p>
+                </div>
+                <button type="button" style="flex:none;height:56px;padding:0 28px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">فعّل جوالك</button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:20px">
+                <button type="button" disabled="{{ true }}" aria-disabled="true" style="height:56px;padding:0 28px;border:0;border-radius:12px;background:#EDE6D8;color:#9C8F79;font-family:inherit;font-size:17px;font-weight:600;cursor:not-allowed">إضافة مساحة جديدة</button>
+                <div style="font-size:15px;color:#6B7B82">تنفتح إضافة المساحة بعد تفعيل جوالك.</div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">إجمالي وحداتي</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الوحدات المتاحة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الوحدات المحجوزة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div></div>
+                <div style="padding:20px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:15px;color:#55666D">الحجوزات النشطة</div><div style="font-size:34px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums">0</div></div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;align-items:start">
+                <div style="padding:24px;background:#FFFFFF;border:1px solid #E7EBEC;border-radius:14px;display:flex;flex-direction:column;gap:8px"><div style="font-size:16px;color:#55666D">إجمالي المستحقات</div><div dir="ltr" style="font-size:36px;font-weight:700;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">0 ر.س</div></div>
+                <div style="padding:24px;background:#FFFFFF;border:1px dashed #D3DADD;border-radius:14px;display:flex;flex-direction:column;gap:6px"><div style="font-size:17px;font-weight:600;color:#2D2D2D">آخر الإشعارات</div><div style="font-size:16px;color:#55666D">لم تصلك أي إشعارات حتى الآن. تظهر جميع التحديثات هنا بعد نشر أول مساحة.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LSR-08 ============ -->
+  <div id="2b" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">2b</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-08 — البيانات البنكية</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <!-- empty -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · فارغ</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer" style-hover="background:#F5F5F5">→</button><div style="font-size:17px;font-weight:600">البيانات البنكية</div><div style="width:8px"></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:22px">
+            <p style="margin:0;font-size:15px;color:#55666D;text-wrap:pretty">تُحوَّل المستحقات إلى هذا الحساب، ويجب أن يكون باسم صاحب الحساب في المنصة.</p>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b1-owner" style="font-size:15px;font-weight:600">اسم صاحب الحساب</label>
+                <input id="b1-owner" type="text" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="font-size:13px;color:#6B7B82">يجب أن يطابق الاسم المسجّل في المنصة: فهد بن سعد العمري.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b1-bank" style="font-size:15px;font-weight:600">اسم البنك</label>
+                <select id="b1-bank" defaultValue="" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;font-family:inherit" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <option value="">اختر البنك</option>
+                  <option value="rajhi">مصرف الراجحي</option>
+                  <option value="ahli">البنك الأهلي السعودي</option>
+                  <option value="riyad">بنك الرياض</option>
+                  <option value="albilad">بنك البلاد</option>
+                  <option value="alinma">مصرف الإنماء</option>
+                  <option value="sab">البنك السعودي الأول</option>
+                  <option value="bsf">البنك السعودي الفرنسي</option>
+                  <option value="anb">البنك العربي الوطني</option>
+                  <option value="jazira">بنك الجزيرة</option>
+                  <option value="gib">بنك الخليج الدولي</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b1-iban" style="font-size:15px;font-weight:600">رقم الآيبان</label>
+                <input id="b1-iban" type="text" dir="ltr" placeholder="SA00 0000 0000 0000 0000 0000" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:17px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums;letter-spacing:0.04em" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="font-size:13px;color:#6B7B82">يبدأ بـ SA ويتكوّن من 24 خانة.</div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-radius:12px;background:#F7EFDF;border:1px solid #C7A15A;font-size:15px;color:#2D2D2D;text-wrap:pretty">يُرجى التأكد من صحة الرقم؛ تُحوَّل مستحقاتك إلى هذا الحساب.</div>
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">احفظ البيانات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- typing (live) -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · قيد الإدخال (تفاعلي — تحقق فوري)</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button><div style="font-size:17px;font-weight:600">البيانات البنكية</div><div style="width:8px"></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b2-owner" style="font-size:15px;font-weight:600">اسم صاحب الحساب</label>
+                <input id="b2-owner" type="text" value="فهد بن سعد العمري" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b2-bank" style="font-size:15px;font-weight:600">اسم البنك</label>
+                <select id="b2-bank" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;font-family:inherit" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <option value="rajhi">مصرف الراجحي</option>
+                  <option value="ahli">البنك الأهلي السعودي</option>
+                  <option value="riyad">بنك الرياض</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b2-iban" style="font-size:15px;font-weight:600">رقم الآيبان</label>
+                <input id="b2-iban" type="text" dir="ltr" value="{{ ibanView }}" onChange="{{ onIban }}" placeholder="SA00 0000 0000 0000 0000 0000" style="height:52px;padding:0 14px;border:1.5px solid {{ ibanBorder }};border-radius:10px;font-size:17px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums;letter-spacing:0.04em" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-size:14px;color:{{ ibanHintColor }};text-wrap:pretty">{{ ibanHint }}</div>
+                  <div dir="ltr" style="font-size:14px;color:#6B7B82;font-variant-numeric:tabular-nums;unicode-bidi:isolate;flex:none">{{ ibanCount }}</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-radius:12px;background:#F7EFDF;border:1px solid #C7A15A;font-size:15px;color:#2D2D2D">يُرجى التأكد من صحة الرقم؛ تُحوَّل مستحقاتك إلى هذا الحساب.</div>
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer">احفظ البيانات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- format error -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · خطأ صيغة</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button><div style="font-size:17px;font-weight:600">البيانات البنكية</div><div style="width:8px"></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="b3-iban" style="font-size:15px;font-weight:600">رقم الآيبان</label>
+              <input id="b3-iban" type="text" dir="ltr" value="SA03 8000 0000 6080" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:17px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums;letter-spacing:0.04em" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <div style="font-size:14px;color:#8C1D18;text-wrap:pretty">رقم الآيبان يجب أن يبدأ رقم الآيبان بـ SA وأن يتكوّن من 24 خانة — أنت مدخل 16 خانة.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="b3-owner" style="font-size:15px;font-weight:600">اسم صاحب الحساب</label>
+              <input id="b3-owner" type="text" value="فهد العمري للتجارة" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <div style="font-size:14px;color:#8C1D18;text-wrap:pretty">يجب أن يطابق الاسم المسجّل في المنصة: فهد بن سعد العمري. لا تُقبل حسابات الشركات.</div>
+            </div>
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer">احفظ البيانات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- saved masked (live reveal) -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · محفوظ ومقنّع (زر الكشف يعمل)</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button><div style="font-size:17px;font-weight:600">البيانات البنكية</div><div style="width:8px"></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;gap:10px;align-items:center;padding:14px 16px;border-radius:12px;background:#E9F3EE"><span style="font-size:15px;color:#1E5B3F;font-weight:600">تم حفظ بياناتك البنكية</span></div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:14px;color:#55666D">اسم صاحب الحساب</div>
+                <div style="font-size:17px;font-weight:600;color:#2D2D2D">فهد بن سعد العمري</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:14px;color:#55666D">البنك</div>
+                <div style="font-size:17px;font-weight:600;color:#2D2D2D">مصرف الراجحي</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:14px;color:#55666D">رقم الآيبان</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid #E7EBEC;border-radius:12px;background:#F5F5F5">
+                  <span dir="ltr" style="font-size:17px;font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums;unicode-bidi:isolate;letter-spacing:0.04em">{{ savedIban }}</span>
+                  <button type="button" onClick="{{ toggleIban }}" style="flex:none;min-height:44px;padding:0 12px;border:0;border-radius:8px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#E7EBEC">{{ ibanRevealLabel }}</button>
+                </div>
+                <div style="font-size:13px;color:#6B7B82">{{ ibanRevealNote }}</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <button type="button" style="height:52px;border:1px solid #123642;border-radius:12px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">عدّل البيانات البنكية</button>
+              <div style="font-size:14px;color:#6B7B82;text-wrap:pretty">يُوقف أي تعديل التحويلات حتى تتحقق إدارة المنصة من الحساب الجديد.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- editing -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · قيد التعديل</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button><div style="font-size:17px;font-weight:600">تعديل البيانات البنكية</div><div style="width:8px"></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:22px">
+            <div style="padding:14px 16px;border-radius:12px;background:#F7EFDF;border:1px solid #C7A15A;font-size:15px;color:#2D2D2D;text-wrap:pretty">تتوقف التحويلات مؤقتًا بعد التعديل حتى تتحقق إدارة المنصة من الحساب الجديد.</div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b5-owner" style="font-size:15px;font-weight:600">اسم صاحب الحساب</label>
+                <input id="b5-owner" type="text" value="فهد بن سعد العمري" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b5-bank" style="font-size:15px;font-weight:600">اسم البنك</label>
+                <select id="b5-bank" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;font-family:inherit" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <option value="albilad">بنك البلاد</option>
+                  <option value="rajhi">مصرف الراجحي</option>
+                  <option value="alinma">مصرف الإنماء</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="b5-iban" style="font-size:15px;font-weight:600">رقم الآيبان الجديد</label>
+                <input id="b5-iban" type="text" dir="ltr" value="SA44 1500 0000 1234 5678 9012" style="height:52px;padding:0 14px;border:1.5px solid #1E7A4B;border-radius:10px;font-size:17px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums;letter-spacing:0.04em" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="font-size:14px;color:#1E5B3F">الصيغة صحيحة — 24 خانة.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px">
+              <button type="button" style="flex:1;height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer">احفظ التعديل</button>
+              <button type="button" style="flex:none;min-width:110px;height:56px;border:1px solid #D3DADD;border-radius:12px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">تجاهل</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bank desktop -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px · محفوظ ومقنّع</div>
+        <div style="width:1440px;height:760px;background:#F7F8F8;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:240px;flex:none;align-self:stretch;background:#123642;display:flex;flex-direction:column">
+            <div style="padding:24px;font-size:22px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding:8px 0 24px 0">
+              <a href="#2a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>اللوحة</a>
+              <a href="#3b" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"></path><path d="M3 8l9 5 9-5"></path><path d="M12 13v8"></path></svg>المساحات المسجّلة</a>
+              <a href="#4a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3.5 6h.01"></path><path d="M3.5 12h.01"></path><path d="M3.5 18h.01"></path></svg>الطلبات</a>
+              <a href="#4c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:0 10px 10px 0;background:#FFFFFF;color:#123642;font-size:16px;font-weight:600;text-decoration:none" style-hover="background:#FFFFFF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18"></path><path d="M16 15h2"></path></svg>المستحقات</a>
+              <a href="#2c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"></path></svg>حسابي</a>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column">
+            <div style="height:72px;flex:none;background:#FFFFFF;border-bottom:1px solid #E2E4E6;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px">
+              <div style="font-size:22px;font-weight:700;color:#123642">المستحقات</div>
+              <div style="display:flex;align-items:center;gap:8px"><button type="button" style="height:44px;padding:0 18px;border:0;border-radius:10px;margin-left:8px;background:#C7A15A;color:#123642;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer" style-hover="background:#B58F49">إضافة مساحة جديدة</button><button type="button" aria-label="اللغة" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer;gap:4px;font-size:13px;font-weight:600" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.6 2.5 15.4 0 18"></path><path d="M12 3c-2.5 2.6-2.5 15.4 0 18"></path></svg><span dir="ltr" style="unicode-bidi:isolate">AR</span></button><div style="position:relative;display:flex"><button type="button" aria-label="الإشعارات" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path></svg><span aria-hidden="true" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">3</span></button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LSR-09 ============ -->
+  <div id="2c" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">2c</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-09 — الملف الشخصي والإعدادات</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · حسابي</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 20px;border-bottom:1px solid #EDEFF0"><div style="display:flex;align-items:center;gap:6px;margin-right:-8px"><button type="button" aria-label="القائمة" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div style="font-size:19px;font-weight:700;color:#123642">حسابي</div></div><div style="display:flex;align-items:center;gap:8px"><button type="button" aria-label="الإشعارات" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path></svg><span aria-hidden="true" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">3</span></button></div></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:28px">
+
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:60px;height:60px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600">ف</div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="font-size:18px;font-weight:700;color:#2D2D2D">فهد بن سعد العمري</div>
+                <div style="font-size:14px;color:#55666D">مؤجر مساحة · جدة</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:16px;font-weight:600;color:#123642">بياناتي</div>
+              <div style="display:flex;flex-direction:column;border:1px solid #E7EBEC;border-radius:14px;overflow:hidden">
+                <div style="display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-bottom:1px solid #EDEFF0"><div style="font-size:14px;color:#55666D">الاسم الكامل</div><div style="font-size:16px;color:#2D2D2D">فهد بن سعد العمري</div></div>
+                <div style="display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-bottom:1px solid #EDEFF0"><div style="font-size:14px;color:#55666D">رقم الهوية</div><div dir="ltr" style="font-size:16px;color:#2D2D2D;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">•••••• 4871</div></div>
+                <div style="display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-bottom:1px solid #EDEFF0"><div style="font-size:14px;color:#55666D">البريد الإلكتروني</div><div dir="ltr" style="font-size:16px;color:#2D2D2D;unicode-bidi:isolate;text-align:right">fahad.alamri@mail.com</div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px">
+                  <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;color:#55666D">رقم الجوال</div><div dir="ltr" style="font-size:16px;color:#2D2D2D;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">+966 55 123 4567</div></div>
+                  <span style="flex:none;display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;background:#E9F3EE;color:#1E5B3F;font-size:14px;font-weight:600">مُفعّل</span>
+                </div>
+              </div>
+              <button type="button" style="height:48px;border:1px solid #123642;border-radius:12px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">عدّل بياناتي</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:16px;font-weight:600;color:#123642">تغيير كلمة المرور</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="p-old" style="font-size:15px;font-weight:600">كلمة المرور الحالية</label>
+                <input id="p-old" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="p-new" style="font-size:15px;font-weight:600">كلمة المرور الجديدة</label>
+                <input id="p-new" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="font-size:13px;color:#6B7B82">يجب أن تتكوّن من 8 خانات على الأقل وأن تتضمّن حرفًا ورقمًا.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="p-new2" style="font-size:15px;font-weight:600">تأكيد كلمة المرور الجديدة</label>
+                <input id="p-new2" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <button type="button" style="height:52px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">غيّر كلمة المرور</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:16px;font-weight:600;color:#123642">تفضيلات الإشعارات</div>
+              <div style="display:flex;flex-direction:column;border:1px solid #E7EBEC;border-radius:14px;overflow:hidden">
+                <label for="n-sms" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:12px 16px;border-bottom:1px solid #EDEFF0;cursor:pointer"><div style="display:flex;flex-direction:column"><span style="font-size:16px;color:#2D2D2D">رسائل نصية</span><span style="font-size:13px;color:#6B7B82">تنبيهات الطلبات والتحويلات</span></div><input id="n-sms" type="checkbox" defaultChecked="{{ true }}" style="width:24px;height:24px;accent-color:#123642;flex:none"></label>
+                <label for="n-mail" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:12px 16px;border-bottom:1px solid #EDEFF0;cursor:pointer"><div style="display:flex;flex-direction:column"><span style="font-size:16px;color:#2D2D2D">البريد الإلكتروني</span><span style="font-size:13px;color:#6B7B82">ملخص شهري وإشعارات المستحقات</span></div><input id="n-mail" type="checkbox" style="width:24px;height:24px;accent-color:#123642;flex:none"></label>
+                <label for="n-app" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:12px 16px;cursor:pointer"><div style="display:flex;flex-direction:column"><span style="font-size:16px;color:#2D2D2D">داخل المنصة</span><span style="font-size:13px;color:#6B7B82">كل التحديثات في قائمة الإشعارات</span></div><input id="n-app" type="checkbox" defaultChecked="{{ true }}" style="width:24px;height:24px;accent-color:#123642;flex:none"></label>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;border:1px solid #E7EBEC;border-radius:14px;overflow:hidden">
+              <a href="#terms" style="display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 16px;border-bottom:1px solid #EDEFF0;font-size:16px;color:#2D2D2D;text-decoration:none">الشروط والأحكام<span style="color:#6B7B82">←</span></a>
+              <a href="#privacy" style="display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 16px;font-size:16px;color:#2D2D2D;text-decoration:none">سياسة الخصوصية<span style="color:#6B7B82">←</span></a>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <button type="button" style="height:52px;border:1px solid #D3DADD;border-radius:12px;background:#FFFFFF;color:#2D2D2D;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">تسجيل الخروج</button>
+              <button type="button" onClick="{{ openDelete }}" style="height:52px;border:1px solid #B3261E;border-radius:12px;background:#FFFFFF;color:#B3261E;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#FDECEA">حذف الحساب</button>
+              <div style="font-size:13px;color:#6B7B82">حذف الحساب نهائي ولا يمكن التراجع عنه.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · تأكيد حذف الحساب</div>
+        <div style="position:relative;width:375px;height:760px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="position:absolute;inset:0;background:rgba(18,54,66,0.55)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFFFF;border-radius:20px 20px 0 0;padding:28px 20px 24px;display:flex;flex-direction:column;gap:20px">
+            <div style="width:44px;height:5px;border-radius:99px;background:#E7EBEC;align-self:center"></div>
+            <h3 style="margin:0;font-size:22px;font-weight:700;color:#2D2D2D">حذف الحساب نهائيًا</h3>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;gap:10px"><span style="color:#B3261E;flex:none">•</span><span style="font-size:15px;color:#2D2D2D;text-wrap:pretty">تُحذف جميع المساحات من المنصة ولا تظهر في نتائج البحث.</span></div>
+              <div style="display:flex;gap:10px"><span style="color:#B3261E;flex:none">•</span><span style="font-size:15px;color:#2D2D2D;text-wrap:pretty">حجوزاتك النشطة تنتهي، والإدارة تتواصل مع المستأجرين.</span></div>
+              <div style="display:flex;gap:10px"><span style="color:#B3261E;flex:none">•</span><span style="font-size:15px;color:#2D2D2D;text-wrap:pretty">مستحقاتك المتبقية <span dir="rtl" style="font-variant-numeric:tabular-nums;unicode-bidi:isolate">3,750 ر.س</span> تُحوَّل على آيبانك المسجّل قبل الإغلاق.</span></div>
+              <div style="display:flex;gap:10px"><span style="color:#B3261E;flex:none">•</span><span style="font-size:15px;color:#2D2D2D;text-wrap:pretty">ما يمكن ترجع نفس الحساب — تحتاج تسجيل جديد.</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="del-word" style="font-size:15px;font-weight:600">اكتب كلمة «حذف» للتأكيد</label>
+              <input id="del-word" type="text" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#B3261E;box-shadow:0 0 0 3px rgba(179,38,30,0.12)">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <button type="button" style="height:56px;border:0;border-radius:12px;background:#A32C22;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#8A241C">احذف حسابي نهائياً</button>
+              <button type="button" style="height:52px;border:1px solid #D3DADD;border-radius:12px;background:#FFFFFF;color:#2D2D2D;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">رجوع</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px · حسابي</div>
+        <div style="width:1440px;height:900px;background:#F7F8F8;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:240px;flex:none;align-self:stretch;background:#123642;display:flex;flex-direction:column">
+            <div style="padding:24px;font-size:22px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding:8px 0 24px 0">
+              <a href="#2a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>اللوحة</a>
+              <a href="#3b" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"></path><path d="M3 8l9 5 9-5"></path><path d="M12 13v8"></path></svg>المساحات المسجّلة</a>
+              <a href="#4a" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3.5 6h.01"></path><path d="M3.5 12h.01"></path><path d="M3.5 18h.01"></path></svg>الطلبات</a>
+              <a href="#4c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:10px;background:transparent;color:#FFFFFF;font-size:16px;font-weight:400;text-decoration:none" style-hover="background:rgba(255,255,255,0.10)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="6" width="18" height="13" rx="2.5"></rect><path d="M3 10h18"></path><path d="M16 15h2"></path></svg>المستحقات</a>
+              <a href="#2c" style="display:flex;align-items:center;gap:12px;height:48px;padding:0 24px;margin-right:12px;border-radius:0 10px 10px 0;background:#FFFFFF;color:#123642;font-size:16px;font-weight:600;text-decoration:none" style-hover="background:#FFFFFF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"></path></svg>حسابي</a>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div style="height:72px;flex:none;background:#FFFFFF;border-bottom:1px solid #E2E4E6;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px">
+              <div style="font-size:22px;font-weight:700;color:#123642">حسابي</div>
+              <div style="display:flex;align-items:center;gap:8px"><button type="button" style="height:44px;padding:0 18px;border:0;border-radius:10px;margin-left:8px;background:#C7A15A;color:#123642;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer" style-hover="background:#B58F49">إضافة مساحة جديدة</button><button type="button" aria-label="اللغة" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer;gap:4px;font-size:13px;font-weight:600" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.6 2.5 15.4 0 18"></path><path d="M12 3c-2.5 2.6-2.5 15.4 0 18"></path></svg><span dir="ltr" style="unicode-bidi:isolate">AR</span></button><div style="position:relative;display:flex"><button type="button" aria-label="الإشعارات" style="position:relative;width:40px;height:40px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:transparent;color:#6B7075;font-family:inherit;cursor:pointer" style-hover="background:#F5F5F5;color:#123642"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"></path><path d="M13.7 20a2 2 0 0 1-3.4 0"></path></svg><span aria-hidden="true" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#A32C22;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">3</span></button></div></div>
+            </div>
+            <div style="flex:1;background:#F5F5F5;padding:32px;display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start;overflow:auto">
+
+              <div style="display:flex;flex-direction:column;gap:24px">
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                    <div style="display:flex;align-items:center;gap:14px">
+                      <div style="width:60px;height:60px;border-radius:999px;background:#123642;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600">ف</div>
+                      <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:19px;font-weight:700">فهد بن سعد العمري</div><div style="font-size:15px;color:#55666D">مؤجر مساحة · جدة</div></div>
+                    </div>
+                    <button type="button" style="min-height:44px;padding:0 16px;border:1px solid #123642;border-radius:10px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">عدّل بياناتي</button>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                    <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;color:#55666D">رقم الهوية</div><div dir="ltr" style="font-size:17px;font-variant-numeric:tabular-nums;unicode-bidi:isolate;text-align:right">•••••• 4871</div></div>
+                    <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:14px;color:#55666D">البريد الإلكتروني</div><div dir="ltr" style="font-size:17px;unicode-bidi:isolate;text-align:right">fahad.alamri@mail.com</div></div>
+                    <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:14px;color:#55666D">رقم الجوال</div><div style="display:flex;align-items:center;gap:10px"><span dir="ltr" style="font-size:17px;font-variant-numeric:tabular-nums;unicode-bidi:isolate">+966 55 123 4567</span><span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#E9F3EE;color:#1E5B3F;font-size:13px;font-weight:600">مُفعّل</span></div></div>
+                  </div>
+                </div>
+
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:18px">
+                  <div style="font-size:18px;font-weight:600;color:#123642">تغيير كلمة المرور</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    <div style="display:flex;flex-direction:column;gap:8px"><label for="dp-old" style="font-size:15px;font-weight:600">كلمة المرور الحالية</label><input id="dp-old" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)"></div>
+                    <div style="display:flex;flex-direction:column;gap:8px"><label for="dp-new" style="font-size:15px;font-weight:600">كلمة المرور الجديدة</label><input id="dp-new" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)"></div>
+                  </div>
+                  <button type="button" style="align-self:flex-start;height:52px;padding:0 24px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">غيّر كلمة المرور</button>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:24px">
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px">
+                  <div style="font-size:18px;font-weight:600;color:#123642">تفضيلات الإشعارات</div>
+                  <label for="dn-sms" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;cursor:pointer"><span style="font-size:16px">رسائل نصية</span><input id="dn-sms" type="checkbox" defaultChecked="{{ true }}" style="width:24px;height:24px;accent-color:#123642"></label>
+                  <label for="dn-mail" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;border-top:1px solid #EDEFF0;cursor:pointer"><span style="font-size:16px">البريد الإلكتروني</span><input id="dn-mail" type="checkbox" style="width:24px;height:24px;accent-color:#123642"></label>
+                  <label for="dn-app" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;border-top:1px solid #EDEFF0;cursor:pointer"><span style="font-size:16px">داخل المنصة</span><input id="dn-app" type="checkbox" defaultChecked="{{ true }}" style="width:24px;height:24px;accent-color:#123642"></label>
+                </div>
+
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:16px;overflow:hidden">
+                  <a href="#terms" style="display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:0 24px;border-bottom:1px solid #EDEFF0;font-size:16px;color:#2D2D2D;text-decoration:none">الشروط والأحكام<span style="color:#6B7B82">←</span></a>
+                  <a href="#privacy" style="display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:0 24px;font-size:16px;color:#2D2D2D;text-decoration:none">سياسة الخصوصية<span style="color:#6B7B82">←</span></a>
+                </div>
+
+                <div style="background:#FFFFFF;border:1px solid #E7EBEC;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px">
+                  <button type="button" style="height:52px;border:1px solid #D3DADD;border-radius:12px;background:#FFFFFF;color:#2D2D2D;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">تسجيل الخروج</button>
+                  <button type="button" style="height:52px;border:1px solid #B3261E;border-radius:12px;background:#FFFFFF;color:#B3261E;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#FDECEA">حذف الحساب</button>
+                  <div style="font-size:14px;color:#6B7B82">حذف الحساب نهائي ولا يمكن التراجع عنه.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<section dir="rtl" style="display:flex;flex-direction:column;gap:56px;padding:40px 48px 96px;border-top:1px solid #DDE2E4">
+
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-size:13px;font-weight:600;letter-spacing:0.06em;color:#6B7B82">حيزك · بوابة المؤجر · الدفعة 1</div>
+    <h1 style="margin:0;font-size:34px;font-weight:700;color:#123642;line-height:1.4">شاشات الدخول</h1>
+    <p style="margin:0;font-size:16px;color:#55666D;max-width:60ch;text-wrap:pretty">تسجيل مؤجر جديد، التحقق بالرمز، وتسجيل الدخول. كل شاشة معروضة على 375px بجميع حالاتها، ثم على 1440px.</p>
+  </div>
+
+  <!-- ============ LSR-00أ ============ -->
+  <div id="1a" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">1a</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-00أ — تسجيل مؤجر جديد</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <!-- mobile: default -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · الحالة العادية</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;background:#FFFFFF;font-size:12px;font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="padding:8px 20px 28px;display:flex;flex-direction:column;gap:24px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:20px;font-weight:700;color:#123642">حيزك</div>
+              <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D;line-height:1.5">تسجيل مؤجر جديد</h3>
+              <p style="margin:0;font-size:15px;color:#55666D;text-wrap:pretty">تسجيل حساب مؤجر لإضافة مساحتك وتحقيق دخل منها.</p>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-name" style="font-size:15px;font-weight:600;color:#2D2D2D">الاسم الكامل</label>
+                <input id="s1-name" type="text" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-id" style="font-size:15px;font-weight:600;color:#2D2D2D">رقم الهوية أو الإقامة</label>
+                <input id="s1-id" type="text" inputmode="numeric" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="font-size:13px;color:#6B7B82">يتكوّن من 10 أرقام</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-mail" style="font-size:15px;font-weight:600;color:#2D2D2D">البريد الإلكتروني</label>
+                <input id="s1-mail" type="email" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;text-align:left" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-phone" style="font-size:15px;font-weight:600;color:#2D2D2D">رقم الجوال</label>
+                <div dir="ltr" style="display:flex;gap:0;border:1px solid #D3DADD;border-radius:10px;overflow:hidden;background:#FFFFFF">
+                  <div style="display:flex;align-items:center;justify-content:center;min-width:74px;height:52px;background:#F5F5F5;border-right:1px solid #D3DADD;font-size:16px;font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums">+966</div>
+                  <input id="s1-phone" type="tel" inputmode="numeric" dir="ltr" placeholder="5XXXXXXXX" style="flex:1;height:52px;padding:0 12px;border:0;font-size:16px;color:#2D2D2D;outline:none;text-align:left;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-pw" style="font-size:15px;font-weight:600;color:#2D2D2D">كلمة المرور</label>
+                <div style="position:relative;display:flex">
+                  <input id="s1-pw" type="{{ pwType }}" onInput="{{ onPw }}" style="height:52px;padding:0 14px;padding-left:64px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <button type="button" onClick="{{ togglePw }}" style="position:absolute;left:6px;top:6px;height:40px;min-width:52px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#123642;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">{{ pwToggleLabel }}</button>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:2px">
+                  <div style="flex:1;height:6px;border-radius:99px;background:{{ seg1 }}"></div>
+                  <div style="flex:1;height:6px;border-radius:99px;background:{{ seg2 }}"></div>
+                  <div style="flex:1;height:6px;border-radius:99px;background:{{ seg3 }}"></div>
+                </div>
+                <div style="font-size:13px;color:#55666D">قوة كلمة المرور: <strong style="font-weight:600;color:#2D2D2D">{{ pwLabel }}</strong> — يجب أن تتكوّن من 8 خانات على الأقل وأن تتضمّن حرفًا ورقمًا.</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s1-pw2" style="font-size:15px;font-weight:600;color:#2D2D2D">تأكيد كلمة المرور</label>
+                <input id="s1-pw2" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+
+              <label for="s1-terms" style="display:flex;gap:12px;align-items:flex-start;min-height:44px;padding:10px 0;cursor:pointer">
+                <input id="s1-terms" type="checkbox" onChange="{{ onTerms }}" style="width:24px;height:24px;margin:2px 0 0;accent-color:#123642;flex:none">
+                <span style="font-size:15px;color:#2D2D2D">أوافق على <a href="#terms" onClick="{{ openTerms }}" style="color:#123642;font-weight:600;text-decoration:underline">الشروط والأحكام</a> وسياسة الخصوصية.</span>
+              </label>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">إنشاء الحساب</button>
+              <div style="text-align:center;font-size:15px;color:#55666D">لديك حساب بالفعل؟ <a href="#1c" style="color:#123642;font-weight:600">تسجيل الدخول</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- mobile: errors -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · أخطاء الحقول</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="padding:8px 20px 28px;display:flex;flex-direction:column;gap:20px">
+            <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">تسجيل مؤجر جديد</h3>
+
+            <div style="display:flex;gap:12px;padding:14px;border-radius:12px;background:#FDECEA;border-right:0">
+              <span style="font-size:15px;color:#8C1D18">تحتاج 3 حقول إلى تصحيح قبل إعادة المحاولة.</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="s2-mail" style="font-size:15px;font-weight:600;color:#2D2D2D">البريد الإلكتروني</label>
+              <input id="s2-mail" type="email" dir="ltr" value="fahad@mail.com" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%;text-align:left" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <div style="font-size:14px;color:#8C1D18">البريد الإلكتروني مسجّل مسبقًا — <a href="#1c" style="color:#8C1D18;font-weight:600">تسجيل الدخول</a> أو استخدام بريد إلكتروني آخر.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="s2-phone" style="font-size:15px;font-weight:600;color:#2D2D2D">رقم الجوال</label>
+              <div dir="ltr" style="display:flex;border:1.5px solid #B3261E;border-radius:10px;overflow:hidden;background:#FFFFFF">
+                <div style="display:flex;align-items:center;justify-content:center;min-width:74px;height:52px;background:#F5F5F5;border-right:1px solid #D3DADD;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">+966</div>
+                <input id="s2-phone" type="tel" dir="ltr" value="551234567" style="flex:1;height:52px;padding:0 12px;border:0;font-size:16px;color:#2D2D2D;outline:none;text-align:left;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="font-size:14px;color:#8C1D18">رقم الجوال مسجّل بحساب قائم. يُرجى استخدام رقم آخر أو استعادة الحساب.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label for="s2-pw" style="font-size:15px;font-weight:600;color:#2D2D2D">كلمة المرور</label>
+              <input id="s2-pw" type="password" value="12345" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:16px;color:#2D2D2D;background:#FFFFFF;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <div style="display:flex;gap:6px">
+                <div style="flex:1;height:6px;border-radius:99px;background:#B3261E"></div>
+                <div style="flex:1;height:6px;border-radius:99px;background:#E7EBEC"></div>
+                <div style="flex:1;height:6px;border-radius:99px;background:#E7EBEC"></div>
+              </div>
+              <div style="font-size:14px;color:#8C1D18">كلمة المرور ضعيفة — يجب أن تتكوّن من 8 خانات على الأقل وأن تتضمّن حرفًا ورقمًا.</div>
+            </div>
+
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer">إنشاء الحساب</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- desktop 1440 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px</div>
+        <div style="width:1440px;height:900px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:520px;flex:none;background:#123642;padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="font-size:26px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <div style="font-size:38px;font-weight:700;color:#FFFFFF;line-height:1.4">كل مساحة لها قيمة</div>
+              <p style="margin:0;font-size:17px;color:#C9D6DB;max-width:34ch;text-wrap:pretty">تأجير الغرف والمستودعات والجراجات غير المستخدمة لمن يحتاج مساحة تخزين.</p>
+              <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+                <div style="display:flex;gap:12px;align-items:center"><span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none"></span><span style="font-size:16px;color:#FFFFFF">إضافة المساحة بخطوات بسيطة</span></div>
+                <div style="display:flex;gap:12px;align-items:center"><span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none"></span><span style="font-size:16px;color:#FFFFFF">مراجعة إدارة المنصة لكل طلب حجز</span></div>
+                <div style="display:flex;gap:12px;align-items:center"><span style="width:8px;height:8px;border-radius:99px;background:#C7A15A;flex:none"></span><span style="font-size:16px;color:#FFFFFF">متابعة المستحقات من مكان واحد</span></div>
+              </div>
+            </div>
+            <div style="font-size:14px;color:#8FA5AD">جدة، المملكة العربية السعودية</div>
+          </div>
+
+          <div style="flex:1;display:flex;justify-content:center;padding:56px 40px;overflow:auto">
+            <div style="width:640px;display:flex;flex-direction:column;gap:28px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <h3 style="margin:0;font-size:30px;font-weight:700;color:#2D2D2D">تسجيل مؤجر جديد</h3>
+                <p style="margin:0;font-size:16px;color:#55666D">الحساب بدور واحد فقط: مؤجر مساحة.</p>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 20px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-name" style="font-size:15px;font-weight:600">الاسم الكامل</label>
+                  <input id="d1-name" type="text" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-id" style="font-size:15px;font-weight:600">رقم الهوية أو الإقامة</label>
+                  <input id="d1-id" type="text" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-mail" style="font-size:15px;font-weight:600">البريد الإلكتروني</label>
+                  <input id="d1-mail" type="email" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%;text-align:left" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-phone" style="font-size:15px;font-weight:600">رقم الجوال</label>
+                  <div dir="ltr" style="display:flex;border:1px solid #D3DADD;border-radius:10px;overflow:hidden;background:#FFFFFF">
+                    <div style="display:flex;align-items:center;justify-content:center;min-width:74px;height:52px;background:#F5F5F5;border-right:1px solid #D3DADD;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">+966</div>
+                    <input id="d1-phone" type="tel" dir="ltr" placeholder="5XXXXXXXX" style="flex:1;height:52px;padding:0 12px;border:0;font-size:16px;outline:none;text-align:left;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-pw" style="font-size:15px;font-weight:600">كلمة المرور</label>
+                  <input id="d1-pw" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <div style="display:flex;gap:6px"><div style="flex:1;height:6px;border-radius:99px;background:#E7EBEC"></div><div style="flex:1;height:6px;border-radius:99px;background:#E7EBEC"></div><div style="flex:1;height:6px;border-radius:99px;background:#E7EBEC"></div></div>
+                  <div style="font-size:13px;color:#55666D">يجب أن تتكوّن من 8 خانات على الأقل وأن تتضمّن حرفًا ورقمًا.</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d1-pw2" style="font-size:15px;font-weight:600">تأكيد كلمة المرور</label>
+                  <input id="d1-pw2" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+              </div>
+
+              <label for="d1-terms" style="display:flex;gap:12px;align-items:center;min-height:44px;cursor:pointer">
+                <input id="d1-terms" type="checkbox" style="width:24px;height:24px;accent-color:#123642;flex:none">
+                <span style="font-size:16px">أوافق على <a href="#terms" onClick="{{ openTerms }}" style="color:#123642;font-weight:600;text-decoration:underline">الشروط والأحكام</a> وسياسة الخصوصية.</span>
+              </label>
+
+              <div style="display:flex;align-items:center;gap:24px">
+                <button type="button" style="height:56px;min-width:220px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">إنشاء الحساب</button>
+                <div style="font-size:16px;color:#55666D">لديك حساب بالفعل؟ <a href="#1c" style="color:#123642;font-weight:600">تسجيل الدخول</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- terms sheet -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · نص الشروط الكامل</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 8px 0 20px;border-bottom:1px solid #EDEFF0">
+            <button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer" style-hover="background:#F5F5F5">→</button>
+            <div style="font-size:17px;font-weight:600;color:#2D2D2D">الشروط والأحكام</div>
+            <div style="width:8px"></div>
+          </div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:18px;max-height:520px;overflow:auto">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:16px;font-weight:600;color:#123642">1. دور المنصة</div>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">حيزك وسيط يربط بين مالك المساحة والباحث عن مساحة تخزين. المنصة لا تتولى تشغيل المساحة ولا تتحمل مسؤولية ما يُخزَّن فيها.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:16px;font-weight:600;color:#123642">2. مراجعة الحجوزات</div>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">كل طلب حجز تراجعه إدارة المنصة وتقرر بشأنه. لا يملك المؤجر قبول الطلب أو رفضه، ويُبلَّغ بالنتيجة عبر التطبيق.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:16px;font-weight:600;color:#123642">3. بيانات المستأجر</div>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">تظهر بيانات التواصل مع المستأجر للمؤجر بعد موافقة الإدارة على الحجز فقط.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:16px;font-weight:600;color:#123642">4. مسؤولية المؤجر</div>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">المؤجر مسؤول عن صحة بيانات مساحته ومطابقتها للواقع، وعن الوصول المتفق عليه مع المستأجر.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:16px;font-weight:600;color:#123642">5. المستحقات</div>
+              <p style="margin:0;font-size:15px;color:#2D2D2D;text-wrap:pretty">تُحوَّل مستحقات المؤجر على الآيبان المسجّل في حسابه بعد خصم عمولة المنصة المعلنة.</p>
+            </div>
+          </div>
+          <div style="padding:16px 20px 22px;border-top:1px solid #EDEFF0"><button type="button" style="width:100%;height:52px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer">الموافقة على الشروط</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LSR-00ب ============ -->
+  <div id="1b" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">1b</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-00ب — التحقق برمز OTP</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <!-- otp default (live) -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · عادي (تفاعلي)</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;height:56px;padding:0 8px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer" style-hover="background:#F5F5F5">→</button></div>
+          <div style="padding:28px 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">رمز التحقق</h3>
+              <p style="margin:0;font-size:15px;color:#55666D">أُرسل رمز مكوّن من 6 أرقام برسالة نصية إلى الرقم:</p>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span dir="ltr" style="font-size:17px;font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums;unicode-bidi:isolate">+966 55 123 4567</span>
+                <button type="button" style="min-height:44px;padding:0 12px;border:0;border-radius:8px;background:#F5F5F5;color:#123642;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#E7EBEC">تعديل رقم الجوال</button>
+              </div>
+            </div>
+
+            <div dir="ltr" onInput="{{ onOtp }}" style="display:flex;gap:8px;justify-content:space-between">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 1" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 2" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 3" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 4" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 5" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 6" style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:12px;background:#F5F5F5">
+                <span style="font-size:15px;color:#2D2D2D">تنتهي صلاحية الرمز خلال</span>
+                <span dir="ltr" style="font-size:18px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate">05:00</span>
+              </div>
+              <div style="font-size:15px;color:#55666D">المحاولات المتبقية: <strong style="font-weight:600;color:#2D2D2D;font-variant-numeric:tabular-nums">3</strong> محاولات</div>
+              <button type="button" disabled="{{ true }}" aria-disabled="true" style="height:52px;border:1px solid #E1E5E7;border-radius:12px;background:#FFFFFF;color:#9BA8AD;font-family:inherit;font-size:16px;font-weight:600;cursor:not-allowed">إعادة الإرسال بعد 05:00</button>
+              <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تأكيد الرمز</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- otp wrong -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · رمز خاطئ</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;height:56px;padding:0 8px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button></div>
+          <div style="padding:28px 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">رمز التحقق</h3>
+            <div dir="ltr" style="display:flex;gap:8px;justify-content:space-between">
+              <input type="text" value="4" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" value="1" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" value="9" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" value="0" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" value="7" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              <input type="text" value="2" style="width:100%;height:60px;border:1.5px solid #B3261E;border-radius:10px;text-align:center;font-size:24px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+            </div>
+            <div style="padding:14px 16px;border-radius:12px;background:#FDECEA;font-size:15px;color:#8C1D18">الرمز غير صحيح. يُرجى مراجعة آخر رسالة واردة وإعادة إدخال الرمز.</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;background:#F5F5F5"><span style="font-size:15px">تنتهي صلاحية الرمز خلال</span><span dir="ltr" style="font-size:18px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate">03:12</span></div>
+              <div style="font-size:15px;color:#8C1D18">المحاولات المتبقية: <strong style="font-weight:600;font-variant-numeric:tabular-nums">2</strong> محاولات</div>
+              <button type="button" disabled="{{ true }}" aria-disabled="true" style="height:52px;border:1px solid #E1E5E7;border-radius:12px;background:#FFFFFF;color:#9BA8AD;font-family:inherit;font-size:16px;font-weight:600;cursor:not-allowed">إعادة الإرسال بعد 03:12</button>
+              <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer">تأكيد الرمز</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- otp expired timer -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · انتهى المؤقت</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;height:56px;padding:0 8px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button></div>
+          <div style="padding:28px 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">انتهاء صلاحية الرمز</h3>
+            <div dir="ltr" style="display:flex;gap:8px;justify-content:space-between;opacity:0.5">
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+              <div style="width:100%;height:60px;border:1px solid #D3DADD;border-radius:10px;background:#F5F5F5"></div>
+            </div>
+            <p style="margin:0;font-size:15px;color:#55666D;text-wrap:pretty">انتهت صلاحية الرمز بعد مرور 5 دقائق على إرساله. يُرجى طلب رمز جديد.</p>
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">إرسال رمز جديد</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- otp attempts done -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · انتهت المحاولات</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;align-items:center;height:56px;padding:0 8px;border-bottom:1px solid #EDEFF0"><button type="button" style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#123642;font-size:22px;cursor:pointer">→</button></div>
+          <div style="padding:28px 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">إيقاف المحاولات مؤقتاً</h3>
+            <div style="padding:16px;border-radius:12px;background:#FDECEA;font-size:15px;color:#8C1D18;text-wrap:pretty">استخدمت 3 محاولات وكلها غير صحيحة. يمكن تطلب رمزاً جديداً بعد 15 دقيقة، أو التحقق من صحة الرقم المسجّل.</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;background:#F5F5F5"><span style="font-size:15px">يمكن إعادة المحاولة بعد</span><span dir="ltr" style="font-size:18px;font-weight:600;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate">14:38</span></div>
+              <button type="button" style="height:52px;border:1px solid #123642;border-radius:12px;background:#FFFFFF;color:#123642;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">تعديل رقم الجوال</button>
+              <button type="button" style="height:52px;border:0;border-radius:12px;background:#F5F5F5;color:#123642;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#E7EBEC">التواصل مع الدعم</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- otp desktop -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px</div>
+        <div style="width:1440px;height:900px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:520px;flex:none;background:#123642;padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="font-size:26px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:34px;font-weight:700;color:#FFFFFF;line-height:1.4">خطوة أخيرة لإتمام التسجيل</div>
+              <p style="margin:0;font-size:17px;color:#C9D6DB;max-width:32ch">يُتحقق من رقم الجوال لضمان وصول تنبيهات الطلبات إلى الرقم الصحيح.</p>
+            </div>
+            <div style="font-size:14px;color:#8FA5AD">كل مساحة لها قيمة</div>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:56px 40px">
+            <div style="width:520px;display:flex;flex-direction:column;gap:28px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <h3 style="margin:0;font-size:30px;font-weight:700;color:#2D2D2D">رمز التحقق</h3>
+                <p style="margin:0;font-size:16px;color:#55666D">أُرسل رمز مكوّن من 6 أرقام إلى الرقم:</p>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span dir="ltr" style="font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;unicode-bidi:isolate">+966 55 123 4567</span>
+                  <button type="button" style="min-height:44px;padding:0 12px;border:0;border-radius:8px;background:#F5F5F5;color:#123642;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#E7EBEC">تعديل رقم الجوال</button>
+                </div>
+              </div>
+              <div dir="ltr" onInput="{{ onOtp }}" style="display:flex;gap:12px">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 1" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 2" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 3" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 4" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 5" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <input type="text" inputmode="numeric" maxlength="1" aria-label="digit 6" style="width:100%;height:68px;border:1px solid #D3DADD;border-radius:12px;text-align:center;font-size:26px;font-weight:600;color:#2D2D2D;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-radius:12px;background:#F5F5F5">
+                <span style="font-size:16px">تنتهي صلاحية الرمز خلال <strong dir="ltr" style="font-weight:600;color:#123642;font-variant-numeric:tabular-nums;unicode-bidi:isolate">05:00</strong></span>
+                <span style="font-size:16px;color:#55666D">المحاولات المتبقية: <strong style="color:#2D2D2D;font-variant-numeric:tabular-nums">3</strong> </span>
+              </div>
+              <div style="display:flex;gap:16px">
+                <button type="button" style="flex:1;height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تأكيد الرمز</button>
+                <button type="button" disabled="{{ true }}" aria-disabled="true" style="flex:1;height:56px;border:1px solid #E1E5E7;border-radius:12px;background:#FFFFFF;color:#9BA8AD;font-family:inherit;font-size:16px;font-weight:600;cursor:not-allowed">إعادة إرسال الرمز</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LSR-00ج ============ -->
+  <div id="1c" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#123642;color:#FFFFFF;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">1c</span>
+      <h2 style="margin:0;font-size:22px;font-weight:700;color:#123642">LSR-00ج — تسجيل الدخول</h2>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · الحالة العادية</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:28px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:20px;font-weight:700;color:#123642">حيزك</div>
+              <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">تسجيل تسجيل دخول المؤجر</h3>
+              <p style="margin:0;font-size:15px;color:#55666D">تسجيل الدخولك لمتابعة المساحات والطلبات.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s3-user" style="font-size:15px;font-weight:600">الجوال أو البريد الإلكتروني</label>
+                <input id="s3-user" type="text" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s3-pw" style="font-size:15px;font-weight:600">كلمة المرور</label>
+                <div style="position:relative;display:flex">
+                  <input id="s3-pw" type="{{ pwType }}" style="height:52px;padding:0 14px;padding-left:64px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <button type="button" onClick="{{ togglePw }}" style="position:absolute;left:6px;top:6px;height:40px;min-width:52px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#123642;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F5F5F5">{{ pwToggleLabel }}</button>
+                </div>
+                <div style="display:flex;justify-content:flex-start;padding-top:4px"><a href="#reset" style="display:inline-flex;align-items:center;min-height:44px;font-size:15px;font-weight:600;color:#123642">نسيت كلمة المرور؟</a></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تسجيل الدخول</button>
+              <div style="text-align:center;font-size:15px;color:#55666D">ما لديك حساب بالفعل؟ <a href="#1a" style="color:#123642;font-weight:600">تسجيل مؤجر جديد</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">375px · بيانات دخول غير صحيحة</div>
+        <div style="width:375px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:center;height:36px;padding:0 18px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span>9:41</span><span style="letter-spacing:2px">▮▮▮</span></div>
+          <div style="padding:24px 20px 32px;display:flex;flex-direction:column;gap:24px">
+            <h3 style="margin:0;font-size:24px;font-weight:700;color:#2D2D2D">تسجيل تسجيل دخول المؤجر</h3>
+            <div style="padding:14px 16px;border-radius:12px;background:#FDECEA;font-size:15px;color:#8C1D18;text-wrap:pretty">بيانات الدخول غير صحيحة. تأكد من الجوال أو البريد وكلمة المرور وإعادة المحاولة.</div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s4-user" style="font-size:15px;font-weight:600">الجوال أو البريد الإلكتروني</label>
+                <input id="s4-user" type="text" dir="ltr" value="0551234567" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label for="s4-pw" style="font-size:15px;font-weight:600">كلمة المرور</label>
+                <input id="s4-pw" type="password" value="wrongpass" style="height:52px;padding:0 14px;border:1.5px solid #B3261E;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                <div style="display:flex;padding-top:4px"><a href="#reset" style="display:inline-flex;align-items:center;min-height:44px;font-size:15px;font-weight:600;color:#123642">نسيت كلمة المرور؟</a></div>
+              </div>
+            </div>
+            <button type="button" style="height:56px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer">تسجيل الدخول</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;font-weight:600;color:#55666D">1440px</div>
+        <div style="width:1440px;height:900px;background:#FFFFFF;border:1px solid #DDE2E4;border-radius:16px;overflow:hidden;display:flex;box-shadow:0 12px 30px rgba(18,54,66,0.08)">
+          <div style="width:520px;flex:none;background:#123642;padding:56px 48px;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="font-size:26px;font-weight:700;color:#FFFFFF">حيزك</div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:38px;font-weight:700;color:#FFFFFF;line-height:1.4">مرحبًا بعودتك</div>
+              <p style="margin:0;font-size:17px;color:#C9D6DB;max-width:32ch">متابعة المساحات وطلبات الحجز والمستحقات من مكان واحد.</p>
+            </div>
+            <div style="font-size:14px;color:#8FA5AD">كل مساحة لها قيمة</div>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:56px 40px">
+            <div style="width:480px;display:flex;flex-direction:column;gap:28px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <h3 style="margin:0;font-size:30px;font-weight:700;color:#2D2D2D">تسجيل تسجيل دخول المؤجر</h3>
+                <p style="margin:0;font-size:16px;color:#55666D">تسجيل الدخولك بحساب المؤجر.</p>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:20px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d3-user" style="font-size:15px;font-weight:600">الجوال أو البريد الإلكتروني</label>
+                  <input id="d3-user" type="text" dir="ltr" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%;text-align:left;font-variant-numeric:tabular-nums" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label for="d3-pw" style="font-size:15px;font-weight:600">كلمة المرور</label>
+                  <input id="d3-pw" type="password" style="height:52px;padding:0 14px;border:1px solid #D3DADD;border-radius:10px;font-size:16px;color:#2D2D2D;outline:none;width:100%" style-focus="border-color:#123642;box-shadow:0 0 0 3px rgba(18,54,66,0.12)">
+                  <div style="display:flex"><a href="#reset" style="display:inline-flex;align-items:center;min-height:44px;font-size:15px;font-weight:600;color:#123642">نسيت كلمة المرور؟</a></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:24px">
+                <button type="button" style="height:56px;min-width:200px;border:0;border-radius:12px;background:#123642;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:#0B242C">تسجيل الدخول</button>
+                <div style="font-size:16px;color:#55666D">ما لديك حساب بالفعل؟ <a href="#1a" style="color:#123642;font-weight:600">تسجيل مؤجر جديد</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = {
+    pw: 0, showPw: false, iban: '', showIban: false,
+    step: 1, cat: '', title: '', desc: '', area: '', price: '', photos: [], cal: 'greg',
+    reqTab: 'new', allRead: false
+  };
+
+  nextPhotoId = 1;
+
+  reqTabStyle(k) {
+    const on = this.state.reqTab === k;
+    return 'display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;border:0;border-bottom:3px solid ' +
+      (on ? '#123642' : 'transparent') + ';background:transparent;font-family:inherit;font-size:16px;font-weight:600;color:' +
+      (on ? '#123642' : '#6B7B82') + ';cursor:pointer;white-space:nowrap';
+  }
+
+  addPhoto = () => {
+    if (this.state.photos.length >= 3) return;
+    const id = this.nextPhotoId++;
+    this.setState(s => ({ photos: s.photos.concat([{ id: id, p: 0 }]) }));
+    const t = setInterval(() => {
+      this.setState(s => {
+        const cur = s.photos.find(x => x.id === id);
+        if (!cur || cur.p >= 100) { clearInterval(t); return null; }
+        return { photos: s.photos.map(x => x.id === id ? { id: id, p: Math.min(100, x.p + 20) } : x) };
+      });
+    }, 260);
+  };
+
+  fmt(n) { return Number(n).toLocaleString('en-US'); }
+
+  score(v) {
+    if (!v) return 0;
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (/[0-9]/.test(v) && /[A-Za-z\u0600-\u06FF]/.test(v)) s++;
+    if (v.length >= 12 || /[^A-Za-z0-9]/.test(v)) s++;
+    return Math.min(s, 3);
+  }
+
+  renderVals() {
+    const n = this.state.pw;
+    const on = ['#E7EBEC', '#B3261E', '#C7A15A', '#1E7A4B'][n];
+    const idle = '#E7EBEC';
+    const raw = this.state.iban;
+    const grouped = raw.replace(/(.{4})/g, '$1 ').trim();
+    const okStart = raw.length === 0 || raw.slice(0, 2) === 'SA';
+    const full = raw.length === 24 && okStart;
+    const ibanBorder = raw.length === 0 ? '#D3DADD' : (full ? '#1E7A4B' : (okStart ? '#C7A15A' : '#B3261E'));
+    const ibanHint = raw.length === 0
+      ? 'يبدأ رقم الآيبان بـ SA ويتكوّن من 24 خانة.'
+      : (!okStart ? 'يجب أن يبدأ رقم الآيبان بـ SA.'
+        : (full ? 'الصيغة صحيحة — 24 خانة.' : 'يجب أن يتكوّن رقم الآيبان من 24 خانة.'));
+    const ibanHintColor = raw.length === 0 ? '#6B7B82' : (full ? '#1E5B3F' : (okStart ? '#7A6430' : '#8C1D18'));
+    const cal = this.getCal();
+    return {
+      pwType: this.state.showPw ? 'text' : 'password',
+      pwToggleLabel: this.state.showPw ? 'إخفاء' : 'إظهار',
+      togglePw: () => this.setState(st => ({ showPw: !st.showPw })),
+      onPw: e => this.setState({ pw: this.score(e.target.value) }),
+      onTerms: () => {},
+      openTerms: e => e.preventDefault(),
+      seg1: n >= 1 ? on : idle,
+      seg2: n >= 2 ? on : idle,
+      seg3: n >= 3 ? on : idle,
+      pwLabel: ['—', 'ضعيفة', 'متوسطة', 'قوية'][n],
+      ibanView: grouped,
+      ibanBorder: ibanBorder,
+      ibanHint: ibanHint,
+      ibanHintColor: ibanHintColor,
+      ibanCount: raw.length + '/24',
+      onIban: e => {
+        const v = e.target.value.replace(/\s/g, '').toUpperCase().slice(0, 24);
+        this.setState({ iban: v });
+      },
+      savedIban: this.state.showIban ? 'SA03 8000 0000 6080 1019 4523' : 'SA•• •••• •••• •••• •••• 4523',
+      ibanRevealLabel: this.state.showIban ? 'إخفاء' : 'اكشف',
+      ibanRevealNote: this.state.showIban ? 'الرقم ظاهر حاليًا — يُرجى الضغط على «إخفاء» بعد الانتهاء.' : 'يُخفى الرقم لحمايته، ويمكن كشفه عند الحاجة إلى التحقق منه.',
+      toggleIban: () => this.setState(st => ({ showIban: !st.showIban })),
+      openDelete: e => e.preventDefault(),
+      onOtp: e => {
+        const el = e.target;
+        if (el.tagName !== 'INPUT') return;
+        el.value = el.value.replace(/[^0-9]/g, '').slice(0, 1);
+        if (el.value && el.nextElementSibling) el.nextElementSibling.focus();
+      },
+
+      // --- معالج إضافة مساحة ---
+      step: this.state.step,
+      isStep1: this.state.step === 1,
+      isStep2: this.state.step === 2,
+      isStep3: this.state.step === 3,
+      isDone: this.state.step === 4,
+      stepLabel: 'الخطوة ' + Math.min(this.state.step, 3) + ' من 3',
+      bar1: '#123642',
+      bar2: this.state.step >= 2 ? '#123642' : '#E7EBEC',
+      bar3: this.state.step >= 3 ? '#123642' : '#E7EBEC',
+      lbl2: this.state.step >= 2 ? '#123642' : '#8A979C',
+      lbl3: this.state.step >= 3 ? '#123642' : '#8A979C',
+      next: () => this.setState(s => ({ step: Math.min(4, s.step + 1) })),
+      back: () => this.setState(s => ({ step: Math.max(1, s.step - 1) })),
+      restart: () => this.setState({ step: 1 }),
+      noop: e => e.preventDefault(),
+
+      catVal: this.state.cat,
+      pickWarehouse: () => this.setState({ cat: 'warehouse' }),
+      pickRoom: () => this.setState({ cat: 'room' }),
+      pickOpen: () => this.setState({ cat: 'open' }),
+      pickGarage: () => this.setState({ cat: 'garage' }),
+      catB1: this.state.cat === 'warehouse' ? '#123642' : '#E1E5E7',
+      catB2: this.state.cat === 'room' ? '#123642' : '#E1E5E7',
+      catB3: this.state.cat === 'open' ? '#123642' : '#E1E5E7',
+      catB4: this.state.cat === 'garage' ? '#123642' : '#E1E5E7',
+      catG1: this.state.cat === 'warehouse' ? '#F5F5F5' : '#FFFFFF',
+      catG2: this.state.cat === 'room' ? '#F5F5F5' : '#FFFFFF',
+      catG3: this.state.cat === 'open' ? '#F5F5F5' : '#FFFFFF',
+      catG4: this.state.cat === 'garage' ? '#F5F5F5' : '#FFFFFF',
+
+      titleVal: this.state.title,
+      onTitle: e => this.setState({ title: e.target.value.slice(0, 60) }),
+      descVal: this.state.desc,
+      onDesc: e => this.setState({ desc: e.target.value.slice(0, 300) }),
+      descCount: this.state.desc.length + '/300',
+      areaVal: this.state.area,
+      onArea: e => this.setState({ area: e.target.value.replace(/[^0-9]/g, '').slice(0, 5) }),
+      priceVal: this.state.price,
+      onPrice: e => this.setState({ price: e.target.value.replace(/[^0-9]/g, '').slice(0, 5) }),
+      hasPrice: this.state.price !== '' && Number(this.state.price) > 0,
+      monthly: 'ما يعادل ' + this.fmt((Number(this.state.price) || 0) * 30) + ' ر.س شهرياً ما يعادل',
+
+      photos: this.state.photos.map((x, i) => ({
+        id: x.id,
+        num: 'صورة ' + (i + 1),
+        badge: 'الصورة الرئيسية',
+        isPrimary: i === 0,
+        pct: x.p + '%',
+        pctText: x.p < 100 ? 'جاري الرفع ' + x.p + '%' : 'تم الرفع',
+        barColor: x.p < 100 ? '#C7A15A' : '#1E7A4B',
+        onDelete: () => this.setState(s => ({ photos: s.photos.filter(y => y.id !== x.id) })),
+        onUp: () => this.setState(s => {
+          const a = s.photos.slice(); const j = a.findIndex(y => y.id === x.id);
+          if (j > 0) { const t = a[j - 1]; a[j - 1] = a[j]; a[j] = t; }
+          return { photos: a };
+        })
+      })),
+      addPhoto: this.addPhoto,
+      photoCount: this.state.photos.length + '/3',
+      hasPhotos: this.state.photos.length > 0,
+      canSubmit: this.state.photos.length >= 2,
+      submitBg: this.state.photos.length >= 2 ? '#123642' : '#E7EBEC',
+      submitFg: this.state.photos.length >= 2 ? '#FFFFFF' : '#9BA8AD',
+      submitCursor: this.state.photos.length >= 2 ? 'pointer' : 'not-allowed',
+      submitNote: this.state.photos.length >= 2 ? 'الطلب الطلب جاهز للإرسال.' : 'يجب إرفاق صورتين على الأقل قبل الإرسال.',
+      submit: () => { if (this.state.photos.length >= 2) this.setState({ step: 4 }); },
+
+      // --- تقويم التوفر ---
+      tabNew: this.reqTabStyle('new'),
+      tabActive: this.reqTabStyle('active'),
+      tabDone: this.reqTabStyle('done'),
+      pickTabNew: () => this.setState({ reqTab: 'new' }),
+      pickTabActive: () => this.setState({ reqTab: 'active' }),
+      pickTabDone: () => this.setState({ reqTab: 'done' }),
+      showNew: this.state.reqTab === 'new',
+      showActive: this.state.reqTab === 'active',
+      showDone: this.state.reqTab === 'done',
+      markAllRead: () => this.setState({ allRead: true }),
+      unreadBg: this.state.allRead ? '#FFFFFF' : '#F4F8F9',
+      unreadDot: this.state.allRead ? 'transparent' : '#C7A15A',
+      unreadWeight: this.state.allRead ? '400' : '600',
+      unreadCount: this.state.allRead ? 'جميع الإشعارات مقروءة' : '3 إشعارات غير مقروءة',
+      calLabel: cal.label,
+      calToggle: this.state.cal === 'greg' ? 'التقويم الهجري' : 'التقويم الميلادي',
+      toggleCal: () => this.setState(s => ({ cal: s.cal === 'greg' ? 'hijri' : 'greg' })),
+      days: cal.cells,
+      week: cal.week
+    };
+  }
+
+  hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', year: 'numeric' });
+  hijriTitleFmt = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', { month: 'long', year: 'numeric' });
+  calCache = {};
+
+  hijriParts(d) {
+    const p = this.hijriFmt.formatToParts(d);
+    const get = t => p.find(x => x.type === t).value;
+    return { d: get('day'), m: get('month'), y: get('year') };
+  }
+
+  getCal() {
+    const k = this.state.cal;
+    if (!this.calCache[k]) this.calCache[k] = this.buildCal();
+    return this.calCache[k];
+  }
+
+  shift(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+
+  buildCal() {
+    const hijri = this.state.cal === 'hijri';
+    const dates = [];
+    if (!hijri) {
+      for (let n = 1; n <= 31; n++) dates.push(new Date(2026, 7, n));
+    } else {
+      const t = this.hijriParts(new Date(2026, 7, 15));
+      let start = new Date(2026, 7, 15);
+      for (let i = 0; i < 40; i++) {
+        const prev = this.shift(start, -1);
+        const p = this.hijriParts(prev);
+        if (p.m === t.m && p.y === t.y) start = prev; else break;
+      }
+      let cur = start;
+      for (let i = 0; i < 40; i++) {
+        const p = this.hijriParts(cur);
+        if (p.m !== t.m || p.y !== t.y) break;
+        dates.push(cur);
+        cur = this.shift(cur, 1);
+      }
+    }
+
+    const booked = [{ s: 5, e: 12, ref: 'محجوز 1042' }, { s: 20, e: 27, ref: 'محجوز 1078' }];
+    const blocked = [15, 16];
+    const wd = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const cells = [];
+    for (let i = 0; i < dates[0].getDay(); i++) {
+      cells.push({ n: 0, label: '', note: '', bg: 'transparent', border: 'transparent', fg: '#2D2D2D', weekday: '' });
+    }
+    dates.forEach(dt => {
+      const inAug = dt.getFullYear() === 2026 && dt.getMonth() === 7;
+      const g = dt.getDate();
+      const b = inAug ? booked.find(r => g >= r.s && g <= r.e) : null;
+      const isBlocked = inAug && blocked.indexOf(g) > -1;
+      cells.push({
+        n: g,
+        label: hijri ? this.hijriParts(dt).d : String(g),
+        weekday: wd[dt.getDay()],
+        note: b ? (g === b.s ? b.ref : '') : (isBlocked ? 'محجوب' : ''),
+        bg: b ? '#123642' : (isBlocked ? '#F7EFDF' : '#FFFFFF'),
+        border: b ? '#123642' : (isBlocked ? '#C7A15A' : '#E7EBEC'),
+        fg: b ? '#FFFFFF' : '#2D2D2D'
+      });
+    });
+
+    let label = 'أغسطس 2026';
+    if (hijri) label = this.hijriTitleFmt.format(dates[Math.floor(dates.length / 2)]);
+    return { cells: cells, label: label, week: cells.filter(d => d.n > 0).slice(2, 16) };
+  }
+}
+</script>
+</body>
+</html>

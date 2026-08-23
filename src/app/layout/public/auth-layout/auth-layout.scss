@@ -1,0 +1,82 @@
+@use 'abstracts' as a;
+
+.auth {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-bg-shell);
+
+  @include a.up(lg) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth__brand {
+  display: none;
+
+  @include a.up(lg) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: a.$space-20;
+    padding: a.$space-56;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+.auth__logo {
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+}
+
+.auth__tagline {
+  margin: 0;
+  font-size: a.$fs-xl;
+  color: var(--color-accent);
+}
+
+.auth__points {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+  margin: a.$space-16 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: a.$fs-lg;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: a.$space-10;
+  }
+
+  // Decorative tick; the list is aria-hidden anyway.
+  li::before {
+    content: '✓';
+    flex: none;
+    color: var(--color-accent);
+    font-weight: a.$fw-bold;
+  }
+}
+
+.auth__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: a.$space-20;
+}
+
+.auth__card {
+  @include a.surface(a.$radius-3xl);
+
+  width: 100%;
+  max-width: 440px;
+  padding: a.$space-24;
+  box-shadow: var(--shadow-card);
+
+  @include a.up(md) {
+    padding: a.$space-32;
+  }
+}

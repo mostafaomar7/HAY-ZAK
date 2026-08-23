@@ -1,0 +1,182 @@
+<section class="results">
+  <div class="results__layout">
+    <!-- Desktop filter rail. The same component powers the phone sheet below. -->
+    <aside class="results__rail">
+      <app-unit-filters
+        [filters]="filters()"
+        [categories]="categoryFacets()"
+        (filtersChange)="onFilters($event)"
+        (cleared)="clearFilters()"
+      />
+    </aside>
+
+    <div class="results__main">
+      <header class="toolbar">
+        <div class="toolbar__count">
+          <h1 class="toolbar__title">{{ heading() }}</h1>
+          <p class="toolbar__meta">
+            @if (filters().availableFrom && filters().availableTo) {
+              <span class="num">
+                {{
+                  i18n.t('results.availableBetween', {
+                    from: filters().availableFrom,
+                    to: filters().availableTo,
+                  })
+                }}
+              </span>
+              <span aria-hidden="true">·</span>
+            }
+            <span class="num">{{
+              i18n.t('results.withinKm', { count: filters().maxDistanceKm })
+            }}</span>
+          </p>
+        </div>
+
+        <div class="toolbar__tools">
+          <div class="toolbar__sort" role="group" [attr.aria-label]="i18n.t('results.sort')">
+            <span class="toolbar__sortLabel">{{ i18n.t('results.sort') }}</span>
+            @for (option of sortOptions; track option.value) {
+              <button
+                type="button"
+                class="sort"
+                [class.sort--on]="sort() === option.value"
+                [attr.aria-pressed]="sort() === option.value"
+                (click)="setSort(option.value)"
+              >
+                {{ i18n.t(option.labelKey) }}
+              </button>
+            }
+          </div>
+
+          <!-- List or map. Both show the same results; the map is a panel above
+               the list rather than a second column competing for its width. -->
+          <div class="view" role="group" [attr.aria-label]="i18n.t('results.view')">
+            <button
+              type="button"
+              class="view__btn"
+              [class.view__btn--on]="!mapOpen()"
+              [attr.aria-pressed]="!mapOpen()"
+              (click)="showMap(false)"
+            >
+              {{ i18n.t('results.viewList') }}
+            </button>
+            <button
+              type="button"
+              class="view__btn"
+              [class.view__btn--on]="mapOpen()"
+              [attr.aria-pressed]="mapOpen()"
+              (click)="showMap(true)"
+            >
+              {{ i18n.t('results.viewMap') }}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Phone-only controls: the filter sheet trigger and the active summary. -->
+      <div class="chips">
+        <button type="button" class="chips__filters" (click)="toggleSheet()">
+          @if (activeFilterCount() > 0) {
+            {{ i18n.t('results.filtersWithCount', { count: activeFilterCount() }) }}
+          } @else {
+            {{ i18n.t('results.filters') }}
+          }
+        </button>
+        <span class="chips__item">{{ i18n.t(sortLabel()) }}</span>
+        <span class="chips__item num">{{
+          i18n.t('results.upToKm', { count: filters().maxDistanceKm })
+        }}</span>
+      </div>
+
+      @if (mapOpen() && units().length > 0) {
+        <app-results-map
+          class="results__map"
+          [units]="units()"
+          [activeId]="hoveredId()"
+          [cityLabel]="cityLabel()"
+          (hovered)="setHovered($event)"
+        />
+      }
+
+      <div class="results__list">
+        @if (isLoading() && units().length === 0) {
+          <app-ui-skeleton [count]="6" [label]="i18n.t('common.loading')" />
+        } @else if (failed()) {
+          <app-ui-empty-state
+            tone="error"
+            [title]="i18n.t('results.error')"
+            [hint]="i18n.t('results.errorHint')"
+          >
+            <button appUiButton variant="primary" (click)="fetch()">
+              {{ i18n.t('common.retry') }}
+            </button>
+          </app-ui-empty-state>
+        } @else if (units().length === 0) {
+          <app-ui-empty-state
+            [title]="i18n.t('results.empty')"
+            [hint]="i18n.t('results.emptyHint')"
+          >
+            <button appUiButton variant="outline" (click)="clearFilters()">
+              {{ i18n.t('results.clearFilters') }}
+            </button>
+          </app-ui-empty-state>
+        } @else {
+          @for (unit of units(); track unit.id) {
+            <app-unit-result-card
+              [unit]="unit"
+              [days]="days()"
+              [active]="hoveredId() === unit.id"
+              (hovered)="setHovered($event)"
+            />
+          }
+
+          <div class="more">
+            <p class="more__count num">
+              {{ i18n.t('results.showing', { shown: units().length, total: total() }) }}
+            </p>
+            @if (hasMore()) {
+              <button
+                appUiButton
+                variant="outline"
+                type="button"
+                [disabled]="isLoading()"
+                (click)="loadMore()"
+              >
+                {{ i18n.t('results.loadMore', { count: remaining() }) }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (sheetOpen()) {
+    <div class="sheet">
+      <button
+        type="button"
+        class="sheet__scrim"
+        [attr.aria-label]="i18n.t('common.cancel')"
+        (click)="toggleSheet()"
+      ></button>
+
+      <div class="sheet__panel" role="dialog" [attr.aria-label]="i18n.t('results.filters')">
+        <span class="sheet__grab" aria-hidden="true"></span>
+
+        <app-unit-filters
+          asSheet
+          [filters]="filters()"
+          [categories]="categoryFacets()"
+          [resultCount]="total()"
+          (filtersChange)="onFilters($event)"
+          (cleared)="clearFilters()"
+          (applied)="applySheet()"
+        />
+      </div>
+    </div>
+  }
+
+  <p class="results__back">
+    <a routerLink="/">{{ i18n.t('details.breadcrumbHome') }}</a>
+  </p>
+</section>

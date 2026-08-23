@@ -1,0 +1,75 @@
+@use 'abstracts' as a;
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-16;
+  min-height: a.$control-touch-min;
+  cursor: pointer;
+}
+
+.toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-2;
+  min-width: 0;
+}
+
+.toggle__label {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.toggle__hint {
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+// Visually hidden but still the real control.
+.toggle__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.toggle__track {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 26px;
+  border-radius: a.$radius-pill;
+  background: var(--color-border-input);
+  transition: background-color a.$transition-fast;
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 3px;
+  // Logical inset so the knob starts on the leading edge in RTL and LTR alike.
+  inset-inline-start: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: a.$radius-pill;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  transition: inset-inline-start a.$transition-fast;
+}
+
+.toggle__input:checked + .toggle__track {
+  background: var(--color-primary);
+
+  .toggle__knob {
+    inset-inline-start: 23px;
+  }
+}
+
+.toggle__input:focus-visible + .toggle__track {
+  box-shadow: var(--focus-ring);
+}
+
+.toggle__input:disabled + .toggle__track {
+  opacity: 0.5;
+}

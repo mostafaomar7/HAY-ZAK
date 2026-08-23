@@ -1,0 +1,102 @@
+<app-ui-notice tone="info">{{ i18n.t('audit.readOnly') }}</app-ui-notice>
+
+<app-admin-filter-bar
+  [searchPlaceholder]="i18n.t('audit.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('audit.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [sort]="list.sort()"
+  [emptyTitle]="i18n.t('audit.empty')"
+  [emptyHint]="i18n.t('audit.emptyHint')"
+  [errorTitle]="i18n.t('audit.error')"
+  [errorHint]="i18n.t('audit.errorHint')"
+  errorRef="ERR-5307"
+  (rowOpen)="openRow($any($event))"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-template #row let-row>
+    <span class="cell cell--stack">
+      <span class="cell--strong">{{ row.actorName }}</span>
+      <span class="cell__sub">{{ roleLabel(row.actorRole) }}</span>
+    </span>
+    <span class="cell">{{ row.action }}</span>
+    <span class="cell num">{{ row.occurredAt | date: 'd MMM y · HH:mm' }}</span>
+    <span class="cell cell--muted num">{{ row.oldValue }}</span>
+    <span class="cell cell--strong num">{{ row.newValue }}</span>
+  </ng-template>
+</app-admin-table>
+
+@if (detail(); as entry) {
+  <app-admin-panel
+    open
+    [eyebrow]="i18n.t('audit.panelEyebrow')"
+    [title]="i18n.t('audit.panelTitle')"
+    (dismissed)="close()"
+  >
+    <section class="block">
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('audit.user') }}</dt>
+          <dd>{{ entry.actorName }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.role') }}</dt>
+          <dd>{{ roleLabel(entry.actorRole) }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('audit.action') }}</dt>
+          <dd>{{ entry.action }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('audit.time') }}</dt>
+          <dd class="num">{{ entry.occurredAt | date: 'd MMMM y · HH:mm' }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('audit.entity') }}</dt>
+          <dd>{{ entry.entityType }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('audit.entityId') }}</dt>
+          <dd class="num" dir="ltr">{{ entry.entityId }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('audit.ip') }}</dt>
+          <dd class="num" dir="ltr">{{ entry.ipAddress }}</dd>
+        </div>
+        @if (entry.userAgent) {
+          <div class="fact">
+            <dt>{{ i18n.t('audit.device') }}</dt>
+            <dd>{{ entry.userAgent }}</dd>
+          </div>
+        }
+      </dl>
+    </section>
+
+    <div class="diff">
+      <div class="diff__box">
+        <span class="diff__label">{{ i18n.t('audit.before') }}</span>
+        <span class="diff__value num">{{ entry.oldValue }}</span>
+      </div>
+      <div class="diff__box diff__box--new">
+        <span class="diff__label">{{ i18n.t('audit.after') }}</span>
+        <span class="diff__value num">{{ entry.newValue }}</span>
+      </div>
+    </div>
+
+    <p class="block__note">{{ i18n.t('audit.immutable') }}</p>
+  </app-admin-panel>
+}

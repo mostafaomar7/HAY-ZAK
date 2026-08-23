@@ -1,0 +1,215 @@
+@if (lateCount() > 0) {
+  <app-ui-notice tone="danger">
+    {{
+      i18n.t('bkq.slaBanner', {
+        count: lateCount(),
+        hours: settings.approvalSlaHours(),
+      })
+    }}
+  </app-ui-notice>
+}
+
+<app-admin-filter-bar
+  [searchPlaceholder]="i18n.t('bkq.searchPlaceholder')"
+  [selects]="selects()"
+  [values]="list.filters()"
+  (applied)="onFilters($event)"
+  (cleared)="onReset()"
+/>
+
+<app-admin-table
+  selectable
+  [columns]="columns()"
+  [rows]="rows()"
+  [state]="list.state()"
+  [caption]="i18n.t('bkq.title')"
+  [total]="list.total()"
+  [page]="list.page()"
+  [pageSize]="list.pageSize"
+  [selected]="list.selected()"
+  [sort]="list.sort()"
+  [rowTone]="tone()"
+  [emptyTitle]="i18n.t('bkq.empty')"
+  [emptyHint]="i18n.t('bkq.emptyHint')"
+  [errorTitle]="i18n.t('bkq.error')"
+  [errorHint]="i18n.t('bkq.errorHint')"
+  errorRef="ERR-5044"
+  (rowOpen)="openRow($any($event))"
+  (selectionChange)="list.setSelection($event)"
+  (sortChange)="onSort($event)"
+  (pageChange)="onPage($event)"
+  (retried)="fetch()"
+  (clearedFilters)="onReset()"
+>
+  <ng-container tableActions>
+    <button
+      appUiButton
+      variant="primary"
+      size="sm"
+      type="button"
+      [disabled]="submitting()"
+      (click)="approveSelected()"
+    >
+      {{ i18n.t('admin.approveSelected') }}
+    </button>
+    <button
+      appUiButton
+      variant="danger"
+      size="sm"
+      type="button"
+      [disabled]="submitting()"
+      (click)="askRejectSelected()"
+    >
+      {{ i18n.t('admin.rejectSelected') }}
+    </button>
+  </ng-container>
+
+  <ng-template #row let-row>
+    <span class="cell cell--strong num" dir="ltr">{{ row.referenceNo }}</span>
+    <span class="cell">{{ row.renterName }}</span>
+    <span class="cell cell--muted">{{ row.lessorName }}</span>
+    <span class="cell">{{ row.unitTitle }}</span>
+    <span class="cell num">
+      {{ row.startDate | date: 'd MMM' }} — {{ row.endDate | date: 'd MMM y' }}
+    </span>
+    <span class="cell num">
+      {{ row.totalAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+    </span>
+    <span class="cell">
+      <span class="wait num" [class.wait--late]="isLate(row.waitingHours)">
+        {{ waitLabel(row.waitingHours) }}
+      </span>
+    </span>
+    <span class="cell cell--link">{{ i18n.t('admin.openReview') }}</span>
+  </ng-template>
+</app-admin-table>
+
+@if (detail(); as booking) {
+  <app-admin-panel
+    open
+    [eyebrow]="i18n.t('bkq.panelEyebrow')"
+    [title]="booking.referenceNo"
+    (dismissed)="closePanel()"
+  >
+    @if (isLate(booking.waitingHours)) {
+      <app-ui-notice tone="danger">
+        {{ i18n.t('bkq.lateNotice', { hours: booking.waitingHours }) }}
+      </app-ui-notice>
+    }
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('bkq.data') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.unit') }}</dt>
+          <dd>{{ booking.unitTitle }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.period') }}</dt>
+          <dd class="num">
+            {{ booking.startDate | date: 'd MMM' }} — {{ booking.endDate | date: 'd MMM y' }}
+          </dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.days') }}</dt>
+          <dd class="num">{{ i18n.t('bkq.daysCount', { count: booking.daysCount }) }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.total') }}</dt>
+          <dd><app-ui-money [amount]="booking.totalAmount" /></dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.commission') }}</dt>
+          <dd><app-ui-money [amount]="booking.commissionAmount" /></dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.vat') }}</dt>
+          <dd><app-ui-money [amount]="booking.vatAmount" /></dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.net') }}</dt>
+          <dd><app-ui-money [amount]="booking.netToLessor" /></dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.paidAt') }}</dt>
+          <dd class="num">{{ booking.paidAt | date: 'd MMM y · HH:mm' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- FR-BKG-03: what the renter said they are storing. The operator reads it
+         against the prohibited-items list before approving. -->
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('bkq.goods') }}</h3>
+      <p class="block__prose">{{ booking.goodsDescription }}</p>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('bkq.renterSection') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('users.name') }}</dt>
+          <dd>{{ booking.renter.name }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.mobile') }}</dt>
+          <dd class="num" dir="ltr">{{ booking.renter.mobile }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('bkq.lessorSection') }}</h3>
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('users.name') }}</dt>
+          <dd>{{ booking.lessor.name }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.mobile') }}</dt>
+          <dd class="num" dir="ltr">{{ booking.lessor.mobile }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bkq.verified') }}</dt>
+          <dd>
+            <app-ui-badge [tone]="booking.lessor.isVerified ? 'success' : 'warning'">
+              {{ booking.lessor.isVerified ? i18n.t('users.verify') : i18n.t('admin.status') }}
+            </app-ui-badge>
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <ng-container panelActions>
+      <button
+        appUiButton
+        variant="primary"
+        type="button"
+        fullWidth
+        [disabled]="submitting()"
+        (click)="approveOne()"
+      >
+        {{ i18n.t('bkq.approve') }}
+      </button>
+      <button
+        appUiButton
+        variant="danger"
+        type="button"
+        fullWidth
+        [disabled]="submitting()"
+        (click)="askRejectOne()"
+      >
+        {{ i18n.t('bkq.rejectOne') }}
+      </button>
+    </ng-container>
+  </app-admin-panel>
+}
+
+<app-admin-reason-modal
+  queue="booking"
+  [open]="reasonOpen()"
+  [refundAmount]="refundAmount()"
+  [submitting]="submitting()"
+  (confirmed)="confirmReject($event)"
+  (dismissed)="reasonOpen.set(false)"
+/>

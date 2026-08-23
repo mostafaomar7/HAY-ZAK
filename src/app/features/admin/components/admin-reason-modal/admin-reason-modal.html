@@ -1,0 +1,63 @@
+<app-ui-modal tone="danger" [open]="open()" [title]="i18n.t('reject.title')" (dismissed)="close()">
+  <p class="lead">{{ i18n.t('reject.lead') }}</p>
+
+  <!-- Said before the button, because it cannot be undone afterwards. -->
+  @if (queue() === 'booking' && refundAmount() !== null) {
+    <app-ui-notice tone="danger">
+      {{ i18n.t('reject.refundWarningBefore') }}
+      <app-ui-money [amount]="refundAmount()!" strong />
+      {{ i18n.t('reject.refundWarningAfter') }}
+    </app-ui-notice>
+  }
+
+  <ul class="reasons">
+    @for (reason of reasons(); track reason.code) {
+      <li>
+        <label class="reason" [class.reason--on]="picked() === reason.code">
+          <input
+            class="reason__input sr-only"
+            type="radio"
+            name="rejectReason"
+            [value]="reason.code"
+            [checked]="picked() === reason.code"
+            (change)="pick(reason.code)"
+          />
+          <span class="reason__dot" aria-hidden="true"></span>
+          <span class="reason__label">{{ i18n.t(reason.labelKey) }}</span>
+        </label>
+      </li>
+    }
+  </ul>
+
+  <div class="note">
+    <label class="note__label" for="reject-note">
+      {{ i18n.t('reject.noteLabel') }}
+      @if (!ready() && picked()) {
+        <span class="note__required">{{ i18n.t('reject.noteRequired') }}</span>
+      }
+    </label>
+    <textarea
+      id="reject-note"
+      class="note__input"
+      rows="3"
+      [placeholder]="i18n.t('reject.notePlaceholder')"
+      [value]="note()"
+      (input)="setNote($any($event.target).value)"
+    ></textarea>
+  </div>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="close()">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button
+      appUiButton
+      variant="danger"
+      type="button"
+      [disabled]="!ready() || submitting()"
+      (click)="confirm()"
+    >
+      {{ i18n.t('reject.confirm') }}
+    </button>
+  </ng-container>
+</app-ui-modal>

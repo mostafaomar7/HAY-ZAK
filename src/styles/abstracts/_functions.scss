@@ -1,0 +1,11 @@
+@use 'sass:math';
+
+/// px → rem against a 16px root.
+@function rem($px, $base: 16) {
+  @return math.div($px, $base) * 1rem;
+}
+
+/// Shorthand for reading a theme token.
+@function token($name) {
+  @return var(--#{$name});
+}

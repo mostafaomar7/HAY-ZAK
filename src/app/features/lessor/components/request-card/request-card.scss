@@ -1,0 +1,77 @@
+@use 'abstracts' as a;
+
+.req {
+  @include a.surface;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: a.$space-12;
+  padding: a.$space-18;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color a.$transition-fast;
+}
+
+a.req {
+  &:hover {
+    border-color: var(--color-primary);
+    color: inherit;
+  }
+
+  @include a.focus-ring;
+}
+
+.req--draft {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-muted);
+}
+
+.req__head {
+  display: flex;
+  gap: a.$space-12;
+  width: 100%;
+}
+
+.req__titles {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-4;
+  min-width: 0;
+}
+
+.req__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.req__meta {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+.req__goods {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+
+  @include a.line-clamp(2);
+}
+
+.req__renter {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.req__renter--hidden {
+  font-weight: a.$fw-regular;
+  font-style: italic;
+  color: var(--color-text-faint);
+}

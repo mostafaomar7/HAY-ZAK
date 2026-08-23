@@ -1,0 +1,67 @@
+@use 'abstracts' as a;
+
+.contact {
+  @include a.card;
+  @include a.stack(a.$space-16);
+
+  padding: a.$space-20;
+}
+
+.contact__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.contact__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: a.$space-16;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.contact__wide {
+  @include a.up(md) {
+    grid-column: 1 / -1;
+  }
+}
+
+.input {
+  @include a.control;
+
+  &.num {
+    @include a.numeric;
+  }
+}
+
+.contact__message {
+  min-height: 128px;
+  padding: a.$space-12 a.$space-14;
+  line-height: a.$lh-base;
+  resize: vertical;
+}
+
+.contact__counter {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+  text-align: end;
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-14;
+}
+
+.contact__aside {
+  font-size: a.$fs-label;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,44 @@
+<form class="authForm" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <header class="authForm__head">
+    <h1 class="authForm__title">تسجيل دخول المؤجر</h1>
+    <p class="authForm__sub">ادخل إلى حسابك لمتابعة مساحاتك وطلباتك.</p>
+  </header>
+
+  @if (error()) {
+    <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
+  }
+
+  <app-ui-field
+    label="الجوال أو البريد الإلكتروني"
+    for="l-identifier"
+    [control]="form.controls.identifier"
+  >
+    <input
+      id="l-identifier"
+      type="text"
+      formControlName="identifier"
+      autocomplete="username"
+      dir="auto"
+    />
+  </app-ui-field>
+
+  <app-ui-field label="كلمة المرور" for="l-password" [control]="form.controls.password">
+    <input
+      id="l-password"
+      type="password"
+      formControlName="password"
+      autocomplete="current-password"
+    />
+  </app-ui-field>
+
+  <a class="authForm__link" routerLink="/auth/forgot-password">نسيت كلمة المرور؟</a>
+
+  <button appUiButton variant="primary" size="lg" [fullWidth]="true" [disabled]="submitting()">
+    {{ submitting() ? 'جارٍ الدخول...' : 'تسجيل الدخول' }}
+  </button>
+
+  <p class="authForm__foot">
+    ليس لديك حساب؟
+    <a routerLink="/auth/register">تسجيل مؤجر جديد</a>
+  </p>
+</form>

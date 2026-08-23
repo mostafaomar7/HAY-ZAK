@@ -1,0 +1,252 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.card {
+  @include a.surface(a.$radius-lg);
+  @include a.stack(a.$space-16);
+
+  max-width: 1100px;
+  padding: a.$space-18;
+}
+
+.card--compact {
+  gap: a.$space-10;
+}
+
+.card--switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-24;
+  border-width: 2px;
+  border-color: var(--color-primary);
+}
+
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: a.$space-20;
+}
+
+.card__text {
+  @include a.stack(a.$space-6);
+
+  max-width: 640px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.card__hint {
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.card__body {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: 1.9;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.card__state {
+  margin: 0;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.card__state--on {
+  color: var(--color-warning-fg);
+}
+
+.card__value {
+  display: flex;
+  align-items: center;
+  gap: a.$space-12;
+}
+
+.figure {
+  @include a.numeric;
+
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.figure__unit {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-regular;
+  color: var(--color-text-muted);
+}
+
+.cycle {
+  @include a.numeric;
+
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+}
+
+.pair {
+  display: grid;
+  gap: a.$space-14;
+  max-width: 1100px;
+
+  @include a.up(lg) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ── Commission exceptions ────────────────────────────────────────────────
+.ex {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+}
+
+.ex__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.ex__title {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+
+  .num {
+    @include a.numeric;
+
+    font-weight: a.$fw-regular;
+    color: var(--color-text-muted);
+  }
+}
+
+.ex__row {
+  display: grid;
+  grid-template-columns: 0.8fr 2fr 0.9fr 1fr;
+  align-items: center;
+  gap: a.$space-8;
+  padding: a.$space-10 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-label;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  .num {
+    @include a.numeric;
+  }
+}
+
+.ex__row--head {
+  background: var(--color-bg);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+// ── Refund tiers ─────────────────────────────────────────────────────────
+.tiers {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tiers__item {
+  @include a.numeric;
+
+  padding: a.$space-12 a.$space-14;
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+  font-size: a.$fs-label;
+  line-height: 1.9;
+}
+
+// ── Confirmation dialog ──────────────────────────────────────────────────
+.diff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: a.$space-12;
+}
+
+.diff__box {
+  @include a.stack(a.$space-6);
+
+  padding: a.$space-14;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-sm;
+  background: var(--color-bg);
+}
+
+.diff__box--new {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.diff__label {
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+.diff__value {
+  @include a.numeric;
+
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  line-height: 1.8;
+}
+
+.diff__input {
+  @include a.control;
+  @include a.numeric;
+
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.note {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: 1.9;
+  color: var(--color-text-muted);
+}
+
+.fields {
+  @include a.stack(a.$space-12);
+}
+
+.field {
+  @include a.stack(a.$space-6);
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.field__input {
+  @include a.control;
+
+  font-size: a.$fs-label;
+}

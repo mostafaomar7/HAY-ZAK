@@ -1,0 +1,285 @@
+@use 'abstracts' as a;
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: a.$space-16;
+  min-height: a.$topbar-height;
+  padding: a.$space-10 a.$space-16;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  @include a.up(lg) {
+    padding-inline: a.$space-32;
+    gap: a.$space-24;
+  }
+}
+
+// ── Brand ────────────────────────────────────────────────────────────────
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: none;
+  color: var(--color-on-primary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-on-primary);
+  }
+}
+
+.brand__ar {
+  font-size: a.$fs-3xl;
+  font-weight: a.$fw-bold;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.brand__latin {
+  font-family: a.$font-latin;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-accent);
+  // The design sets the wordmark in wide Latin tracking. `letter-spacing` adds
+  // the gap on the trailing side, which in RTL leaves a stray indent — the
+  // negative margin pulls it back so the mark stays flush under the Arabic.
+  letter-spacing: 6px;
+  margin-inline-end: -6px;
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────────
+.nav {
+  display: none;
+  gap: a.$space-18;
+
+  @include a.up(md) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nav__link {
+  @include a.focus-ring;
+
+  display: inline-flex;
+  align-items: center;
+  min-height: a.$control-touch-min;
+  border-bottom: 2px solid transparent;
+  color: color-mix(in srgb, var(--color-on-primary) 80%, transparent);
+  font-size: a.$fs-lg;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-on-primary);
+  }
+}
+
+.nav__link--active {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-on-primary);
+  font-weight: a.$fw-semibold;
+}
+
+// ── Actions ──────────────────────────────────────────────────────────────
+.actions {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+  margin-inline-start: auto;
+}
+
+.actions__cta {
+  // The phone bar has no room for both the CTA and the sign-in control.
+  display: none;
+
+  @include a.up(md) {
+    display: inline-flex;
+  }
+}
+
+.icon-btn {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  position: relative;
+  width: 40px;
+  height: 40px;
+  min-width: a.$control-touch-min;
+  min-height: a.$control-touch-min;
+  gap: a.$space-4;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-on-primary) 80%, transparent);
+  font-family: inherit;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+  transition:
+    background-color a.$transition-fast,
+    color a.$transition-fast;
+
+  &:hover {
+    background: var(--hover-overlay);
+    color: var(--color-on-primary);
+  }
+}
+
+.icon-btn--label {
+  width: auto;
+  padding-inline: a.$space-10;
+}
+
+.bell {
+  position: relative;
+  display: flex;
+}
+
+.bell__count {
+  @include a.flex-center;
+
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: a.$radius-pill;
+  background: var(--color-danger-strong);
+  color: var(--color-text-inverse);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-bold;
+}
+
+.account {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: a.$fw-bold;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-on-accent);
+  }
+}
+
+// ── Notifications dropdown ───────────────────────────────────────────────
+.dropdown {
+  position: absolute;
+  top: 48px;
+  // Opens toward the page centre; the bell sits at the inline start of the bar.
+  inset-inline-end: 0;
+  z-index: 5;
+  width: min(340px, calc(100vw - #{a.$space-32}));
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-xl;
+  box-shadow: var(--shadow-dropdown);
+  color: var(--color-text);
+}
+
+.dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.dropdown__markAll {
+  @include a.focus-ring;
+
+  border: 0;
+  background: transparent;
+  color: var(--color-link);
+  font-family: inherit;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.dropdown__body {
+  max-height: 60vh;
+  overflow-y: auto;
+
+  @include a.scrollbar;
+}
+
+.dropdown__empty {
+  margin: 0;
+  padding: a.$space-20 a.$space-16;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.notif {
+  display: flex;
+  gap: a.$space-10;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  color: var(--color-text);
+  font-size: a.$fs-sm;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+}
+
+.notif--unread {
+  background: var(--color-primary-soft);
+
+  .notif__dot {
+    background: var(--color-accent);
+  }
+
+  .notif__title {
+    font-weight: a.$fw-semibold;
+  }
+}
+
+.notif__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  margin-top: 7px;
+  border-radius: a.$radius-pill;
+  background: transparent;
+}
+
+.notif__title {
+  text-wrap: pretty;
+}
+
+.dropdown__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: a.$control-touch-min;
+  border-top: 1px solid var(--color-border-divider);
+  color: var(--color-link);
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-link-hover);
+  }
+}

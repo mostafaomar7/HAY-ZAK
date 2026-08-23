@@ -1,0 +1,403 @@
+@use 'abstracts' as a;
+
+.cal {
+  @include a.stack(a.$space-10);
+
+  min-width: 0;
+}
+
+// ── The two closed fields ────────────────────────────────────────────────
+.cal__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: a.$space-10;
+}
+
+.field {
+  @include a.stack(a.$space-2);
+  @include a.focus-ring;
+
+  min-height: a.$control-height;
+  padding: a.$space-6 a.$space-12;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.field--active {
+  border-color: var(--color-primary);
+  border-width: 1.5px;
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.field__main {
+  @include a.numeric;
+
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.field__sub {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+.cal__closed {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+// ── Panel ────────────────────────────────────────────────────────────────
+.panel {
+  @include a.surface(a.$radius-xl);
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  gap: a.$space-10;
+  padding: a.$space-12;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.panel__nav {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  width: 34px;
+  height: 34px;
+  min-width: a.$control-touch-min;
+  min-height: a.$control-touch-min;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: a.$fs-lg;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--color-text-faint);
+    cursor: not-allowed;
+  }
+}
+
+.panel__title {
+  flex: 1;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+  text-align: center;
+}
+
+.panel__months {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: a.$space-14;
+  padding: a.$space-12;
+
+  @include a.up(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.panel__months--single {
+  grid-template-columns: minmax(0, 1fr);
+
+  @include a.up(md) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// ── One month ────────────────────────────────────────────────────────────
+.month {
+  @include a.stack(a.$space-8);
+
+  min-width: 0;
+}
+
+.month__title {
+  margin: 0;
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-align: center;
+}
+
+.month__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.month__weekday {
+  padding-bottom: a.$space-6;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-faint);
+  text-align: center;
+}
+
+// ── Day cells ────────────────────────────────────────────────────────────
+.day {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.day--blank {
+  cursor: default;
+}
+
+.day__num {
+  @include a.flex-center;
+  @include a.numeric;
+
+  width: 30px;
+  height: 30px;
+  border-radius: a.$radius-pill;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-medium;
+  color: var(--color-text);
+}
+
+// The connective track runs behind the pill so a range reads as one band.
+.day--range {
+  background: var(--color-primary-soft);
+
+  .day__num {
+    font-weight: a.$fw-semibold;
+    color: var(--color-primary);
+  }
+}
+
+// Rounded on the outer edge only — logical, so it flips with the direction.
+.day--start {
+  background: linear-gradient(
+    to left,
+    var(--color-primary-soft) 50%,
+    transparent 50%
+  );
+}
+
+.day--end {
+  background: linear-gradient(
+    to right,
+    var(--color-primary-soft) 50%,
+    transparent 50%
+  );
+}
+
+// A single-day selection has no band to draw.
+.day--start.day--end {
+  background: transparent;
+}
+
+.day--start .day__num,
+.day--end .day__num {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: a.$fw-bold;
+}
+
+.day--past {
+  cursor: not-allowed;
+
+  .day__num {
+    color: var(--color-text-faint);
+  }
+}
+
+// Struck through as well as greyed: unavailability must not rest on colour alone.
+.day--blocked {
+  cursor: not-allowed;
+
+  .day__num {
+    color: var(--color-danger);
+    font-style: italic;
+    text-decoration: line-through;
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────
+.panel__foot {
+  @include a.stack(a.$space-10);
+
+  padding: a.$space-12;
+  border-top: 1px solid var(--color-border-divider);
+  background: var(--color-surface);
+}
+
+.panel__error {
+  display: flex;
+  align-items: flex-start;
+  gap: a.$space-8;
+  margin: 0;
+  padding: a.$space-10;
+  border: 1px solid var(--color-danger-border);
+  border-radius: a.$radius-md;
+  background: var(--color-danger-bg);
+  font-size: a.$fs-xs;
+  line-height: a.$lh-base;
+  color: var(--color-danger-fg);
+}
+
+.panel__errorMark {
+  @include a.flex-center;
+
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: a.$radius-pill;
+  background: var(--color-danger-border);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-bold;
+}
+
+.panel__summary {
+  @include a.stack(a.$space-2);
+}
+
+.panel__summaryMain {
+  @include a.numeric;
+
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.panel__summarySub {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.switch {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  border-radius: a.$radius-pill;
+  background: var(--color-bg);
+}
+
+.switch__opt {
+  @include a.focus-ring;
+
+  min-height: 32px;
+  padding: 0 a.$space-12;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.switch__opt--on {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-14;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: a.$space-6;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.legend__swatch {
+  @include a.flex-center;
+
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: a.$radius-sm;
+}
+
+.legend__swatch--end {
+  border-radius: a.$radius-pill;
+  background: var(--color-primary);
+}
+
+.legend__swatch--range {
+  background: var(--color-primary-soft);
+}
+
+.legend__swatch--blocked {
+  @include a.numeric;
+
+  width: auto;
+  color: var(--color-danger);
+  font-style: italic;
+  text-decoration: line-through;
+}
+
+.legend__swatch--past {
+  @include a.numeric;
+
+  width: auto;
+  color: var(--color-text-faint);
+}
+
+.panel__actions {
+  display: flex;
+  gap: a.$space-10;
+}
+
+.panel__confirm {
+  @include a.button-base(46px);
+
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+.panel__reset {
+  @include a.button-base(46px);
+
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primary);
+}

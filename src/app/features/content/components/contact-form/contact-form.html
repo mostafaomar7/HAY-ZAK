@@ -1,0 +1,86 @@
+<form class="contact" [formGroup]="form" (ngSubmit)="submit()">
+  <h2 class="contact__title">{{ i18n.t('contact.formTitle') }}</h2>
+
+  <div class="contact__grid">
+    <app-ui-field
+      [label]="i18n.t('account.fullName')"
+      for="ct-name"
+      [control]="form.controls.fullName"
+    >
+      <input id="ct-name" class="input" type="text" formControlName="fullName" />
+    </app-ui-field>
+
+    <app-ui-field [label]="i18n.t('account.email')" for="ct-email" [control]="form.controls.email">
+      <input
+        id="ct-email"
+        class="input num"
+        type="email"
+        dir="ltr"
+        inputmode="email"
+        formControlName="email"
+      />
+    </app-ui-field>
+
+    <app-ui-field
+      [label]="i18n.t('account.mobile')"
+      for="ct-mobile"
+      [control]="form.controls.mobile"
+    >
+      <input
+        id="ct-mobile"
+        class="input num"
+        type="tel"
+        dir="ltr"
+        inputmode="tel"
+        formControlName="mobile"
+      />
+    </app-ui-field>
+
+    <app-ui-field
+      [label]="i18n.t('contact.subject')"
+      for="ct-subject"
+      [control]="form.controls.subject"
+    >
+      <select id="ct-subject" class="input" formControlName="subject">
+        @for (option of subjects; track option.value) {
+          <option [value]="option.value">{{ i18n.t(option.labelKey) }}</option>
+        }
+      </select>
+    </app-ui-field>
+
+    <app-ui-field
+      class="contact__wide"
+      [label]="i18n.t('contact.message')"
+      for="ct-message"
+      [control]="form.controls.message"
+      [hint]="i18n.t('contact.privacyNote')"
+    >
+      <textarea
+        id="ct-message"
+        class="input contact__message"
+        rows="5"
+        [attr.maxlength]="maxMessage"
+        formControlName="message"
+      ></textarea>
+    </app-ui-field>
+  </div>
+
+  <p class="contact__counter num" dir="ltr" aria-live="polite">{{ counter() }}</p>
+
+  <div class="contact__actions">
+    <button appUiButton variant="primary" type="submit" [disabled]="submitting()">
+      {{ i18n.t('contact.send') }}
+    </button>
+
+    <span class="contact__aside">
+      {{ i18n.t('contact.orFaq') }}
+      <a routerLink="/pages/faq">{{ i18n.t('pages.faqIndex') }}</a>
+    </span>
+  </div>
+
+  @if (ticketNo()) {
+    <app-ui-notice tone="info">
+      {{ i18n.t('contact.sent', { ticket: ticketNo() }) }}
+    </app-ui-notice>
+  }
+</form>

@@ -1,0 +1,255 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+@include a.admin-panel-blocks;
+
+.cycle {
+  @include a.surface(a.$radius-lg);
+
+  margin: 0;
+  padding: a.$space-12 a.$space-16;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.group {
+  @include a.surface(a.$radius-lg);
+
+  overflow: hidden;
+}
+
+.group__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: a.$space-20;
+  padding: a.$space-14 a.$space-18;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: var(--color-bg);
+}
+
+.group__who {
+  @include a.stack(a.$space-6);
+
+  min-width: 0;
+}
+
+.group__name {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+.group__bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-16;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+
+  b {
+    color: var(--color-text);
+    font-weight: a.$fw-regular;
+  }
+
+  .num {
+    @include a.numeric;
+
+    color: var(--color-text);
+  }
+}
+
+.group__total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: a.$space-2;
+}
+
+.group__totalLabel {
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.group__totalValue {
+  font-size: a.$fs-3xl;
+  color: var(--color-primary);
+}
+
+.group__count {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+// ── Rows ─────────────────────────────────────────────────────────────────
+$payout-cols: 1.2fr 1.8fr 1.4fr 1fr 1.2fr 1.5fr;
+
+.rows {
+  overflow-x: auto;
+
+  @include a.scrollbar(6px);
+}
+
+.rows__head {
+  display: none;
+
+  @include a.up(lg) {
+    display: grid;
+    grid-template-columns: $payout-cols;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border-divider);
+    background: var(--color-bg);
+
+    span {
+      padding: a.$space-10 a.$space-14;
+      font-size: a.$fs-2xs;
+      font-weight: a.$fw-semibold;
+      color: var(--color-text-muted);
+    }
+  }
+}
+
+.rows__row {
+  display: grid;
+  gap: a.$space-4;
+  padding: a.$space-10 a.$space-14;
+  border-bottom: 1px solid var(--color-border-divider);
+
+  @include a.up(lg) {
+    grid-template-columns: $payout-cols;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+  }
+}
+
+.rows__cell {
+  padding: a.$space-2 0;
+  min-width: 0;
+  font-size: a.$fs-label;
+
+  @include a.up(lg) {
+    padding: a.$space-12 a.$space-14;
+  }
+}
+
+.rows__cell--stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: a.$space-4;
+}
+
+.rows__cell--actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+}
+
+.rows__ref {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.rows__done {
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+// A frozen or failed row explains itself directly beneath, across the grid.
+.rows__note {
+  margin: 0;
+  padding: 0 a.$space-14 a.$space-12;
+  font-size: a.$fs-xs;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+
+  @include a.up(lg) {
+    grid-column: 1 / -1;
+  }
+}
+
+// ── Dialog innards ───────────────────────────────────────────────────────
+.amount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-16;
+  padding: a.$space-14 a.$space-16;
+  border-radius: a.$radius-md;
+  background: var(--color-bg);
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.amount__value {
+  font-size: a.$fs-3xl;
+  color: var(--color-primary);
+}
+
+.account {
+  @include a.stack(a.$space-10);
+
+  padding: a.$space-14 a.$space-16;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+}
+
+.account__title {
+  margin: 0;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.account__note {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-muted);
+}
+
+.pair {
+  display: grid;
+  gap: a.$space-12;
+
+  @include a.up(md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field {
+  @include a.stack(a.$space-6);
+}
+
+.field__label {
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.field__input {
+  @include a.control;
+
+  font-size: a.$fs-label;
+}
+
+.field__input--area {
+  min-height: 84px;
+  padding: a.$space-10 a.$space-12;
+  resize: vertical;
+}
+
+.prose {
+  margin: 0;
+  font-size: a.$fs-label;
+  line-height: 1.9;
+  color: var(--color-text);
+}

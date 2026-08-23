@@ -1,0 +1,141 @@
+// Runtime theme tokens, lifted verbatim from the Claude Design export in
+// docs/design/. Every value here appears in that file — nothing is invented.
+//
+// ThemeService flips [data-theme] on <html>. The design ships light only, so the
+// dark block below is a considered extrapolation, not a supplied spec: it keeps
+// the same hue relationships and contrast intent. Ask the designer to review it
+// before dark mode is advertised as done.
+
+:root {
+  // ── Brand ──────────────────────────────────────────────────────────────
+  // Deep teal carries the brand: sidebar, headings, primary actions, figures.
+  --color-primary: #123642;
+  --color-primary-hover: #0b242c;
+  --color-primary-soft: #eaf0f2;
+  --color-on-primary: #ffffff;
+
+  // Gold is the single call-to-action colour ("إضافة مساحة جديدة"). Used
+  // sparingly and deliberately — do not spread it onto secondary buttons.
+  --color-accent: #c7a15a;
+  --color-accent-hover: #b58f49;
+  --color-accent-soft: #f7efdf;
+  --color-on-accent: #123642;
+
+  // Inline links on the renter side. The lessor portal styles links with the
+  // primary teal; the renter design system gives them their own lighter blue so
+  // they stand out inside long marketing and legal copy.
+  --color-link: #2e6e8e;
+  --color-link-hover: #123642;
+
+  // ── Surfaces ───────────────────────────────────────────────────────────
+  --color-bg: #f5f5f5; // content area behind cards
+  --color-bg-canvas: #f7f8f8; // app frame, sticky footers
+  --color-bg-shell: #edeff0; // outside the app frame
+  --color-surface: #ffffff;
+  --color-surface-muted: #fcfcfc; // draft / inactive cards
+  --color-overlay: rgb(18 54 66 / 45%);
+
+  // ── Borders ────────────────────────────────────────────────────────────
+  --color-border: #dde2e4; // default container border
+  --color-border-subtle: #e7ebec; // card borders inside a list
+  --color-border-divider: #edeff0; // hairlines between rows
+  --color-border-input: #d3dadd; // form controls
+  --color-border-strong: #c3cbcf; // dashed / empty-state outlines
+
+  // ── Text ───────────────────────────────────────────────────────────────
+  --color-text: #2d2d2d;
+  --color-text-muted: #55666d;
+  --color-text-subtle: #6b7b82;
+  --color-text-faint: #8a979c;
+  --color-text-icon: #6b7075;
+  --color-text-inverse: #ffffff;
+  --color-text-heading: #123642;
+
+  // ── Status: success ────────────────────────────────────────────────────
+  --color-success: #1e7a4b;
+  --color-success-fg: #1e5b3f;
+  --color-success-bg: #e9f3ee;
+  --color-success-border: #bfd9cb;
+
+  // ── Status: warning (gold family — "قيد المراجعة", "بانتظار الموافقة") ──
+  --color-warning-fg: #123642;
+  --color-warning-bg: #f7efdf;
+  --color-warning-border: #c7a15a;
+
+  // ── Status: danger ─────────────────────────────────────────────────────
+  --color-danger: #b3261e;
+  --color-danger-fg: #8c1d18;
+  --color-danger-bg: #fdecea;
+  --color-danger-border: #f0d2ce;
+  --color-danger-strong: #a32c22; // notification count badge
+
+  // ── Status: info / neutral ─────────────────────────────────────────────
+  --color-info-fg: #123642;
+  --color-info-bg: #eaf0f2;
+  --color-neutral-fg: #55666d;
+  --color-neutral-bg: #f5f5f5;
+
+  // ── Elevation ──────────────────────────────────────────────────────────
+  --shadow-card: 0 12px 30px rgb(18 54 66 / 8%);
+  --shadow-dropdown: 0 16px 36px rgb(18 54 66 / 18%);
+  --focus-ring: 0 0 0 3px rgb(18 54 66 / 12%);
+  --hover-overlay: rgb(255 255 255 / 10%); // on the teal sidebar
+}
+
+:root[data-theme='dark'] {
+  --color-primary: #4cbcc7;
+  --color-primary-hover: #6fcdd6;
+  --color-primary-soft: #13383d;
+  --color-on-primary: #07181d;
+
+  --color-accent: #d9b978;
+  --color-accent-hover: #e5caa0;
+  --color-accent-soft: #2a2317;
+  --color-on-accent: #07181d;
+
+  --color-bg: #10161a;
+  --color-bg-canvas: #0c1216;
+  --color-bg-shell: #080d10;
+  --color-surface: #161e23;
+  --color-surface-muted: #131a1f;
+  --color-overlay: rgb(0 0 0 / 60%);
+
+  --color-border: #2a353b;
+  --color-border-subtle: #232d33;
+  --color-border-divider: #1e272c;
+  --color-border-input: #33414a;
+  --color-border-strong: #3d4c55;
+
+  --color-text: #e6eaec;
+  --color-text-muted: #a3b1b7;
+  --color-text-subtle: #8c9ba1;
+  --color-text-faint: #75858c;
+  --color-text-icon: #9aa8ae;
+  --color-text-inverse: #07181d;
+  --color-text-heading: #d8eef1;
+
+  --color-success: #4ec98a;
+  --color-success-fg: #7ddcaa;
+  --color-success-bg: #12291f;
+  --color-success-border: #1f4735;
+
+  --color-warning-fg: #f0d49a;
+  --color-warning-bg: #2c2517;
+  --color-warning-border: #6b552c;
+
+  --color-danger: #e8695f;
+  --color-danger-fg: #f2988f;
+  --color-danger-bg: #2b1614;
+  --color-danger-border: #5a2a25;
+  --color-danger-strong: #d2564c;
+
+  --color-info-fg: #a9cfd6;
+  --color-info-bg: #16272c;
+  --color-neutral-fg: #a3b1b7;
+  --color-neutral-bg: #1b2429;
+
+  --shadow-card: 0 12px 30px rgb(0 0 0 / 45%);
+  --shadow-dropdown: 0 16px 36px rgb(0 0 0 / 55%);
+  --focus-ring: 0 0 0 3px rgb(76 188 199 / 25%);
+  --hover-overlay: rgb(255 255 255 / 8%);
+}

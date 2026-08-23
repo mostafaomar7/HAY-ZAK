@@ -1,0 +1,123 @@
+@if (isLoading()) {
+  <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+} @else if (failed()) {
+  <app-ui-empty-state tone="error" [title]="i18n.t('cms.error')" [hint]="i18n.t('cms.errorHint')">
+    <button appUiButton variant="primary" type="button" (click)="fetch()">
+      {{ i18n.t('common.retry') }}
+    </button>
+  </app-ui-empty-state>
+} @else {
+  <div class="layout">
+    <nav class="pages" [attr.aria-label]="i18n.t('cms.pages')">
+      <h2 class="pages__title">{{ i18n.t('cms.pages') }}</h2>
+      @for (page of pages(); track page.slug) {
+        <button
+          class="pages__item"
+          type="button"
+          [class.pages__item--on]="page.slug === slug()"
+          [attr.aria-current]="page.slug === slug() ? 'true' : null"
+          (click)="select(page.slug)"
+        >
+          <span class="pages__name">{{ page.titleAr }}</span>
+          <span class="pages__meta num">
+            {{ i18n.t('cms.updatedAt', { date: page.updatedAt }) }}
+          </span>
+        </button>
+      }
+    </nav>
+
+    @if (current(); as page) {
+      <div class="editor">
+        <section class="card">
+          <header class="card__head">
+            <div class="card__text">
+              <h2 class="card__title">{{ page.titleAr }}</h2>
+              <p class="card__meta num">
+                {{ i18n.t('cms.updatedAt', { date: page.updatedAt }) }}
+              </p>
+            </div>
+            <div class="card__actions">
+              <a
+                appUiButton
+                variant="outline"
+                size="sm"
+                target="_blank"
+                rel="noopener"
+                [href]="previewUrl()"
+              >
+                {{ i18n.t('cms.preview') }}
+              </a>
+              <button
+                appUiButton
+                variant="primary"
+                size="sm"
+                type="button"
+                [disabled]="saving()"
+                (click)="save()"
+              >
+                {{ i18n.t('cms.publish') }}
+              </button>
+            </div>
+          </header>
+
+          <div class="card__body">
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.titleAr') }}</span>
+              <input
+                class="field__input"
+                type="text"
+                [value]="titleAr()"
+                (input)="titleAr.set($any($event.target).value)"
+              />
+            </label>
+
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.body') }}</span>
+              <textarea
+                class="field__input field__input--area"
+                rows="12"
+                [value]="body()"
+                (input)="body.set($any($event.target).value)"
+              ></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card__title card__title--pad">{{ i18n.t('cms.seo') }}</h2>
+          <div class="card__body">
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.seoTitle') }}</span>
+              <input
+                class="field__input"
+                type="text"
+                [value]="seoTitle()"
+                (input)="seoTitle.set($any($event.target).value)"
+              />
+              <span class="field__hint" [class.field__hint--over]="titleTooLong()">
+                {{ i18n.t('cms.seoTitleHint') }}
+                <span class="num" dir="ltr">{{ seoTitle().length }}/{{ seoTitleLimit }}</span>
+              </span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.seoDescription') }}</span>
+              <textarea
+                class="field__input field__input--area"
+                rows="3"
+                [value]="seoDescription()"
+                (input)="seoDescription.set($any($event.target).value)"
+              ></textarea>
+              <span class="field__hint" [class.field__hint--over]="descriptionTooLong()">
+                {{ i18n.t('cms.seoDescriptionHint') }}
+                <span class="num" dir="ltr">
+                  {{ seoDescription().length }}/{{ seoDescriptionLimit }}
+                </span>
+              </span>
+            </label>
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+}

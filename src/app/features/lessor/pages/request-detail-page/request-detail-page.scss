@@ -1,0 +1,203 @@
+@use 'abstracts' as a;
+
+.loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: a.$space-20;
+  align-items: start;
+
+  @include a.up(xl) {
+    // 1.3fr / 1fr, as in the design.
+    grid-template-columns: 1.3fr 1fr;
+    gap: a.$space-24;
+  }
+}
+
+.detail__main,
+.detail__side {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-20;
+  min-width: 0;
+}
+
+.card {
+  @include a.surface(a.$radius-2xl);
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-14;
+  padding: a.$space-20;
+}
+
+.card--row {
+  flex-direction: row;
+  align-items: center;
+  gap: a.$space-16;
+  flex-wrap: wrap;
+}
+
+.card__heading {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.detail__unit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-4;
+}
+
+.detail__unitTitle {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text);
+}
+
+.detail__unitMeta {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+}
+
+.detail__unitLink {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+}
+
+.detail__status {
+  margin-inline-start: auto;
+}
+
+.detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: a.$space-16;
+  margin: 0;
+}
+
+.detail__cell,
+.detail__goods {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-4;
+}
+
+.detail__goods {
+  padding-top: a.$space-14;
+  border-top: 1px solid var(--color-border-divider);
+}
+
+dt {
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+dd {
+  max-width: 70ch;
+  margin: 0;
+  font-size: a.$fs-xl;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.amount__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: a.$space-12;
+  font-size: a.$fs-lg;
+  color: var(--color-text-muted);
+}
+
+// The deduction and its nested money component share one colour.
+.amount__deduction {
+  color: var(--color-danger-fg);
+
+  ::ng-deep .money {
+    color: inherit;
+  }
+}
+
+.amount__row--total {
+  padding-top: a.$space-14;
+  border-top: 1px solid var(--color-border-divider);
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.renter__name {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+}
+
+.renter__phone {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+}
+
+// Grey bars standing in for the withheld fields.
+.renter__ghost {
+  display: block;
+  height: 16px;
+  border-radius: a.$radius-sm;
+  background: var(--color-border-divider);
+
+  &--name {
+    width: 45%;
+    height: 22px;
+  }
+
+  &--phone {
+    width: 60%;
+  }
+}
+
+.contract__icon {
+  @include a.flex-center;
+
+  width: 52px;
+  height: 66px;
+  flex: none;
+  border: 1px solid var(--color-border-input);
+  border-radius: a.$radius-sm;
+  background: var(--color-border-subtle);
+  font-family: a.$font-mono;
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-faint);
+}
+
+.contract__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-semibold;
+}
+
+.contract__hint {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-subtle);
+}
+
+.contract--pending {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-canvas);
+
+  .contract__title {
+    color: var(--color-text-muted);
+  }
+}

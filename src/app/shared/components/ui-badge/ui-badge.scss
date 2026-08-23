@@ -1,0 +1,57 @@
+@use 'abstracts' as a;
+
+.badge {
+  @include a.pill;
+
+  border: 1px solid transparent;
+}
+
+.badge--sm {
+  height: a.$badge-height-sm;
+  padding-inline: a.$space-10;
+}
+
+.badge--md {
+  height: a.$badge-height;
+  padding-inline: a.$space-12;
+  font-size: a.$fs-sm;
+}
+
+// Solid teal — the design reserves this for "in progress right now":
+// محجوزة بالكامل · نشط · مجمّد
+.badge--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.badge--success {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+// Gold-outlined — awaiting a decision: قيد المراجعة · مدفوع بانتظار الموافقة
+.badge--warning {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-fg);
+}
+
+.badge--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.badge--info {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+.badge--neutral {
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-fg);
+}
+
+.badge--dashed {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+}

@@ -1,0 +1,95 @@
+<section class="page">
+  @if (isLoading()) {
+    <p class="page__loading" role="status">جارٍ تحميل البيانات البنكية...</p>
+  } @else if (showForm()) {
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h2 class="card__heading">البيانات البنكية</h2>
+      <p class="card__intro">
+        تُحوَّل مستحقاتك إلى هذا الحساب. يجب أن يكون الحساب باسمك أنت، وإلا تعذّر التحويل.
+      </p>
+
+      <app-ui-field
+        label="اسم صاحب الحساب"
+        for="b-holder"
+        [control]="form.controls.accountHolderName"
+        hint="كما هو مسجّل في البنك."
+      >
+        <input
+          id="b-holder"
+          type="text"
+          formControlName="accountHolderName"
+          [maxlength]="maxNameLength"
+          autocomplete="name"
+        />
+      </app-ui-field>
+
+      <app-ui-field label="اسم البنك" for="b-bank" [control]="form.controls.bankName">
+        <select id="b-bank" formControlName="bankName">
+          <option value="">اختر البنك</option>
+          @for (bank of banks(); track bank.id) {
+            <option [value]="bank.nameAr">{{ bank.nameAr }}</option>
+          }
+        </select>
+      </app-ui-field>
+
+      <app-ui-field
+        label="رقم الآيبان"
+        for="b-iban"
+        [control]="form.controls.iban"
+        [hint]="ibanCount()"
+      >
+        <input
+          id="b-iban"
+          type="text"
+          inputmode="text"
+          formControlName="iban"
+          [placeholder]="ibanPlaceholder"
+          autocomplete="off"
+          spellcheck="false"
+          dir="ltr"
+        />
+      </app-ui-field>
+
+      <p class="card__note">يبدأ بـ SA ويتكوّن من 24 خانة.</p>
+
+      <div class="card__actions">
+        <button appUiButton variant="primary" size="lg" [disabled]="saving()">
+          {{ saving() ? 'جارٍ الحفظ...' : 'احفظ البيانات' }}
+        </button>
+
+        @if (saved()) {
+          <button appUiButton variant="ghost" type="button" (click)="cancel()">إلغاء</button>
+        }
+      </div>
+    </form>
+  } @else {
+    @let account = saved()!;
+
+    <div class="card">
+      <h2 class="card__heading">البيانات البنكية</h2>
+
+      <app-ui-notice tone="info">تم حفظ بياناتك البنكية.</app-ui-notice>
+
+      <dl class="facts">
+        <div class="facts__row">
+          <dt>اسم صاحب الحساب</dt>
+          <dd>{{ account.accountHolderName }}</dd>
+        </div>
+        <div class="facts__row">
+          <dt>البنك</dt>
+          <dd>{{ account.bankName }}</dd>
+        </div>
+        <div class="facts__row">
+          <dt>رقم الآيبان</dt>
+          <!-- NFR-SEC-02 — the API returns only the last four characters, so
+               there is no full value to reveal. -->
+          <dd class="num" dir="ltr">{{ account.ibanMasked }}</dd>
+        </div>
+      </dl>
+
+      <div class="card__actions">
+        <button appUiButton variant="outline" (click)="edit()">تعديل البيانات</button>
+      </div>
+    </div>
+  }
+</section>

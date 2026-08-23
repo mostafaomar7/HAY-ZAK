@@ -1,0 +1,63 @@
+<section class="choose">
+  <header class="choose__head">
+    <h1 class="choose__title">{{ i18n.t('accountType.title') }}</h1>
+    <p class="choose__sub">{{ i18n.t('accountType.sub') }}</p>
+  </header>
+
+  <div class="choose__cards">
+    <article class="option">
+      <span class="option__mark" aria-hidden="true">⌕</span>
+      <h2 class="option__title">{{ i18n.t('accountType.renterTitle') }}</h2>
+      <p class="option__body">{{ i18n.t('accountType.renterBody') }}</p>
+
+      <ul class="option__points">
+        <li class="option__point">
+          <span class="option__tick" aria-hidden="true">✓</span>
+          {{ i18n.t('accountType.renterPoint1') }}
+        </li>
+        <li class="option__point">
+          <span class="option__tick" aria-hidden="true">✓</span>
+          {{ i18n.t('accountType.renterPoint2') }}
+        </li>
+      </ul>
+
+      <a
+        appUiButton
+        variant="primary"
+        class="option__action"
+        routerLink="/auth/register/renter"
+        [queryParams]="{ returnUrl: returnUrl() || null }"
+      >
+        {{ i18n.t('accountType.renterAction') }}
+      </a>
+    </article>
+
+    <article class="option">
+      <span class="option__mark" aria-hidden="true">▦</span>
+      <h2 class="option__title">{{ i18n.t('accountType.lessorTitle') }}</h2>
+      <p class="option__body">{{ i18n.t('accountType.lessorBody') }}</p>
+
+      <ul class="option__points">
+        <li class="option__point">
+          <span class="option__tick" aria-hidden="true">✓</span>
+          {{ i18n.t('accountType.lessorPoint1') }}
+        </li>
+        <li class="option__point">
+          <span class="option__tick" aria-hidden="true">✓</span>
+          {{ i18n.t('accountType.lessorPoint2') }}
+        </li>
+      </ul>
+
+      <a appUiButton variant="accent" class="option__action" routerLink="/auth/register/lessor">
+        {{ i18n.t('accountType.lessorAction') }}
+      </a>
+    </article>
+  </div>
+
+  <p class="choose__foot">
+    {{ i18n.t('accountType.haveAccount') }}
+    <a routerLink="/auth/login" [queryParams]="{ returnUrl: returnUrl() || null }">
+      {{ i18n.t('public.signIn') }}
+    </a>
+  </p>
+</section>
