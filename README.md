@@ -21,14 +21,14 @@ npm start          # http://localhost:4200
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm start` | Dev server (uses `environment.development.ts`) |
-| `npm run build` | Production build |
-| `npm test` / `npm run test:ci` | Unit tests (Karma + Jasmine) |
-| `npm run lint` / `lint:fix` | ESLint |
-| `npm run format` / `format:check` | Prettier |
-| `npm run analyze` | Production build with `stats.json` |
+| Script                            | Purpose                                        |
+| --------------------------------- | ---------------------------------------------- |
+| `npm start`                       | Dev server (uses `environment.development.ts`) |
+| `npm run build`                   | Production build                               |
+| `npm test` / `npm run test:ci`    | Unit tests (Karma + Jasmine)                   |
+| `npm run lint` / `lint:fix`       | ESLint                                         |
+| `npm run format` / `format:check` | Prettier                                       |
+| `npm run analyze`                 | Production build with `stats.json`             |
 
 ## Structure
 
@@ -43,7 +43,9 @@ src/
   environments/  # per-configuration settings (swapped at build time)
   styles/        # abstracts, base, themes
 docs/
-  route-map.md   # planned routing tree with guards, derived from SRS §5
+  route-map.md       # planned routing tree with guards, derived from SRS §5
+  demo-accounts.md   # the mock sign-in for each role, and what it can open
+  design/            # the design exports and an implementation record per portal
 ```
 
 ### Dependency rules
@@ -66,15 +68,15 @@ import { calculatePrice } from '@core/utils/money.utils';
 The parts of the SRS that will not change when the design lands are already
 encoded and unit-tested:
 
-| Concern | Where | Spec |
-| --- | --- | --- |
-| Booking state machine | [booking-transitions.ts](src/app/core/constants/booking-transitions.ts) | §6 |
-| Permission matrix | [permissions.ts](src/app/core/constants/permissions.ts) | §5 |
-| Price / commission / VAT | [money.utils.ts](src/app/core/utils/money.utils.ts) | FR-BKG-02, FR-PAY-04 |
-| Entities and API contracts | [core/models/](src/app/core/models/) | §7 ERDs |
-| Endpoint map | [api-endpoints.ts](src/app/core/constants/api-endpoints.ts) | §4 |
-| Business constants | [app.constants.ts](src/app/core/constants/app.constants.ts) | §2.4, FR-BKG-05, FR-UNT-02 |
-| Saudi validators (IBAN, mobile, ID) | [saudi.validators.ts](src/app/shared/validators/saudi.validators.ts) | FR-LSR-02, FR-AUTH-02 |
+| Concern                             | Where                                                                   | Spec                       |
+| ----------------------------------- | ----------------------------------------------------------------------- | -------------------------- |
+| Booking state machine               | [booking-transitions.ts](src/app/core/constants/booking-transitions.ts) | §6                         |
+| Permission matrix                   | [permissions.ts](src/app/core/constants/permissions.ts)                 | §5                         |
+| Price / commission / VAT            | [money.utils.ts](src/app/core/utils/money.utils.ts)                     | FR-BKG-02, FR-PAY-04       |
+| Entities and API contracts          | [core/models/](src/app/core/models/)                                    | §7 ERDs                    |
+| Endpoint map                        | [api-endpoints.ts](src/app/core/constants/api-endpoints.ts)             | §4                         |
+| Business constants                  | [app.constants.ts](src/app/core/constants/app.constants.ts)             | §2.4, FR-BKG-05, FR-UNT-02 |
+| Saudi validators (IBAN, mobile, ID) | [saudi.validators.ts](src/app/shared/validators/saudi.validators.ts)    | FR-LSR-02, FR-AUTH-02      |
 
 The state machine is the one to read first — SRS §6 calls it the heart of the
 system, and every state-changing action must go through `canTransition()`.
@@ -126,26 +128,26 @@ runtime. **The palette is a placeholder** — final brand identity is open
 The whole of the first design file (`docs/design/lessor-portal-spaces-requests.html`)
 is built:
 
-| Screen | Route | Design ref |
-| --- | --- | --- |
-| المساحات المسجّلة | `/lessor/units` | LSR-02 |
-| إضافة / تعديل مساحة (3 خطوات) | `/lessor/units/new`, `/lessor/units/:id/edit` | LSR-03 |
-| تفاصيل المساحة | `/lessor/units/:id` | — |
-| الطلبات الواردة | `/lessor/requests` | LSR-05 |
-| تفاصيل الطلب | `/lessor/requests/:id` | LSR-06 |
-| المستحقات | `/lessor/earnings` | LSR-07 |
-| الإشعارات | `/lessor/notifications` | LSR-10 |
+| Screen                        | Route                                         | Design ref |
+| ----------------------------- | --------------------------------------------- | ---------- |
+| المساحات المسجّلة             | `/lessor/units`                               | LSR-02     |
+| إضافة / تعديل مساحة (3 خطوات) | `/lessor/units/new`, `/lessor/units/:id/edit` | LSR-03     |
+| تفاصيل المساحة                | `/lessor/units/:id`                           | —          |
+| الطلبات الواردة               | `/lessor/requests`                            | LSR-05     |
+| تفاصيل الطلب                  | `/lessor/requests/:id`                        | LSR-06     |
+| المستحقات                     | `/lessor/earnings`                            | LSR-07     |
+| الإشعارات                     | `/lessor/notifications`                       | LSR-10     |
 
 And the whole of the second file (`docs/design/lessor-portal-login-account.html`):
 
-| Screen | Route | Design ref |
-| --- | --- | --- |
-| لوحة التحكم | `/lessor/dashboard` | LSR-01 |
-| البيانات البنكية | `/lessor/bank-account` | LSR-08 |
-| الملف الشخصي والإعدادات | `/lessor/account` | LSR-09 |
-| تسجيل مؤجر جديد | `/auth/register` | LSR-00أ |
-| التحقق برمز OTP | `/auth/verify` | LSR-00ب |
-| تسجيل الدخول | `/auth/login` | LSR-00ج |
+| Screen                  | Route                  | Design ref |
+| ----------------------- | ---------------------- | ---------- |
+| لوحة التحكم             | `/lessor/dashboard`    | LSR-01     |
+| البيانات البنكية        | `/lessor/bank-account` | LSR-08     |
+| الملف الشخصي والإعدادات | `/lessor/account`      | LSR-09     |
+| تسجيل مؤجر جديد         | `/auth/register`       | LSR-00أ    |
+| التحقق برمز OTP         | `/auth/verify`         | LSR-00ب    |
+| تسجيل الدخول            | `/auth/login`          | LSR-00ج    |
 
 Both design files are complete. Still stubbed: `/auth/forgot-password`,
 `/auth/reset-password` and the CMS pages the footers link to (`/pages/:slug`) —
@@ -171,7 +173,7 @@ Recorded rather than silently resolved. Each needs a one-line decision.
 2. **VAT on the lessor's side** — the design's amount breakdown is
    `قيمة الحجز − عمولة = صافي المستحقات` with **no VAT line at all**, while SRS §10
    charges 15% VAT on the service. The models carry `vatAmount` either way; what
-   the lessor *sees* follows the design.
+   the lessor _sees_ follows the design.
 3. **Payout statuses** — the design renders three (`محوّل` / `قيد التنفيذ` / `مجمّد`);
    `PayoutStatus` has five, adding `Due` and `Failed`. Kept all five, because the
    design's own note says the rows were dropped to keep the mock totals

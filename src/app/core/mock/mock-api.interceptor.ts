@@ -5,9 +5,9 @@ import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import type { ApiResponse, PaginatedResponse } from '../models/api-response.model';
+import { accountFor } from './accounts';
 import {
   MOCK_ADMIN_KPIS,
-  MOCK_ADMIN_USER,
   MOCK_ADMIN_RENTER_DETAIL,
   MOCK_ADMIN_USERS,
   MOCK_ADMIN_USER_DETAIL,
@@ -414,14 +414,9 @@ function dashboard() {
   };
 }
 
-/**
- * Which account a sign-in produces. The administration address returns the
- * console account so `/admin/login` can be walked in development; anything else
- * returns the seeded lessor.
- */
+/** Which account a sign-in produces — see `accounts.ts` for the directory. */
 function userFor(payload: unknown): User {
-  const identifier = (payload as { identifier?: string } | null)?.identifier ?? '';
-  return identifier.trim().toLowerCase() === MOCK_ADMIN_USER.email ? MOCK_ADMIN_USER : MOCK_LESSOR;
+  return accountFor((payload as { identifier?: string } | null)?.identifier ?? '');
 }
 
 function ok<T>(data: T): ApiResponse<T> {

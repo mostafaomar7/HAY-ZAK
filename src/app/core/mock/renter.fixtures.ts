@@ -215,7 +215,7 @@ export const MOCK_RENTER_PROFILE: RenterProfile = {
   address: 'الرياض — حي الملقا، شارع الثمامة، مبنى 42',
   mobile: '0552104478',
   mobileVerifiedAt: '2026-07-24T09:00:00Z',
-  email: 's.alotaibi@mail.sa',
+  email: 'f.aldosari@example.com',
   emailVerifiedAt: '2026-07-24T09:05:00Z',
 };
 

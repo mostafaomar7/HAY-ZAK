@@ -126,9 +126,16 @@ returns there, and `AuthService.landingUrl()` now sends an admin role to
 ## Working on it in development
 
 The seeded development session is a lessor (see `core/mock/dev-session.ts`), so
-`/admin` refuses it, exactly as it would in production. To get into the console,
-open `/admin/login` and sign in as **operations@hayzak.com** with any password:
-the mock returns `MOCK_ADMIN_USER` for that address and remembers it for the tab.
+`/admin` refuses it, exactly as it would in production. Sign out, then sign in at
+`/admin/login` with any password as one of the three console addresses —
+**operations@hayzak.com** (مدير النظام), **nouf@hayzak.com** (مشرف العمليات) or
+**reem@hayzak.com** (المسؤول المالي). The account each address returns is in
+`core/mock/accounts.ts`, and it is remembered for the tab.
+
+Signing in as the supervisor or the finance officer is the only way to see what
+those roles actually get: the system administrator holds every permission, so
+the console looks complete from that account whatever the other two can reach.
+The full credential list and screen map is `docs/demo-accounts.md`.
 
 ## Open questions
 

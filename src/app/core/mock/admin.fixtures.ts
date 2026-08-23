@@ -41,9 +41,9 @@ import type { User } from '../models/user.model';
  */
 
 /**
- * The console's development account. Signing in at `/admin/login` with this
- * address returns it, which is how a developer moves from the seeded lessor
- * session into the console — the same way a real operator would.
+ * The console's system-administrator account, and usr-5 in the user list below.
+ * `accounts.ts` holds the whole sign-in directory, including the supervisor and
+ * the finance officer, so all three console roles can be demonstrated.
  */
 export const MOCK_ADMIN_USER: User = {
   id: 'usr-5',
@@ -118,7 +118,7 @@ export const MOCK_LISTING_DETAIL: ListingReviewDetail = {
   owner: {
     name: 'سعود العنزي',
     mobile: '+966 50 123 4567',
-    email: 'saud@hayzak.com',
+    email: 'saud@example.com',
     isVerified: true,
   },
 };
@@ -493,6 +493,15 @@ export const MOCK_ADMIN_USERS: AdminUserRow[] = [
     mobile: '+966 55 640 3312',
     email: 'reem@hayzak.com',
     registeredAt: '2026-02-02',
+    status: AccountStatus.Active,
+  },
+  {
+    id: 'usr-8',
+    fullName: 'فهد الدوسري',
+    role: UserRole.Renter,
+    mobile: '+966 55 210 4478',
+    email: 'f.aldosari@example.com',
+    registeredAt: '2026-07-24',
     status: AccountStatus.Active,
   },
 ];
