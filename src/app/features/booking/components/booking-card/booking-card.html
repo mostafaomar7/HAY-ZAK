@@ -12,9 +12,9 @@
       <h3 class="card__title">{{ booking().unit?.title }}</h3>
 
       <p class="card__place num">
-        {{ i18n.pick(booking().unit?.district) }}
+        {{ booking().unit?.district?.name }}
         @if (booking().unit?.city) {
-          ، {{ i18n.pick(booking().unit?.city) }}
+          ، {{ booking().unit?.city?.name }}
         }
       </p>
 

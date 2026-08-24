@@ -55,7 +55,7 @@
 
   <ng-template #row let-row>
     <span class="cell cell--strong">
-      {{ row.unitTitle }}
+      <span dir="auto">{{ row.unitTitle }}</span>
       @if (row.isEdit) {
         <span class="tag">{{ i18n.t('listings.editBadge') }}</span>
       }
@@ -157,7 +157,7 @@
 
     <section class="block">
       <h3 class="block__title">{{ i18n.t('listings.ownerDescription') }}</h3>
-      <p class="block__prose">{{ unit.description }}</p>
+      <p class="block__prose" dir="auto">{{ unit.description }}</p>
     </section>
 
     <ng-container panelActions>

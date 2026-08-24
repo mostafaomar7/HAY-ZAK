@@ -66,9 +66,7 @@
         (completed)="verify()"
       />
 
-      @if (error()) {
-        <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
-      }
+      <app-ui-error-notice [error]="error()" />
 
       <div class="otpMeta">
         <span class="otpMeta__row">
@@ -86,8 +84,19 @@
         {{ submitting() ? 'جارٍ التحقق...' : 'تأكيد الرمز' }}
       </button>
 
-      <button appUiButton variant="ghost" type="button" [fullWidth]="true" (click)="resend()">
-        إعادة إرسال الرمز
+      <button
+        appUiButton
+        variant="ghost"
+        type="button"
+        [fullWidth]="true"
+        [disabled]="throttled()"
+        (click)="resend()"
+      >
+        @if (throttled()) {
+          {{ i18n.t('error.retryIn', { seconds: throttleSeconds() }) }}
+        } @else {
+          إعادة إرسال الرمز
+        }
       </button>
 
       <p class="authForm__foot">

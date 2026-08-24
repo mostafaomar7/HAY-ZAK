@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
-import { toIsoDate } from '@core/utils/date.utils';
+import { occupiedDays, toPlainDate, todayPlain } from '@core/utils/date.utils';
 
 export interface DateRange {
   start: string;
@@ -77,7 +77,7 @@ export class UiRangeCalendar {
   /** ISO days that are already taken — the API's availability blocks, expanded. */
   readonly blockedDates = input<readonly string[]>([]);
   /** Overridable so tests are not tied to the wall clock. */
-  readonly today = input(toIsoDate(new Date()));
+  readonly today = input(todayPlain());
   readonly initiallyOpen = input(false, { transform: booleanAttribute });
   /** One month instead of two — the phone layout and narrow side panels. */
   readonly compact = input(false, { transform: booleanAttribute });
@@ -300,8 +300,16 @@ export class UiRangeCalendar {
     return { year: from.getFullYear(), month: from.getMonth() };
   }
 
+  /**
+   * The first taken day inside a half-open selection `[start, end)`.
+   *
+   * `end` itself is not part of the stay — the unit is handed back that
+   * morning — so a booking already starting on it is not a clash. Testing
+   * `day <= end` here is how a picker refuses the one selection that should be
+   * allowed, and every unit loses a night per neighbouring booking.
+   */
   private firstBlockedBetween(start: string, end: string): string | null {
-    const blocked = [...this.blockedSet()].filter((day) => day > start && day <= end).sort();
+    const blocked = [...this.blockedSet()].filter((day) => day >= start && day < end).sort();
     return blocked[0] ?? null;
   }
 
@@ -401,7 +409,7 @@ function diffDays(from: string, to: string): number {
 function addDays(iso: string, delta: number): string {
   const date = parseIso(iso);
   date.setDate(date.getDate() + delta);
-  return toIsoDate(date);
+  return toPlainDate(date);
 }
 
 function hijriDayNumber(iso: string): string {
@@ -414,19 +422,15 @@ function hijriDayNumber(iso: string): string {
   }
 }
 
-/** Expands API availability blocks into the flat list of ISO days this needs. */
+/**
+ * Expands API availability blocks into the flat list of days this needs.
+ *
+ * The blocks are half-open like every other range in the system: a booking
+ * `[10, 15)` occupies the 10th through the 14th and releases the 15th. Marking
+ * `endDate` itself as taken would grey out a day that is genuinely for sale.
+ */
 export function expandBlockedDates(
   blocks: readonly { startDate: string; endDate: string }[],
 ): string[] {
-  const days: string[] = [];
-
-  for (const block of blocks) {
-    let cursor = block.startDate;
-    // Guard the loop: a malformed block with end before start must not hang the page.
-    while (cursor <= block.endDate && days.length < 3_650) {
-      days.push(cursor);
-      cursor = addDays(cursor, 1);
-    }
-  }
-  return days;
+  return blocks.flatMap((block) => occupiedDays(block.startDate, block.endDate));
 }

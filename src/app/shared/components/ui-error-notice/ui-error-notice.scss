@@ -1,0 +1,19 @@
+@use 'abstracts' as a;
+
+.extra,
+.ref {
+  display: block;
+}
+
+.extra {
+  margin-block-start: a.$space-4;
+}
+
+// Present but quiet: nobody reads it until support asks for it.
+.ref {
+  @include a.numeric;
+
+  margin-block-start: a.$space-8;
+  font-size: a.$fs-2xs;
+  opacity: 0.7;
+}

@@ -67,8 +67,3 @@ export class ReferenceDataService {
     this.districtsByCity.clear();
   }
 }
-
-/** Picks the right label for the active language (FR-CMS-02). */
-export function referenceLabel(item: ReferenceItem, lang: 'ar' | 'en' = 'ar'): string {
-  return lang === 'en' ? item.nameEn : item.nameAr;
-}

@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import type { Unit } from '@core/models/unit.model';
 import { StorageService } from '@core/services/storage.service';
-import { daysBetween } from '@core/utils/date.utils';
+import { nightsBetween } from '@core/utils/date.utils';
 
 /** The four steps of RNT-03 → RNT-05, in order. */
 export type BookingStep = 'dates' | 'goods' | 'identity' | 'pay';
@@ -79,7 +79,7 @@ export class BookingWizardService {
       unitId,
       startDate,
       endDate,
-      daysCount: daysBetween(startDate, endDate),
+      daysCount: nightsBetween(startDate, endDate),
       goodsDescription:
         this.state()?.unitId === unitId ? (this.state()?.goodsDescription ?? '') : '',
       prohibitedAck:

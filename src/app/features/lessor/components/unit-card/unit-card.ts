@@ -42,7 +42,7 @@ export class UnitCard {
 
   protected readonly canEdit = computed(() => this.unit().status !== UnitStatus.Archived);
 
-  protected readonly categoryLabel = computed(() => this.unit().category?.nameAr ?? '');
+  protected readonly categoryLabel = computed(() => this.unit().category?.name ?? '');
 
   protected readonly coverImage = computed(() => this.unit().images?.[0]?.url);
 }

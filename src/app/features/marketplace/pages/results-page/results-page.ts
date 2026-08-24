@@ -81,7 +81,7 @@ export class ResultsPage {
   protected readonly categoryFacets = computed<CategoryFacet[]>(() =>
     this.categories().map((item) => ({
       id: item.id,
-      label: this.i18n.pick(item),
+      label: item.name,
       // Counted from what is on screen. Real facet counts need the server to
       // send them — until then, showing a wrong number would be worse than none.
       count: undefined,
@@ -91,7 +91,7 @@ export class ResultsPage {
   protected readonly cityLabel = computed(() => {
     const id = this.cityId();
     if (!id) return this.i18n.t('results.anyCity');
-    return this.i18n.pick(this.cities().find((city) => city.id === id)) || id;
+    return this.cities().find((city) => city.id === id)?.name ?? id;
   });
 
   protected readonly heading = computed(() =>

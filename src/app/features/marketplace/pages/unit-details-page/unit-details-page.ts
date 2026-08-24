@@ -6,7 +6,7 @@ import { LanguageService } from '@core/i18n/language.service';
 import type { ReferenceItem, Unit } from '@core/models/unit.model';
 import { AuthService } from '@core/services/auth.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
-import { toIsoDate } from '@core/utils/date.utils';
+import { toPlainDate, todayPlain } from '@core/utils/date.utils';
 import { calculatePrice } from '@core/utils/money.utils';
 import { formatTimeRange, formatWeekdays } from '@core/utils/schedule.utils';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
@@ -81,7 +81,7 @@ export class UnitDetailsPage {
   protected readonly activePhoto = signal(0);
   protected readonly joinPromptOpen = signal(false);
 
-  protected readonly today = toIsoDate(new Date());
+  protected readonly today = todayPlain();
   protected readonly holdMinutes = APP.bookingHoldMinutes;
   protected readonly slaHours = APP.approvalSlaHours;
 
@@ -95,7 +95,7 @@ export class UnitDetailsPage {
     const start = this.today;
     const end = new Date(start);
     end.setDate(end.getDate() + this.minDays());
-    return { start, end: toIsoDate(end) };
+    return { start, end: toPlainDate(end) };
   });
 
   protected readonly days = computed(() => this.range()?.days ?? this.minDays());
@@ -122,14 +122,12 @@ export class UnitDetailsPage {
     }));
   });
 
-  protected readonly prohibitedLabels = computed(() =>
-    this.prohibited().map((item) => this.i18n.pick(item)),
-  );
+  protected readonly prohibitedLabels = computed(() => this.prohibited().map((item) => item.name));
 
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
-    return [this.i18n.pick(unit.district), this.i18n.pick(unit.city)].filter(Boolean).join('، ');
+    return [unit.district?.name, unit.city?.name].filter(Boolean).join('، ');
   });
 
   constructor() {

@@ -11,9 +11,7 @@
     </p>
   </header>
 
-  @if (error()) {
-    <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
-  }
+  <app-ui-error-notice [error]="error()" [extras]="extras()" />
 
   <app-ui-field label="الاسم الكامل" for="r-name" [control]="form.controls.fullName">
     <input id="r-name" type="text" formControlName="fullName" autocomplete="name" />
@@ -108,8 +106,18 @@
     <p class="authForm__error" role="alert">يجب الموافقة على الشروط لإكمال التسجيل.</p>
   }
 
-  <button appUiButton variant="primary" size="lg" [fullWidth]="true" [disabled]="submitting()">
-    {{ submitting() ? 'جارٍ إنشاء الحساب...' : 'إنشاء الحساب' }}
+  <button
+    appUiButton
+    variant="primary"
+    size="lg"
+    [fullWidth]="true"
+    [disabled]="submitting() || locked()"
+  >
+    @if (locked()) {
+      {{ lockLabel() }}
+    } @else {
+      {{ submitting() ? 'جارٍ إنشاء الحساب...' : 'إنشاء الحساب' }}
+    }
   </button>
 
   <p class="authForm__foot">

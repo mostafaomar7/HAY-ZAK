@@ -151,13 +151,28 @@ describe('UiRangeCalendar', () => {
 });
 
 describe('expandBlockedDates', () => {
-  it('turns availability blocks into the flat list of days they cover', () => {
+  /**
+   * The range is half-open. A stay of `[20, 23)` occupies three nights and
+   * hands the unit back on the 23rd, so the 23rd stays for sale — marking it
+   * taken would cost the lessor a bookable day on every neighbouring booking.
+   */
+  it('covers the nights a block occupies and releases its end date', () => {
     expect(expandBlockedDates([{ startDate: '2026-09-20', endDate: '2026-09-23' }])).toEqual([
       '2026-09-20',
       '2026-09-21',
       '2026-09-22',
-      '2026-09-23',
     ]);
+  });
+
+  it('lets one block start on the day the previous one ends', () => {
+    const days = expandBlockedDates([
+      { startDate: '2026-09-20', endDate: '2026-09-23' },
+      { startDate: '2026-09-23', endDate: '2026-09-25' },
+    ]);
+
+    // No day is claimed twice, and the join is seamless.
+    expect(days).toEqual(new Array(...new Set(days)));
+    expect(days).toContain('2026-09-23');
   });
 
   it('yields nothing for a block whose end precedes its start', () => {

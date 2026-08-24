@@ -4,8 +4,15 @@ import type { PaginationParams } from './api-response.model';
 /** ERD-2 `categories` / `cities` / `districts` — bilingual reference data. */
 export interface ReferenceItem {
   id: string;
-  nameAr: string;
-  nameEn: string;
+  /**
+   * Already resolved into the language the request asked for.
+   *
+   * Not `nameAr`/`nameEn`: the server reads `Accept-Language` and answers in
+   * one language, so a component picking a side would be re-deciding something
+   * already decided — and would be wrong the moment a third language exists.
+   * Nothing in a template branches on locale.
+   */
+  name: string;
   sortOrder?: number;
   /**
    * How many published units sit under this entry, for the landing page's

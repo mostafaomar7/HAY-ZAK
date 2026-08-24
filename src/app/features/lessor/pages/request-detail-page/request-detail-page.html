@@ -16,11 +16,11 @@
       <header class="card card--row">
         <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="md" />
         <div class="detail__unit">
-          <h2 class="detail__unitTitle">{{ b.unit?.title }}</h2>
+          <h2 class="detail__unitTitle" dir="auto">{{ b.unit?.title }}</h2>
           <p class="detail__unitMeta">
-            {{ b.unit?.city?.nameAr }}
-            @if (b.unit?.district?.nameAr) {
-              &mdash; {{ b.unit?.district?.nameAr }}
+            {{ b.unit?.city?.name }}
+            @if (b.unit?.district?.name) {
+              &mdash; {{ b.unit?.district?.name }}
             }
           </p>
           <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unitId]">عرض المساحة</a>

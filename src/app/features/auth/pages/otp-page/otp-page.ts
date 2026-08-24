@@ -1,9 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
+import { LanguageService } from '@core/i18n/language.service';
+import type { ApiError } from '@core/models/api-error.model';
+import { ERROR_CODES, isApiError } from '@core/models/api-error.model';
 import { AuthService } from '@core/services/auth.service';
+import { countdown, deadlineIn } from '@core/utils/countdown';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiCountdown } from '@shared/components/ui-countdown/ui-countdown';
+import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiOtpInput } from '@shared/components/ui-otp-input/ui-otp-input';
 
@@ -23,7 +28,7 @@ type OtpState = 'entering' | 'expired' | 'locked';
 @Component({
   selector: 'app-otp-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, UiButton, UiCountdown, UiNotice, UiOtpInput],
+  imports: [RouterLink, UiButton, UiCountdown, UiErrorNotice, UiNotice, UiOtpInput],
   templateUrl: './otp-page.html',
   styleUrl: '../auth-form.scss',
 })
@@ -39,11 +44,24 @@ export class OtpPage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  protected readonly i18n = inject(LanguageService);
+
   protected readonly state = signal<OtpState>('entering');
   protected readonly code = signal('');
   protected readonly submitting = signal(false);
-  protected readonly error = signal('');
+  protected readonly error = signal<ApiError | null>(null);
   protected readonly attemptsUsed = signal(0);
+
+  /**
+   * A rate limit on the resend, counted against the server's own reset.
+   *
+   * Separate from the attempt lock below: one is "you guessed wrong three
+   * times", the other is "you asked for codes too often", and the server
+   * distinguishes them even though both end in a disabled button.
+   */
+  private readonly throttledUntil = signal<string | null>(null);
+  protected readonly throttleSeconds = countdown(this.throttledUntil);
+  protected readonly throttled = computed(() => this.throttleSeconds() > 0);
 
   /** Bumped on each resend so UiCountdown restarts. */
   protected readonly expirySeconds = signal(APP.otp.validityMinutes * 60);
@@ -68,7 +86,7 @@ export class OtpPage {
 
   protected onCode(value: string): void {
     this.code.set(value);
-    this.error.set('');
+    this.error.set(null);
   }
 
   protected onExpired(): void {
@@ -85,7 +103,7 @@ export class OtpPage {
     if (!this.canSubmit()) return;
 
     this.submitting.set(true);
-    this.error.set('');
+    this.error.set(null);
 
     this.auth.verifyOtp({ mobile: this.mobile(), code: this.code() }).subscribe({
       next: () => {
@@ -94,31 +112,57 @@ export class OtpPage {
         // portal rather than assuming the lessor one.
         void this.router.navigateByUrl(this.auth.landingUrl(this.returnUrl() || null));
       },
-      error: () => {
+      error: (failure: unknown) => {
         this.submitting.set(false);
-        this.attemptsUsed.update((n) => n + 1);
+        if (!isApiError(failure)) return;
 
-        if (this.attemptsLeft() === 0) {
+        // The server decides which of the four states this is; the counters
+        // below only keep the screen honest between answers. NFR-SEC-05 puts
+        // the real limit server-side, because anything here can be bypassed.
+        if (failure.code === ERROR_CODES.OTP_EXPIRED) {
+          this.state.set('expired');
+          return;
+        }
+
+        if (failure.code === ERROR_CODES.OTP_ATTEMPTS_EXCEEDED || failure.retryAfterSeconds) {
           // FR-AUTH-11 — lock rather than let the attempts run on.
+          this.state.set('locked');
+          this.lockSeconds.set(failure.retryAfterSeconds ?? APP.login.lockMinutes * 60);
+          return;
+        }
+
+        this.attemptsUsed.update((n) => n + 1);
+        if (this.attemptsLeft() === 0) {
           this.state.set('locked');
           this.lockSeconds.set(APP.login.lockMinutes * 60);
           return;
         }
 
-        this.error.set('الرمز غير صحيح. تحقّق من الرسالة وحاول مرة أخرى.');
+        this.error.set(failure);
       },
     });
   }
 
   protected resend(): void {
+    if (this.throttled()) return;
+
     this.auth.requestOtp(this.mobile()).subscribe({
       next: () => {
         this.state.set('entering');
         this.code.set('');
-        this.error.set('');
+        this.error.set(null);
         this.attemptsUsed.set(0);
         // A new value restarts the countdown component.
         this.expirySeconds.set(APP.otp.validityMinutes * 60);
+      },
+      error: (failure: unknown) => {
+        if (!isApiError(failure)) return;
+
+        this.error.set(failure);
+        // Never resend on our own behind a 429 — see countdown.ts.
+        if (failure.retryAfterSeconds) {
+          this.throttledUntil.set(deadlineIn(failure.retryAfterSeconds));
+        }
       },
     });
   }

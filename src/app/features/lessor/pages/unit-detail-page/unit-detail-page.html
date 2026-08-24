@@ -17,15 +17,15 @@
         <div class="head">
           <div class="head__titles">
             <app-ui-badge [tone]="status()!.tone" size="sm">{{ status()!.ar }}</app-ui-badge>
-            <h2 class="head__title">{{ u.title }}</h2>
+            <h2 class="head__title" dir="auto">{{ u.title }}</h2>
             <p class="head__meta">
-              {{ u.category?.nameAr }} &middot;
+              {{ u.category?.name }} &middot;
               <span class="num" dir="ltr">{{ u.areaSqm }} م²</span>
-              @if (u.city?.nameAr) {
-                &middot; {{ u.city?.nameAr }}
+              @if (u.city?.name) {
+                &middot; {{ u.city?.name }}
               }
-              @if (u.district?.nameAr) {
-                — {{ u.district?.nameAr }}
+              @if (u.district?.name) {
+                — {{ u.district?.name }}
               }
             </p>
           </div>
@@ -70,7 +70,7 @@
 
       <section class="card">
         <h3 class="card__heading">الوصف</h3>
-        <p class="description">{{ u.description }}</p>
+        <p class="description" dir="auto">{{ u.description }}</p>
       </section>
 
       <section class="card">

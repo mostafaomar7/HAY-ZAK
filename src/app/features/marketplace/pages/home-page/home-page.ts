@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
 import type { ReferenceItem, Unit } from '@core/models/unit.model';
 import { ReferenceDataService } from '@core/services/reference-data.service';
-import { toIsoDate } from '@core/utils/date.utils';
+import { todayPlain } from '@core/utils/date.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import type { IconName } from '@shared/components/ui-icon/ui-icon';
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
@@ -63,7 +63,7 @@ export class HomePage {
   protected readonly latest = signal<Unit[]>([]);
   protected readonly calendar = signal<Calendar>('gregorian');
 
-  protected readonly minDate = toIsoDate(new Date());
+  protected readonly minDate = todayPlain();
 
   /**
    * The hero photograph the design's prototype used, still served from

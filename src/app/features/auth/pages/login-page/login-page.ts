@@ -1,11 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LanguageService } from '@core/i18n/language.service';
+import type { ApiError } from '@core/models/api-error.model';
+import { isApiError } from '@core/models/api-error.model';
 import { AuthService } from '@core/services/auth.service';
+import { applyFieldErrors, clearServerErrors } from '@core/utils/api-form';
+import { countdown, deadlineIn, formatCountdown } from '@core/utils/countdown';
 import { markFormTouched } from '@core/utils/form.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
+import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
 import { UiField } from '@shared/components/ui-field/ui-field';
-import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 
 /**
  * LSR-00ج — "تسجيل دخول المؤجر".
@@ -16,7 +21,7 @@ import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, UiButton, UiField, UiNotice],
+  imports: [ReactiveFormsModule, RouterLink, UiButton, UiErrorNotice, UiField],
   templateUrl: './login-page.html',
   styleUrl: '../auth-form.scss',
 })
@@ -25,8 +30,26 @@ export class LoginPage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  protected readonly i18n = inject(LanguageService);
+
   protected readonly submitting = signal(false);
-  protected readonly error = signal('');
+  protected readonly error = signal<ApiError | null>(null);
+  /** Field messages for controls this form does not have. */
+  protected readonly extras = signal<readonly string[]>([]);
+
+  /**
+   * FR-AUTH-11 — five attempts per identifier per fifteen minutes.
+   *
+   * The button stays disabled until the server's own reset elapses, and
+   * nothing retries on its own: an automatic retry against a limiter turns a
+   * fifteen-minute lockout into an hour.
+   */
+  private readonly lockedUntil = signal<string | null>(null);
+  protected readonly lockSeconds = countdown(this.lockedUntil);
+  protected readonly locked = computed(() => this.lockSeconds() > 0);
+  protected readonly lockLabel = computed(() =>
+    this.i18n.t('error.retryIn', { seconds: formatCountdown(this.lockSeconds()) }),
+  );
 
   protected readonly form = this.fb.group({
     identifier: ['', [Validators.required]],
@@ -35,13 +58,18 @@ export class LoginPage {
   });
 
   protected submit(): void {
+    if (this.locked()) return;
+
+    clearServerErrors(this.form);
+
     if (this.form.invalid) {
       markFormTouched(this.form);
       return;
     }
 
     this.submitting.set(true);
-    this.error.set('');
+    this.error.set(null);
+    this.extras.set([]);
 
     const { identifier, password, rememberMe } = this.form.getRawValue();
 
@@ -52,11 +80,19 @@ export class LoginPage {
           this.submitting.set(false);
           void this.router.navigateByUrl(this.returnUrl());
         },
-        error: () => {
+        error: (failure: unknown) => {
           this.submitting.set(false);
-          // Deliberately does not say which half was wrong — naming the field
-          // would let an attacker enumerate registered accounts.
-          this.error.set('بيانات الدخول غير صحيحة. تحقّق من الرقم أو البريد وكلمة المرور.');
+          if (!isApiError(failure)) return;
+
+          // The server's message, verbatim — including its decision not to say
+          // which half was wrong, which is what stops an attacker enumerating
+          // registered accounts. That judgement is the server's to make.
+          this.error.set(failure);
+          this.extras.set(applyFieldErrors(this.form, failure));
+
+          if (failure.retryAfterSeconds) {
+            this.lockedUntil.set(deadlineIn(failure.retryAfterSeconds));
+          }
         },
       });
   }

@@ -191,7 +191,7 @@ export class UnitFormPage {
   protected readonly uncovered = signal<string[]>([]);
 
   protected readonly categoryOptions = computed<ChoiceOption[]>(() =>
-    this.categories().map((c) => ({ value: c.id, label: c.nameAr })),
+    this.categories().map((c) => ({ value: c.id, label: c.name })),
   );
 
   protected readonly categoryError = computed(() => {

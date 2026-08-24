@@ -61,15 +61,6 @@ describe('LanguageService', () => {
 
     expect(localStorage.getItem(STORAGE_KEYS.language)).toContain('en');
   });
-
-  it('picks the right side of a bilingual reference record', () => {
-    const item = { nameAr: 'مستودع', nameEn: 'Warehouse' };
-
-    expect(service.pick(item)).toBe('مستودع');
-    service.set('en');
-    expect(service.pick(item)).toBe('Warehouse');
-    expect(service.pick(null)).toBe('');
-  });
 });
 
 describe('translation dictionaries', () => {

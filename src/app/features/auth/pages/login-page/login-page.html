@@ -4,9 +4,7 @@
     <p class="authForm__sub">ادخل إلى حسابك لمتابعة مساحاتك وطلباتك.</p>
   </header>
 
-  @if (error()) {
-    <app-ui-notice tone="danger">{{ error() }}</app-ui-notice>
-  }
+  <app-ui-error-notice [error]="error()" [extras]="extras()" />
 
   <app-ui-field
     label="الجوال أو البريد الإلكتروني"
@@ -33,8 +31,18 @@
 
   <a class="authForm__link" routerLink="/auth/forgot-password">نسيت كلمة المرور؟</a>
 
-  <button appUiButton variant="primary" size="lg" [fullWidth]="true" [disabled]="submitting()">
-    {{ submitting() ? 'جارٍ الدخول...' : 'تسجيل الدخول' }}
+  <button
+    appUiButton
+    variant="primary"
+    size="lg"
+    [fullWidth]="true"
+    [disabled]="submitting() || locked()"
+  >
+    @if (locked()) {
+      {{ lockLabel() }}
+    } @else {
+      {{ submitting() ? 'جارٍ الدخول...' : 'تسجيل الدخول' }}
+    }
   </button>
 
   <p class="authForm__foot">

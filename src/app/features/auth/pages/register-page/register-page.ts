@@ -2,11 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IdType, UserRole } from '@core/enums/user-role.enum';
+import { LanguageService } from '@core/i18n/language.service';
+import type { ApiError } from '@core/models/api-error.model';
+import { isApiError } from '@core/models/api-error.model';
 import { AuthService } from '@core/services/auth.service';
+import { applyFieldErrors, clearServerErrors } from '@core/utils/api-form';
+import { countdown, deadlineIn, formatCountdown } from '@core/utils/countdown';
 import { markFormTouched } from '@core/utils/form.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiField } from '@shared/components/ui-field/ui-field';
-import { UiNotice } from '@shared/components/ui-notice/ui-notice';
+import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
 import { UiPasswordStrength } from '@shared/components/ui-password-strength/ui-password-strength';
 import { matchFields, strongPassword } from '@shared/validators/custom.validators';
 import { saudiMobile, saudiNationalId } from '@shared/validators/saudi.validators';
@@ -31,7 +36,7 @@ export type RegistrationRole = 'renter' | 'lessor';
 @Component({
   selector: 'app-register-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, UiButton, UiField, UiNotice, UiPasswordStrength],
+  imports: [ReactiveFormsModule, RouterLink, UiButton, UiField, UiErrorNotice, UiPasswordStrength],
   templateUrl: './register-page.html',
   styleUrl: '../auth-form.scss',
 })
@@ -46,7 +51,19 @@ export class RegisterPage {
   readonly returnUrl = input('');
 
   protected readonly submitting = signal(false);
-  protected readonly error = signal('');
+  protected readonly i18n = inject(LanguageService);
+
+  protected readonly error = signal<ApiError | null>(null);
+  /** Field messages for controls this form does not have. */
+  protected readonly extras = signal<readonly string[]>([]);
+
+  /** FR-AUTH-11 — five attempts per identifier per fifteen minutes. */
+  private readonly lockedUntil = signal<string | null>(null);
+  protected readonly lockSeconds = countdown(this.lockedUntil);
+  protected readonly locked = computed(() => this.lockSeconds() > 0);
+  protected readonly lockLabel = computed(() =>
+    this.i18n.t('error.retryIn', { seconds: formatCountdown(this.lockSeconds()) }),
+  );
 
   protected readonly isRenter = computed(() => this.role() === 'renter');
 
@@ -85,13 +102,18 @@ export class RegisterPage {
   }
 
   protected submit(): void {
+    if (this.locked()) return;
+
+    clearServerErrors(this.form);
+
     if (this.form.invalid) {
       markFormTouched(this.form);
       return;
     }
 
     this.submitting.set(true);
-    this.error.set('');
+    this.error.set(null);
+    this.extras.set([]);
 
     const value = this.form.getRawValue();
 
@@ -118,13 +140,18 @@ export class RegisterPage {
             queryParams: { mobile: value.mobile, returnUrl: this.returnUrl() || null },
           });
         },
-        error: (err: { errors?: Record<string, string[]> }) => {
+        error: (failure: unknown) => {
           this.submitting.set(false);
-          this.error.set(
-            err.errors?.['email']?.[0] ??
-              err.errors?.['mobile']?.[0] ??
-              'تعذّر إنشاء الحساب. تحقّق من البيانات وحاول مرة أخرى.',
-          );
+          if (!isApiError(failure)) return;
+
+          // A 422 names the fields; the general message covers the rest. No
+          // hand-picking of `email` over `mobile` — the server said which.
+          this.error.set(failure);
+          this.extras.set(applyFieldErrors(this.form, failure));
+
+          if (failure.retryAfterSeconds) {
+            this.lockedUntil.set(deadlineIn(failure.retryAfterSeconds));
+          }
         },
       });
   }

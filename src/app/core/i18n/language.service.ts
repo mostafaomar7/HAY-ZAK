@@ -77,10 +77,4 @@ export class LanguageService {
       value,
     );
   }
-
-  /** Picks the right side of a bilingual reference record (categories, cities). */
-  pick(item: { nameAr: string; nameEn: string } | undefined | null): string {
-    if (!item) return '';
-    return this.current() === 'en' ? item.nameEn : item.nameAr;
-  }
 }

@@ -17,7 +17,7 @@
         <select id="h-city" class="bar__control" formControlName="cityId">
           <option value="">{{ i18n.t('home.anyCity') }}</option>
           @for (city of cities(); track city.id) {
-            <option [value]="city.id">{{ i18n.pick(city) }}</option>
+            <option [value]="city.id">{{ city.name }}</option>
           }
         </select>
       </div>
@@ -29,7 +29,7 @@
         <select id="h-category" class="bar__control" formControlName="categoryId">
           <option value="">{{ i18n.t('home.anyCategory') }}</option>
           @for (category of categories(); track category.id) {
-            <option [value]="category.id">{{ i18n.pick(category) }}</option>
+            <option [value]="category.id">{{ category.name }}</option>
           }
         </select>
       </div>
@@ -126,7 +126,7 @@
       @for (category of chips(); track category.id) {
         <li>
           <a class="chip" [routerLink]="['/units']" [queryParams]="{ categoryId: category.id }">
-            {{ i18n.pick(category) }}
+            {{ category.name }}
           </a>
         </li>
       }
@@ -145,7 +145,7 @@
         <li>
           <a class="cat" [routerLink]="['/units']" [queryParams]="{ categoryId: category.id }">
             <app-ui-icon [name]="iconFor(category.id)" [size]="32" />
-            <span class="cat__name">{{ i18n.pick(category) }}</span>
+            <span class="cat__name">{{ category.name }}</span>
             @if (category.unitCount !== undefined) {
               <span class="cat__count">
                 {{ i18n.t('home.spacesCount', { count: category.unitCount }) }}

@@ -63,8 +63,8 @@ export class UnitResultCard {
 
   protected readonly place = computed(() => {
     const unit = this.unit();
-    const district = this.i18n.pick(unit.district);
-    const city = this.i18n.pick(unit.city);
+    const district = unit.district?.name ?? '';
+    const city = unit.city?.name ?? '';
     return [district, city].filter(Boolean).join('، ');
   });
 }

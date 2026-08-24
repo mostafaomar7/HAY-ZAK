@@ -69,6 +69,12 @@ export function describe(errors: ValidationErrors | null): string {
   const key = Object.keys(errors)[0];
   const value = errors[key];
 
+  // The server's own wording for this field, from a 422's `details[]`. It is
+  // already translated and it knows things no client validator can — that this
+  // exact mobile number is taken, that this IBAN is not the lessor's. It wins
+  // over anything below.
+  if (key === 'server') return String(value);
+
   switch (key) {
     case 'required':
       return 'هذا الحقل مطلوب.';

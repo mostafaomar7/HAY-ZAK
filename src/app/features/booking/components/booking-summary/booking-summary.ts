@@ -49,7 +49,7 @@ export class BookingSummary {
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
-    return [this.i18n.pick(unit.district), this.i18n.pick(unit.city)].filter(Boolean).join('، ');
+    return [unit.district?.name, unit.city?.name].filter(Boolean).join('، ');
   });
 
   protected startLabel = computed(() => this.gregorian(this.draft()?.startDate));

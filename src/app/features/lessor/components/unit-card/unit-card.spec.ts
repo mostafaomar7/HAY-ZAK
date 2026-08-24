@@ -10,7 +10,7 @@ function makeUnit(status: UnitStatus, rejectionReason?: string): Unit {
     id: 'un-1',
     lessorId: 'u-1',
     categoryId: 'c-1',
-    category: { id: 'c-1', nameAr: 'مستودع', nameEn: 'Warehouse' },
+    category: { id: 'c-1', name: 'مستودع' },
     cityId: 'riyadh',
     districtId: 'd-1',
     title: 'مستودع مكيّف — النرجس',

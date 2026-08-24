@@ -6,7 +6,7 @@ import type { Unit } from '@core/models/unit.model';
 import { ApiService } from '@core/services/api.service';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { NotificationService } from '@core/services/notification.service';
-import { toIsoDate } from '@core/utils/date.utils';
+import { todayPlain } from '@core/utils/date.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
 import { UiLocationMap } from '@shared/components/ui-location-map/ui-location-map';
@@ -65,7 +65,7 @@ export class DatesStep {
   protected readonly failed = signal(false);
   protected readonly submitting = signal(false);
 
-  protected readonly today = toIsoDate(new Date());
+  protected readonly today = todayPlain();
   protected readonly holdMinutes = APP.bookingHoldMinutes;
 
   protected readonly draft = this.wizard.draft;
