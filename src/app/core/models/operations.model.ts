@@ -105,7 +105,6 @@ export interface AdminDashboardKpis {
   totalCommission: number;
   occupancyRate: number;
   pendingListings: number;
-  pendingBookings: number;
   /** Bookings past the approval SLA (UC-03 alternate flow). */
   slaBreaches: number;
 }

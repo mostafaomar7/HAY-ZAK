@@ -1,0 +1,65 @@
+@use 'abstracts' as a;
+
+.page {
+  @include a.stack(a.$space-20);
+
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  padding: a.$space-24 a.$space-16 a.$space-40;
+}
+
+.head {
+  @include a.stack(a.$space-8);
+}
+
+.head__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.head__sub {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+.booking {
+  @include a.card;
+  @include a.stack(a.$space-4);
+
+  padding: a.$space-16;
+}
+
+.booking__title {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.booking__ref {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-subtle);
+}
+
+.form {
+  @include a.stack(a.$space-16);
+}
+
+.count {
+  @include a.numeric;
+
+  align-self: flex-end;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-subtle);
+}
+
+.actions {
+  @include a.flex(row, $gap: a.$space-12);
+
+  flex-wrap: wrap;
+}

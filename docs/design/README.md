@@ -5,13 +5,13 @@ between UI/UX and the Angular implementation.
 
 ## What to put here
 
-| File | Screen | Implementation record |
-| --- | --- | --- |
-| `lessor-portal-spaces-requests.html` | بوابة المؤجر — المساحات والطلبات | — |
-| `lessor-portal-login-account.html` | بوابة المؤجر — الدخول والحساب | — |
-| `renter-interactive-prototype.html` | بوابة المستأجر — النموذج التفاعلي | [renter-plan.md](renter-plan.md) |
-| `renter-design-system.html` | بوابة المستأجر — نظام التصميم | [renter-plan.md](renter-plan.md) |
-| `admin-dashboard.html` | لوحة إدارة حيزك | [admin-plan.md](admin-plan.md) |
+| File                                 | Screen                            | Implementation record            |
+| ------------------------------------ | --------------------------------- | -------------------------------- |
+| `lessor-portal-spaces-requests.html` | بوابة المؤجر — المساحات والطلبات  | —                                |
+| `lessor-portal-login-account.html`   | بوابة المؤجر — الدخول والحساب     | —                                |
+| `renter-interactive-prototype.html`  | بوابة المستأجر — النموذج التفاعلي | [renter-plan.md](renter-plan.md) |
+| `renter-design-system.html`          | بوابة المستأجر — نظام التصميم     | [renter-plan.md](renter-plan.md) |
+| `admin-dashboard.html`               | لوحة إدارة حيزك                   | [admin-plan.md](admin-plan.md)   |
 
 Export every page of the design, one file per page, kebab-case names. Keep the
 original `<style>` block intact — do not tidy or reformat it. The exact colour,

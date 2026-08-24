@@ -70,11 +70,16 @@ export const API_ENDPOINTS = {
     base: '/bookings',
     byId: (id: string) => `/bookings/${id}`,
     mine: '/bookings/mine',
+    /**
+     * The one route out of a problem with a booking.
+     *
+     * Neither party can cancel — a complaint is raised against the booking and
+     * an administrator resolves it, which is the only path to CANCELLED. See
+     * `booking-transitions.ts`.
+     */
+    complaints: (id: string) => `/bookings/${id}/complaints`,
     quote: '/bookings/quote',
     confirm: (id: string) => `/bookings/${id}/confirm`,
-    cancel: (id: string) => `/bookings/${id}/cancel`,
-    /** FR-BKG-08 — the refund figure, computed server-side before confirming. */
-    cancellationQuote: (id: string) => `/bookings/${id}/cancellation-quote`,
     /** Free windows offered when the chosen one was taken during payment. */
     alternatives: (id: string) => `/bookings/${id}/alternative-periods`,
     history: (id: string) => `/bookings/${id}/history`,
@@ -111,10 +116,7 @@ export const API_ENDPOINTS = {
     approveUnit: (id: string) => `/admin/units/${id}/approve`,
     rejectUnit: (id: string) => `/admin/units/${id}/reject`,
 
-    pendingBookings: '/admin/bookings/pending',
     bookingReviewById: (id: string) => `/admin/bookings/${id}/review-detail`,
-    approveBooking: (id: string) => `/admin/bookings/${id}/approve`,
-    rejectBooking: (id: string) => `/admin/bookings/${id}/reject`,
 
     settings: '/admin/settings',
     commissionExceptions: '/admin/settings/commission-exceptions',

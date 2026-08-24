@@ -122,6 +122,21 @@
           ></textarea>
           <span class="field__hint">{{ i18n.t('complaints.resolutionHint') }}</span>
         </label>
+
+        <!-- The only control in the system that cancels a booking. Deliberately
+             a separate, unticked decision rather than something read out of the
+             resolution text: it moves money and it is irreversible. -->
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="cancelBooking()"
+            (change)="cancelBooking.set($any($event.target).checked)"
+          />
+          <span class="switch__text">
+            <span class="switch__label">{{ i18n.t('complaints.cancelBooking') }}</span>
+            <span class="switch__hint">{{ i18n.t('complaints.cancelBookingHint') }}</span>
+          </span>
+        </label>
       </section>
     } @else {
       <app-ui-notice tone="success">{{ i18n.t('complaints.closedNote') }}</app-ui-notice>

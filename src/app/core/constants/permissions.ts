@@ -10,8 +10,6 @@ export enum Permission {
   ReviewUnit = 'ReviewUnit',
   CreateBooking = 'CreateBooking',
   ViewIncomingBookings = 'ViewIncomingBookings',
-  ReviewBooking = 'ReviewBooking',
-  CancelBooking = 'CancelBooking',
   ViewGoodsDescription = 'ViewGoodsDescription',
   ManageBankDetails = 'ManageBankDetails',
   ExecutePayouts = 'ExecutePayouts',
@@ -22,6 +20,12 @@ export enum Permission {
   ManageUsers = 'ManageUsers',
   ManageReferenceData = 'ManageReferenceData',
   ManageCmsAndTerms = 'ManageCmsAndTerms',
+  /**
+   * Raise a complaint against a booking. It replaced `CancelBooking`: neither
+   * party may cancel, and a problem with a booking is a complaint for an
+   * administrator to resolve.
+   */
+  RaiseComplaint = 'RaiseComplaint',
   ResolveDisputes = 'ResolveDisputes',
 }
 
@@ -40,7 +44,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly Permission[]>>
     Permission.BrowseMarketplace,
     Permission.ViewUnitDetails,
     Permission.CreateBooking,
-    Permission.CancelBooking,
+    Permission.RaiseComplaint,
     Permission.ViewGoodsDescription,
   ],
 
@@ -50,6 +54,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly Permission[]>>
     Permission.ManageOwnUnits,
     Permission.ViewIncomingBookings,
     Permission.ViewGoodsDescription, // read-only for the lessor (FR-LSR-05)
+    Permission.RaiseComplaint,
     Permission.ManageBankDetails,
     Permission.ViewOwnFinancialReports,
   ],
@@ -59,8 +64,6 @@ export const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly Permission[]>>
     Permission.ViewUnitDetails,
     Permission.PublishUnitDirectly,
     Permission.ReviewUnit,
-    Permission.ReviewBooking,
-    Permission.CancelBooking,
     Permission.ViewIncomingBookings,
     Permission.ViewGoodsDescription,
     Permission.ManageUsers,

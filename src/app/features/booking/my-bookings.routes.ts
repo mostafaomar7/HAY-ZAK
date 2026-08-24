@@ -37,10 +37,12 @@ export const MY_BOOKINGS_ROUTES: Routes = [
     loadComponent: () => import('./pages/invoice-page/invoice-page').then((m) => m.InvoicePage),
   },
   {
-    path: ':bookingId/cancel',
-    canActivate: [permissionGuard([Permission.CreateBooking])],
-    title: 'إلغاء الحجز',
+    // There is no cancellation route. A problem with a booking is a complaint;
+    // an administrator resolves it. See core/constants/booking-transitions.ts.
+    path: ':bookingId/complaint',
+    canActivate: [permissionGuard([Permission.RaiseComplaint])],
+    title: 'لديّ مشكلة',
     loadComponent: () =>
-      import('./pages/cancel-booking-page/cancel-booking-page').then((m) => m.CancelBookingPage),
+      import('./pages/raise-complaint-page/raise-complaint-page').then((m) => m.RaiseComplaintPage),
   },
 ];

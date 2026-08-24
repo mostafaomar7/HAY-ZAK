@@ -6,7 +6,7 @@ export interface AdminNavItem {
   labelKey: TranslationKey;
   permission: Permission;
   /** Which pending-work counter to show beside the label, if any. */
-  badge?: 'listings' | 'bookings' | 'complaints';
+  badge?: 'listings' | 'complaints';
 }
 
 export interface AdminNavGroup {
@@ -41,12 +41,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         labelKey: 'adminNav.listings',
         permission: Permission.ReviewUnit,
         badge: 'listings',
-      },
-      {
-        route: '/admin/bookings',
-        labelKey: 'adminNav.bookings',
-        permission: Permission.ReviewBooking,
-        badge: 'bookings',
       },
       {
         route: '/admin/complaints',

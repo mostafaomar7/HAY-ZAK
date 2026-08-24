@@ -54,14 +54,6 @@ export const ADMIN_ROUTES: Routes = [
           import('./pages/listings-page/listings-page').then((m) => m.AdminListingsPage),
       },
       {
-        path: 'bookings',
-        title: 'مراجعة الحجوزات',
-        data: { titleKey: 'adminNav.bookings' },
-        canActivate: [permissionGuard([Permission.ReviewBooking])],
-        loadComponent: () =>
-          import('./pages/bookings-page/bookings-page').then((m) => m.AdminBookingsPage),
-      },
-      {
         path: 'complaints',
         title: 'الشكاوى',
         data: { titleKey: 'adminNav.complaints' },

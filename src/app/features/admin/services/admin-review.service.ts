@@ -4,8 +4,6 @@ import { forkJoin } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { PaginatedResponse } from '@core/models/api-response.model';
 import type {
-  BookingReviewDetail,
-  BookingReviewRow,
   ListingReviewDetail,
   ListingReviewRow,
   ReviewDecision,
@@ -13,7 +11,13 @@ import type {
 import { ApiService } from '@core/services/api.service';
 
 /**
- * The two review queues (FR-UNT-06, FR-BKG-05).
+ * The listing review queue (FR-UNT-06).
+ *
+ * One queue, not two. Bookings are not reviewed: payment confirms them, and
+ * neither an operator nor the lessor stands between the two. The methods that
+ * approved and rejected a booking are gone rather than left unused — a service
+ * that can still call `/admin/bookings/:id/approve` is a service somebody will
+ * wire a button to.
  *
  * Approve takes no body and reject requires a `ReviewDecision`: the asymmetry is
  * the rule itself, expressed in the signature. There is deliberately no
@@ -43,25 +47,6 @@ export class AdminReviewService {
     return this.api.post<void, ReviewDecision>(API_ENDPOINTS.admin.rejectUnit(id), decision);
   }
 
-  // ── Bookings ───────────────────────────────────────────────────────────
-  bookingQueue(params: Record<string, string>): Observable<PaginatedResponse<BookingReviewRow>> {
-    return this.api.list<BookingReviewRow>(API_ENDPOINTS.admin.pendingBookings, {
-      params,
-    });
-  }
-
-  booking(id: string): Observable<BookingReviewDetail> {
-    return this.api.get<BookingReviewDetail>(API_ENDPOINTS.admin.bookingReviewById(id));
-  }
-
-  approveBooking(id: string): Observable<void> {
-    return this.api.post<void>(API_ENDPOINTS.admin.approveBooking(id));
-  }
-
-  rejectBooking(id: string, decision: ReviewDecision): Observable<void> {
-    return this.api.post<void, ReviewDecision>(API_ENDPOINTS.admin.rejectBooking(id), decision);
-  }
-
   /**
    * Bulk actions run one request per row rather than through a bulk endpoint:
    * each decision is its own audit entry and its own notification, and a partial
@@ -73,13 +58,5 @@ export class AdminReviewService {
 
   rejectListings(ids: readonly string[], decision: ReviewDecision): Observable<void[]> {
     return forkJoin(ids.map((id) => this.rejectListing(id, decision)));
-  }
-
-  approveBookings(ids: readonly string[]): Observable<void[]> {
-    return forkJoin(ids.map((id) => this.approveBooking(id)));
-  }
-
-  rejectBookings(ids: readonly string[], decision: ReviewDecision): Observable<void[]> {
-    return forkJoin(ids.map((id) => this.rejectBooking(id, decision)));
   }
 }

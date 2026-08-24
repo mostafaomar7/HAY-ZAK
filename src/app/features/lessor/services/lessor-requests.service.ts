@@ -31,7 +31,7 @@ export class LessorRequestsService {
 
   /** Requests still waiting on an administration decision. */
   readonly awaitingDecision = computed(() =>
-    this.items().filter((b) => b.status === BookingStatus.PaidPendingApproval),
+    this.items().filter((b) => b.status === BookingStatus.Confirmed),
   );
 
   /** FR-LSR-01 — active bookings counter on the dashboard. */

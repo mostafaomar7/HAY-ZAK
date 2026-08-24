@@ -135,7 +135,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     '2026-09-11',
     30,
     60,
-    BookingStatus.PaidPendingApproval,
+    BookingStatus.Confirmed,
     'كراتين أثاث منزلي وأغراض شخصية.',
   ),
   booking(
@@ -158,7 +158,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     '2026-08-27',
     7,
     75,
-    BookingStatus.Approved,
+    BookingStatus.Confirmed,
     'أثاث غرفة نوم.',
     'سعود العنزي',
   ),
@@ -193,7 +193,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     '2026-08-21',
     7,
     45,
-    BookingStatus.RejectedRefunded,
+    BookingStatus.Cancelled,
     'مواد دهان وسوائل.',
   ),
   booking(

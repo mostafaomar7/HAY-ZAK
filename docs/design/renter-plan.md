@@ -11,37 +11,37 @@ to but does not draw (account type, password recovery, password reset).
 These are constraints, not suggestions. Each maps to an SRS clause, and each has
 a place in the code that enforces it.
 
-| # | Rule | Where it lives |
-| --- | --- | --- |
-| 1 | Browsing and search need no account; registration is a **modal** on "احجز الآن" | `PUBLIC_ROUTES` has no guard; `UnitDetailsPage.book()` opens `UiModal` |
-| 2 | The renter pays first, then administration reviews; the lessor cannot accept or reject | `BookingService` has no decision verb; `LessorRequestsService` likewise |
-| 3 | Once paid, the unit leaves search until the booking ends | `UnitStatus.FullyBooked` excluded from `PUBLIC_UNIT_STATUSES`; the card and the booking box both disable |
-| 4 | Lessor details locked before approval; the map shows a 300 m circle | `UiLocationMap.precise` defaults to false; `isAddressReleased()` derives it from the status |
-| 5 | Exactly one primary action on details: "احجز الآن". No contact, no chat | `unit-details-page.spec.ts` asserts there is no `tel:`, no `mailto:` and no form |
-| 6 | **No security promise** — surveillance, guarding, insurance — in any copy | Noted at the head of `HomePage`; SRS §3 item 1 records why |
+| #   | Rule                                                                                   | Where it lives                                                                                           |
+| --- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1   | Browsing and search need no account; registration is a **modal** on "احجز الآن"        | `PUBLIC_ROUTES` has no guard; `UnitDetailsPage.book()` opens `UiModal`                                   |
+| 2   | The renter pays first, then administration reviews; the lessor cannot accept or reject | `BookingService` has no decision verb; `LessorRequestsService` likewise                                  |
+| 3   | Once paid, the unit leaves search until the booking ends                               | `UnitStatus.FullyBooked` excluded from `PUBLIC_UNIT_STATUSES`; the card and the booking box both disable |
+| 4   | Lessor details locked before approval; the map shows a 300 m circle                    | `UiLocationMap.precise` defaults to false; `isAddressReleased()` derives it from the status              |
+| 5   | Exactly one primary action on details: "احجز الآن". No contact, no chat                | `unit-details-page.spec.ts` asserts there is no `tel:`, no `mailto:` and no form                         |
+| 6   | **No security promise** — surveillance, guarding, insurance — in any copy              | Noted at the head of `HomePage`; SRS §3 item 1 records why                                               |
 
 ## The seventeen screens
 
-| Prototype screen | Route | Component |
-| --- | --- | --- |
-| `home` | `/` | `HomePage` |
-| `results` | `/units` | `ResultsPage` |
-| `details` | `/units/:id` | `UnitDetailsPage` |
-| `dates` | `/booking/new/:unitId` | `DatesStep` |
-| `goods` | `/booking/:bookingId/goods` | `GoodsStep` |
-| `nafath` | `/booking/:bookingId/identity` | `IdentityStep` |
-| `pay` | `/booking/:bookingId/pay` | `PaymentStep` |
-| `result` | `/booking/:bookingId/result` | `PaymentResultPage` |
-| `bookings` | `/my-bookings` | `MyBookingsPage` |
-| `bdetails` | `/my-bookings/:id` | `BookingDetailPage` |
-| `invoice` | `/my-bookings/:id/invoice` | `InvoicePage` |
-| `cancel` | `/my-bookings/:id/cancel` | `CancelBookingPage` |
-| `account` | `/account` | `AccountPage` |
-| — (RNT-10) | `/account/notifications` | `RenterNotificationsPage` |
-| `signup` | `/auth/register/renter` | `RegisterPage` (role in the URL) |
-| `otp` | `/auth/verify` | `OtpPage` (shared with the lessor portal) |
-| `static` | `/pages/:slug` | `StaticPageComponent` (all seven pages) |
-| `index` | prototype navigation only | not a product screen |
+| Prototype screen | Route                          | Component                                 |
+| ---------------- | ------------------------------ | ----------------------------------------- |
+| `home`           | `/`                            | `HomePage`                                |
+| `results`        | `/units`                       | `ResultsPage`                             |
+| `details`        | `/units/:id`                   | `UnitDetailsPage`                         |
+| `dates`          | `/booking/new/:unitId`         | `DatesStep`                               |
+| `goods`          | `/booking/:bookingId/goods`    | `GoodsStep`                               |
+| `nafath`         | `/booking/:bookingId/identity` | `IdentityStep`                            |
+| `pay`            | `/booking/:bookingId/pay`      | `PaymentStep`                             |
+| `result`         | `/booking/:bookingId/result`   | `PaymentResultPage`                       |
+| `bookings`       | `/my-bookings`                 | `MyBookingsPage`                          |
+| `bdetails`       | `/my-bookings/:id`             | `BookingDetailPage`                       |
+| `invoice`        | `/my-bookings/:id/invoice`     | `InvoicePage`                             |
+| `cancel`         | `/my-bookings/:id/cancel`      | `CancelBookingPage`                       |
+| `account`        | `/account`                     | `AccountPage`                             |
+| — (RNT-10)       | `/account/notifications`       | `RenterNotificationsPage`                 |
+| `signup`         | `/auth/register/renter`        | `RegisterPage` (role in the URL)          |
+| `otp`            | `/auth/verify`                 | `OtpPage` (shared with the lessor portal) |
+| `static`         | `/pages/:slug`                 | `StaticPageComponent` (all seven pages)   |
+| `index`          | prototype navigation only      | not a product screen                      |
 
 Also built, referenced by the prototype but not drawn in it:
 `/auth/account-type`, `/auth/forgot-password`, `/auth/reset-password`.
@@ -92,12 +92,12 @@ primary, `#C7A15A` accent, `#2D2D2D` text — and adds an inline link blue
 
 It also carries slightly different neutral and semantic shades:
 
-| Role | Lessor file | Renter file |
-| --- | --- | --- |
-| success | `#1E7A4B` | `#1E8E5A` |
-| danger | `#B3261E` | `#C0392B` |
-| card border | `#E7EBEC` | `#EDEDED` |
-| primary hover | `#0B242C` | `#0C2731` |
+| Role          | Lessor file | Renter file |
+| ------------- | ----------- | ----------- |
+| success       | `#1E7A4B`   | `#1E8E5A`   |
+| danger        | `#B3261E`   | `#C0392B`   |
+| card border   | `#E7EBEC`   | `#EDEDED`   |
+| primary hover | `#0B242C`   | `#0C2731`   |
 
 Left on the lessor values. These are near-identical shades and picking one
 silently would quietly diverge from one of the two files — worth one line from

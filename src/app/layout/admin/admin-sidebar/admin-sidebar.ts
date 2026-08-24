@@ -7,7 +7,6 @@ import { ADMIN_NAV } from '../admin-nav-items';
 /** The pending-work counters the sidebar badges read from. */
 export interface AdminBadgeCounts {
   listings: number;
-  bookings: number;
   complaints: number;
 }
 
@@ -27,7 +26,7 @@ export class AdminSidebar {
 
   protected readonly i18n = inject(LanguageService);
 
-  readonly counts = input<AdminBadgeCounts>({ listings: 0, bookings: 0, complaints: 0 });
+  readonly counts = input<AdminBadgeCounts>({ listings: 0, complaints: 0 });
 
   /** Emitted when a link is followed, so the mobile drawer can close itself. */
   readonly navigate = output<void>();
@@ -39,7 +38,7 @@ export class AdminSidebar {
     })).filter((group) => group.items.length > 0),
   );
 
-  protected badgeOf(key: 'listings' | 'bookings' | 'complaints' | undefined): number {
+  protected badgeOf(key: 'listings' | 'complaints' | undefined): number {
     return key ? this.counts()[key] : 0;
   }
 }

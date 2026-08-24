@@ -76,11 +76,7 @@
                 <strong>{{ i18n.t('result.holdStillValid') }}</strong>
                 {{ i18n.t('result.holdStillValidHint') }}
               </span>
-              <app-ui-countdown
-                tone="danger"
-                [seconds]="holdSeconds() ?? 0"
-                (finished)="onHoldExpired()"
-              />
+              <app-ui-countdown tone="danger" [until]="holdUntil()" (finished)="onHoldExpired()" />
             </div>
           }
 

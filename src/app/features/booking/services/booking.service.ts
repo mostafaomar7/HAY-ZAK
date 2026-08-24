@@ -10,11 +10,7 @@ import type {
   BookingStatusHistoryEntry,
 } from '@core/models/booking.model';
 import type { Invoice, PaymentIntent } from '@core/models/payment.model';
-import type {
-  AlternativePeriod,
-  CancellationQuote,
-  CancellationRequest,
-} from '@core/models/renter.model';
+import type { AlternativePeriod, ComplaintRequest } from '@core/models/renter.model';
 import type { PaymentMethod } from '@core/enums/payment.enum';
 import type { PriceBreakdown } from '@core/utils/money.utils';
 import { ApiService } from '@core/services/api.service';
@@ -24,7 +20,7 @@ import { ApiService } from '@core/services/api.service';
  *
  * Deliberately has no `approve` or `reject`: SRS §6 gives that authority to
  * administration alone, and the renter portal must not grow a back door to it.
- * The renter's only state-changing verbs are draft, confirm, pay and cancel.
+ * The renter's only state-changing verbs are draft, confirm, pay and complain.
  */
 @Injectable({ providedIn: 'root' })
 export class BookingService {
@@ -104,14 +100,14 @@ export class BookingService {
   }
 
   /**
-   * FR-BKG-08 — read the refund figure before showing the confirmation dialog.
-   * The client never derives it; see CancellationQuote for why.
+   * Raises a complaint against the booking.
+   *
+   * There is no `cancel` beside it, and that absence is the product rule
+   * rather than an omission: neither party can cancel, so a client that had
+   * the method would be able to call an endpoint that does not exist. The
+   * complaint is the only route, and an administrator decides the outcome.
    */
-  cancellationQuote(id: string): Observable<CancellationQuote> {
-    return this.api.get<CancellationQuote>(API_ENDPOINTS.bookings.cancellationQuote(id));
-  }
-
-  cancel(id: string, payload: CancellationRequest): Observable<Booking> {
-    return this.api.post<Booking, CancellationRequest>(API_ENDPOINTS.bookings.cancel(id), payload);
+  raiseComplaint(id: string, payload: ComplaintRequest): Observable<void> {
+    return this.api.post<void, ComplaintRequest>(API_ENDPOINTS.bookings.complaints(id), payload);
   }
 }

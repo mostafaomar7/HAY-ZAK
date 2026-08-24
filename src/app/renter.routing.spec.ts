@@ -146,14 +146,19 @@ describe('renter routing (smoke)', () => {
       expect(el.textContent).toContain('INV-2026-04871');
     });
 
-    it('shows the refund figure before offering to cancel', async () => {
-      const fixture = await open('/my-bookings/rb-1/cancel');
+    /**
+     * There is no cancellation screen. A renter with a problem raises a
+     * complaint and administration decides — so the screen that used to quote a
+     * refund now takes a description of what went wrong.
+     */
+    it('offers a complaint route rather than a cancellation', async () => {
+      const fixture = await open('/my-bookings/rb-1/complaint');
       const el = fixture.nativeElement as HTMLElement;
 
-      expect(el.querySelector('app-cancel-booking-page')).not.toBeNull();
-      expect(el.textContent).toContain('المبلغ المسترَد');
-      // FR-BKG-08 — the number comes from the server's quote.
-      expect(el.textContent).toContain('1,800.00');
+      expect(el.querySelector('app-raise-complaint-page')).not.toBeNull();
+      expect(el.textContent).toContain('لديّ مشكلة');
+      // It says who decides, so nobody leaves expecting an automatic refund.
+      expect(el.textContent).toContain('لا يمكن إلغاء الحجز من الطرفين');
     });
 
     it('starts the booking wizard on step one', async () => {

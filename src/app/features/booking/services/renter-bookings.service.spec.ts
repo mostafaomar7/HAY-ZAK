@@ -1,6 +1,6 @@
 import { BookingStatus } from '@core/enums/booking-status.enum';
 import type { Booking } from '@core/models/booking.model';
-import { canCancelBooking, isAddressReleased } from './renter-bookings.service';
+import { canRaiseComplaint, isAddressReleased } from './renter-bookings.service';
 
 function booking(status: BookingStatus): Booking {
   return {
@@ -27,13 +27,16 @@ const ALL = Object.values(BookingStatus);
 
 describe('renter booking rules', () => {
   /**
-   * FR-UNT-11 and SRS §5 — the exact address is released by administration
-   * approval and by nothing earlier. Asserted across every state rather than the
-   * handful that happen to be allowed, so a state added later fails loudly here
-   * instead of quietly leaking an address.
+   * The exact address and the counterparty's details are released by
+   * confirmation and by nothing earlier — before a booking is paid for, the
+   * two parties have no reason to be able to reach each other.
+   *
+   * Asserted across every state rather than the handful that happen to be
+   * allowed, so a state added later fails loudly here instead of quietly
+   * leaking an address.
    */
   describe('isAddressReleased', () => {
-    const released = [BookingStatus.Approved, BookingStatus.Active, BookingStatus.Completed];
+    const released = [BookingStatus.Confirmed, BookingStatus.Active, BookingStatus.Completed];
 
     for (const status of ALL) {
       const expected = released.includes(status);
@@ -43,32 +46,26 @@ describe('renter booking rules', () => {
       });
     }
 
-    it('withholds it while payment is still pending review', () => {
-      // The money has moved but the review has not happened — this is the case
-      // the design calls out explicitly on the booking details screen.
-      expect(isAddressReleased(booking(BookingStatus.PaidPendingApproval))).toBeFalse();
+    it('withholds it while the dates are only held', () => {
+      // AWAITING_PAYMENT is a fifteen-minute hold, not a booking. Releasing the
+      // address here would let anyone read it by starting a booking they never
+      // pay for.
+      expect(isAddressReleased(booking(BookingStatus.AwaitingPayment))).toBeFalse();
     });
   });
 
-  /** FR-BKG-07 — a booking with no future has nothing to cancel. */
-  describe('canCancelBooking', () => {
-    const cancellable = [
-      BookingStatus.AwaitingPayment,
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.Approved,
-      BookingStatus.Active,
-    ];
-
+  /**
+   * There is no cancellation on this platform, so there is no
+   * `canCancelBooking` to test. "لديّ مشكلة" is what replaced it, and it
+   * belongs on everything except a draft.
+   */
+  describe('canRaiseComplaint', () => {
     for (const status of ALL) {
-      const expected = cancellable.includes(status);
+      const expected = status !== BookingStatus.Draft;
 
-      it(`${expected ? 'offers' : 'hides'} cancellation in ${status}`, () => {
-        expect(canCancelBooking(booking(status))).toBe(expected);
+      it(`${expected ? 'offers' : 'hides'} the complaint route in ${status}`, () => {
+        expect(canRaiseComplaint(booking(status))).toBe(expected);
       });
     }
-
-    it('offers nothing on a draft, which holds no dates and no money', () => {
-      expect(canCancelBooking(booking(BookingStatus.Draft))).toBeFalse();
-    });
   });
 });

@@ -46,7 +46,7 @@ describe('RequestCard', () => {
   });
 
   it('shows the unit, goods and total', () => {
-    const el = render(makeBooking(BookingStatus.PaidPendingApproval));
+    const el = render(makeBooking(BookingStatus.Confirmed));
     expect(el.textContent).toContain('قراج مغلق — الملقا');
     expect(el.textContent).toContain('كراتين أثاث منزلي.');
     expect(el.textContent).toContain('1,800.00');
@@ -74,15 +74,15 @@ describe('RequestCard', () => {
     }
   });
 
-  // FR-LSR-09 — identity is released on approval, never before.
-  it('withholds the renter name before approval even when the payload carries it', () => {
-    const el = render(makeBooking(BookingStatus.PaidPendingApproval, 'سارة العتيبي'));
+  // Identity is released on confirmation, never before.
+  it('withholds the renter name before confirmation even when the payload carries it', () => {
+    const el = render(makeBooking(BookingStatus.AwaitingPayment, 'سارة العتيبي'));
     expect(el.textContent).not.toContain('سارة العتيبي');
     expect(el.textContent).toContain('تظهر بيانات المستأجر بعد موافقة الإدارة');
   });
 
   it('shows the renter name once the booking is approved', () => {
-    const el = render(makeBooking(BookingStatus.Approved, 'سارة العتيبي'));
+    const el = render(makeBooking(BookingStatus.Confirmed, 'سارة العتيبي'));
     expect(el.textContent).toContain('سارة العتيبي');
   });
 

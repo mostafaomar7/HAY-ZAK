@@ -75,23 +75,23 @@ open over a break, expect to sign in again.
 
 ### Public / renter — `/auth/login` as `f.aldosari@example.com`
 
-| Screen              | Route                      | Needs sign-in |
-| ------------------- | -------------------------- | ------------- |
-| الرئيسية            | `/`                        | no            |
-| نتائج البحث         | `/units`                   | no            |
-| تفاصيل المساحة      | `/units/:id`               | no            |
-| الصفحات التعريفية   | `/pages/about`             | no            |
-| حجز جديد            | `/booking/new/:unitId`     | yes           |
-| وصف البضاعة         | `/booking/:id/goods`       | yes           |
-| توثيق الهوية (نفاذ) | `/booking/:id/identity`    | yes           |
-| الدفع               | `/booking/:id/pay`         | yes           |
-| نتيجة الحجز         | `/booking/:id/result`      | yes           |
-| حجوزاتي             | `/my-bookings`             | yes           |
-| تفاصيل الحجز        | `/my-bookings/:id`         | yes           |
-| الفاتورة            | `/my-bookings/:id/invoice` | yes           |
-| إلغاء الحجز         | `/my-bookings/:id/cancel`  | yes           |
-| حسابي               | `/account`                 | yes           |
-| الإشعارات           | `/account/notifications`   | yes           |
+| Screen              | Route                        | Needs sign-in |
+| ------------------- | ---------------------------- | ------------- |
+| الرئيسية            | `/`                          | no            |
+| نتائج البحث         | `/units`                     | no            |
+| تفاصيل المساحة      | `/units/:id`                 | no            |
+| الصفحات التعريفية   | `/pages/about`               | no            |
+| حجز جديد            | `/booking/new/:unitId`       | yes           |
+| وصف البضاعة         | `/booking/:id/goods`         | yes           |
+| توثيق الهوية (نفاذ) | `/booking/:id/identity`      | yes           |
+| الدفع               | `/booking/:id/pay`           | yes           |
+| نتيجة الحجز         | `/booking/:id/result`        | yes           |
+| حجوزاتي             | `/my-bookings`               | yes           |
+| تفاصيل الحجز        | `/my-bookings/:id`           | yes           |
+| الفاتورة            | `/my-bookings/:id/invoice`   | yes           |
+| لديّ مشكلة          | `/my-bookings/:id/complaint` | yes           |
+| حسابي               | `/account`                   | yes           |
+| الإشعارات           | `/account/notifications`     | yes           |
 
 ### Lessor — `/auth/login` as `saud@example.com`
 
@@ -119,7 +119,6 @@ disagree.
 | ------------------- | --------------------------- | :---------: | :-----------: | :------------: |
 | لوحة التحكم         | `/admin/dashboard`          |      ✓      |       ✓       |       ✓        |
 | مراجعة المساحات     | `/admin/listings`           |      ✓      |       ✓       |       —        |
-| مراجعة الحجوزات     | `/admin/bookings`           |      ✓      |       ✓       |       —        |
 | الشكاوى والنزاعات   | `/admin/complaints`         |      ✓      |       ✓       |       —        |
 | متابعة المدفوعات    | `/admin/payments`           |      ✓      |       ✓       |       ✓        |
 | التحويلات للمؤجّرين | `/admin/transfers`          |      ✓      |       —       |       ✓        |

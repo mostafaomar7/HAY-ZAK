@@ -49,7 +49,6 @@ import {
 import {
   MOCK_ALTERNATIVES,
   MOCK_BOOKING_HISTORY,
-  MOCK_CANCELLATION_QUOTE,
   MOCK_IDENTITY,
   MOCK_INVOICE,
   MOCK_MARKET_AVAILABILITY,
@@ -147,6 +146,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
 
   // ── Renter bookings (FR-BKG, FR-PAY) ───────────────────────────────────
   if (path === API_ENDPOINTS.bookings.mine) return paginate(MOCK_RENTER_BOOKINGS);
+  if (/^\/bookings\/[^/]+\/complaints$/.test(path) && method === 'POST') return ok(null);
   if (path === API_ENDPOINTS.bookings.quote) return ok(quote(query));
   if (path === API_ENDPOINTS.bookings.base && method === 'POST') {
     return ok(MOCK_RENTER_BOOKINGS[4]);
@@ -165,7 +165,6 @@ function route(path: string, query: string, method: string, payload: unknown): u
       expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
     });
   }
-  if (/^\/bookings\/[^/]+\/cancellation-quote$/.test(path)) return ok(MOCK_CANCELLATION_QUOTE);
   if (/^\/bookings\/[^/]+\/alternative-periods$/.test(path)) return ok(MOCK_ALTERNATIVES);
   if (/^\/bookings\/[^/]+\/history$/.test(path)) return ok(MOCK_BOOKING_HISTORY);
   if (/^\/bookings\/[^/]+\/invoice$/.test(path)) return ok(MOCK_INVOICE);
@@ -187,7 +186,6 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (/^\/admin\/units\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
 
-  if (path === API_ENDPOINTS.admin.pendingBookings) return paginate(MOCK_BOOKING_QUEUE);
   if (/^\/admin\/bookings\/[^/]+\/review-detail$/.test(path)) {
     const id = path.split('/')[3];
     const row = MOCK_BOOKING_QUEUE.find((r) => r.id === id);

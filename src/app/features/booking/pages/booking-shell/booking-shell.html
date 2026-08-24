@@ -15,11 +15,7 @@
 
       <p class="hold__timer">
         <span class="hold__timerLabel">{{ i18n.t('booking.holdRemaining') }}</span>
-        <app-ui-countdown
-          tone="inherit"
-          [seconds]="holdSeconds() ?? 0"
-          (finished)="onHoldExpired()"
-        />
+        <app-ui-countdown tone="inherit" [until]="holdUntil()" (finished)="onHoldExpired()" />
         <span class="hold__timerUnit">{{ i18n.t('booking.holdMinutes') }}</span>
       </p>
     </div>

@@ -104,9 +104,8 @@ export class RequestDetailPage {
     if (!b) return [];
 
     const failedStates: Partial<Record<BookingStatus, string>> = {
-      [BookingStatus.RejectedRefunded]: 'مرفوض ومُسترد',
-      [BookingStatus.Cancelled]: 'ملغي',
-      [BookingStatus.Expired]: 'منتهية صلاحيته',
+      [BookingStatus.Cancelled]: 'ملغي من الإدارة',
+      [BookingStatus.Expired]: 'انتهت مهلة الحجز',
     };
 
     if (failedStates[b.status]) {
@@ -116,12 +115,7 @@ export class RequestDetailPage {
       ];
     }
 
-    const order = [
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.Approved,
-      BookingStatus.Active,
-      BookingStatus.Completed,
-    ];
+    const order = [BookingStatus.Confirmed, BookingStatus.Active, BookingStatus.Completed];
     const reached = order.indexOf(b.status);
 
     return [
@@ -130,10 +124,9 @@ export class RequestDetailPage {
         state: b.status === BookingStatus.AwaitingPayment ? 'current' : 'done',
         meta: b.status === BookingStatus.AwaitingPayment ? 'بانتظار الدفع' : undefined,
       },
-      { label: 'قيد المراجعة', ...mark(0, reached) },
-      { label: 'موافَق عليه', ...mark(1, reached) },
-      { label: 'نشط', ...mark(2, reached) },
-      { label: 'مكتمل', ...mark(3, reached) },
+      { label: 'مؤكَّد', ...mark(0, reached) },
+      { label: 'نشط', ...mark(1, reached) },
+      { label: 'مكتمل', ...mark(2, reached) },
     ];
   });
 

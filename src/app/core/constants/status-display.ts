@@ -46,21 +46,17 @@ export const BOOKING_STATUS_DISPLAY: Readonly<Record<BookingStatus, StatusDispla
     en: 'Awaiting payment',
     tone: 'warning',
   },
-  [BookingStatus.PaidPendingApproval]: {
-    ar: 'مدفوع — بانتظار الموافقة',
-    en: 'Paid, pending approval',
-    tone: 'info',
-  },
-  [BookingStatus.Approved]: { ar: 'مقبول', en: 'Approved', tone: 'success' },
+  [BookingStatus.Confirmed]: { ar: 'مؤكَّد', en: 'Confirmed', tone: 'success' },
   [BookingStatus.Active]: { ar: 'ساري', en: 'Active', tone: 'success' },
   [BookingStatus.Completed]: { ar: 'منتهي', en: 'Completed', tone: 'neutral' },
-  [BookingStatus.RejectedRefunded]: {
-    ar: 'مرفوض ومُسترد',
-    en: 'Rejected and refunded',
+  // Cancelled only ever means "administration cancelled it", so the label says
+  // so — a bare "ملغي" reads as something the renter or the lessor did.
+  [BookingStatus.Cancelled]: {
+    ar: 'ملغي من الإدارة',
+    en: 'Cancelled by administration',
     tone: 'danger',
   },
-  [BookingStatus.Cancelled]: { ar: 'ملغي', en: 'Cancelled', tone: 'danger' },
-  [BookingStatus.Expired]: { ar: 'منتهية صلاحيته', en: 'Expired', tone: 'neutral' },
+  [BookingStatus.Expired]: { ar: 'انتهت مهلة الحجز', en: 'Hold expired', tone: 'neutral' },
 };
 
 /** FR-LSR-08 — the transfer status column on the earnings page. */

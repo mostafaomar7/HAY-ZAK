@@ -62,13 +62,11 @@ export function bookingPrimaryAction(booking: Booking): {
       return { labelKey: 'bookings.resume', link: ['/booking', 'new', booking.unitId] };
     case BookingStatus.AwaitingPayment:
       return { labelKey: 'bookings.completePayment', link: ['/booking', booking.id, 'pay'] };
-    case BookingStatus.PaidPendingApproval:
-      // Paid means an invoice exists — but only once approval is not pending is
-      // it the useful action, so the design shows it on the two settled states.
-      return null;
-    case BookingStatus.Approved:
+    case BookingStatus.Confirmed:
     case BookingStatus.Active:
     case BookingStatus.Completed:
+      // Payment is what confirms a booking, so an invoice exists from
+      // CONFIRMED onward — there is no longer a pending state to wait through.
       return { labelKey: 'bookings.viewInvoice', link: ['/my-bookings', booking.id, 'invoice'] };
     default:
       return null;
@@ -76,22 +74,20 @@ export function bookingPrimaryAction(booking: Booking): {
 }
 
 /**
- * FR-BKG-07 — cancellation is offered only while the booking still has a future
- * to cancel. A terminal booking, and a draft that holds nothing, both show
- * nothing.
+ * Whether "لديّ مشكلة" belongs on this booking.
+ *
+ * Everything that is not a draft: a renter with a live, finished or cancelled
+ * booking may still need to raise something about it, and a draft holds
+ * nothing to complain about. It replaced `canCancelBooking`, which offered a
+ * button for an action nobody on this platform can take.
  */
-export function canCancelBooking(booking: Booking): boolean {
-  return [
-    BookingStatus.AwaitingPayment,
-    BookingStatus.PaidPendingApproval,
-    BookingStatus.Approved,
-    BookingStatus.Active,
-  ].includes(booking.status);
+export function canRaiseComplaint(booking: Booking): boolean {
+  return booking.status !== BookingStatus.Draft;
 }
 
 /** FR-UNT-11 — the exact address is released by approval and nothing earlier. */
 export function isAddressReleased(booking: Booking): boolean {
-  return [BookingStatus.Approved, BookingStatus.Active, BookingStatus.Completed].includes(
+  return [BookingStatus.Confirmed, BookingStatus.Active, BookingStatus.Completed].includes(
     booking.status,
   );
 }

@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs/operators';
 import { APP } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
+import { countdown } from '@core/utils/countdown';
 import { UiCountdown } from '@shared/components/ui-countdown/ui-countdown';
 import type { WizardStep } from '@shared/components/ui-wizard-steps/ui-wizard-steps';
 import { UiWizardSteps } from '@shared/components/ui-wizard-steps/ui-wizard-steps';
@@ -64,14 +65,16 @@ export class BookingShell {
     { index: 4, label: this.i18n.t('booking.stepPay') },
   ]);
 
-  protected readonly holdSeconds = this.wizard.holdSecondsRemaining;
+  /** The server's deadline; the countdown recomputes against it every tick. */
+  protected readonly holdUntil = this.wizard.holdExpiresAt;
+  protected readonly holdSeconds = countdown(this.holdUntil);
 
   protected readonly holdUrgent = computed(() => {
     const seconds = this.holdSeconds();
-    return seconds !== null && seconds > 0 && seconds <= URGENT_SECONDS;
+    return seconds > 0 && seconds <= URGENT_SECONDS;
   });
 
-  protected readonly showHold = computed(() => (this.holdSeconds() ?? 0) > 0);
+  protected readonly showHold = computed(() => this.holdSeconds() > 0);
 
   /**
    * When the hold lapses the dates are gone and nothing further in the wizard is

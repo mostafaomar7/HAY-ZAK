@@ -17,16 +17,22 @@ import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import type { StepperStep } from '@shared/components/ui-stepper/ui-stepper';
 import { UiStepper } from '@shared/components/ui-stepper/ui-stepper';
 import { BookingService } from '../../services/booking.service';
-import { canCancelBooking, isAddressReleased } from '../../services/renter-bookings.service';
+import { canRaiseComplaint, isAddressReleased } from '../../services/renter-bookings.service';
 
-/** The six milestones the design draws, in order. */
-const STAGES: { key: string; reached: BookingStatus[] }[] = [
-  { key: 'bookingDetail.stageCreated', reached: [BookingStatus.Draft] },
-  { key: 'bookingDetail.stagePaid', reached: [BookingStatus.PaidPendingApproval] },
-  { key: 'bookingDetail.stageReview', reached: [BookingStatus.PaidPendingApproval] },
-  { key: 'bookingDetail.stageApproved', reached: [BookingStatus.Approved] },
-  { key: 'bookingDetail.stageStart', reached: [BookingStatus.Active] },
-  { key: 'bookingDetail.stageEnd', reached: [BookingStatus.Completed] },
+/**
+ * The milestones, in order.
+ *
+ * Four, not six. The design drew a review stage between payment and approval,
+ * from a lifecycle where the platform took the money and then decided whether
+ * to honour the booking. Payment confirms it — see `booking-status.enum.ts` —
+ * so drawing "قيد المراجعة" would be showing a wait that does not exist.
+ */
+const STAGES: { key: string; reached: BookingStatus }[] = [
+  { key: 'bookingDetail.stageCreated', reached: BookingStatus.Draft },
+  { key: 'bookingDetail.stagePaid', reached: BookingStatus.AwaitingPayment },
+  { key: 'bookingDetail.stageConfirmed', reached: BookingStatus.Confirmed },
+  { key: 'bookingDetail.stageStart', reached: BookingStatus.Active },
+  { key: 'bookingDetail.stageEnd', reached: BookingStatus.Completed },
 ];
 
 /**
@@ -89,9 +95,10 @@ export class BookingDetailPage {
     return !!booking && isAddressReleased(booking);
   });
 
-  protected readonly canCancel = computed(() => {
+  /** FR-ADM-08 — the one route out of a problem, on every booking. */
+  protected readonly canComplain = computed(() => {
     const booking = this.booking();
-    return !!booking && canCancelBooking(booking);
+    return !!booking && canRaiseComplaint(booking);
   });
 
   protected readonly hasInvoice = computed(() => {
@@ -125,18 +132,10 @@ export class BookingDetailPage {
     const booking = this.booking();
     if (!booking) return [];
 
-    const order = [
-      BookingStatus.Draft,
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.Approved,
-      BookingStatus.Active,
-      BookingStatus.Completed,
-    ];
-    const currentIndex = order.lastIndexOf(booking.status);
+    const currentIndex = STAGES.findIndex((stage) => stage.reached === booking.status);
 
     return STAGES.map((stage, index) => {
-      const entry = this.history().find((item) => item.toStatus === stage.reached[0]);
+      const entry = this.history().find((item) => item.toStatus === stage.reached);
       const state =
         currentIndex === -1
           ? 'upcoming'

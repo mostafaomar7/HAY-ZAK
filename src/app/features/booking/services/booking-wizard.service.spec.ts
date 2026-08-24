@@ -70,27 +70,23 @@ describe('BookingWizardService', () => {
     expect(wizard.draft()?.goodsDescription).toBe('أثاث منزلي مفكّك');
   });
 
-  /** FR-BKG-05 — the hold the payment screen counts down. */
-  it('reports the seconds left on the hold', () => {
+  /**
+   * The wizard keeps the server's deadline, not a count of seconds. Counting
+   * is the countdown's job, and it recomputes against this on every tick — see
+   * `core/utils/countdown.ts` for why a locally started timer is not an option.
+   */
+  it('keeps the hold deadline the server set', () => {
+    const expiry = new Date(Date.now() + 120_000).toISOString();
     wizard.setDates('u-1', '2026-08-12', '2026-08-22');
-    wizard.setHold(new Date(Date.now() + 120_000).toISOString());
+    wizard.setHold(expiry);
 
-    const remaining = wizard.holdSecondsRemaining();
-    expect(remaining).toBeGreaterThan(110);
-    expect(remaining).toBeLessThanOrEqual(120);
+    expect(wizard.holdExpiresAt()).toBe(expiry);
   });
 
   it('reports no hold before one has started', () => {
     wizard.setDates('u-1', '2026-08-12', '2026-08-22');
 
-    expect(wizard.holdSecondsRemaining()).toBeNull();
-  });
-
-  it('floors an elapsed hold at zero rather than going negative', () => {
-    wizard.setDates('u-1', '2026-08-12', '2026-08-22');
-    wizard.setHold(new Date(Date.now() - 60_000).toISOString());
-
-    expect(wizard.holdSecondsRemaining()).toBe(0);
+    expect(wizard.holdExpiresAt()).toBeNull();
   });
 
   /**

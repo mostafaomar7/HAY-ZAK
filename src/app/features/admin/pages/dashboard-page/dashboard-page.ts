@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AdminDashboardKpis } from '@core/models/operations.model';
-import type { BookingReviewRow, ListingReviewRow } from '@core/models/admin.model';
+import type { ListingReviewRow } from '@core/models/admin.model';
 import { ApiService } from '@core/services/api.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -34,13 +34,11 @@ export class AdminDashboardPage {
 
   protected readonly kpis = signal<AdminDashboardKpis | null>(null);
   protected readonly listings = signal<ListingReviewRow[]>([]);
-  protected readonly bookings = signal<BookingReviewRow[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
 
   /** The four newest of each queue — the rest is one click away. */
   protected readonly topListings = computed(() => this.listings().slice(0, 4));
-  protected readonly topBookings = computed(() => this.bookings().slice(0, 4));
 
   protected readonly cards = computed(() => {
     const kpis = this.kpis();
@@ -55,14 +53,6 @@ export class AdminDashboardPage {
         unit: this.i18n.t('dash.unit'),
         delta: this.i18n.t('dash.awaitingDecision'),
         icon: 'box' as const,
-      },
-      {
-        key: 'pendingBookings',
-        label: this.i18n.t('dash.pendingBookings'),
-        value: format(kpis.pendingBookings),
-        unit: this.i18n.t('dash.booking'),
-        delta: this.i18n.t('dash.awaitingDecision'),
-        icon: 'list' as const,
       },
       {
         key: 'slaBreaches',
@@ -118,15 +108,11 @@ export class AdminDashboardPage {
       },
     });
 
-    // The two queues fail independently of the indicators: a broken listings
-    // service must not blank the booking queue an operator is working through.
+    // The queue fails independently of the indicators above it: a broken
+    // review service must not blank the figures beside it.
     this.api
       .list<ListingReviewRow>(API_ENDPOINTS.admin.pendingUnits)
       .subscribe({ next: (page) => this.listings.set(page.items), error: () => undefined });
-
-    this.api
-      .list<BookingReviewRow>(API_ENDPOINTS.admin.pendingBookings)
-      .subscribe({ next: (page) => this.bookings.set(page.items), error: () => undefined });
   }
 
   protected isLate(hours: number): boolean {

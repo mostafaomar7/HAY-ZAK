@@ -18,12 +18,10 @@ export class AdminQueueCountsService {
   private readonly api = inject(ApiService);
 
   private readonly listings = signal(0);
-  private readonly bookings = signal(0);
   private readonly complaints = signal(0);
 
   readonly counts = computed(() => ({
     listings: this.listings(),
-    bookings: this.bookings(),
     complaints: this.complaints(),
   }));
 
@@ -34,7 +32,6 @@ export class AdminQueueCountsService {
     }).subscribe({
       next: ({ kpis, disputes }) => {
         this.listings.set(kpis.pendingListings);
-        this.bookings.set(kpis.pendingBookings);
         // Closed complaints are not work; only the open ones belong on a badge.
         this.complaints.set(
           disputes.items.filter((item) => item.status !== DisputeStatus.Closed).length,

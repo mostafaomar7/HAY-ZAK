@@ -60,7 +60,7 @@ describe('RequestDetailPage', () => {
   afterEach(() => http.verify());
 
   it('shows the period, goods and the net after commission', () => {
-    const el = render(makeBooking(BookingStatus.PaidPendingApproval));
+    const el = render(makeBooking(BookingStatus.Confirmed));
 
     expect(el.textContent).toContain('كراتين أثاث منزلي.');
     expect(el.textContent).toContain('1,800.00');
@@ -69,9 +69,9 @@ describe('RequestDetailPage', () => {
     expect(el.textContent).toContain('1,710.00');
   });
 
-  // FR-LSR-09 — the panel must not contain the renter's details pre-approval.
-  it('hides the renter behind the locked panel before approval', () => {
-    const el = render(makeBooking(BookingStatus.PaidPendingApproval, 'فهد الدوسري'));
+  // The panel must not contain the renter's details before confirmation.
+  it('hides the renter behind the locked panel before the booking is paid for', () => {
+    const el = render(makeBooking(BookingStatus.AwaitingPayment, 'فهد الدوسري'));
 
     expect(el.querySelector('app-ui-locked-panel')).not.toBeNull();
     expect(el.textContent).not.toContain('فهد الدوسري');
@@ -79,30 +79,30 @@ describe('RequestDetailPage', () => {
     expect(el.textContent).toContain('تظهر بيانات المستأجر بعد اعتماد الطلب');
   });
 
-  it('reveals the renter and a callable number once approved', () => {
-    const el = render(makeBooking(BookingStatus.Approved, 'فهد الدوسري'));
+  it('reveals the renter and a callable number once confirmed', () => {
+    const el = render(makeBooking(BookingStatus.Confirmed, 'فهد الدوسري'));
 
     expect(el.querySelector('app-ui-locked-panel')).toBeNull();
     expect(el.textContent).toContain('فهد الدوسري');
     expect(el.querySelector('a[href="tel:0555555555"]')).not.toBeNull();
   });
 
-  it('withholds the contract until the booking is approved', () => {
-    const pending = render(makeBooking(BookingStatus.PaidPendingApproval));
+  it('withholds the contract until the booking is confirmed', () => {
+    const pending = render(makeBooking(BookingStatus.AwaitingPayment));
     expect(pending.textContent).toContain('يصدر العقد بعد اعتماد الطلب');
     expect(pending.textContent).not.toContain('تنزيل العقد');
   });
 
-  it('offers the contract once approved', () => {
-    const el = render(makeBooking(BookingStatus.Approved, 'فهد الدوسري'));
+  it('offers the contract once confirmed', () => {
+    const el = render(makeBooking(BookingStatus.Confirmed, 'فهد الدوسري'));
     expect(el.textContent).toContain('تنزيل العقد');
   });
 
   // FR-LSR-06 — no decision control, in any state.
   it('exposes no approve or reject control', () => {
     for (const status of [
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.Approved,
+      BookingStatus.AwaitingPayment,
+      BookingStatus.Confirmed,
       BookingStatus.Active,
     ]) {
       const el = render(makeBooking(status, 'فهد الدوسري'));
@@ -120,19 +120,19 @@ describe('RequestDetailPage', () => {
         current: li.classList.contains('step--current'),
       }));
 
-    it('marks review as current while awaiting a decision', () => {
-      const steps = stepStates(render(makeBooking(BookingStatus.PaidPendingApproval)));
+    it('marks confirmation as current once the booking is paid for', () => {
+      const steps = stepStates(render(makeBooking(BookingStatus.Confirmed)));
 
       expect(steps[0]).toEqual(jasmine.objectContaining({ done: true }));
-      expect(steps[1]).toEqual(jasmine.objectContaining({ label: 'قيد المراجعة', current: true }));
+      expect(steps[1]).toEqual(jasmine.objectContaining({ label: 'مؤكَّد', current: true }));
       expect(steps[2]).toEqual(jasmine.objectContaining({ done: false, current: false }));
     });
 
-    it('replaces the tail with a failed step for a terminal rejection', () => {
-      const steps = stepStates(render(makeBooking(BookingStatus.RejectedRefunded)));
+    it('replaces the tail with a failed step when administration cancels', () => {
+      const steps = stepStates(render(makeBooking(BookingStatus.Cancelled)));
 
       expect(steps.length).toBe(2);
-      expect(steps[1].label).toBe('مرفوض ومُسترد');
+      expect(steps[1].label).toBe('ملغي من الإدارة');
       expect(fixture.nativeElement.querySelector('.step--failed')).not.toBeNull();
     });
   });

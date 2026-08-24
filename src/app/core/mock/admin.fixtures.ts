@@ -198,7 +198,6 @@ export const MOCK_ADMIN_KPIS: AdminDashboardKpis = {
   totalCommission: 4321,
   occupancyRate: 63,
   pendingListings: MOCK_LISTING_QUEUE.length,
-  pendingBookings: MOCK_BOOKING_QUEUE.length,
   slaBreaches: 2,
 };
 
@@ -526,7 +525,7 @@ export const MOCK_ADMIN_RENTER_DETAIL: AdminUserDetail = {
       id: 'bk-r1',
       referenceNo: 'HZ-2026-01042',
       unitTitle: 'مستودع مكيّف — النرجس',
-      status: BookingStatus.PaidPendingApproval,
+      status: BookingStatus.Confirmed,
     },
   ],
 };

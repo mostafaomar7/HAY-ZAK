@@ -10,7 +10,6 @@ import type { AppNotification } from '../models/operations.model';
 import type { Invoice } from '../models/payment.model';
 import type {
   AlternativePeriod,
-  CancellationQuote,
   NotificationPreference,
   RenterProfile,
 } from '../models/renter.model';
@@ -307,13 +306,13 @@ function renterBooking(
       visitSchedule: unit.visitSchedule,
       // FR-UNT-11 — the address travels with the booking only once approved.
       addressLine:
-        status === BookingStatus.Approved ||
+        status === BookingStatus.Confirmed ||
         status === BookingStatus.Active ||
         status === BookingStatus.Completed
           ? unit.addressLine
           : undefined,
       postalCode:
-        status === BookingStatus.Approved ||
+        status === BookingStatus.Confirmed ||
         status === BookingStatus.Active ||
         status === BookingStatus.Completed
           ? unit.postalCode
@@ -336,7 +335,7 @@ function renterBooking(
     prohibitedAck: true,
     status,
     counterpartyContact:
-      status === BookingStatus.Approved || status === BookingStatus.Active
+      status === BookingStatus.Confirmed || status === BookingStatus.Active
         ? { fullName: 'فهد الدوسري', mobile: '0552104478' }
         : undefined,
     holdExpiresAt:
@@ -356,7 +355,7 @@ export const MOCK_RENTER_BOOKINGS: Booking[] = [
     '2026-08-12',
     '2026-09-11',
     30,
-    BookingStatus.Approved,
+    BookingStatus.Confirmed,
   ),
   renterBooking(
     'rb-2',
@@ -374,7 +373,7 @@ export const MOCK_RENTER_BOOKINGS: Booking[] = [
     '2026-08-20',
     '2026-09-03',
     15,
-    BookingStatus.PaidPendingApproval,
+    BookingStatus.Confirmed,
   ),
   renterBooking(
     'rb-4',
@@ -410,7 +409,7 @@ export const MOCK_RENTER_BOOKINGS: Booking[] = [
     '2026-06-12',
     '2026-06-26',
     14,
-    BookingStatus.RejectedRefunded,
+    BookingStatus.Cancelled,
   ),
   renterBooking(
     'rb-8',
@@ -436,12 +435,12 @@ export const MOCK_BOOKING_HISTORY: BookingStatusHistoryEntry[] = [
   { fromStatus: null, toStatus: BookingStatus.Draft, changedAt: '2026-08-12T09:14:00Z' },
   {
     fromStatus: BookingStatus.AwaitingPayment,
-    toStatus: BookingStatus.PaidPendingApproval,
+    toStatus: BookingStatus.Confirmed,
     changedAt: '2026-08-12T09:26:00Z',
   },
   {
-    fromStatus: BookingStatus.PaidPendingApproval,
-    toStatus: BookingStatus.Approved,
+    fromStatus: BookingStatus.Confirmed,
+    toStatus: BookingStatus.Confirmed,
     changedBy: 'ops-1',
     changedAt: '2026-08-12T13:40:00Z',
   },
@@ -457,17 +456,6 @@ export const MOCK_INVOICE: Invoice = {
   qrCode: 'zatca-qr-placeholder',
   pdfUrl: '/files/invoices/INV-2026-04871.pdf',
   issuedAt: '2026-08-12',
-};
-
-export const MOCK_CANCELLATION_QUOTE: CancellationQuote = {
-  bookingId: 'rb-1',
-  appliedRule: 'earlyCancellation',
-  daysBeforeStart: 9,
-  totalPaid: 1800,
-  refundHalalas: 180000,
-  refundPercentage: 1,
-  refundDestination: 'مدى ••8130',
-  refundEtaBusinessDays: 10,
 };
 
 export const MOCK_ALTERNATIVES: AlternativePeriod[] = [

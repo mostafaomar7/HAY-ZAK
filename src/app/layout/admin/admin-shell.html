@@ -21,7 +21,7 @@
   <div class="shell__main">
     <app-admin-topbar
       [title]="title()"
-      [unreadCount]="queues.counts().listings + queues.counts().bookings"
+      [unreadCount]="queues.counts().listings + queues.counts().complaints"
       (openMenu)="openDrawer()"
       (loggedOut)="askLogout()"
     />

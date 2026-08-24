@@ -341,6 +341,19 @@ export interface ComplaintDetail extends ComplaintRow {
   resolution?: string;
 }
 
+/**
+ * How an operator closes a complaint.
+ *
+ * `cancelBooking` is the only path to `BookingStatus.Cancelled` in the whole
+ * system. It is a separate flag rather than something read out of the
+ * resolution text, because a state transition that moves money must be an
+ * explicit decision and must be visible as one in the audit trail.
+ */
+export interface ResolveComplaintRequest {
+  resolution: string;
+  cancelBooking: boolean;
+}
+
 export interface ComplaintMessage {
   id: string;
   authorName: string;

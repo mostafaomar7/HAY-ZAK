@@ -132,3 +132,21 @@
   gap: a.$space-8;
   margin-top: a.$space-6;
 }
+
+// The hold countdown. Prominent on the card because a renter who left the
+// wizard is exactly the person about to lose the dates, and the list is where
+// they come back to.
+.card__hold {
+  @include a.flex(row, $align: center, $gap: a.$space-6);
+
+  margin: a.$space-8 0 0;
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-semibold;
+  color: var(--color-warning-fg);
+}
+
+.card__holdClock {
+  @include a.numeric;
+
+  font-size: a.$fs-sm;
+}

@@ -57,43 +57,5 @@
         </ul>
       }
     </article>
-
-    <!-- Bookings -->
-    <article class="queue">
-      <header class="queue__head">
-        <h2 class="queue__title">
-          {{ i18n.t('dash.pendingBookings') }}
-          @if (bookings().length > 0) {
-            <span class="queue__badge num">{{ bookings().length }}</span>
-          }
-        </h2>
-        <a appUiButton variant="outline" size="sm" routerLink="/admin/bookings">
-          {{ i18n.t('dash.viewAll') }}
-        </a>
-      </header>
-
-      @if (topBookings().length === 0) {
-        <p class="queue__empty">{{ i18n.t('dash.emptyQueue') }}</p>
-      } @else {
-        <ul class="queue__list">
-          @for (row of topBookings(); track row.id) {
-            <li>
-              <a class="entry" [routerLink]="['/admin/bookings']" [queryParams]="{ open: row.id }">
-                <span class="entry__text">
-                  <span class="entry__title num" dir="ltr">{{ row.referenceNo }}</span>
-                  <span class="entry__meta num">
-                    {{ row.renterName }} · {{ row.unitTitle }} · {{ row.totalHalalas }}
-                    {{ i18n.t('admin.sar') }}
-                  </span>
-                </span>
-                <span class="entry__wait num" [class.entry__wait--late]="isLate(row.waitingHours)">
-                  {{ waitLabel(row.waitingHours) }}
-                </span>
-              </a>
-            </li>
-          }
-        </ul>
-      }
-    </article>
   </section>
 }

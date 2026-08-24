@@ -38,13 +38,13 @@ export class RequestsPage {
     new: [
       BookingStatus.Draft,
       BookingStatus.AwaitingPayment,
-      BookingStatus.PaidPendingApproval,
-      BookingStatus.Approved,
+      BookingStatus.Confirmed,
+      BookingStatus.Confirmed,
     ],
     active: [BookingStatus.Active],
     past: [
       BookingStatus.Completed,
-      BookingStatus.RejectedRefunded,
+      BookingStatus.Cancelled,
       BookingStatus.Cancelled,
       BookingStatus.Expired,
     ],

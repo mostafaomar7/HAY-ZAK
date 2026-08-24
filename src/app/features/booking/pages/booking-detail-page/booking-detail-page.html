@@ -43,9 +43,16 @@
             {{ i18n.t('bookings.viewInvoice') }}
           </a>
         }
-        @if (canCancel()) {
-          <a appUiButton variant="danger" [routerLink]="['/my-bookings', bookingId(), 'cancel']">
-            {{ i18n.t('bookingDetail.cancelAction') }}
+        <!-- Not "cancel": nobody on this platform can. Prominent because it is
+             the only route out of a problem, and a renter who cannot find it
+             telephones instead. -->
+        @if (canComplain()) {
+          <a
+            appUiButton
+            variant="outline"
+            [routerLink]="['/my-bookings', bookingId(), 'complaint']"
+          >
+            {{ i18n.t('bookingDetail.complaintAction') }}
           </a>
         }
       </div>

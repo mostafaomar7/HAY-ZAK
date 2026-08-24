@@ -54,6 +54,13 @@
         <p class="card__hint num" dir="ltr">{{ booking().referenceNo }}</p>
       }
 
+      @if (holdSeconds() > 0) {
+        <p class="card__hold">
+          {{ i18n.t('bookings.holdRemaining') }}
+          <span class="card__holdClock num" dir="ltr">{{ holdLabel() }}</span>
+        </p>
+      }
+
       <div class="card__actions">
         @if (action(); as primary) {
           <a appUiButton variant="outline" [routerLink]="primary.link">
@@ -64,6 +71,13 @@
         <a appUiButton variant="primary" [routerLink]="['/my-bookings', booking().id]">
           {{ i18n.t('bookings.detailsAction') }}
         </a>
+
+        <!-- Not "cancel". See booking-transitions.ts. -->
+        @if (canComplain()) {
+          <a appUiButton variant="ghost" [routerLink]="['/my-bookings', booking().id, 'complaint']">
+            {{ i18n.t('bookingDetail.complaintAction') }}
+          </a>
+        }
       </div>
     </div>
   </div>

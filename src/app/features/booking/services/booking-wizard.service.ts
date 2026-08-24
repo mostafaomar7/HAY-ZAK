@@ -61,13 +61,14 @@ export class BookingWizardService {
     return !!draft?.goodsDescription && draft.prohibitedAck === true;
   });
 
-  /** Seconds left on the hold, or null when no hold is running. */
-  readonly holdSecondsRemaining = computed(() => {
-    const expiry = this.state()?.holdExpiresAt;
-    if (!expiry) return null;
-    const seconds = Math.floor((new Date(expiry).getTime() - Date.now()) / 1000);
-    return Math.max(0, seconds);
-  });
+  /**
+   * When the hold lapses, as the server set it. Null when nothing is held.
+   *
+   * A deadline, not a clock — it does not tick. The screen that counts it down
+   * passes it to `countdown()`, which does; keeping the ticker out of a stored
+   * draft means the wizard state stays a plain value.
+   */
+  readonly holdExpiresAt = computed(() => this.state()?.holdExpiresAt ?? null);
 
   setUnit(unit: Unit): void {
     this.unitRecord.set(unit);

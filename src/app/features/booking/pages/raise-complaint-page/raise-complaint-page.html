@@ -1,0 +1,50 @@
+<section class="page">
+  <header class="head">
+    <h1 class="head__title">{{ i18n.t('complaint.title') }}</h1>
+    <p class="head__sub">{{ i18n.t('complaint.intro') }}</p>
+  </header>
+
+  @if (booking(); as b) {
+    <div class="booking">
+      <span class="booking__title" dir="auto">{{ b.unit?.title }}</span>
+      <span class="booking__ref" dir="ltr">{{ b.referenceNo }}</span>
+    </div>
+  }
+
+  <!-- Says what actually happens next, because the alternative is a renter who
+       expects a refund by return and hears nothing for a day. -->
+  <app-ui-notice tone="info">{{ i18n.t('complaint.whatHappens') }}</app-ui-notice>
+
+  <app-ui-error-notice [error]="error()" [extras]="extras()" />
+
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <app-ui-field
+      [label]="i18n.t('complaint.subject')"
+      for="c-subject"
+      [control]="form.controls.subject"
+    >
+      <input id="c-subject" type="text" formControlName="subject" dir="auto" />
+    </app-ui-field>
+
+    <app-ui-field
+      [label]="i18n.t('complaint.body')"
+      for="c-body"
+      [control]="form.controls.body"
+      [hint]="i18n.t('complaint.bodyHint')"
+    >
+      <textarea id="c-body" rows="7" formControlName="body" dir="auto"></textarea>
+    </app-ui-field>
+
+    <span class="count" dir="ltr">{{ bodyCount() }}</span>
+
+    <div class="actions">
+      <button appUiButton variant="primary" size="lg" [disabled]="submitting()">
+        {{ submitting() ? i18n.t('complaint.sending') : i18n.t('complaint.send') }}
+      </button>
+
+      <a appUiButton variant="outline" size="lg" [routerLink]="['/my-bookings', bookingId()]">
+        {{ i18n.t('common.back') }}
+      </a>
+    </div>
+  </form>
+</section>

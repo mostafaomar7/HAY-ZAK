@@ -51,6 +51,8 @@ export class AdminComplaintsPage {
   protected readonly rows = signal<ComplaintRow[]>([]);
   protected readonly detail = signal<ComplaintDetail | null>(null);
   protected readonly resolution = signal('');
+  /** Cancels the booking this complaint is against — see the template. */
+  protected readonly cancelBooking = signal(false);
   protected readonly submitting = signal(false);
 
   protected readonly isOpen = computed(() => this.detail()?.status !== DisputeStatus.Closed);
@@ -124,6 +126,7 @@ export class AdminComplaintsPage {
 
   protected openRow(row: ComplaintRow): void {
     this.resolution.set('');
+    this.cancelBooking.set(false);
     this.oversight.complaint(row.id).subscribe({
       next: (detail) => this.detail.set(detail),
       error: () => this.notifications.error(this.i18n.t('complaints.error')),
@@ -133,6 +136,7 @@ export class AdminComplaintsPage {
   protected close(): void {
     this.detail.set(null);
     this.resolution.set('');
+    this.cancelBooking.set(false);
   }
 
   protected statusLabel(status: DisputeStatus): string {
@@ -157,7 +161,7 @@ export class AdminComplaintsPage {
     if (!id || !this.canClose()) return;
 
     this.submitting.set(true);
-    this.oversight.resolve(id, this.resolution().trim()).subscribe({
+    this.oversight.resolve(id, this.resolution().trim(), this.cancelBooking()).subscribe({
       next: () => {
         this.submitting.set(false);
         this.close();

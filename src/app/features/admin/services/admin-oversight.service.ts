@@ -7,6 +7,7 @@ import type {
   AuditRow,
   ComplaintDetail,
   ComplaintRow,
+  ResolveComplaintRequest,
 } from '@core/models/admin.model';
 import { ApiService } from '@core/services/api.service';
 
@@ -46,9 +47,19 @@ export class AdminOversightService {
    * why the resolution text is required rather than optional: it is the record
    * both parties and the finance officer will read.
    */
-  resolve(id: string, resolution: string): Observable<void> {
-    return this.api.post<void, { resolution: string }>(API_ENDPOINTS.admin.resolveDispute(id), {
+  /**
+   * Closes a complaint, and optionally cancels the booking it is against.
+   *
+   * `CANCELLED` has exactly one edge into it and this is the call that walks it
+   * — neither renter nor lessor can cancel, so an operator resolving a
+   * complaint is the only actor who ever ends a booking early. The flag is
+   * explicit rather than inferred from the wording of the resolution: a
+   * paragraph of Arabic prose is not a state transition.
+   */
+  resolve(id: string, resolution: string, cancelBooking = false): Observable<void> {
+    return this.api.post<void, ResolveComplaintRequest>(API_ENDPOINTS.admin.resolveDispute(id), {
       resolution,
+      cancelBooking,
     });
   }
 }

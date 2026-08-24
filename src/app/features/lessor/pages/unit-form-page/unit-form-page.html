@@ -289,6 +289,18 @@
 
     <!-- ── Step 3 — photos ────────────────────────────────────────────── -->
     @if (step() === 3) {
+      <!-- Says it before the button rather than after the save. A published
+           listing goes back into the queue on every edit, and a lessor who
+           only learns that from a status badge afterwards reads it as a fault
+           in the platform. -->
+      <app-ui-notice tone="warning">
+        @if (isEdit()) {
+          يعود الإعلان إلى مراجعة الإدارة بعد الحفظ، ولا يظهر للمستأجرين حتى تُعتمد التعديلات.
+        } @else {
+          يُرسل الإعلان إلى مراجعة الإدارة بعد الإرسال، ولا يظهر للمستأجرين حتى يُعتمد.
+        }
+      </app-ui-notice>
+
       <section class="panel">
         <h2 class="panel__title">صور المساحة</h2>
         <p class="panel__hint">

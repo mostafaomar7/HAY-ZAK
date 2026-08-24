@@ -10,12 +10,20 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { secondsUntil } from '@core/utils/date.utils';
 
 /**
- * mm:ss countdown — OTP expiry, resend cooldown, and the lockout window
- * (FR-AUTH-04, FR-AUTH-11).
+ * mm:ss countdown — the booking hold, OTP expiry, and the lockout window.
  *
- * Restarts whenever `seconds` changes, so requesting a new code resets the clock
+ * Takes either a server deadline (`until`, an ISO instant) or a plain duration
+ * (`seconds`). **Prefer `until`.** A duration is decremented locally, so a tab
+ * that slept, a clock that is wrong, or a page opened two minutes into a
+ * fifteen-minute hold all show time the booking does not have — and the payment
+ * then fails against a deadline the renter was told they still had. With
+ * `until` the remaining time is recomputed from the deadline on every tick, so
+ * the display can be stale by at most one second.
+ *
+ * Restarts whenever its input changes, so requesting a new code resets the clock
  * without the parent having to destroy the component. The interval is cleared on
  * destroy and on every restart, so a resend cannot leave two timers running.
  *
@@ -62,7 +70,10 @@ import {
   `,
 })
 export class UiCountdown {
-  readonly seconds = input.required<number>();
+  /** A server-set deadline, ISO 8601. The accurate option — prefer it. */
+  readonly until = input<string | null>(null);
+  /** A duration, for the cases with no deadline to count to. */
+  readonly seconds = input(0);
   /**
    * Colour is a prop, not a parent stylesheet reach-in: view encapsulation means
    * a parent cannot restyle this span, and a countdown inside a danger banner has
@@ -89,19 +100,23 @@ export class UiCountdown {
     inject(DestroyRef).onDestroy(() => this.stop());
 
     effect(() => {
-      // Tracking seconds() means a new value restarts the clock.
-      this.start(this.seconds());
+      // Tracking both means a new value of either restarts the clock.
+      this.start(this.until(), this.seconds());
     });
   }
 
-  private start(from: number): void {
+  private start(until: string | null, seconds: number): void {
     this.stop();
-    this.remaining.set(Math.max(0, Math.floor(from)));
+
+    const read = until ? () => secondsUntil(until) : null;
+    this.remaining.set(read ? read() : Math.max(0, Math.floor(seconds)));
     if (this.remaining() === 0) return;
 
     this.zone.runOutsideAngular(() => {
       this.timer = setInterval(() => {
-        const next = this.remaining() - 1;
+        // Recomputed from the deadline where there is one, so a slept tab
+        // catches up instead of counting on from where it dozed off.
+        const next = read ? read() : this.remaining() - 1;
         this.remaining.set(Math.max(0, next));
 
         if (next <= 0) {

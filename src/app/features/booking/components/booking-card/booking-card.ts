@@ -7,15 +7,17 @@ import {
   input,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { isHoldingDates } from '@core/constants/booking-transitions';
 import { BOOKING_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import type { TranslationKey } from '@core/i18n/translations';
 import type { Booking } from '@core/models/booking.model';
+import { countdown, formatCountdown } from '@core/utils/countdown';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiMoney } from '@shared/components/ui-money/ui-money';
 import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
-import { bookingPrimaryAction } from '../../services/renter-bookings.service';
+import { bookingPrimaryAction, canRaiseComplaint } from '../../services/renter-bookings.service';
 
 /**
  * One booking in "حجوزاتي" (RNT-01).
@@ -49,6 +51,23 @@ export class BookingCard {
   protected readonly tone = computed(() => BOOKING_STATUS_DISPLAY[this.booking().status].tone);
 
   protected readonly action = computed(() => bookingPrimaryAction(this.booking()));
+
+  /** FR-ADM-08 — the route out of a problem belongs on every booking, not
+   *  only on the one the renter thought to open. */
+  protected readonly canComplain = computed(() => canRaiseComplaint(this.booking()));
+
+  /**
+   * The fifteen-minute hold, counted against the server's `holdExpiresAt`.
+   *
+   * On the card as well as on the payment step, because a renter who left the
+   * wizard is exactly the person about to lose the dates, and the list is where
+   * they come back to.
+   */
+  private readonly holdDeadline = computed(() =>
+    isHoldingDates(this.booking().status) ? (this.booking().holdExpiresAt ?? null) : null,
+  );
+  protected readonly holdSeconds = countdown(this.holdDeadline);
+  protected readonly holdLabel = computed(() => formatCountdown(this.holdSeconds()));
 
   protected readonly actionLabel = computed(
     () => this.action()?.labelKey as TranslationKey | undefined,

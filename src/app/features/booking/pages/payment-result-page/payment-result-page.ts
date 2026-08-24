@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
 import { BOOKING_STATUS_DISPLAY } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
+import { countdown } from '@core/utils/countdown';
 import type { Booking } from '@core/models/booking.model';
 import type { AlternativePeriod } from '@core/models/renter.model';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
@@ -52,7 +53,8 @@ export class PaymentResultPage {
   protected readonly isLoading = signal(true);
 
   protected readonly slaHours = APP.approvalSlaHours;
-  protected readonly holdSeconds = this.wizard.holdSecondsRemaining;
+  protected readonly holdUntil = this.wizard.holdExpiresAt;
+  protected readonly holdSeconds = countdown(this.holdUntil);
 
   protected readonly statusDisplay = computed(() => {
     const booking = this.booking();

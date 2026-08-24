@@ -7,7 +7,7 @@ import { PermissionService } from '../services/permission.service';
 
 /**
  * Factory guard driven by the permission matrix rather than by role names:
- * `canActivate: [permissionGuard([Permission.ReviewBooking])]`.
+ * `canActivate: [permissionGuard([Permission.ReviewUnit])]`.
  */
 export const permissionGuard = (required: Permission[]): CanActivateFn => {
   return (_route, state) => {

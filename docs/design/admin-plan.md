@@ -44,7 +44,7 @@ Two more the reports needed: `AdminBarChart` and `AdminMeter`.
 | `otp`         | `/auth/verify`              | `OtpPage` (shared with the other portals)                      |
 | `dashboard`   | `/admin/dashboard`          | `AdminDashboardPage`                                           |
 | `listings`    | `/admin/listings`           | `AdminListingsPage`                                            |
-| `bookings`    | `/admin/bookings`           | `AdminBookingsPage`                                            |
+| `bookings`    | —                           | not built: bookings are not reviewed — see the note below      |
 | `complaints`  | `/admin/complaints`         | `AdminComplaintsPage`                                          |
 | `payments`    | `/admin/payments`           | `AdminPaymentsPage`                                            |
 | `transfers`   | `/admin/transfers`          | `AdminTransfersPage`                                           |
@@ -59,6 +59,17 @@ Two more the reports needed: `AdminBarChart` and `AdminMeter`.
 | `stub`        | —                           | not built: it is the design's placeholder for screens now real |
 
 ## Decisions worth knowing
+
+**There is no booking review queue.** The design drew one, from a lifecycle
+where the platform took payment and then decided whether to honour the booking.
+The agreed API has no such step: payment confirms a booking, and the only path
+to `CANCELLED` is an administrator resolving a complaint. So the queue, its
+approve and reject verbs, the `ReviewBooking` permission and the dashboard
+figure that counted it are all gone rather than left in place unused — a
+service that can still call `/admin/bookings/:id/approve` is a service somebody
+will eventually wire a button to. What replaced it is a checkbox on the
+complaint resolution panel, which is the one control in the system that cancels
+a booking.
 
 **The table's state switch is not a product control.** The prototype puts a
 بيانات/تحميل/فارغ/خطأ switch above every table so a reviewer can see all four
