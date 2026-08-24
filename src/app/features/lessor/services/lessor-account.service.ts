@@ -38,9 +38,9 @@ export class LessorAccountService {
     });
   }
 
-  payouts(pageNumber = 1): Observable<PaginatedResponse<Payout>> {
-    return this.api.get<PaginatedResponse<Payout>>(API_ENDPOINTS.payments.payouts, {
-      params: { pageNumber },
+  payouts(page = 1): Observable<PaginatedResponse<Payout>> {
+    return this.api.list<Payout>(API_ENDPOINTS.payments.payouts, {
+      params: { page },
     });
   }
 

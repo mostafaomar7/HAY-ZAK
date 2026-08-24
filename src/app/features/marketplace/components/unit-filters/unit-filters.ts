@@ -14,8 +14,13 @@ import { UiRangeSlider } from '@shared/components/ui-range-slider/ui-range-slide
 /** Everything the filter panel controls (FR-MKT-04, FR-MKT-05, FR-MKT-06). */
 export interface ResultFilters {
   maxDistanceKm: number;
-  minPrice: number | null;
-  maxPrice: number | null;
+  /**
+   * Riyals, not halalas: this is what somebody typed into a box, and a filter
+   * panel holding 7500 for "75" would be a trap for the next person to touch
+   * it. `results-page` converts once, where the filters become a query.
+   */
+  minPriceSar: number | null;
+  maxPriceSar: number | null;
   minArea: number | null;
   maxArea: number | null;
   categoryIds: string[];
@@ -32,8 +37,8 @@ export interface CategoryFacet {
 
 export const DEFAULT_FILTERS: ResultFilters = {
   maxDistanceKm: 10,
-  minPrice: null,
-  maxPrice: null,
+  minPriceSar: null,
+  maxPriceSar: null,
   minArea: null,
   maxArea: null,
   categoryIds: [],
@@ -74,7 +79,10 @@ export class UnitFilters {
     this.emit({ maxDistanceKm });
   }
 
-  protected setNumber(key: 'minPrice' | 'maxPrice' | 'minArea' | 'maxArea', event: Event): void {
+  protected setNumber(
+    key: 'minPriceSar' | 'maxPriceSar' | 'minArea' | 'maxArea',
+    event: Event,
+  ): void {
     const raw = (event.target as HTMLInputElement).value.trim();
     // An empty box means "no bound", not zero — zero would exclude every result.
     this.emit({ [key]: raw === '' ? null : Number(raw) } as Partial<ResultFilters>);
@@ -106,7 +114,7 @@ export class UnitFilters {
 export function countActiveFilters(filters: ResultFilters): number {
   let count = 0;
   if (filters.maxDistanceKm !== DEFAULT_FILTERS.maxDistanceKm) count++;
-  if (filters.minPrice !== null || filters.maxPrice !== null) count++;
+  if (filters.minPriceSar !== null || filters.maxPriceSar !== null) count++;
   if (filters.minArea !== null || filters.maxArea !== null) count++;
   if (filters.categoryIds.length > 0) count++;
   if (filters.availableFrom) count++;

@@ -16,6 +16,7 @@ import type {
 } from '../models/renter.model';
 import type { ReferenceItem, Unit, UnitAvailabilityBlock } from '../models/unit.model';
 import { LegalDocumentType } from '../enums/operations.enum';
+import { sarToHalalas } from '../utils/money.utils';
 
 /**
  * Renter-side fixtures, transcribed from the Claude Design export so the screens
@@ -64,7 +65,8 @@ function marketUnit(
   cat: ReferenceItem,
   districtName: [string, string],
   areaSqm: number,
-  dailyPrice: number,
+  /** Riyals — see `lessor.fixtures.ts`; converted on the way into the model. */
+  dailyPriceSar: number,
   distanceKm: number,
   latitude: number,
   longitude: number,
@@ -85,8 +87,8 @@ function marketUnit(
     description:
       'مساحة نظيفة بمدخل واسع وأرضية إسمنتية مستوية، مناسبة للأثاث المنزلي والكراتين ومستلزمات المكاتب. يوجد إضاءة داخلية، والدخول بالتنسيق المسبق مع صاحب المساحة داخل أوقات الزيارة.',
     areaSqm,
-    dailyPrice,
-    indicativeMonthlyPrice: dailyPrice * 30,
+    dailyPriceHalalas: sarToHalalas(dailyPriceSar),
+    indicativeMonthlyPriceHalalas: sarToHalalas(dailyPriceSar) * 30,
     location: { latitude, longitude },
     isApproximateLocation: true,
     distanceKm,
@@ -298,8 +300,8 @@ function renterBooking(
   daysCount: number,
   status: BookingStatus,
 ): Booking {
-  const subtotal = unit.dailyPrice * daysCount;
-  const commissionAmount = Math.round(subtotal * 0.05 * 100) / 100;
+  const subtotalHalalas = unit.dailyPriceHalalas * daysCount;
+  const commissionHalalas = Math.round(subtotalHalalas * 0.05 * 100) / 100;
 
   return {
     id,
@@ -330,14 +332,14 @@ function renterBooking(
     startDate,
     endDate,
     daysCount,
-    dailyPriceSnapshot: unit.dailyPrice,
-    subtotal,
-    commissionAmount,
+    dailyPriceSnapshotHalalas: unit.dailyPriceHalalas,
+    subtotalHalalas,
+    commissionHalalas,
     // The renter pays the listed rent; commission and its VAT come out of the
     // owner's share, which is what the design's "—" line means.
-    vatAmount: Math.round(commissionAmount * 0.15 * 100) / 100,
-    totalAmount: subtotal,
-    netToLessor: Math.round((subtotal - commissionAmount * 1.15) * 100) / 100,
+    vatHalalas: Math.round(commissionHalalas * 0.15 * 100) / 100,
+    totalHalalas: subtotalHalalas,
+    netToLessorHalalas: Math.round((subtotalHalalas - commissionHalalas * 1.15) * 100) / 100,
     goodsDescription:
       'أثاث منزلي مفكّك يتضمّن غرفة نوم وطاولة طعام وستة كراسي، مع اثني عشر صندوقًا من الأدوات المنزلية والكتب. لا توجد أجهزة تعمل بالوقود.',
     prohibitedAck: true,
@@ -458,8 +460,8 @@ export const MOCK_INVOICE: Invoice = {
   id: 'inv-1',
   bookingId: 'rb-1',
   invoiceNo: 'INV-2026-04871',
-  taxableAmount: 1800,
-  vatAmount: 13.5,
+  taxableHalalas: 180000,
+  vatHalalas: 1350,
   total: 1800,
   qrCode: 'zatca-qr-placeholder',
   pdfUrl: '/files/invoices/INV-2026-04871.pdf',
@@ -471,16 +473,16 @@ export const MOCK_CANCELLATION_QUOTE: CancellationQuote = {
   appliedRule: 'earlyCancellation',
   daysBeforeStart: 9,
   totalPaid: 1800,
-  refundAmount: 1800,
+  refundHalalas: 180000,
   refundPercentage: 1,
   refundDestination: 'مدى ••8130',
   refundEtaBusinessDays: 10,
 };
 
 export const MOCK_ALTERNATIVES: AlternativePeriod[] = [
-  { startDate: '2026-09-15', endDate: '2026-10-14', daysCount: 30, totalAmount: 2250 },
-  { startDate: '2026-09-20', endDate: '2026-10-04', daysCount: 15, totalAmount: 1125 },
-  { startDate: '2026-10-01', endDate: '2026-12-30', daysCount: 90, totalAmount: 7650 },
+  { startDate: '2026-09-15', endDate: '2026-10-14', daysCount: 30, totalHalalas: 225000 },
+  { startDate: '2026-09-20', endDate: '2026-10-04', daysCount: 15, totalHalalas: 112500 },
+  { startDate: '2026-10-01', endDate: '2026-12-30', daysCount: 90, totalHalalas: 765000 },
 ];
 
 export const MOCK_RENTER_NOTIFICATIONS: AppNotification[] = [

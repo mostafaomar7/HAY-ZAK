@@ -65,19 +65,19 @@
 
         <div class="amount__row">
           <span>قيمة الحجز</span>
-          <app-ui-money [amount]="b.subtotal" />
+          <app-ui-money [halalas]="b.subtotalHalalas" />
         </div>
 
         <div class="amount__row">
           <span>عمولة المنصة</span>
           <span class="amount__deduction">
-            &minus;&nbsp;<app-ui-money [amount]="b.commissionAmount" />
+            &minus;&nbsp;<app-ui-money [halalas]="b.commissionHalalas" />
           </span>
         </div>
 
         <div class="amount__row amount__row--total">
           <span>صافي المستحقات</span>
-          <app-ui-money [amount]="netToLessor()" [strong]="true" />
+          <app-ui-money [halalas]="netToLessorHalalas()" [strong]="true" />
         </div>
       </section>
 

@@ -1,8 +1,10 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { SKIP_AUTH } from '../interceptors/auth.interceptor';
 import { STORAGE_KEYS } from '../constants/storage-keys';
 import { ADMIN_ROLES, UserRole } from '../enums/user-role.enum';
 import type {
@@ -63,9 +65,28 @@ export class AuthService {
       .pipe(tap((result) => this.setSession(result)));
   }
 
+  /**
+   * Trades the refresh token for a new pair.
+   *
+   * Sent without the Authorization header: the access token is expired — that
+   * is why we are here — and the refresh token is the only credential this
+   * endpoint accepts. It is also the only endpoint the refresh token is ever
+   * sent to.
+   *
+   * The new pair is stored the moment it arrives. The token just spent is dead
+   * on the server, so a crash between the response and the write would leave
+   * the session holding a credential that can never be used again.
+   *
+   * `authInterceptor` owns the queue that keeps one of these in flight at a
+   * time — see the note there on why two would end the session.
+   */
   refresh(): Observable<AuthResult> {
     return this.api
-      .post<AuthResult>(API_ENDPOINTS.auth.refresh, { refreshToken: this.refreshToken })
+      .post<AuthResult>(
+        API_ENDPOINTS.auth.refresh,
+        { refreshToken: this.refreshToken },
+        { context: new HttpContext().set(SKIP_AUTH, true) },
+      )
       .pipe(tap((result) => this.setSession(result)));
   }
 
@@ -73,9 +94,26 @@ export class AuthService {
     return this.api.get<User>(API_ENDPOINTS.auth.me).pipe(tap((user) => this.setUser(user)));
   }
 
+  /** The user asked to sign out. */
   logout(redirect = true): void {
     this.clearSession();
     if (redirect) void this.router.navigate(['/auth/login']);
+  }
+
+  /**
+   * The session ended without the user asking — a refresh the server refused.
+   *
+   * Same clearing, different reason, and a separate method so the call site
+   * reads as what happened. `returnUrl` is recorded so the interrupted screen
+   * is where they land after signing in again.
+   */
+  endSession(): void {
+    const returnUrl = this.router.url;
+    this.clearSession();
+
+    void this.router.navigate(['/auth/login'], {
+      queryParams: returnUrl.startsWith('/auth') ? {} : { returnUrl },
+    });
   }
 
   /** FR-AUTH-04 — several journeys are gated on a verified mobile number. */

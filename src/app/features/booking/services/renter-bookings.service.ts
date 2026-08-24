@@ -37,7 +37,7 @@ export class RenterBookingsService {
 
   load(): Observable<PaginatedResponse<Booking>> {
     this.loading.set(true);
-    return this.api.get<PaginatedResponse<Booking>>(API_ENDPOINTS.bookings.mine).pipe(
+    return this.api.list<Booking>(API_ENDPOINTS.bookings.mine).pipe(
       tap({
         next: (page) => {
           this.items.set(page.items);

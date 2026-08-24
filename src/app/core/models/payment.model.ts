@@ -10,7 +10,7 @@ import type {
 export interface Payment {
   id: string;
   bookingId: string;
-  amount: number;
+  amountHalalas: number;
   currency: 'SAR';
   gateway: string;
   gatewayReference: string;
@@ -36,7 +36,7 @@ export interface Refund {
   id: string;
   paymentId: string;
   bookingId: string;
-  amount: number;
+  amountHalalas: number;
   reason: string;
   status: RefundStatus;
   processedAt?: string;
@@ -46,9 +46,9 @@ export interface Refund {
 export interface Commission {
   bookingId: string;
   rateApplied: number;
-  commissionAmount: number;
+  commissionHalalas: number;
   vatOnCommission: number;
-  netToLessor: number;
+  netToLessorHalalas: number;
 }
 
 /** ERD-4 `invoices` — FR-PAY-09, ZATCA compliant. */
@@ -56,8 +56,8 @@ export interface Invoice {
   id: string;
   bookingId: string;
   invoiceNo: string;
-  taxableAmount: number;
-  vatAmount: number;
+  taxableHalalas: number;
+  vatHalalas: number;
   total: number;
   /** ZATCA QR payload. */
   qrCode: string;
@@ -71,7 +71,7 @@ export interface Payout {
   lessorId: string;
   lessorName?: string;
   bankAccountIbanMasked: string;
-  totalAmount: number;
+  totalHalalas: number;
   status: PayoutStatus;
   bankReference?: string;
   failureReason?: string;
@@ -83,7 +83,7 @@ export interface Payout {
 export interface PayoutItem {
   bookingId: string;
   bookingReferenceNo: string;
-  netAmount: number;
+  netHalalas: number;
 }
 
 /** FR-PAY-06 — Phase 1 payouts are manual, evidenced by a bank reference. */
@@ -108,7 +108,7 @@ export interface LedgerEntry {
 /** FR-LSR-08 — the lessor's earnings page. */
 export interface LessorEarnings {
   totalPaidBookings: number;
-  grossAmount: number;
+  grossHalalas: number;
   commissionDeducted: number;
   netReceivable: number;
   netTransferred: number;

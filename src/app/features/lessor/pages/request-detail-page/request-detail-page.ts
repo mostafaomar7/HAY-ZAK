@@ -17,7 +17,6 @@ import { BookingStatus } from '@core/enums/booking-status.enum';
 import type { Booking } from '@core/models/booking.model';
 import { ApiService } from '@core/services/api.service';
 import { saveBlob } from '@core/utils/file.utils';
-import { round2 } from '@core/utils/money.utils';
 import {
   LessorRequestsService,
   renterContactVisible,
@@ -86,10 +85,10 @@ export class RequestDetailPage {
 
   protected readonly dateFormat = APP.dateDisplayFormat;
 
-  protected readonly netToLessor = computed(() => {
+  protected readonly netToLessorHalalas = computed(() => {
     const b = this.booking();
     if (!b) return 0;
-    return b.netToLessor ?? round2(b.subtotal - b.commissionAmount);
+    return b.netToLessorHalalas ?? b.subtotalHalalas - b.commissionHalalas;
   });
 
   protected readonly telHref = computed(

@@ -5,7 +5,7 @@
       <span class="price__sub num">{{ rentLine() }}</span>
     </dt>
     <dd class="price__value">
-      <app-ui-money [amount]="price().subtotal" [showCurrency]="false" />
+      <app-ui-money [halalas]="price().subtotalHalalas" [showCurrency]="false" />
     </dd>
   </div>
 
@@ -24,18 +24,18 @@
           {{ i18n.t('common.notAvailable') }}
         </span>
       } @else {
-        <app-ui-money [amount]="price().commissionAmount" [showCurrency]="false" />
+        <app-ui-money [halalas]="price().commissionHalalas" [showCurrency]="false" />
       }
     </dd>
   </div>
 
-  @if (price().vatAmount > 0 && !commissionOnLessor()) {
+  @if (price().vatHalalas > 0 && !commissionOnLessor()) {
     <div class="price__row">
       <dt class="price__term">
         <span class="price__label">{{ i18n.t('details.vat', { rate: vatRate() }) }}</span>
       </dt>
       <dd class="price__value">
-        <app-ui-money [amount]="price().vatAmount" [showCurrency]="false" />
+        <app-ui-money [halalas]="price().vatHalalas" [showCurrency]="false" />
       </dd>
     </div>
   }
@@ -47,7 +47,7 @@
       <span class="price__totalLabel">{{ total() }}</span>
     </dt>
     <dd class="price__value">
-      <app-ui-money class="price__totalValue" [amount]="price().totalAmount" strong />
+      <app-ui-money class="price__totalValue" [halalas]="price().totalHalalas" strong />
     </dd>
   </div>
 </dl>

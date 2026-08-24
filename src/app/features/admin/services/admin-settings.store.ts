@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { FINANCIAL_DEFAULTS } from '@core/constants/app.constants';
 import type { PlatformSettings } from '@core/models/operations.model';
 import { ApiService } from '@core/services/api.service';
+import { bpsToPercent } from '@core/utils/money.utils';
 
 /**
  * The platform configuration, loaded once for the whole console.
@@ -25,17 +26,17 @@ export class AdminSettingsStore {
 
   readonly settings = this.current.asReadonly();
 
-  readonly commissionRate = computed(
-    () => this.current()?.commissionRate ?? FINANCIAL_DEFAULTS.commissionRate,
+  readonly commissionRateBps = computed(
+    () => this.current()?.commissionRateBps ?? FINANCIAL_DEFAULTS.commissionRateBps,
   );
-  readonly vatRate = computed(() => this.current()?.vatRate ?? FINANCIAL_DEFAULTS.vatRate);
+  readonly vatRateBps = computed(() => this.current()?.vatRateBps ?? FINANCIAL_DEFAULTS.vatRateBps);
   readonly approvalSlaHours = computed(() => this.current()?.approvalSlaHours ?? 24);
   readonly payoutCycleHours = computed(() => this.current()?.payoutCycleHours ?? 168);
   readonly autoApproveBookings = computed(() => this.current()?.autoApproveBookings ?? false);
 
   /** As a whole percentage, which is how every label prints it. */
-  readonly commissionPercent = computed(() => round(this.commissionRate() * 100));
-  readonly vatPercent = computed(() => round(this.vatRate() * 100));
+  readonly commissionPercent = computed(() => bpsToPercent(this.commissionRateBps()));
+  readonly vatPercent = computed(() => bpsToPercent(this.vatRateBps()));
 
   load(): void {
     this.api.get<PlatformSettings>(API_ENDPOINTS.admin.settings).subscribe({
@@ -50,8 +51,4 @@ export class AdminSettingsStore {
   set(settings: PlatformSettings): void {
     this.current.set(settings);
   }
-}
-
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
 }

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
+import { sarToHalalas } from '@core/utils/money.utils';
 import type { TranslationKey } from '@core/i18n/translations';
 import type { ReferenceItem, UnitSearchParams, UnitSortOption } from '@core/models/unit.model';
 import { ReferenceDataService } from '@core/services/reference-data.service';
@@ -170,8 +171,9 @@ export class ResultsPage {
       cityId: this.cityId() || undefined,
       categoryIds: filters.categoryIds.length ? filters.categoryIds : undefined,
       radiusKm: filters.maxDistanceKm,
-      minPrice: filters.minPrice ?? undefined,
-      maxPrice: filters.maxPrice ?? undefined,
+      // The one conversion: the panel holds riyals, the API takes halalas.
+      minPriceHalalas: toHalalas(filters.minPriceSar),
+      maxPriceHalalas: toHalalas(filters.maxPriceSar),
       minArea: filters.minArea ?? undefined,
       maxArea: filters.maxArea ?? undefined,
       availableFrom: filters.availableFrom || undefined,
@@ -194,8 +196,8 @@ export class ResultsPage {
           cityId: this.cityId() || null,
           categoryId: filters.categoryIds.length ? filters.categoryIds : null,
           radiusKm: filters.maxDistanceKm,
-          minPrice: filters.minPrice,
-          maxPrice: filters.maxPrice,
+          minPrice: filters.minPriceSar,
+          maxPrice: filters.maxPriceSar,
           minArea: filters.minArea,
           maxArea: filters.maxArea,
           availableFrom: filters.availableFrom || null,
@@ -219,8 +221,8 @@ export class ResultsPage {
 
     this.filters.set({
       maxDistanceKm: Number(params.get('radiusKm') ?? DEFAULT_FILTERS.maxDistanceKm),
-      minPrice: numberOrNull(params.get('minPrice')),
-      maxPrice: numberOrNull(params.get('maxPrice')),
+      minPriceSar: numberOrNull(params.get('minPrice')),
+      maxPriceSar: numberOrNull(params.get('maxPrice')),
       minArea: numberOrNull(params.get('minArea')),
       maxArea: numberOrNull(params.get('maxArea')),
       categoryIds: params.getAll('categoryId'),
@@ -234,4 +236,9 @@ function numberOrNull(raw: string | null): number | null {
   if (raw === null || raw === '') return null;
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
+}
+
+/** A riyal figure from the filter panel, as the halalas the API expects. */
+function toHalalas(sar: number | null): number | undefined {
+  return sar === null ? undefined : sarToHalalas(sar);
 }

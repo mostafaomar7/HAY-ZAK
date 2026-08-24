@@ -17,7 +17,7 @@ export const environment: Environment = {
   // Not reached — the interceptor answers before the request leaves. It is
   // still the real one, so switching useMockApi to false is the only edit
   // needed to point a demo host at a live backend.
-  apiUrl: 'https://api.hayzak.sa/api',
+  apiUrl: 'https://api.hayzak.sa/api/v1',
   appName: 'HAY-ZAK (Demo)',
   version: '1.0.0-demo',
   defaultLang: 'ar',

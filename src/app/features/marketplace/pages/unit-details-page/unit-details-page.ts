@@ -106,7 +106,7 @@ export class UnitDetailsPage {
    * the one the server stands behind.
    */
   protected readonly price = computed(() =>
-    calculatePrice(this.unit()?.dailyPrice ?? 0, this.days()),
+    calculatePrice(this.unit()?.dailyPriceHalalas ?? 0, this.days()),
   );
 
   protected readonly isBooked = computed(() => this.unit()?.status === UnitStatus.FullyBooked);

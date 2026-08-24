@@ -97,11 +97,11 @@
       <section class="card">
         <h3 class="card__heading">السعر</h3>
         <div class="price">
-          <app-ui-money [amount]="u.dailyPrice" [strong]="true" />
+          <app-ui-money [halalas]="u.dailyPriceHalalas" [strong]="true" />
           <span class="price__unit">/ يوم</span>
         </div>
         <!-- FR-UNT-05 — indicative only, never charged as a monthly rate. -->
-        <p class="muted">يعادل نحو <app-ui-money [amount]="monthlyPrice()" /> شهريًا (استرشادي)</p>
+        <p class="muted">يعادل نحو <app-ui-money [halalas]="monthlyPrice()" /> شهريًا (استرشادي)</p>
       </section>
 
       <section class="card">

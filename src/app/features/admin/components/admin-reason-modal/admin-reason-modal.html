@@ -2,10 +2,10 @@
   <p class="lead">{{ i18n.t('reject.lead') }}</p>
 
   <!-- Said before the button, because it cannot be undone afterwards. -->
-  @if (queue() === 'booking' && refundAmount() !== null) {
+  @if (queue() === 'booking' && refundHalalas() !== null) {
     <app-ui-notice tone="danger">
       {{ i18n.t('reject.refundWarningBefore') }}
-      <app-ui-money [amount]="refundAmount()!" strong />
+      <app-ui-money [halalas]="refundHalalas()!" strong />
       {{ i18n.t('reject.refundWarningAfter') }}
     </app-ui-notice>
   }

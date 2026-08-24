@@ -79,7 +79,8 @@ export class PaymentStep {
   /** The server's figure once it arrives; the local one until then. */
   protected readonly price = computed(
     () =>
-      this.quote() ?? calculatePrice(this.unit()?.dailyPrice ?? 0, this.draft()?.daysCount ?? 0),
+      this.quote() ??
+      calculatePrice(this.unit()?.dailyPriceHalalas ?? 0, this.draft()?.daysCount ?? 0),
   );
 
   constructor() {

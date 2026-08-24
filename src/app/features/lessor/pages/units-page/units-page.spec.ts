@@ -20,7 +20,7 @@ function makeUnit(id: string, title: string, status: UnitStatus): Unit {
     title,
     description: '',
     areaSqm: 35,
-    dailyPrice: 75,
+    dailyPriceHalalas: 7500,
     location: { latitude: 24.7, longitude: 46.6 },
     isApproximateLocation: true,
     addressLine: 'الرياض — حي النرجس، شارع أنس بن مالك، مبنى 118',
@@ -38,21 +38,27 @@ describe('UnitsPage', () => {
 
   const unitsUrl = `${environment.apiUrl}${API_ENDPOINTS.lessor.units}`;
 
-  /** Answers the load() the constructor fires. */
+  /** Answers the load() the constructor fires, in the agreed envelope. */
   function flushUnits(items: Unit[]) {
-    http.expectOne((r) => r.url === unitsUrl).flush({ data: page(items), success: true });
+    http.expectOne((r) => r.url === unitsUrl).flush(page(items));
     fixture.detectChanges();
   }
 
+  /** Rows in `data`, counts in `meta.pagination` — see api-response.model.ts. */
   function page(items: Unit[]) {
     return {
-      items,
-      totalCount: items.length,
-      pageNumber: 1,
-      pageSize: 12,
-      totalPages: 1,
-      hasPrevious: false,
-      hasNext: false,
+      success: true,
+      data: items,
+      meta: {
+        pagination: {
+          page: 1,
+          limit: 12,
+          total: items.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
     };
   }
 
@@ -121,7 +127,7 @@ describe('UnitsPage', () => {
 
     const request = http.expectOne((r) => r.url === unitsUrl);
     expect(request.request.params.get('status')).toBe(UnitStatus.Rejected);
-    request.flush({ data: page([]), success: true });
+    request.flush(page([]));
     fixture.detectChanges();
 
     // Filtered-empty offers a way back, rather than the first-run CTA.

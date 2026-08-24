@@ -39,11 +39,11 @@ export class BookingSummary {
   readonly showHijri = input(true, { transform: booleanAttribute });
 
   protected readonly monthly = computed(() =>
-    Math.round(indicativeMonthlyPrice(this.unit()?.dailyPrice ?? 0)),
+    Math.round(indicativeMonthlyPrice(this.unit()?.dailyPriceHalalas ?? 0)),
   );
 
   protected readonly periodTotal = computed(
-    () => (this.unit()?.dailyPrice ?? 0) * (this.draft()?.daysCount ?? 0),
+    () => (this.unit()?.dailyPriceHalalas ?? 0) * (this.draft()?.daysCount ?? 0),
   );
 
   protected readonly place = computed(() => {

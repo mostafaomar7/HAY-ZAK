@@ -17,6 +17,7 @@ import {
 import { routes } from './app.routes';
 import { authInterceptor } from '@core/interceptors/auth.interceptor';
 import { errorInterceptor } from '@core/interceptors/error.interceptor';
+import { languageInterceptor } from '@core/interceptors/language.interceptor';
 import { loadingInterceptor } from '@core/interceptors/loading.interceptor';
 import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
 import { seedDevSession } from '@core/mock/dev-session';
@@ -43,13 +44,26 @@ export const appConfig: ApplicationConfig = {
       withRouterConfig({ paramsInheritanceStrategy: 'always' }),
     ),
 
-    // Order matters: loading wraps the request, auth adds the token,
-    // error unwraps the failure last.
-    // The mock interceptor runs last so it can answer a request the real ones
-    // have already decorated. It is inert unless environment.useMockApi is set.
+    // Order matters, and the response travels back up in reverse.
+    //
+    //   loading   wraps the whole request
+    //   language  states which language to answer in
+    //   error     maps whatever failed into one ApiError and raises the toast
+    //   auth      adds the token, and replays a 401 through a refresh
+    //   mock      answers instead of the network in development
+    //
+    // auth sits *below* error on purpose: a 401 it rescues by refreshing must
+    // never reach the error mapper, or the user sees a toast about a session
+    // that was renewed without them.
     provideHttpClient(
       withFetch(),
-      withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor, mockApiInterceptor]),
+      withInterceptors([
+        loadingInterceptor,
+        languageInterceptor,
+        errorInterceptor,
+        authInterceptor,
+        mockApiInterceptor,
+      ]),
     ),
 
     // A developer's convenience, and nobody else's: signs a mock lessor in so

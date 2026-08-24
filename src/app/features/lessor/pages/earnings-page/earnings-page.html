@@ -84,17 +84,17 @@
           <!-- Gross and commission are desktop-only: the design's phone card
                shows the net alone, since that is the figure the lessor acts on. -->
           <span class="cell cell--wide" role="cell" [attr.data-label]="i18n.t('earnings.colGross')">
-            <app-ui-money [amount]="row.grossAmount" />
+            <app-ui-money [halalas]="row.grossHalalas" />
           </span>
           <span
             class="cell cell--wide cell--deduction"
             role="cell"
             [attr.data-label]="i18n.t('earnings.colCommission')"
           >
-            <app-ui-money [amount]="row.commissionAmount" />
+            <app-ui-money [halalas]="row.commissionHalalas" />
           </span>
           <span class="cell cell--net" role="cell" [attr.data-label]="i18n.t('earnings.colNet')">
-            <app-ui-money [amount]="row.netAmount" />
+            <app-ui-money [halalas]="row.netHalalas" />
           </span>
           <span
             class="cell cell--status"

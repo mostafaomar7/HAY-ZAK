@@ -60,14 +60,14 @@ describe('AdminListState', () => {
 
     expect(state.params()).toEqual({
       search: 'مستودع',
-      pageNumber: '1',
-      pageSize: '20',
+      page: '1',
+      limit: '20',
       sortBy: 'waitingHours',
       sortDirection: 'desc',
     });
   });
 
   it('omits the sort keys entirely when nothing is sorted', () => {
-    expect(Object.keys(state.params())).toEqual(['pageNumber', 'pageSize']);
+    expect(Object.keys(state.params())).toEqual(['page', 'limit']);
   });
 });

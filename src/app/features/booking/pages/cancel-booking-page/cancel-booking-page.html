@@ -107,7 +107,7 @@
             <dl class="refund">
               <div class="refund__row">
                 <dt class="refund__label">{{ i18n.t('cancel.totalPaid') }}</dt>
-                <dd class="refund__value"><app-ui-money [amount]="refund.totalPaid" /></dd>
+                <dd class="refund__value"><app-ui-money [halalas]="refund.totalPaid" /></dd>
               </div>
 
               <div class="refund__row">
@@ -132,7 +132,7 @@
                   </span>
                 </dt>
                 <dd class="refund__value">
-                  <app-ui-money strong class="refund__amount" [amount]="refund.refundAmount" />
+                  <app-ui-money strong class="refund__amount" [halalas]="refund.refundHalalas" />
                 </dd>
               </div>
             </dl>
@@ -166,7 +166,7 @@
     @if (quote(); as refund) {
       <p class="dialogRefund">
         <span>{{ i18n.t('cancel.refundTitle') }}</span>
-        <app-ui-money strong [amount]="refund.refundAmount" />
+        <app-ui-money strong [halalas]="refund.refundHalalas" />
       </p>
     }
 

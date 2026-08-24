@@ -47,7 +47,7 @@ export interface CancellationQuote {
   appliedRule: CancellationRuleCode;
   daysBeforeStart: number;
   totalPaid: number;
-  refundAmount: number;
+  refundHalalas: number;
   /** 0–1. */
   refundPercentage: number;
   /** Masked destination, e.g. "مدى ••8130". */
@@ -88,7 +88,7 @@ export interface AlternativePeriod {
   startDate: string;
   endDate: string;
   daysCount: number;
-  totalAmount: number;
+  totalHalalas: number;
 }
 
 /** What `/bookings/mine` returns, split the way the two tabs need it. */

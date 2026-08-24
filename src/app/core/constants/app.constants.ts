@@ -50,10 +50,17 @@ export const APP = {
  * code change.
  */
 export const FINANCIAL_DEFAULTS = {
+  /**
+   * Rates are basis points: 1500 is 15.00%.
+   *
+   * The same reason amounts are integer halalas — a rate held as 0.15 puts a
+   * float back into a calculation that has to reconcile against the payment
+   * gateway exactly. See `money.utils.ts`.
+   */
   /** SRS §10 — 15% VAT on the service. */
-  vatRate: 0.15,
+  vatRateBps: 1500,
   /** OPEN §15 item 3 — rate not yet set by the client. */
-  commissionRate: 0.1,
+  commissionRateBps: 1000,
   /** OPEN §15 item 3 — who bears the commission. */
   commissionBearer: 'lessor' as CommissionBearer,
   /** OPEN §10 — whether VAT applies to the commission only or the whole booking. */

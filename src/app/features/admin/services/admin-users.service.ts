@@ -19,7 +19,7 @@ export class AdminUsersService {
   private readonly api = inject(ApiService);
 
   list(params: Record<string, string>): Observable<PaginatedResponse<AdminUserRow>> {
-    return this.api.get<PaginatedResponse<AdminUserRow>>(API_ENDPOINTS.admin.users, { params });
+    return this.api.list<AdminUserRow>(API_ENDPOINTS.admin.users, { params });
   }
 
   byId(id: string): Observable<AdminUserDetail> {

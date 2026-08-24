@@ -7,12 +7,17 @@ import {
 } from '@angular/core';
 
 /**
- * Renders a SAR amount, a date range, a count or a reference number.
+ * Renders an amount held in halalas.
  *
- * This exists because Latin digits inside an RTL run get reordered by the bidi
- * algorithm — "1,800.00 ر.س" comes out scrambled and "12 – 20 أغسطس" splits
- * apart. The design isolates every numeric span; putting that in one component
- * means no template can forget it.
+ * Two jobs, and both belong in one place. It is the only division by 100 the
+ * templates perform: money travels as integer halalas everywhere else, and a
+ * template that divided by hand would be one rounding decision away from
+ * disagreeing with the total beside it.
+ *
+ * And it isolates the digits. Latin numerals inside an RTL run get reordered by
+ * the bidi algorithm — "1,800.00 ر.س" comes out scrambled and "12 – 20 أغسطس"
+ * splits apart. The design isolates every numeric span; putting that here means
+ * no template can forget it.
  */
 @Component({
   selector: 'app-ui-money',
@@ -23,7 +28,8 @@ import {
   styleUrl: './ui-money.scss',
 })
 export class UiMoney {
-  readonly amount = input.required<number>();
+  /** Integer halalas: 86250 renders as 862.50. */
+  readonly halalas = input.required<number>();
   readonly strong = input(false, { transform: booleanAttribute });
   /** Set false for a bare figure with no currency suffix. */
   readonly showCurrency = input(true, { transform: booleanAttribute });
@@ -32,7 +38,7 @@ export class UiMoney {
     const value = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(this.amount());
+    }).format(this.halalas() / 100);
     return this.showCurrency() ? `${value} ر.س` : value;
   });
 }

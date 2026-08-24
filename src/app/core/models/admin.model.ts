@@ -22,7 +22,7 @@ export interface ListingReviewRow {
   ownerName: string;
   categoryName: string;
   cityName: string;
-  dailyPrice: number;
+  dailyPriceHalalas: number;
   areaSqm: number;
   /** ISO date the lessor submitted it for review. */
   submittedAt: string;
@@ -41,7 +41,7 @@ export interface BookingReviewRow {
   unitTitle: string;
   startDate: string;
   endDate: string;
-  totalAmount: number;
+  totalHalalas: number;
   /** Hours since payment. Past `approvalSlaHours` the row is flagged late. */
   waitingHours: number;
 }
@@ -59,9 +59,9 @@ export interface BookingReviewDetail extends BookingReviewRow {
   /** FR-BKG-03 — what the renter said they are storing. */
   goodsDescription: string;
   daysCount: number;
-  commissionAmount: number;
-  vatAmount: number;
-  netToLessor: number;
+  commissionHalalas: number;
+  vatHalalas: number;
+  netToLessorHalalas: number;
   paidAt: string;
   renter: AdminContact;
   lessor: AdminContact;
@@ -102,9 +102,9 @@ export interface PaymentTrackingRow {
   renterName: string;
   lessorName: string;
   unitTitle: string;
-  totalAmount: number;
-  commissionAmount: number;
-  netAmount: number;
+  totalHalalas: number;
+  commissionHalalas: number;
+  netHalalas: number;
   /** Whether the money reached the platform, and whether it left again. */
   isRefunded: boolean;
   payoutStatus: PayoutStatus;
@@ -134,7 +134,7 @@ export interface PayoutRow {
   bookingReferenceNo: string;
   unitTitle: string;
   dueDate: string;
-  netAmount: number;
+  netHalalas: number;
   status: PayoutStatus;
   bankReference?: string;
   /** Why it is frozen or why the last attempt failed (UC-04). */
@@ -219,13 +219,13 @@ export interface CommissionException {
   scope: 'unit' | 'lessor';
   targetId: string;
   targetName: string;
-  rate: number;
+  rateBps: number;
 }
 
 export interface CommissionExceptionRequest {
   scope: 'unit' | 'lessor';
   targetId: string;
-  rate: number;
+  rateBps: number;
 }
 
 // ── Users (FR-ADM-04) ────────────────────────────────────────────────────
@@ -334,7 +334,7 @@ export interface ComplaintRow {
 export interface ComplaintDetail extends ComplaintRow {
   bookingId: string;
   raisedByRole: UserRole;
-  bookingAmount: number;
+  bookingHalalas: number;
   /** True while a payout is held against this dispute (UC-04). */
   payoutFrozen: boolean;
   messages: ComplaintMessage[];

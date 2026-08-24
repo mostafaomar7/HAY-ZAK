@@ -18,7 +18,7 @@ import type { ReferenceItem, UnitRequest, VisitWindow, Weekday } from '@core/mod
 import { NotificationService } from '@core/services/notification.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
 import { markFormTouched } from '@core/utils/form.utils';
-import { indicativeMonthlyPrice } from '@core/utils/money.utils';
+import { halalasToSar, sarToHalalas } from '@core/utils/money.utils';
 import { isValidWindow, uncoveredDays, weekdayName } from '@core/utils/schedule.utils';
 import { LessorUnitsService } from '../../services/lessor-units.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -144,7 +144,9 @@ export class UnitFormPage {
       null as number | null,
       [Validators.required, Validators.min(1), Validators.max(5000)],
     ],
-    dailyPrice: [
+    // Riyals: it is what the lessor types, and what the field's label says.
+    // Converted to halalas once, in `payload()`.
+    dailyPriceSar: [
       null as number | null,
       [Validators.required, Validators.min(1), Validators.max(100_000)],
     ],
@@ -165,7 +167,7 @@ export class UnitFormPage {
 
   /** Which controls each step owns, so "next" validates only what is on screen. */
   private static readonly STEP_FIELDS: Record<number, readonly string[]> = {
-    1: ['categoryId', 'title', 'description', 'areaSqm', 'dailyPrice', 'minDays', 'maxDays'],
+    1: ['categoryId', 'title', 'description', 'areaSqm', 'dailyPriceSar', 'minDays', 'maxDays'],
     2: ['cityId', 'districtId', 'latitude', 'longitude', 'addressLine', 'visitSchedule'],
     3: [],
   };
@@ -204,9 +206,9 @@ export class UnitFormPage {
 
   /** FR-UNT-05 — indicative monthly figure, shown for guidance only. */
   protected readonly monthlyHint = computed(() => {
-    const price = this.form.controls.dailyPrice.value;
-    if (!price) return '';
-    const monthly = indicativeMonthlyPrice(price, APP.monthlyPriceMultiplier);
+    const sar = this.form.controls.dailyPriceSar.value;
+    if (!sar) return '';
+    const monthly = sar * APP.monthlyPriceMultiplier;
     return `يعادل نحو ${monthly.toLocaleString('en-US')} ر.س شهريًا (استرشادي)`;
   });
 
@@ -237,7 +239,7 @@ export class UnitFormPage {
         title: unit.title,
         description: unit.description,
         areaSqm: unit.areaSqm,
-        dailyPrice: unit.dailyPrice,
+        dailyPriceSar: halalasToSar(unit.dailyPriceHalalas),
         minDays: unit.minDays ?? 1,
         maxDays: unit.maxDays ?? null,
         floor: unit.floor ?? '',
@@ -394,7 +396,10 @@ export class UnitFormPage {
       title: value.title ?? undefined,
       description: value.description ?? undefined,
       areaSqm: value.areaSqm ?? undefined,
-      dailyPrice: value.dailyPrice ?? undefined,
+      dailyPriceHalalas:
+        value.dailyPriceSar === null || value.dailyPriceSar === undefined
+          ? undefined
+          : sarToHalalas(value.dailyPriceSar),
       minDays: value.minDays ?? undefined,
       maxDays: value.maxDays ?? undefined,
       floor: (value.floor || undefined) as UnitRequest['floor'],

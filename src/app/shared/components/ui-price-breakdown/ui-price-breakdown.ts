@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FINANCIAL_DEFAULTS } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
-import type { PriceBreakdown } from '@core/utils/money.utils';
+import { bpsToPercent, halalasToSar, type PriceBreakdown } from '@core/utils/money.utils';
 import { UiMoney } from '../ui-money/ui-money';
 
 /**
@@ -45,8 +45,10 @@ export class UiPriceBreakdown {
    * administrator setting (FR-ADM-06) and the design's "5%" is one possible
    * value of it.
    */
-  protected readonly commissionRate = computed(() => formatRate(FINANCIAL_DEFAULTS.commissionRate));
-  protected readonly vatRate = computed(() => formatRate(FINANCIAL_DEFAULTS.vatRate));
+  protected readonly commissionRate = computed(() =>
+    formatRate(FINANCIAL_DEFAULTS.commissionRateBps),
+  );
+  protected readonly vatRate = computed(() => formatRate(FINANCIAL_DEFAULTS.vatRateBps));
 
   /** True when the renter bears none of it — the line shows a dash. */
   protected readonly commissionOnLessor = computed(
@@ -54,9 +56,9 @@ export class UiPriceBreakdown {
   );
 
   protected readonly rentLine = computed(() => {
-    const { dailyPrice, days } = this.price();
+    const { dailyPriceHalalas, days } = this.price();
     return this.i18n.t('details.rentValueLine', {
-      price: `${dailyPrice} ${this.i18n.t('common.currency')}`,
+      price: `${halalasToSar(dailyPriceHalalas)} ${this.i18n.t('common.currency')}`,
       days: this.i18n.t('booking.days', { count: days }),
     });
   });
@@ -64,6 +66,6 @@ export class UiPriceBreakdown {
   protected readonly total = computed(() => this.totalLabel() ?? this.i18n.t('details.totalDue'));
 }
 
-function formatRate(rate: number): string {
-  return `${Math.round(rate * 1000) / 10}%`;
+function formatRate(rateBps: number): string {
+  return `${bpsToPercent(rateBps)}%`;
 }

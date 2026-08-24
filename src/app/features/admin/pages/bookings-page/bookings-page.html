@@ -73,7 +73,7 @@
       {{ row.startDate | date: 'd MMM' }} — {{ row.endDate | date: 'd MMM y' }}
     </span>
     <span class="cell num">
-      {{ row.totalAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+      {{ row.totalHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
     </span>
     <span class="cell">
       <span class="wait num" [class.wait--late]="isLate(row.waitingHours)">
@@ -116,19 +116,19 @@
         </div>
         <div class="fact">
           <dt>{{ i18n.t('bkq.total') }}</dt>
-          <dd><app-ui-money [amount]="booking.totalAmount" /></dd>
+          <dd><app-ui-money [halalas]="booking.totalHalalas" /></dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('bkq.commission') }}</dt>
-          <dd><app-ui-money [amount]="booking.commissionAmount" /></dd>
+          <dd><app-ui-money [halalas]="booking.commissionHalalas" /></dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('bkq.vat') }}</dt>
-          <dd><app-ui-money [amount]="booking.vatAmount" /></dd>
+          <dd><app-ui-money [halalas]="booking.vatHalalas" /></dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('bkq.net') }}</dt>
-          <dd><app-ui-money [amount]="booking.netToLessor" /></dd>
+          <dd><app-ui-money [halalas]="booking.netToLessorHalalas" /></dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('bkq.paidAt') }}</dt>
@@ -208,7 +208,7 @@
 <app-admin-reason-modal
   queue="booking"
   [open]="reasonOpen()"
-  [refundAmount]="refundAmount()"
+  [refundHalalas]="refundHalalas()"
   [submitting]="submitting()"
   (confirmed)="confirmReject($event)"
   (dismissed)="reasonOpen.set(false)"

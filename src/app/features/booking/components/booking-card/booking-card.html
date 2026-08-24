@@ -37,7 +37,7 @@
 
     <div class="card__side">
       <p class="card__amount">
-        <app-ui-money strong [amount]="booking().totalAmount" />
+        <app-ui-money strong [halalas]="booking().totalHalalas" />
       </p>
 
       @if (!past()) {
@@ -45,7 +45,7 @@
         <p class="card__hint num">
           {{
             i18n.t('bookings.dailyAndDays', {
-              price: booking().dailyPriceSnapshot,
+              price: booking().dailyPriceSnapshotHalalas,
               days: booking().daysCount,
             })
           }}

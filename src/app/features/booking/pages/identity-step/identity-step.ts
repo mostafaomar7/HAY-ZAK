@@ -74,7 +74,7 @@ export class IdentityStep {
   });
 
   protected readonly price = computed(() =>
-    calculatePrice(this.unit()?.dailyPrice ?? 0, this.draft()?.daysCount ?? 0),
+    calculatePrice(this.unit()?.dailyPriceHalalas ?? 0, this.draft()?.daysCount ?? 0),
   );
 
   /** Seconds left on the Nafath session — separate from the booking hold. */

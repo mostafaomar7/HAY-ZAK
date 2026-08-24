@@ -29,12 +29,20 @@ export class MarketplaceService {
   private readonly loading = signal(false);
   private readonly totalCount = signal(0);
   private readonly page = signal(1);
+  private readonly more = signal(false);
 
   readonly units = this.items.asReadonly();
   readonly isLoading = this.loading.asReadonly();
   readonly total = this.totalCount.asReadonly();
 
-  readonly hasMore = computed(() => this.items().length < this.totalCount());
+  /**
+   * The server's own `hasNextPage`, not a comparison of counts.
+   *
+   * A total that moves between pages — a unit published or unpublished while
+   * someone is scrolling — makes `loaded < total` either hide a page that
+   * exists or offer one that does not. The server knows.
+   */
+  readonly hasMore = this.more.asReadonly();
   readonly remaining = computed(() =>
     Math.min(APP.pageSize, Math.max(0, this.totalCount() - this.items().length)),
   );
@@ -74,21 +82,22 @@ export class MarketplaceService {
 
   private fetch(
     params: UnitSearchParams,
-    pageNumber: number,
+    page: number,
     append: boolean,
   ): Observable<PaginatedResponse<Unit>> {
     this.loading.set(true);
 
     return this.api
-      .get<PaginatedResponse<Unit>>(API_ENDPOINTS.marketplace.search, {
+      .list<Unit>(API_ENDPOINTS.marketplace.search, {
         context: this.context,
-        params: { ...params, pageNumber, pageSize: params.pageSize ?? APP.pageSize },
+        params: { ...params, page, limit: params.limit ?? APP.pageSize },
       })
       .pipe(
         tap({
           next: (result) => {
             this.items.update((current) => (append ? [...current, ...result.items] : result.items));
-            this.totalCount.set(result.totalCount);
+            this.totalCount.set(result.pagination.total);
+            this.more.set(result.pagination.hasNextPage);
             this.loading.set(false);
           },
           error: () => this.loading.set(false),

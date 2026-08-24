@@ -27,12 +27,12 @@ export interface Booking {
    * The price at the moment of booking. A later edit by the lessor must never
    * change the value of an existing booking (SRS §7.7 design decision).
    */
-  dailyPriceSnapshot: number;
-  subtotal: number;
-  commissionAmount: number;
-  vatAmount: number;
-  totalAmount: number;
-  netToLessor?: number;
+  dailyPriceSnapshotHalalas: number;
+  subtotalHalalas: number;
+  commissionHalalas: number;
+  vatHalalas: number;
+  totalHalalas: number;
+  netToLessorHalalas?: number;
 
   goodsDescription: string;
   prohibitedAck: boolean;

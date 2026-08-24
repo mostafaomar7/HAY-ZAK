@@ -39,17 +39,17 @@ export class LessorRequestsService {
     () => this.items().filter((b) => b.status === BookingStatus.Active).length,
   );
 
-  load(status?: BookingStatus, pageNumber = 1): Observable<PaginatedResponse<Booking>> {
+  load(status?: BookingStatus, page = 1): Observable<PaginatedResponse<Booking>> {
     this.loading.set(true);
     return this.api
-      .get<PaginatedResponse<Booking>>(API_ENDPOINTS.lessor.bookingRequests, {
-        params: { status, pageNumber, pageSize: APP.pageSize },
+      .list<Booking>(API_ENDPOINTS.lessor.bookingRequests, {
+        params: { status, page, limit: APP.pageSize },
       })
       .pipe(
         tap({
           next: (page) => {
             this.items.set(page.items);
-            this.totalCount.set(page.totalCount);
+            this.totalCount.set(page.pagination.total);
             this.loading.set(false);
           },
           error: () => this.loading.set(false),
@@ -80,7 +80,7 @@ export interface RequestRowView {
   endDate: string;
   daysCount: number;
   goodsDescription: string;
-  totalAmount: number;
+  totalHalalas: number;
   status: BookingStatus;
 }
 
@@ -94,7 +94,7 @@ export function toRequestRow(booking: Booking): RequestRowView {
     endDate: booking.endDate,
     daysCount: booking.daysCount,
     goodsDescription: booking.goodsDescription,
-    totalAmount: booking.totalAmount,
+    totalHalalas: booking.totalHalalas,
     status: booking.status,
   };
 }

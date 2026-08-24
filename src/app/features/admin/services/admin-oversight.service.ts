@@ -25,7 +25,7 @@ export class AdminOversightService {
 
   // ── Audit ──────────────────────────────────────────────────────────────
   auditLog(params: Record<string, string>): Observable<PaginatedResponse<AuditRow>> {
-    return this.api.get<PaginatedResponse<AuditRow>>(API_ENDPOINTS.admin.auditLog, { params });
+    return this.api.list<AuditRow>(API_ENDPOINTS.admin.auditLog, { params });
   }
 
   auditEntry(id: string): Observable<AuditDetail> {
@@ -34,7 +34,7 @@ export class AdminOversightService {
 
   // ── Complaints ─────────────────────────────────────────────────────────
   complaints(params: Record<string, string>): Observable<PaginatedResponse<ComplaintRow>> {
-    return this.api.get<PaginatedResponse<ComplaintRow>>(API_ENDPOINTS.admin.disputes, { params });
+    return this.api.list<ComplaintRow>(API_ENDPOINTS.admin.disputes, { params });
   }
 
   complaint(id: string): Observable<ComplaintDetail> {

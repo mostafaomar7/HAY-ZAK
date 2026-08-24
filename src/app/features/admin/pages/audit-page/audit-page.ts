@@ -79,7 +79,7 @@ export class AdminAuditPage {
     this.oversight.auditLog(this.list.params()).subscribe({
       next: (page) => {
         this.rows.set(page.items);
-        this.list.succeed(page.items.length, page.totalCount);
+        this.list.succeed(page.items.length, page.pagination.total);
       },
       error: () => this.list.fail(),
     });

@@ -67,9 +67,9 @@ export interface Unit {
   title: string;
   description: string;
   areaSqm: number;
-  dailyPrice: number;
+  dailyPriceHalalas: number;
   /** FR-UNT-05 — derived, shown for guidance only. */
-  indicativeMonthlyPrice?: number;
+  indicativeMonthlyPriceHalalas?: number;
 
   /**
    * FR-UNT-11 — before a booking is approved the API returns an approximate
@@ -125,7 +125,7 @@ export interface UnitRequest {
   title: string;
   description: string;
   areaSqm: number;
-  dailyPrice: number;
+  dailyPriceHalalas: number;
   location: GeoPoint;
   /**
    * Mandatory on the way in. The lessor always supplies it; whether a given
@@ -156,8 +156,8 @@ export interface UnitSearchParams extends PaginationParams {
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
-  minPrice?: number;
-  maxPrice?: number;
+  minPriceHalalas?: number;
+  maxPriceHalalas?: number;
   minArea?: number;
   maxArea?: number;
   /** FR-MKT-10 — units unavailable in this window are excluded. */

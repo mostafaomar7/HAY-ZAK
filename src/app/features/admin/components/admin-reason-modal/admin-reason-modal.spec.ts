@@ -13,7 +13,7 @@ import { AdminReasonModal } from './admin-reason-modal';
     <app-admin-reason-modal
       open
       [queue]="queue()"
-      [refundAmount]="refund()"
+      [refundHalalas]="refund()"
       (confirmed)="decision.set($event)"
     />
   `,
@@ -84,12 +84,13 @@ describe('AdminReasonModal', () => {
 
   it('states the refund before the button on the booking queue', () => {
     host.queue.set('booking');
-    host.refund.set(525);
+    // 525.00 SAR, in halalas.
+    host.refund.set(52_500);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('استرداد كامل');
-    expect(text).toContain('525');
+    expect(text).toContain('525.00');
   });
 
   it('says nothing about a refund on the listing queue', () => {

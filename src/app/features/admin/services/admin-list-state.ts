@@ -46,8 +46,8 @@ export class AdminListState {
     const sort = this.sort();
     return {
       ...this.filters(),
-      pageNumber: String(this.page()),
-      pageSize: String(PAGE_SIZE),
+      page: String(this.page()),
+      limit: String(PAGE_SIZE),
       ...(sort ? { sortBy: sort.key, sortDirection: sort.direction } : {}),
     };
   }

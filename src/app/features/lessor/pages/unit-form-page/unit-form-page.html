@@ -69,7 +69,7 @@
           <app-ui-field
             label="السعر اليومي (ريال)"
             for="u-price"
-            [control]="form.controls.dailyPrice"
+            [control]="form.controls.dailyPriceSar"
             [hint]="monthlyHint()"
           >
             <input
@@ -77,7 +77,7 @@
               type="number"
               inputmode="decimal"
               min="1"
-              formControlName="dailyPrice"
+              formControlName="dailyPriceSar"
             />
           </app-ui-field>
         </div>

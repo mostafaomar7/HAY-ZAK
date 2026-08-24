@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-import type { ApiResponse, PaginatedResponse } from '../models/api-response.model';
+import type { ApiSuccess, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
 import {
   MOCK_ADMIN_KPIS,
@@ -107,7 +107,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
 
   // ── Renter marketplace (FR-MKT) ────────────────────────────────────────
   if (path === API_ENDPOINTS.marketplace.search) {
-    return ok(paginate(filterMarket(query).map(withheldAddress)));
+    return paginate(filterMarket(query).map(withheldAddress));
   }
   if (/^\/marketplace\/units\/[^/]+\/availability$/.test(path)) {
     return ok(MOCK_MARKET_AVAILABILITY);
@@ -146,7 +146,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
 
   // ── Renter bookings (FR-BKG, FR-PAY) ───────────────────────────────────
-  if (path === API_ENDPOINTS.bookings.mine) return ok(paginate(MOCK_RENTER_BOOKINGS));
+  if (path === API_ENDPOINTS.bookings.mine) return paginate(MOCK_RENTER_BOOKINGS);
   if (path === API_ENDPOINTS.bookings.quote) return ok(quote(query));
   if (path === API_ENDPOINTS.bookings.base && method === 'POST') {
     return ok(MOCK_RENTER_BOOKINGS[4]);
@@ -179,7 +179,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // disagree about what the new state is.
   if (path === API_ENDPOINTS.admin.dashboard) return ok(MOCK_ADMIN_KPIS);
 
-  if (path === API_ENDPOINTS.admin.pendingUnits) return ok(paginate(MOCK_LISTING_QUEUE));
+  if (path === API_ENDPOINTS.admin.pendingUnits) return paginate(MOCK_LISTING_QUEUE);
   if (/^\/admin\/units\/[^/]+\/review-detail$/.test(path)) {
     const id = path.split('/')[3];
     const row = MOCK_LISTING_QUEUE.find((r) => r.id === id);
@@ -187,7 +187,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (/^\/admin\/units\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
 
-  if (path === API_ENDPOINTS.admin.pendingBookings) return ok(paginate(MOCK_BOOKING_QUEUE));
+  if (path === API_ENDPOINTS.admin.pendingBookings) return paginate(MOCK_BOOKING_QUEUE);
   if (/^\/admin\/bookings\/[^/]+\/review-detail$/.test(path)) {
     const id = path.split('/')[3];
     const row = MOCK_BOOKING_QUEUE.find((r) => r.id === id);
@@ -195,7 +195,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (/^\/admin\/bookings\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
 
-  if (path === API_ENDPOINTS.payments.tracking) return ok(paginate(MOCK_PAYMENT_ROWS));
+  if (path === API_ENDPOINTS.payments.tracking) return paginate(MOCK_PAYMENT_ROWS);
   if (path === API_ENDPOINTS.payments.payouts) return ok(MOCK_PAYOUT_GROUPS);
   if (/^\/admin\/payouts\/[^/]+\/bank-details$/.test(path)) return ok(MOCK_BANK_DETAILS);
   if (/^\/admin\/payouts\/[^/]+\/(execute|reschedule)$/.test(path)) return ok(null);
@@ -214,7 +214,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (path === API_ENDPOINTS.admin.settings && method === 'PUT') return ok(MOCK_SETTINGS);
   if (path === API_ENDPOINTS.admin.settings) return ok(MOCK_SETTINGS);
 
-  if (path === API_ENDPOINTS.admin.users) return ok(paginate(MOCK_ADMIN_USERS));
+  if (path === API_ENDPOINTS.admin.users) return paginate(MOCK_ADMIN_USERS);
   if (/^\/admin\/users\/[^/]+\/status$/.test(path)) return ok(null);
   if (/^\/admin\/users\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];
@@ -245,7 +245,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return ok(MOCK_TERMS_VERSIONS[0]);
   }
 
-  if (path === API_ENDPOINTS.admin.auditLog) return ok(paginate(MOCK_AUDIT_ROWS));
+  if (path === API_ENDPOINTS.admin.auditLog) return paginate(MOCK_AUDIT_ROWS);
   if (/^\/admin\/audit-log\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];
     const row = MOCK_AUDIT_ROWS.find((r) => r.id === id);
@@ -253,7 +253,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
 
   if (/^\/admin\/disputes\/[^/]+\/resolve$/.test(path)) return ok(null);
-  if (path === API_ENDPOINTS.admin.disputes) return ok(paginate(MOCK_COMPLAINTS));
+  if (path === API_ENDPOINTS.admin.disputes) return paginate(MOCK_COMPLAINTS);
   if (/^\/admin\/disputes\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];
     const row = MOCK_COMPLAINTS.find((c) => c.id === id);
@@ -275,8 +275,8 @@ function route(path: string, query: string, method: string, payload: unknown): u
     const s = MOCK_EARNINGS.summary;
     return ok({
       totalPaidBookings: MOCK_EARNINGS.rows.length,
-      grossAmount: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.grossAmount, 0),
-      commissionDeducted: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.commissionAmount, 0),
+      grossHalalas: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.grossHalalas, 0),
+      commissionDeducted: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.commissionHalalas, 0),
       netReceivable: s.totalEarnings,
       netTransferred: s.transferred,
       netOutstanding: s.pending + s.onHold,
@@ -303,11 +303,11 @@ function route(path: string, query: string, method: string, payload: unknown): u
 
   if (path.startsWith(API_ENDPOINTS.lessor.units)) {
     if (path.includes('publish-eligibility')) return ok({ allowed: true, reasons: [] });
-    if (method === 'GET') return ok(paginate(filterUnits(query)));
+    if (method === 'GET') return paginate(filterUnits(query));
   }
 
   if (path.startsWith(API_ENDPOINTS.lessor.bookingRequests) && method === 'GET') {
-    return ok(paginate(MOCK_BOOKINGS));
+    return paginate(MOCK_BOOKINGS);
   }
 
   // ── Notifications ──────────────────────────────────────────────────────
@@ -368,8 +368,8 @@ function withheldAddress(unit: Unit): Unit {
 function filterMarket(query: string) {
   const params = new URLSearchParams(query);
   const categories = params.getAll('categoryIds');
-  const minPrice = Number(params.get('minPrice') ?? 0);
-  const maxPrice = Number(params.get('maxPrice') ?? Number.MAX_SAFE_INTEGER);
+  const minPriceHalalas = Number(params.get('minPriceHalalas') ?? 0);
+  const maxPriceHalalas = Number(params.get('maxPriceHalalas') ?? Number.MAX_SAFE_INTEGER);
   const minArea = Number(params.get('minArea') ?? 0);
   const maxArea = Number(params.get('maxArea') ?? Number.MAX_SAFE_INTEGER);
   const radiusKm = Number(params.get('radiusKm') ?? Number.MAX_SAFE_INTEGER);
@@ -378,14 +378,15 @@ function filterMarket(query: string) {
   const matched = MOCK_MARKET_UNITS.filter(
     (unit) =>
       (categories.length === 0 || categories.includes(unit.categoryId)) &&
-      unit.dailyPrice >= minPrice &&
-      unit.dailyPrice <= maxPrice &&
+      unit.dailyPriceHalalas >= minPriceHalalas &&
+      unit.dailyPriceHalalas <= maxPriceHalalas &&
       unit.areaSqm >= minArea &&
       unit.areaSqm <= maxArea &&
       (unit.distanceKm ?? 0) <= radiusKm,
   );
 
-  if (sortBy === 'priceAsc') return [...matched].sort((a, b) => a.dailyPrice - b.dailyPrice);
+  if (sortBy === 'priceAsc')
+    return [...matched].sort((a, b) => a.dailyPriceHalalas - b.dailyPriceHalalas);
   if (sortBy === 'nearest') {
     return [...matched].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
   }
@@ -395,7 +396,7 @@ function filterMarket(query: string) {
 function quote(query: string) {
   const params = new URLSearchParams(query);
   const unit = MOCK_MARKET_UNITS.find((u) => u.id === params.get('unitId')) ?? MOCK_MARKET_UNITS[0];
-  return calculatePrice(unit.dailyPrice, Number(params.get('daysCount') ?? 1));
+  return calculatePrice(unit.dailyPriceHalalas, Number(params.get('daysCount') ?? 1));
 }
 
 function filterUnits(query: string) {
@@ -419,18 +420,24 @@ function userFor(payload: unknown): User {
   return accountFor((payload as { identifier?: string } | null)?.identifier ?? '');
 }
 
-function ok<T>(data: T): ApiResponse<T> {
-  return { data, success: true };
+function ok<T>(data: T): ApiSuccess<T> {
+  return { success: true, data };
 }
 
-function paginate<T>(items: T[]): PaginatedResponse<T> {
-  return {
-    items,
-    totalCount: items.length,
-    pageNumber: 1,
-    pageSize: items.length || 1,
-    totalPages: 1,
-    hasPrevious: false,
-    hasNext: false,
+/**
+ * A list, in the shape the backend sends one: the rows in `data`, the counts
+ * beside them in `meta.pagination`. The fixtures are small enough to return
+ * whole, so this reports a single page rather than pretending to slice.
+ */
+function paginate<T>(items: T[]): ApiSuccess<T[]> {
+  const pagination: Pagination = {
+    page: 1,
+    limit: items.length || 1,
+    total: items.length,
+    totalPages: items.length > 0 ? 1 : 0,
+    hasNextPage: false,
+    hasPrevPage: false,
   };
+
+  return { success: true, data: items, meta: { pagination } };
 }

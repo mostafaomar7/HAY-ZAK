@@ -25,7 +25,7 @@
             <div class="fact">
               <dt class="fact__label">{{ i18n.t('result.amountPaid') }}</dt>
               <dd class="fact__value">
-                <app-ui-money [amount]="booking()?.totalAmount ?? 0" />
+                <app-ui-money [halalas]="booking()?.totalHalalas ?? 0" />
               </dd>
             </div>
             <div class="fact">
@@ -92,7 +92,7 @@
             <div class="fact">
               <dt class="fact__label">{{ i18n.t('result.amountDue') }}</dt>
               <dd class="fact__value">
-                <app-ui-money [amount]="booking()?.totalAmount ?? 0" />
+                <app-ui-money [halalas]="booking()?.totalHalalas ?? 0" />
               </dd>
             </div>
           </dl>
@@ -132,7 +132,7 @@
                     </span>
                     <span class="alt__meta num">
                       {{ i18n.t('booking.days', { count: period.daysCount }) }} ·
-                      <app-ui-money [amount]="period.totalAmount" />
+                      <app-ui-money [halalas]="period.totalHalalas" />
                     </span>
                     <button appUiButton variant="outline" type="button" (click)="choose(period)">
                       {{ i18n.t('result.pickPeriod') }}

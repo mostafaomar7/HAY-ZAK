@@ -64,7 +64,7 @@
     <span class="cell cell--muted">{{ row.categoryName }}</span>
     <span class="cell cell--muted">{{ row.cityName }}</span>
     <span class="cell num"
-      >{{ row.dailyPrice }} <span class="unit">{{ i18n.t('admin.sar') }}</span></span
+      >{{ row.dailyPriceHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span></span
     >
     <span class="cell num">{{ row.submittedAt | date: 'd MMM y' }}</span>
     <span class="cell">
@@ -118,7 +118,7 @@
         </div>
         <div class="fact">
           <dt>{{ i18n.t('listings.price') }}</dt>
-          <dd class="num">{{ unit.dailyPrice }} {{ i18n.t('admin.sar') }}</dd>
+          <dd class="num">{{ unit.dailyPriceHalalas }} {{ i18n.t('admin.sar') }}</dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('listings.sentAt') }}</dt>

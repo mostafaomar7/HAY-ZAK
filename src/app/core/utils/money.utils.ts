@@ -4,36 +4,98 @@ import {
   type VatBase,
 } from '../constants/app.constants';
 
+/**
+ * Money is integer halalas. Never floats.
+ *
+ * 862.50 SAR is `86250`. Every field that carries an amount is named
+ * `…Halalas`, every calculation below runs on those integers, and the only
+ * division by 100 in the application happens when a figure is rendered.
+ *
+ * This is not fastidiousness: `0.1 + 0.2 !== 0.3`, the booking total is
+ * assembled from a subtotal, a commission and a VAT line, and the result is
+ * reconciled against a payment gateway to the halala. A rounding difference of
+ * one halala on a settled booking is a support ticket and a manual correction.
+ *
+ * Rates are basis points, for the same reason: 15% is `1500`, and a rate held
+ * as `0.15` reintroduces the float the amounts were kept clear of.
+ */
+
+/** One hundred halalas to the riyal. */
+const HALALAS_PER_SAR = 100;
+
+/** Ten thousand basis points to the whole. */
+const BPS_PER_UNIT = 10_000;
+
 export interface PricingConfig {
-  commissionRate: number;
-  vatRate: number;
+  commissionRateBps: number;
+  vatRateBps: number;
   commissionBearer: CommissionBearer;
   vatBase: VatBase;
 }
 
 /** The breakdown FR-BKG-02 requires on screen before payment. */
 export interface PriceBreakdown {
-  dailyPrice: number;
+  dailyPriceHalalas: number;
   days: number;
-  /** days × dailyPrice — the lessor's gross. */
-  subtotal: number;
-  commissionAmount: number;
-  vatAmount: number;
+  /** days × dailyPriceHalalas — the lessor's gross. */
+  subtotalHalalas: number;
+  commissionHalalas: number;
+  vatHalalas: number;
   /** What the renter pays. */
-  totalAmount: number;
+  totalHalalas: number;
   /** What the lessor receives after settlement (FR-PAY-04). */
-  netToLessor: number;
+  netToLessorHalalas: number;
 }
 
-/** SAR is a 2-decimal currency; round every intermediate to avoid drift. */
-export function round2(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
+/**
+ * Applies a basis-point rate to an amount, to the nearest halala.
+ *
+ * Rounds half away from zero, which is what a reader checking the arithmetic on
+ * an invoice expects, and what the server is asked to mirror. Every percentage
+ * in the system goes through this one function so client and server cannot
+ * round differently in two places.
+ */
+export function applyBps(amountHalalas: number, rateBps: number): number {
+  const product = amountHalalas * rateBps;
+  return Math.sign(product) * Math.round(Math.abs(product) / BPS_PER_UNIT);
 }
 
-export function daysBetweenDates(start: Date | string, end: Date | string): number {
-  const from = new Date(start).setHours(0, 0, 0, 0);
-  const to = new Date(end).setHours(0, 0, 0, 0);
+/** For display only — a rate of 1500 reads as 15. */
+export function bpsToPercent(rateBps: number): number {
+  return rateBps / 100;
+}
+
+export function percentToBps(percent: number): number {
+  return Math.round(percent * 100);
+}
+
+/** Riyals to halalas, for a figure a human typed into a form. */
+export function sarToHalalas(sar: number): number {
+  return Math.round(sar * HALALAS_PER_SAR);
+}
+
+/** Halalas to riyals. The only place this division belongs is rendering. */
+export function halalasToSar(halalas: number): number {
+  return halalas / HALALAS_PER_SAR;
+}
+
+/**
+ * Days between two plain `YYYY-MM-DD` dates, on a half-open range.
+ *
+ * 10 → 15 is five nights: the 10th to the 14th, and the unit is free again on
+ * the 15th. See `date.utils.ts` — the dates are parsed field by field, never
+ * through `new Date(string)`, which reads them as UTC midnight and shifts the
+ * day in any negative offset.
+ */
+export function daysBetweenDates(start: string, end: string): number {
+  const from = Date.UTC(...plainParts(start));
+  const to = Date.UTC(...plainParts(end));
   return Math.max(0, Math.round((to - from) / 86_400_000));
+}
+
+function plainParts(date: string): [number, number, number] {
+  const [year, month, day] = date.slice(0, 10).split('-').map(Number);
+  return [year, (month ?? 1) - 1, day ?? 1];
 }
 
 /**
@@ -44,57 +106,71 @@ export function daysBetweenDates(start: Date | string, end: Date | string): numb
  * Both are parameters so settling them costs a config change, not a rewrite.
  */
 export function calculatePrice(
-  dailyPrice: number,
+  dailyPriceHalalas: number,
   days: number,
   config: Partial<PricingConfig> = {},
 ): PriceBreakdown {
-  const { commissionRate, vatRate, commissionBearer, vatBase } = {
+  const { commissionRateBps, vatRateBps, commissionBearer, vatBase } = {
     ...FINANCIAL_DEFAULTS,
     ...config,
   };
 
-  const subtotal = round2(dailyPrice * days);
-  const commissionAmount = round2(subtotal * commissionRate);
+  const subtotalHalalas = dailyPriceHalalas * days;
+  const commissionHalalas = applyBps(subtotalHalalas, commissionRateBps);
 
-  const vatAmount = round2((vatBase === 'commission' ? commissionAmount : subtotal) * vatRate);
+  const vatHalalas = applyBps(
+    vatBase === 'commission' ? commissionHalalas : subtotalHalalas,
+    vatRateBps,
+  );
 
-  let totalAmount: number;
-  let netToLessor: number;
+  let totalHalalas: number;
+  let netToLessorHalalas: number;
 
   switch (commissionBearer) {
     case 'renter':
       // Commission sits on top of the lessor's price.
-      totalAmount = round2(subtotal + commissionAmount + vatAmount);
-      netToLessor = subtotal;
+      totalHalalas = subtotalHalalas + commissionHalalas + vatHalalas;
+      netToLessorHalalas = subtotalHalalas;
       break;
     case 'shared': {
-      const half = round2(commissionAmount / 2);
-      totalAmount = round2(subtotal + half + vatAmount);
-      netToLessor = round2(subtotal - (commissionAmount - half));
+      // The odd halala goes to the renter's half, so the two halves always add
+      // back to the whole commission rather than to one halala more or less.
+      const renterHalf = Math.ceil(commissionHalalas / 2);
+      totalHalalas = subtotalHalalas + renterHalf + vatHalalas;
+      netToLessorHalalas = subtotalHalalas - (commissionHalalas - renterHalf);
       break;
     }
     case 'lessor':
     default:
       // Renter pays the listed price; commission comes out of the lessor's share.
-      totalAmount = subtotal;
-      netToLessor = round2(subtotal - commissionAmount - vatAmount);
+      totalHalalas = subtotalHalalas;
+      netToLessorHalalas = subtotalHalalas - commissionHalalas - vatHalalas;
       break;
   }
 
-  return { dailyPrice, days, subtotal, commissionAmount, vatAmount, totalAmount, netToLessor };
+  return {
+    dailyPriceHalalas,
+    days,
+    subtotalHalalas,
+    commissionHalalas,
+    vatHalalas,
+    totalHalalas,
+    netToLessorHalalas,
+  };
 }
 
 /** FR-UNT-05 — indicative monthly figure shown for guidance only. */
-export function indicativeMonthlyPrice(dailyPrice: number, multiplier = 30): number {
-  return round2(dailyPrice * multiplier);
+export function indicativeMonthlyPrice(dailyPriceHalalas: number, multiplier = 30): number {
+  return dailyPriceHalalas * multiplier;
 }
 
-export function formatSar(amount: number, locale = 'ar-SA'): string {
+/** Renders halalas as SAR. The one division by 100 in the application. */
+export function formatSar(halalas: number, locale = 'ar-SA'): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(halalasToSar(halalas));
 }
 
 /** NFR-SEC-02 — an IBAN may only ever be shown as its last four characters. */

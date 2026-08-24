@@ -45,11 +45,11 @@
     <span class="cell">{{ row.lessorName }}</span>
     <span class="cell cell--muted">{{ row.unitTitle }}</span>
     <span class="cell num">
-      {{ row.totalAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+      {{ row.totalHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
     </span>
-    <span class="cell cell--muted num">{{ row.commissionAmount }}</span>
+    <span class="cell cell--muted num">{{ row.commissionHalalas }}</span>
     <span class="cell cell--strong num">
-      {{ row.netAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+      {{ row.netHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
     </span>
     <span class="cell">
       <app-ui-badge [tone]="row.isRefunded ? 'warning' : 'success'">

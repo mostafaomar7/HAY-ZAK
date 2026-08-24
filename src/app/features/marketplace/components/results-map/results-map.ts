@@ -55,7 +55,7 @@ export class ResultsMap {
     return units.map((unit) => ({
       id: unit.id,
       title: unit.title,
-      price: unit.dailyPrice,
+      price: unit.dailyPriceHalalas,
       // North is up, so a higher latitude sits nearer the top.
       top: `${clamp(84 - ((unit.location.latitude - minLat) / spanLat) * 68)}%`,
       end: `${clamp(16 + ((unit.location.longitude - minLng) / spanLng) * 68)}%`,

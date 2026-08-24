@@ -17,11 +17,11 @@ function makeBooking(status: BookingStatus, renterName?: string): Booking {
     startDate: '2026-08-12',
     endDate: '2026-09-11',
     daysCount: 30,
-    dailyPriceSnapshot: 60,
-    subtotal: 1800,
-    commissionAmount: 90,
-    vatAmount: 0,
-    totalAmount: 1800,
+    dailyPriceSnapshotHalalas: 6000,
+    subtotalHalalas: 180000,
+    commissionHalalas: 9000,
+    vatHalalas: 0,
+    totalHalalas: 180000,
     goodsDescription: 'كراتين أثاث منزلي.',
     prohibitedAck: true,
     status,
@@ -65,7 +65,7 @@ describe('RequestDetailPage', () => {
     expect(el.textContent).toContain('كراتين أثاث منزلي.');
     expect(el.textContent).toContain('1,800.00');
     expect(el.textContent).toContain('90.00');
-    // 1800 − 90, computed here because the payload carried no netToLessor.
+    // 1800 − 90, computed here because the payload carried no netToLessorHalalas.
     expect(el.textContent).toContain('1,710.00');
   });
 

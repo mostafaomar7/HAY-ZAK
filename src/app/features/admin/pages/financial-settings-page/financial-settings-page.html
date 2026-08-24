@@ -22,7 +22,7 @@
       </div>
       <div class="card__value">
         <span class="figure num">
-          {{ percentOf(config.commissionRate) }}
+          {{ percentOf(config.commissionRateBps) }}
           <span class="figure__unit">{{ i18n.t('admin.percent') }}</span>
         </span>
         <button appUiButton variant="primary" size="sm" type="button" (click)="edit('commission')">
@@ -60,7 +60,7 @@
             </span>
             <span>{{ row.targetName }}</span>
             <span class="cell--strong num">
-              {{ percentOf(row.rate) }} <span class="unit">{{ i18n.t('admin.percent') }}</span>
+              {{ percentOf(row.rateBps) }} <span class="unit">{{ i18n.t('admin.percent') }}</span>
             </span>
             <span>
               <button
@@ -86,7 +86,7 @@
       <p class="card__hint">{{ i18n.t('finset.vatHint') }}</p>
       <div class="card__value">
         <span class="figure num">
-          {{ percentOf(config.vatRate) }}
+          {{ percentOf(config.vatRateBps) }}
           <span class="figure__unit">{{ i18n.t('admin.percent') }}</span>
         </span>
         <button appUiButton variant="outline" size="sm" type="button" (click)="edit('vat')">

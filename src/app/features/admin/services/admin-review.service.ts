@@ -26,7 +26,7 @@ export class AdminReviewService {
 
   // ── Listings ───────────────────────────────────────────────────────────
   listingQueue(params: Record<string, string>): Observable<PaginatedResponse<ListingReviewRow>> {
-    return this.api.get<PaginatedResponse<ListingReviewRow>>(API_ENDPOINTS.admin.pendingUnits, {
+    return this.api.list<ListingReviewRow>(API_ENDPOINTS.admin.pendingUnits, {
       params,
     });
   }
@@ -45,7 +45,7 @@ export class AdminReviewService {
 
   // ── Bookings ───────────────────────────────────────────────────────────
   bookingQueue(params: Record<string, string>): Observable<PaginatedResponse<BookingReviewRow>> {
-    return this.api.get<PaginatedResponse<BookingReviewRow>>(API_ENDPOINTS.admin.pendingBookings, {
+    return this.api.list<BookingReviewRow>(API_ENDPOINTS.admin.pendingBookings, {
       params,
     });
   }

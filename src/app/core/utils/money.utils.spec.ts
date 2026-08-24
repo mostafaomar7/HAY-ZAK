@@ -1,77 +1,125 @@
-import { calculatePrice, daysBetweenDates, maskIban, round2 } from './money.utils';
+import { applyBps, calculatePrice, daysBetweenDates, maskIban, sarToHalalas } from './money.utils';
 
 describe('money.utils', () => {
   describe('calculatePrice', () => {
-    const base = { commissionRate: 0.1, vatRate: 0.15 } as const;
+    const base = { commissionRateBps: 1000, vatRateBps: 1500 } as const;
+
+    /** 100.00 SAR a day. Every figure below is halalas. */
+    const daily = sarToHalalas(100);
 
     it('computes the subtotal as days x daily price (FR-BKG-02)', () => {
-      const result = calculatePrice(100, 7, { ...base, commissionBearer: 'lessor' });
-      expect(result.subtotal).toBe(700);
+      const result = calculatePrice(daily, 7, { ...base, commissionBearer: 'lessor' });
+      expect(result.subtotalHalalas).toBe(70_000);
       expect(result.days).toBe(7);
     });
 
     it('deducts commission and VAT from the lessor when the lessor bears it', () => {
-      const result = calculatePrice(100, 10, {
+      const result = calculatePrice(daily, 10, {
         ...base,
         commissionBearer: 'lessor',
         vatBase: 'commission',
       });
-      // 1000 gross, 100 commission, 15 VAT on the commission.
-      expect(result.totalAmount).toBe(1000);
-      expect(result.commissionAmount).toBe(100);
-      expect(result.vatAmount).toBe(15);
-      expect(result.netToLessor).toBe(885);
+      // 1,000.00 gross, 100.00 commission, 15.00 VAT on the commission.
+      expect(result.totalHalalas).toBe(100_000);
+      expect(result.commissionHalalas).toBe(10_000);
+      expect(result.vatHalalas).toBe(1_500);
+      expect(result.netToLessorHalalas).toBe(88_500);
     });
 
     it('adds commission on top when the renter bears it', () => {
-      const result = calculatePrice(100, 10, {
+      const result = calculatePrice(daily, 10, {
         ...base,
         commissionBearer: 'renter',
         vatBase: 'commission',
       });
-      expect(result.totalAmount).toBe(1115);
-      expect(result.netToLessor).toBe(1000);
+      expect(result.totalHalalas).toBe(111_500);
+      expect(result.netToLessorHalalas).toBe(100_000);
     });
 
     it('charges VAT on the whole booking when vatBase is total', () => {
-      const result = calculatePrice(100, 10, {
+      const result = calculatePrice(daily, 10, {
         ...base,
         commissionBearer: 'renter',
         vatBase: 'total',
       });
-      expect(result.vatAmount).toBe(150);
+      expect(result.vatHalalas).toBe(15_000);
     });
 
-    it('keeps every amount at two decimals', () => {
-      const result = calculatePrice(33.33, 3, {
+    /**
+     * The reason money is integers. In riyals this is 33.33 × 3 = 99.99, whose
+     * 10% is 9.999 — a figure that has to become 10.00 or 9.99 and, in floats,
+     * was liable to become neither exactly.
+     */
+    it('keeps every amount a whole number of halalas', () => {
+      const result = calculatePrice(sarToHalalas(33.33), 3, {
         ...base,
         commissionBearer: 'lessor',
         vatBase: 'commission',
       });
-      const amounts = [
-        result.subtotal,
-        result.commissionAmount,
-        result.vatAmount,
-        result.totalAmount,
-        result.netToLessor,
-      ];
-      amounts.forEach((value) => expect(value).toBe(round2(value)));
+
+      for (const value of [
+        result.subtotalHalalas,
+        result.commissionHalalas,
+        result.vatHalalas,
+        result.totalHalalas,
+        result.netToLessorHalalas,
+      ]) {
+        expect(Number.isInteger(value)).withContext(String(value)).toBeTrue();
+      }
     });
 
-    it('never lets the split option pay out more than the gross', () => {
-      const result = calculatePrice(200, 5, {
+    it('splits a commission that does not halve evenly without losing a halala', () => {
+      // 999 halalas of commission: one half is 500, the other 499.
+      const result = calculatePrice(3_330, 3, {
         ...base,
         commissionBearer: 'shared',
         vatBase: 'commission',
       });
-      expect(result.netToLessor).toBeLessThan(result.subtotal);
-      expect(result.totalAmount).toBeGreaterThan(result.subtotal);
+
+      const renterPaid = result.totalHalalas - result.subtotalHalalas - result.vatHalalas;
+      const lessorPaid = result.subtotalHalalas - result.netToLessorHalalas;
+
+      expect(renterPaid + lessorPaid).toBe(result.commissionHalalas);
+    });
+
+    it('never lets the split option pay out more than the gross', () => {
+      const result = calculatePrice(sarToHalalas(200), 5, {
+        ...base,
+        commissionBearer: 'shared',
+        vatBase: 'commission',
+      });
+      expect(result.netToLessorHalalas).toBeLessThan(result.subtotalHalalas);
+      expect(result.totalHalalas).toBeGreaterThan(result.subtotalHalalas);
+    });
+  });
+
+  describe('applyBps', () => {
+    it('reads 1500 as 15%', () => {
+      expect(applyBps(100_000, 1500)).toBe(15_000);
+    });
+
+    it('rounds to the nearest halala', () => {
+      // 15% of 3.33 SAR is 0.4995 SAR.
+      expect(applyBps(333, 1500)).toBe(50);
     });
   });
 
   describe('daysBetweenDates', () => {
-    it('counts whole days regardless of the time of day', () => {
-      expect(daysBetweenDates('2026-09-01T22:00:00', '2026-09-08T02:00:00')).toBe(7);
+    /**
+     * The range is half-open: the 10th to the 15th is five nights, and the unit
+     * is free again on the 15th for the next renter.
+     */
+    it('counts a half-open range as nights, not calendar days touched', () => {
+      expect(daysBetweenDates('2026-10-10', '2026-10-15')).toBe(5);
+    });
+
+    /**
+     * `new Date('2026-10-10')` is UTC midnight, which is 9 October in any
+     * negative offset. The whole reason these are parsed field by field.
+     */
+    it('reads a plain date the same in every timezone', () => {
+      expect(daysBetweenDates('2026-01-01', '2026-01-02')).toBe(1);
+      expect(daysBetweenDates('2026-03-01', '2026-04-01')).toBe(31);
     });
 
     it('returns 0 rather than a negative count for a reversed range', () => {

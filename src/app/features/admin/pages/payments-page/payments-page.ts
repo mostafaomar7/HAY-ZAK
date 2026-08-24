@@ -49,25 +49,25 @@ export class AdminPaymentsPage {
       {
         key: 'collected',
         label: this.i18n.t('payments.kpiCollected'),
-        value: sum((row) => row.totalAmount),
+        value: sum((row) => row.totalHalalas),
         icon: 'card' as const,
       },
       {
         key: 'commission',
         label: this.i18n.t('payments.kpiCommission'),
-        value: sum((row) => row.commissionAmount),
+        value: sum((row) => row.commissionHalalas),
         icon: 'file' as const,
       },
       {
         key: 'transferred',
         label: this.i18n.t('payments.kpiTransferred'),
-        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? row.netAmount : 0)),
+        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? row.netHalalas : 0)),
         icon: 'check' as const,
       },
       {
         key: 'pending',
         label: this.i18n.t('payments.kpiPending'),
-        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? 0 : row.netAmount)),
+        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? 0 : row.netHalalas)),
         icon: 'clock' as const,
       },
     ];
@@ -77,9 +77,9 @@ export class AdminPaymentsPage {
     { key: 'renterName', label: this.i18n.t('payments.renter'), width: '1.1fr' },
     { key: 'lessorName', label: this.i18n.t('payments.lessor'), width: '1fr' },
     { key: 'unitTitle', label: this.i18n.t('payments.unit'), width: '1.7fr' },
-    { key: 'totalAmount', label: this.i18n.t('payments.total'), width: '0.9fr', sortable: true },
-    { key: 'commissionAmount', label: this.i18n.t('payments.commission'), width: '0.8fr' },
-    { key: 'netAmount', label: this.i18n.t('payments.net'), width: '0.9fr', sortable: true },
+    { key: 'totalHalalas', label: this.i18n.t('payments.total'), width: '0.9fr', sortable: true },
+    { key: 'commissionHalalas', label: this.i18n.t('payments.commission'), width: '0.8fr' },
+    { key: 'netHalalas', label: this.i18n.t('payments.net'), width: '0.9fr', sortable: true },
     { key: 'collection', label: this.i18n.t('payments.collectionStatus'), width: '1fr' },
     { key: 'payoutStatus', label: this.i18n.t('payments.transferStatus'), width: '1.3fr' },
   ]);
@@ -130,7 +130,7 @@ export class AdminPaymentsPage {
     this.finance.payments(this.list.params()).subscribe({
       next: (page) => {
         this.rows.set(page.items);
-        this.list.succeed(page.items.length, page.totalCount);
+        this.list.succeed(page.items.length, page.pagination.total);
       },
       error: () => this.list.fail(),
     });

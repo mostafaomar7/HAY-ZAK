@@ -75,14 +75,14 @@ export class AdminBookingsPage {
    * The refund the modal must state. On a bulk rejection it is the sum of every
    * selected booking, because that is the total that will leave the account.
    */
-  protected readonly refundAmount = computed(() => {
+  protected readonly refundHalalas = computed(() => {
     const bulk = this.bulkTargets();
     if (bulk.length > 0) {
       return this.rows()
         .filter((row) => bulk.includes(row.id))
-        .reduce((sum, row) => sum + row.totalAmount, 0);
+        .reduce((sum, row) => sum + row.totalHalalas, 0);
     }
-    return this.detail()?.totalAmount ?? null;
+    return this.detail()?.totalHalalas ?? null;
   });
 
   protected readonly columns = computed<AdminColumn[]>(() => [
@@ -91,7 +91,7 @@ export class AdminBookingsPage {
     { key: 'lessorName', label: this.i18n.t('bkq.lessor'), width: '1.1fr' },
     { key: 'unitTitle', label: this.i18n.t('bkq.unit'), width: '1.7fr' },
     { key: 'startDate', label: this.i18n.t('bkq.period'), width: '1.4fr', sortable: true },
-    { key: 'totalAmount', label: this.i18n.t('bkq.value'), width: '1fr', sortable: true },
+    { key: 'totalHalalas', label: this.i18n.t('bkq.value'), width: '1fr', sortable: true },
     {
       key: 'waitingHours',
       label: this.i18n.t('bkq.waitingFilter'),
@@ -144,7 +144,7 @@ export class AdminBookingsPage {
     this.review.bookingQueue(this.list.params()).subscribe({
       next: (page) => {
         this.rows.set(page.items);
-        this.list.succeed(page.items.length, page.totalCount);
+        this.list.succeed(page.items.length, page.pagination.total);
         this.openLinkedRow();
       },
       error: () => this.list.fail(),

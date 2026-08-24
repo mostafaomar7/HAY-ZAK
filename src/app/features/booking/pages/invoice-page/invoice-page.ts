@@ -60,13 +60,13 @@ export class InvoicePage {
   protected readonly price = computed(() => {
     const booking = this.booking();
     return {
-      dailyPrice: booking?.dailyPriceSnapshot ?? 0,
+      dailyPriceHalalas: booking?.dailyPriceSnapshotHalalas ?? 0,
       days: booking?.daysCount ?? 0,
-      subtotal: booking?.subtotal ?? 0,
-      commissionAmount: booking?.commissionAmount ?? 0,
-      vatAmount: booking?.vatAmount ?? 0,
-      totalAmount: booking?.totalAmount ?? 0,
-      netToLessor: booking?.netToLessor ?? 0,
+      subtotalHalalas: booking?.subtotalHalalas ?? 0,
+      commissionHalalas: booking?.commissionHalalas ?? 0,
+      vatHalalas: booking?.vatHalalas ?? 0,
+      totalHalalas: booking?.totalHalalas ?? 0,
+      netToLessorHalalas: booking?.netToLessorHalalas ?? 0,
     };
   });
 

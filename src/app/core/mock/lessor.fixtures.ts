@@ -1,3 +1,4 @@
+import { FINANCIAL_DEFAULTS } from '../constants/app.constants';
 import { BookingStatus } from '../enums/booking-status.enum';
 import { NotificationChannel, NotificationType } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
@@ -8,6 +9,7 @@ import type { Booking } from '../models/booking.model';
 import type { AppNotification } from '../models/operations.model';
 import type { District, ReferenceItem, Unit, UnitAvailabilityBlock } from '../models/unit.model';
 import type { LessorBankAccount, User } from '../models/user.model';
+import { applyBps, sarToHalalas } from '../utils/money.utils';
 
 /**
  * Fixture data copied from the design export, so the screens render with the
@@ -34,7 +36,9 @@ function unit(
   title: string,
   categoryName: string,
   areaSqm: number,
-  dailyPrice: number,
+  // Riyals, because that is what a fixture is read in. Converted on the way
+  // into the model, which holds halalas like everything else on the wire.
+  dailyPriceSar: number,
   status: UnitStatus,
   rejectionReason?: string,
 ): Unit {
@@ -49,7 +53,7 @@ function unit(
     title,
     description: 'مساحة تخزين نظيفة وآمنة، يسهل الوصول إليها.',
     areaSqm,
-    dailyPrice,
+    dailyPriceHalalas: sarToHalalas(dailyPriceSar),
     location: { latitude: 24.7136, longitude: 46.6753 },
     isApproximateLocation: true,
     addressLine: 'الرياض — حي النرجس، شارع أنس بن مالك، مبنى 118',
@@ -91,12 +95,14 @@ function booking(
   startDate: string,
   endDate: string,
   daysCount: number,
-  dailyPrice: number,
+  dailyPriceSar: number,
   status: BookingStatus,
   goodsDescription: string,
   renterName?: string,
 ): Booking {
-  const subtotal = dailyPrice * daysCount;
+  const dailyPriceHalalas = sarToHalalas(dailyPriceSar);
+  const subtotalHalalas = dailyPriceHalalas * daysCount;
+  const commissionHalalas = applyBps(subtotalHalalas, FINANCIAL_DEFAULTS.commissionRateBps);
   return {
     id,
     referenceNo,
@@ -106,11 +112,11 @@ function booking(
     startDate,
     endDate,
     daysCount,
-    dailyPriceSnapshot: dailyPrice,
-    subtotal,
-    commissionAmount: subtotal * 0.1,
-    vatAmount: subtotal * 0.1 * 0.15,
-    totalAmount: subtotal,
+    dailyPriceSnapshotHalalas: dailyPriceHalalas,
+    subtotalHalalas,
+    commissionHalalas,
+    vatHalalas: applyBps(commissionHalalas, FINANCIAL_DEFAULTS.vatRateBps),
+    totalHalalas: subtotalHalalas,
     goodsDescription,
     prohibitedAck: true,
     status,
@@ -279,9 +285,9 @@ export const MOCK_EARNINGS: EarningsResponse = {
       unitTitle: 'مستودع مكيّف — النرجس',
       startDate: '2026-08-05',
       endDate: '2026-08-12',
-      grossAmount: 525,
-      commissionAmount: 26.25,
-      netAmount: 498.75,
+      grossHalalas: 52500,
+      commissionHalalas: 2625,
+      netHalalas: 49875,
       payoutStatus: PayoutStatus.Paid,
       bankReference: 'TRF-88214',
       transferredAt: '2026-08-13',
@@ -292,9 +298,9 @@ export const MOCK_EARNINGS: EarningsResponse = {
       unitTitle: 'مستودع مكيّف — النرجس',
       startDate: '2026-08-20',
       endDate: '2026-08-27',
-      grossAmount: 525,
-      commissionAmount: 26.25,
-      netAmount: 498.75,
+      grossHalalas: 52500,
+      commissionHalalas: 2625,
+      netHalalas: 49875,
       payoutStatus: PayoutStatus.Processing,
     },
     {
@@ -303,9 +309,9 @@ export const MOCK_EARNINGS: EarningsResponse = {
       unitTitle: 'قراج مغلق — الملقا',
       startDate: '2026-08-12',
       endDate: '2026-09-11',
-      grossAmount: 1800,
-      commissionAmount: 90,
-      netAmount: 1710,
+      grossHalalas: 180000,
+      commissionHalalas: 9000,
+      netHalalas: 171000,
       payoutStatus: PayoutStatus.OnHold,
       holdReason:
         'لا يطابق رقم الآيبان المسجّل اسمك في المنصة، وتعذّر إجراء التحويل. يُرجى تصحيح البيانات البنكية ليتم التحويل تلقائيًا.',

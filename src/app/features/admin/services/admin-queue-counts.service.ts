@@ -1,7 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import type { PaginatedResponse } from '@core/models/api-response.model';
 import type { AdminDashboardKpis } from '@core/models/operations.model';
 import type { ComplaintRow } from '@core/models/admin.model';
 import { DisputeStatus } from '@core/enums/operations.enum';
@@ -31,7 +30,7 @@ export class AdminQueueCountsService {
   refresh(): void {
     forkJoin({
       kpis: this.api.get<AdminDashboardKpis>(API_ENDPOINTS.admin.dashboard),
-      disputes: this.api.get<PaginatedResponse<ComplaintRow>>(API_ENDPOINTS.admin.disputes),
+      disputes: this.api.list<ComplaintRow>(API_ENDPOINTS.admin.disputes),
     }).subscribe({
       next: ({ kpis, disputes }) => {
         this.listings.set(kpis.pendingListings);

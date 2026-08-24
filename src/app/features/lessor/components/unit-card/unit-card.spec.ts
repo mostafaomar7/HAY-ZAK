@@ -16,7 +16,7 @@ function makeUnit(status: UnitStatus, rejectionReason?: string): Unit {
     title: 'مستودع مكيّف — النرجس',
     description: '',
     areaSqm: 35,
-    dailyPrice: 75,
+    dailyPriceHalalas: 7500,
     location: { latitude: 24.7, longitude: 46.6 },
     isApproximateLocation: true,
     addressLine: 'الرياض — حي النرجس، شارع أنس بن مالك، مبنى 118',

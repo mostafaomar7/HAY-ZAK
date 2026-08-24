@@ -57,6 +57,12 @@ const ar = {
   'public.browse': 'تصفّح المساحات',
 
   // ── Home (renter landing, FR-MKT-01) ───────────────────────
+  // The only error copy this client owns. Every other message comes from the
+  // server already translated — see core/interceptors/error.interceptor.ts.
+  'error.network': 'تعذّر الاتصال بالخادم. تحقّق من الإنترنت ثم أعد المحاولة.',
+  'error.unexpected': 'حدث خطأ غير متوقع. أعد المحاولة، وإن تكرّر فأبلغ الدعم بالرقم أدناه.',
+  'error.requestId': 'رقم الطلب',
+  'error.retryIn': 'أعد المحاولة بعد {seconds} ثانية',
   'home.heroTitle': 'مساحاتك.. فرصتك',
   'home.heroSub': 'مساحة قريبة منك، بسعر واضح، ودفع محفوظ حتى اعتماد الطلب.',
   'home.searchTitle': 'ابحث عن مساحة',
@@ -444,7 +450,7 @@ const ar = {
   'booking.endDate': 'تاريخ الانتهاء',
   'booking.duration': 'المدة',
   'booking.days': '{count} يومًا',
-  'booking.dailyPrice': 'السعر اليومي',
+  'booking.dailyPriceHalalas': 'السعر اليومي',
   'booking.monthlyApprox': 'المكافئ الشهري التقريبي',
   'booking.periodTotal': 'إجمالي المدة المختارة',
   'booking.initialTotal': 'الإجمالي المبدئي',
@@ -1371,6 +1377,11 @@ const en: Partial<Record<TranslationKey, string>> = {
   'public.markAllRead': 'Mark all as read',
   'public.browse': 'Browse spaces',
 
+  'error.network': 'Could not reach the server. Check your connection and try again.',
+  'error.unexpected':
+    'Something went wrong. Try again, and if it persists quote the request id below to support.',
+  'error.requestId': 'Request id',
+  'error.retryIn': 'Try again in {seconds} seconds',
   'home.heroTitle': 'Your space, your opportunity',
   'home.heroSub':
     'A space near you, at a clear price, with payment held until the request is approved.',
@@ -1752,7 +1763,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'booking.endDate': 'End date',
   'booking.duration': 'Duration',
   'booking.days': '{count} days',
-  'booking.dailyPrice': 'Daily price',
+  'booking.dailyPriceHalalas': 'Daily price',
   'booking.monthlyApprox': 'Approximate monthly equivalent',
   'booking.periodTotal': 'Total for the chosen period',
   'booking.initialTotal': 'Indicative total',

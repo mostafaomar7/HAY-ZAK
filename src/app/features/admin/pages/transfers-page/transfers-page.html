@@ -34,7 +34,7 @@
         </div>
         <div class="group__total">
           <span class="group__totalLabel">{{ i18n.t('transfers.totalDue') }}</span>
-          <app-ui-money class="group__totalValue" [amount]="group.totalDue" strong />
+          <app-ui-money class="group__totalValue" [halalas]="group.totalDue" strong />
           <span class="group__count num">
             {{ i18n.t('transfers.rowCount', { count: group.rowCount }) }}
           </span>
@@ -61,7 +61,7 @@
             <span class="rows__cell">{{ row.unitTitle }}</span>
             <span class="rows__cell num">{{ row.dueDate | date: 'd MMM y' }}</span>
             <span class="rows__cell cell--strong num">
-              {{ row.netAmount }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
+              {{ row.netHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
             </span>
             <span class="rows__cell rows__cell--stack">
               <app-ui-badge [tone]="display(row.status).tone">{{ label(row.status) }}</app-ui-badge>
@@ -134,7 +134,7 @@
   @if (target(); as t) {
     <div class="amount">
       <span>{{ i18n.t('transfers.netToTransfer') }}</span>
-      <app-ui-money class="amount__value" [amount]="t.row.netAmount" strong />
+      <app-ui-money class="amount__value" [halalas]="t.row.netHalalas" strong />
     </div>
 
     <section class="account">
@@ -221,7 +221,7 @@
 
     <div class="amount">
       <span>{{ i18n.t('transfers.rescheduledAmount') }}</span>
-      <app-ui-money class="amount__value" [amount]="t.row.netAmount" strong />
+      <app-ui-money class="amount__value" [halalas]="t.row.netHalalas" strong />
     </div>
 
     <label class="field">

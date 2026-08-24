@@ -51,10 +51,10 @@ export class UnitResultCard {
   readonly hovered = output<string | null>();
 
   protected readonly monthly = computed(() =>
-    Math.round(indicativeMonthlyPrice(this.unit().dailyPrice)),
+    Math.round(indicativeMonthlyPrice(this.unit().dailyPriceHalalas)),
   );
 
-  protected readonly periodTotal = computed(() => this.unit().dailyPrice * this.days());
+  protected readonly periodTotal = computed(() => this.unit().dailyPriceHalalas * this.days());
 
   /** FR-MKT-10 — a fully-booked unit stays listed but cannot be booked now. */
   protected readonly isBooked = computed(() => this.unit().status === UnitStatus.FullyBooked);

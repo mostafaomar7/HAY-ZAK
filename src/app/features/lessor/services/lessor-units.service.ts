@@ -41,17 +41,17 @@ export class LessorUnitsService {
     };
   });
 
-  load(status?: UnitStatus, pageNumber = 1): Observable<PaginatedResponse<Unit>> {
+  load(status?: UnitStatus, page = 1): Observable<PaginatedResponse<Unit>> {
     this.loading.set(true);
     return this.api
-      .get<PaginatedResponse<Unit>>(API_ENDPOINTS.lessor.units, {
-        params: { status, pageNumber, pageSize: APP.pageSize },
+      .list<Unit>(API_ENDPOINTS.lessor.units, {
+        params: { status, page, limit: APP.pageSize },
       })
       .pipe(
         tap({
           next: (page) => {
             this.items.set(page.items);
-            this.totalCount.set(page.totalCount);
+            this.totalCount.set(page.pagination.total);
             this.loading.set(false);
           },
           error: () => this.loading.set(false),

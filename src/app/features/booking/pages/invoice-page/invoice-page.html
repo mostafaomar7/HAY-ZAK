@@ -130,7 +130,7 @@
         </div>
         <div class="preview__row preview__row--total">
           <dt>{{ i18n.t('invoice.totalPaid') }}</dt>
-          <dd><app-ui-money strong [amount]="booking()?.totalAmount ?? 0" /></dd>
+          <dd><app-ui-money strong [halalas]="booking()?.totalHalalas ?? 0" /></dd>
         </div>
       </dl>
 

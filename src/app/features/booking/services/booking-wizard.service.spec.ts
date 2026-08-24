@@ -6,7 +6,7 @@ import { BookingWizardService } from './booking-wizard.service';
 
 const UNIT = {
   id: 'u-1',
-  dailyPrice: 75,
+  dailyPriceHalalas: 7500,
   status: UnitStatus.Published,
 } as Unit;
 

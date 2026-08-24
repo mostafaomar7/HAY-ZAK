@@ -15,9 +15,9 @@ export interface EarningsRow {
   startDate: string;
   endDate: string;
   /** Gross booking value. */
-  grossAmount: number;
-  commissionAmount: number;
-  netAmount: number;
+  grossHalalas: number;
+  commissionHalalas: number;
+  netHalalas: number;
   payoutStatus: PayoutStatus;
   /** Present once the transfer has executed. */
   bankReference?: string;

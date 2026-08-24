@@ -4,7 +4,9 @@ import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { ApiResponse } from '../models/api-response.model';
+import { ApiError, ERROR_CODES } from '../models/api-error.model';
+import type { ApiEnvelope, PaginatedResponse, Pagination } from '../models/api-response.model';
+import { emptyPagination } from '../models/api-response.model';
 
 type ParamValue = string | number | boolean | null | undefined;
 export type QueryParams = Record<string, ParamValue | ParamValue[]>;
@@ -16,58 +18,72 @@ interface RequestOptions {
 }
 
 /**
- * Single entry point for backend calls: prefixes the base url, builds params
- * safely, and unwraps the `ApiResponse` envelope so callers get `T` directly.
- * If the backend returns bare payloads, use the `*Raw` methods instead.
+ * The only place in the application that speaks HTTP.
+ *
+ * Every response carries the same envelope, so unwrapping it belongs in one
+ * method rather than in every caller: `get<Unit>(…)` yields a `Unit`, and a
+ * failure arrives as an `ApiError` carrying the server's code and its already
+ * translated message. No component calls `fetch` or `HttpClient` directly.
+ *
+ * `list()` is separate from `get()` because a list response is two halves —
+ * the rows in `data`, the counts in `meta.pagination` — and a caller should
+ * receive them joined rather than have to reach into the envelope for one.
  */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
 
   get<T>(path: string, options: RequestOptions = {}): Observable<T> {
-    return this.getRaw<ApiResponse<T>>(path, options).pipe(map((r) => r.data));
+    return this.http
+      .get<ApiEnvelope<T>>(this.url(path), this.build(options))
+      .pipe(map((envelope) => unwrap(envelope)));
+  }
+
+  /** A paged list: the rows and their pagination as one value. */
+  list<T>(path: string, options: RequestOptions = {}): Observable<PaginatedResponse<T>> {
+    return this.http
+      .get<ApiEnvelope<T[]>>(this.url(path), this.build(options))
+      .pipe(
+        map((envelope) => unwrapPage(envelope, Number(options.params?.['limit']) || undefined)),
+      );
   }
 
   post<T, B = unknown>(path: string, body?: B, options: RequestOptions = {}): Observable<T> {
-    return this.postRaw<ApiResponse<T>, B>(path, body, options).pipe(map((r) => r.data));
+    return this.http
+      .post<ApiEnvelope<T>>(this.url(path), body ?? {}, this.build(options))
+      .pipe(map((envelope) => unwrap(envelope)));
   }
 
   put<T, B = unknown>(path: string, body?: B, options: RequestOptions = {}): Observable<T> {
     return this.http
-      .put<ApiResponse<T>>(this.url(path), body ?? {}, this.build(options))
-      .pipe(map((r) => r.data));
+      .put<ApiEnvelope<T>>(this.url(path), body ?? {}, this.build(options))
+      .pipe(map((envelope) => unwrap(envelope)));
   }
 
   patch<T, B = unknown>(path: string, body?: B, options: RequestOptions = {}): Observable<T> {
     return this.http
-      .patch<ApiResponse<T>>(this.url(path), body ?? {}, this.build(options))
-      .pipe(map((r) => r.data));
+      .patch<ApiEnvelope<T>>(this.url(path), body ?? {}, this.build(options))
+      .pipe(map((envelope) => unwrap(envelope)));
   }
 
   delete<T>(path: string, options: RequestOptions = {}): Observable<T> {
     return this.http
-      .delete<ApiResponse<T>>(this.url(path), this.build(options))
-      .pipe(map((r) => r.data));
+      .delete<ApiEnvelope<T>>(this.url(path), this.build(options))
+      .pipe(map((envelope) => unwrap(envelope)));
   }
 
-  getRaw<T>(path: string, options: RequestOptions = {}): Observable<T> {
-    return this.http.get<T>(this.url(path), this.build(options));
-  }
-
-  postRaw<T, B = unknown>(path: string, body?: B, options: RequestOptions = {}): Observable<T> {
-    return this.http.post<T>(this.url(path), body ?? {}, this.build(options));
-  }
-
-  /** Multipart upload — never set Content-Type manually, the browser adds the boundary. */
+  /**
+   * Multipart upload. Never set Content-Type by hand — the browser has to add
+   * the boundary, and a manual header omits it.
+   */
   upload<T>(path: string, formData: FormData): Observable<T> {
-    return this.http.post<ApiResponse<T>>(this.url(path), formData).pipe(map((r) => r.data));
+    return this.http
+      .post<ApiEnvelope<T>>(this.url(path), formData)
+      .pipe(map((envelope) => unwrap(envelope)));
   }
 
   download(path: string, options: RequestOptions = {}): Observable<Blob> {
-    return this.http.get(this.url(path), {
-      ...this.build(options),
-      responseType: 'blob',
-    });
+    return this.http.get(this.url(path), { ...this.build(options), responseType: 'blob' });
   }
 
   private url(path: string): string {
@@ -101,4 +117,30 @@ export class ApiService {
     }
     return params;
   }
+}
+
+/**
+ * A 2xx carrying `success: false` should not happen, but a caller that trusted
+ * `data` on one would read `undefined` as a value and fail somewhere far away
+ * from the cause. Throwing here keeps the failure next to its reason.
+ */
+function unwrap<T>(envelope: ApiEnvelope<T>): T {
+  if (envelope?.success === false) {
+    throw new ApiError({
+      code: envelope.error?.code ?? ERROR_CODES.MALFORMED,
+      message: envelope.error?.message ?? '',
+      status: 200,
+      details: envelope.error?.details,
+      requestId: envelope.requestId,
+    });
+  }
+
+  return envelope?.data as T;
+}
+
+function unwrapPage<T>(envelope: ApiEnvelope<T[]>, limit?: number): PaginatedResponse<T> {
+  const items = unwrap(envelope) ?? [];
+  const pagination = (envelope as { meta?: { pagination?: Pagination } }).meta?.pagination;
+
+  return { items, pagination: pagination ?? { ...emptyPagination(limit), total: items.length } };
 }

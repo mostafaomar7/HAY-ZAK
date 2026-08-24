@@ -4,7 +4,6 @@ import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AdminDashboardKpis } from '@core/models/operations.model';
 import type { BookingReviewRow, ListingReviewRow } from '@core/models/admin.model';
-import type { PaginatedResponse } from '@core/models/api-response.model';
 import { ApiService } from '@core/services/api.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -122,11 +121,11 @@ export class AdminDashboardPage {
     // The two queues fail independently of the indicators: a broken listings
     // service must not blank the booking queue an operator is working through.
     this.api
-      .get<PaginatedResponse<ListingReviewRow>>(API_ENDPOINTS.admin.pendingUnits)
+      .list<ListingReviewRow>(API_ENDPOINTS.admin.pendingUnits)
       .subscribe({ next: (page) => this.listings.set(page.items), error: () => undefined });
 
     this.api
-      .get<PaginatedResponse<BookingReviewRow>>(API_ENDPOINTS.admin.pendingBookings)
+      .list<BookingReviewRow>(API_ENDPOINTS.admin.pendingBookings)
       .subscribe({ next: (page) => this.bookings.set(page.items), error: () => undefined });
   }
 

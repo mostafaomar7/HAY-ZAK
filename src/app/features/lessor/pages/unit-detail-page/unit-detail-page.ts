@@ -65,7 +65,7 @@ export class UnitDetailPage {
 
   protected readonly monthlyPrice = computed(() => {
     const u = this.unit();
-    return u ? indicativeMonthlyPrice(u.dailyPrice, APP.monthlyPriceMultiplier) : 0;
+    return u ? indicativeMonthlyPrice(u.dailyPriceHalalas, APP.monthlyPriceMultiplier) : 0;
   });
 
   protected readonly canEdit = computed(() => this.unit()?.status !== UnitStatus.Archived);

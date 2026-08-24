@@ -32,8 +32,8 @@
             inputmode="numeric"
             min="0"
             dir="ltr"
-            [value]="filters().minPrice ?? ''"
-            (change)="setNumber('minPrice', $event)"
+            [value]="filters().minPriceSar ?? ''"
+            (change)="setNumber('minPriceSar', $event)"
           />
           <span class="box__unit">{{ i18n.t('common.currency') }}</span>
         </span>
@@ -48,8 +48,8 @@
             inputmode="numeric"
             min="0"
             dir="ltr"
-            [value]="filters().maxPrice ?? ''"
-            (change)="setNumber('maxPrice', $event)"
+            [value]="filters().maxPriceSar ?? ''"
+            (change)="setNumber('maxPriceSar', $event)"
           />
           <span class="box__unit">{{ i18n.t('common.currency') }}</span>
         </span>

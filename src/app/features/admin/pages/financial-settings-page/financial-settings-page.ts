@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
+import { bpsToPercent, percentToBps } from '@core/utils/money.utils';
 import type { CommissionException } from '@core/models/admin.model';
 import type { PlatformSettings } from '@core/models/operations.model';
 import { NotificationService } from '@core/services/notification.service';
@@ -61,9 +62,9 @@ export class AdminFinancialSettingsPage {
 
     switch (this.editing()) {
       case 'commission':
-        return `${percent(settings.commissionRate)} ${this.i18n.t('admin.percent')}`;
+        return `${bpsToPercent(settings.commissionRateBps)} ${this.i18n.t('admin.percent')}`;
       case 'vat':
-        return `${percent(settings.vatRate)} ${this.i18n.t('admin.percent')}`;
+        return `${bpsToPercent(settings.vatRateBps)} ${this.i18n.t('admin.percent')}`;
       case 'cycle':
         return this.i18n.t('finset.cycleValue', { hours: settings.payoutCycleHours });
       case 'autoApprove':
@@ -134,10 +135,10 @@ export class AdminFinancialSettingsPage {
     this.editing.set(field);
     switch (field) {
       case 'commission':
-        this.draft.set(String(percent(settings.commissionRate)));
+        this.draft.set(String(bpsToPercent(settings.commissionRateBps)));
         break;
       case 'vat':
-        this.draft.set(String(percent(settings.vatRate)));
+        this.draft.set(String(bpsToPercent(settings.vatRateBps)));
         break;
       case 'cycle':
         this.draft.set(String(settings.payoutCycleHours));
@@ -173,9 +174,9 @@ export class AdminFinancialSettingsPage {
     const value = Number(this.draft());
     const patch: Partial<PlatformSettings> =
       field === 'commission'
-        ? { commissionRate: value / 100 }
+        ? { commissionRateBps: percentToBps(value) }
         : field === 'vat'
-          ? { vatRate: value / 100 }
+          ? { vatRateBps: percentToBps(value) }
           : field === 'cycle'
             ? { payoutCycleHours: value }
             : { autoApproveBookings: !settings.autoApproveBookings };
@@ -201,8 +202,9 @@ export class AdminFinancialSettingsPage {
     });
   }
 
-  protected percentOf(rate: number): number {
-    return percent(rate);
+  /** Basis points to the whole percentage every label prints. */
+  protected percentOf(rateBps: number): number {
+    return bpsToPercent(rateBps);
   }
 
   private saveException(): void {
@@ -214,7 +216,7 @@ export class AdminFinancialSettingsPage {
       .addException({
         scope: this.exceptionScope(),
         targetId: this.exceptionTarget(),
-        rate: rate / 100,
+        rateBps: percentToBps(rate),
       })
       .subscribe({
         next: (row) => {
@@ -235,9 +237,4 @@ export class AdminFinancialSettingsPage {
     this.submitting.set(false);
     this.notifications.error(this.i18n.t('admin.actionFailed'));
   }
-}
-
-/** Rates are stored as fractions and shown as whole percentages. */
-function percent(rate: number): number {
-  return Math.round(rate * 10_000) / 100;
 }

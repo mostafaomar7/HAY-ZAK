@@ -106,13 +106,13 @@ export class BookingDetailPage {
     const booking = this.booking();
     if (!booking) return calculatePrice(0, 0);
     return {
-      dailyPrice: booking.dailyPriceSnapshot,
+      dailyPriceHalalas: booking.dailyPriceSnapshotHalalas,
       days: booking.daysCount,
-      subtotal: booking.subtotal,
-      commissionAmount: booking.commissionAmount,
-      vatAmount: booking.vatAmount,
-      totalAmount: booking.totalAmount,
-      netToLessor: booking.netToLessor ?? 0,
+      subtotalHalalas: booking.subtotalHalalas,
+      commissionHalalas: booking.commissionHalalas,
+      vatHalalas: booking.vatHalalas,
+      totalHalalas: booking.totalHalalas,
+      netToLessorHalalas: booking.netToLessorHalalas ?? 0,
     };
   });
 

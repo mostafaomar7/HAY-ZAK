@@ -198,19 +198,11 @@
 
 // Rounded on the outer edge only — logical, so it flips with the direction.
 .day--start {
-  background: linear-gradient(
-    to left,
-    var(--color-primary-soft) 50%,
-    transparent 50%
-  );
+  background: linear-gradient(to left, var(--color-primary-soft) 50%, transparent 50%);
 }
 
 .day--end {
-  background: linear-gradient(
-    to right,
-    var(--color-primary-soft) 50%,
-    transparent 50%
-  );
+  background: linear-gradient(to right, var(--color-primary-soft) 50%, transparent 50%);
 }
 
 // A single-day selection has no band to draw.

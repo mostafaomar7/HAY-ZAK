@@ -64,7 +64,12 @@ export class AdminListingsPage {
     { key: 'ownerName', label: this.i18n.t('listings.owner'), width: '1.1fr' },
     { key: 'categoryName', label: this.i18n.t('admin.category'), width: '0.8fr' },
     { key: 'cityName', label: this.i18n.t('admin.city'), width: '0.7fr' },
-    { key: 'dailyPrice', label: this.i18n.t('listings.price'), width: '0.9fr', sortable: true },
+    {
+      key: 'dailyPriceHalalas',
+      label: this.i18n.t('listings.price'),
+      width: '0.9fr',
+      sortable: true,
+    },
     { key: 'submittedAt', label: this.i18n.t('listings.sentAt'), width: '1.1fr', sortable: true },
     { key: 'waitingHours', label: this.i18n.t('listings.waiting'), width: '1.2fr', sortable: true },
     { key: 'action', label: this.i18n.t('admin.action'), width: '1fr' },
@@ -117,7 +122,7 @@ export class AdminListingsPage {
     this.review.listingQueue(this.list.params()).subscribe({
       next: (page) => {
         this.rows.set(page.items);
-        this.list.succeed(page.items.length, page.totalCount);
+        this.list.succeed(page.items.length, page.pagination.total);
         this.openLinkedRow();
       },
       error: () => this.list.fail(),

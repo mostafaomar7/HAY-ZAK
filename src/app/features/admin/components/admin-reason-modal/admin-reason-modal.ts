@@ -40,7 +40,7 @@ export class AdminReasonModal {
   readonly open = input(false, { transform: booleanAttribute });
   readonly queue = input.required<'listing' | 'booking'>();
   /** The amount that would be refunded — booking queue only. */
-  readonly refundAmount = input<number | null>(null);
+  readonly refundHalalas = input<number | null>(null);
   readonly submitting = input(false, { transform: booleanAttribute });
 
   readonly confirmed = output<ReviewDecision>();

@@ -20,7 +20,7 @@ export class AdminFinanceService {
   private readonly api = inject(ApiService);
 
   payments(params: Record<string, string>): Observable<PaginatedResponse<PaymentTrackingRow>> {
-    return this.api.get<PaginatedResponse<PaymentTrackingRow>>(API_ENDPOINTS.payments.tracking, {
+    return this.api.list<PaymentTrackingRow>(API_ENDPOINTS.payments.tracking, {
       params,
     });
   }

@@ -77,9 +77,9 @@ export interface TermsVersion {
  * at bootstrap rather than trusting the compiled-in defaults.
  */
 export interface PlatformSettings {
-  commissionRate: number;
+  commissionRateBps: number;
   commissionBearer: CommissionBearer;
-  vatRate: number;
+  vatRateBps: number;
   vatBase: VatBase;
   payoutCycleHours: number;
   approvalSlaHours: number;
