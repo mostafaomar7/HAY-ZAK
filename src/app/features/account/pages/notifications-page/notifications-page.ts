@@ -5,6 +5,7 @@ import type { AppNotification } from '@core/models/operations.model';
 import { NotificationInboxService } from '@core/services/notification-inbox.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
+import { UiPager } from '@shared/components/ui-pager/ui-pager';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 
 interface NotificationGroup {
@@ -24,7 +25,7 @@ interface NotificationGroup {
 @Component({
   selector: 'app-renter-notifications-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, UiButton, UiEmptyState, UiSkeleton],
+  imports: [RouterLink, UiButton, UiEmptyState, UiSkeleton, UiPager],
   templateUrl: './notifications-page.html',
   styleUrl: './notifications-page.scss',
 })
@@ -35,6 +36,10 @@ export class RenterNotificationsPage {
 
   protected readonly isLoading = this.inbox.isLoading;
   protected readonly unreadCount = this.inbox.unreadCount;
+  protected readonly total = this.inbox.total;
+  protected readonly pageSize = this.inbox.pageSize;
+  protected readonly page = this.inbox.page;
+  protected readonly shown = computed(() => this.inbox.notifications().length);
 
   protected readonly groups = computed<NotificationGroup[]>(() => {
     const byDay = new Map<string, AppNotification[]>();
@@ -55,7 +60,18 @@ export class RenterNotificationsPage {
   });
 
   constructor() {
-    this.inbox.load().subscribe({ error: () => undefined });
+    this.load();
+  }
+
+  protected onPage(page: number): void {
+    this.load(page);
+    // The groups are tall; paging without this leaves the reader at the bottom
+    // of a list they have not seen the top of.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private load(page = 1): void {
+    this.inbox.load(page).subscribe({ error: () => undefined });
   }
 
   protected markAllRead(): void {

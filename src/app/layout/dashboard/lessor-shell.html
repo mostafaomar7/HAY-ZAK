@@ -24,7 +24,13 @@
   }
 
   <div class="shell__main">
-    <app-lessor-topbar [title]="title()" [unreadCount]="unreadCount()" (openMenu)="openDrawer()" />
+    <app-lessor-topbar
+      [title]="title()"
+      [unreadCount]="unreadCount()"
+      [notifications]="recentNotifications()"
+      (openMenu)="openDrawer()"
+      (openNotification)="onOpenNotification($event)"
+    />
 
     @if (loading.isLoading()) {
       <div

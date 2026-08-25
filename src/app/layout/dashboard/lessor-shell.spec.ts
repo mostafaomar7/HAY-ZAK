@@ -101,4 +101,31 @@ describe('LessorShell (integration)', () => {
     expect(el.querySelector('.topbar__title')?.textContent?.trim()).toBe('الطلبات');
     expect(el.querySelectorAll('app-request-card').length).toBeGreaterThan(0);
   });
+
+  /**
+   * Written after a real regression, and one the badge hid: the shell computed
+   * the recent notifications and never passed them to the topbar, so the bell
+   * counted correctly — the count comes from the server on its own signal —
+   * while the panel underneath it always said "لا توجد إشعارات بعد".
+   *
+   * A count and a list that disagree is exactly the shape a missing binding
+   * takes, so this asserts the two together rather than either alone.
+   */
+  it('lists the loaded notifications under the bell, not just their count', async () => {
+    const el = await boot('/lessor/units');
+    await settle();
+
+    // `.topbar__bell` and not `.icon-btn`: the language switch is an icon
+    // button too, and it sits first.
+    const bell = el.querySelector<HTMLButtonElement>('.topbar__bell button');
+    expect(bell).withContext('the notifications bell').not.toBeNull();
+
+    bell?.click();
+    harness.detectChanges();
+
+    const panel = el.querySelector('.dropdown');
+    expect(panel).withContext('the notifications panel').not.toBeNull();
+    expect(panel?.querySelectorAll('.notif').length).toBeGreaterThan(0);
+    expect(panel?.textContent).not.toContain('لا توجد إشعارات بعد');
+  });
 });

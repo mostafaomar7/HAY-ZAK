@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import type { Pagination } from '../models/api-response.model';
 import type { AppNotification } from '../models/operations.model';
 import { ApiService } from './api.service';
 
@@ -17,10 +18,11 @@ interface WireNotification {
   createdAt: string;
 }
 
-/** `GET /me/notifications` — the rows and the badge in one response. */
+/** `GET /me/notifications` — the rows, the badge and the paging in one. */
 interface WireInbox {
   items: WireNotification[];
   unreadCount: number;
+  pagination?: Pagination;
 }
 
 /**
@@ -37,9 +39,18 @@ export class NotificationInboxService {
   private readonly items = signal<AppNotification[]>([]);
   private readonly loading = signal(false);
   private readonly unread = signal(0);
+  private readonly totalCount = signal(0);
+  private readonly size = signal(DEFAULT_PAGE_SIZE);
+  private readonly current = signal(1);
 
   readonly notifications = this.items.asReadonly();
   readonly isLoading = this.loading.asReadonly();
+
+  /** How many the account has in total — a hundred-odd is normal, so it pages. */
+  readonly total = this.totalCount.asReadonly();
+  /** The size the server used, not the one asked for: it caps at fifty. */
+  readonly pageSize = this.size.asReadonly();
+  readonly page = this.current.asReadonly();
 
   /**
    * The server's count, not a count of the rows on screen.
@@ -56,9 +67,13 @@ export class NotificationInboxService {
 
   load(page = 1): Observable<AppNotification[]> {
     this.loading.set(true);
+    this.current.set(page);
+
     return this.api.get<WireInbox>(API_ENDPOINTS.me.notifications, { params: { page } }).pipe(
       map((inbox) => {
         this.unread.set(inbox.unreadCount);
+        this.totalCount.set(inbox.pagination?.total ?? inbox.items?.length ?? 0);
+        this.size.set(inbox.pagination?.pageSize || DEFAULT_PAGE_SIZE);
         return (inbox.items ?? []).map(fromWire);
       }),
       tap({
@@ -94,6 +109,9 @@ export class NotificationInboxService {
     this.unread.set(0);
   }
 }
+
+/** What the endpoint pages by when it says nothing. */
+const DEFAULT_PAGE_SIZE = 20;
 
 /**
  * Where a notification points.

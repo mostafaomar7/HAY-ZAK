@@ -57,5 +57,13 @@
         </ul>
       </section>
     }
+
+    <app-ui-pager
+      [total]="total()"
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [shown]="shown()"
+      (pageChange)="onPage($event)"
+    />
   }
 </section>

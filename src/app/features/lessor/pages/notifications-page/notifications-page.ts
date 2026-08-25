@@ -4,6 +4,7 @@ import type { AppNotification } from '@core/models/operations.model';
 import { NotificationInboxService } from '@core/services/notification-inbox.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
+import { UiPager } from '@shared/components/ui-pager/ui-pager';
 
 interface NotificationGroup {
   label: string;
@@ -21,7 +22,7 @@ interface NotificationGroup {
 @Component({
   selector: 'app-notifications-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UiButton, UiEmptyState],
+  imports: [UiButton, UiEmptyState, UiPager],
   templateUrl: './notifications-page.html',
   styleUrl: './notifications-page.scss',
 })
@@ -31,6 +32,10 @@ export class NotificationsPage {
 
   protected readonly isLoading = this.inbox.isLoading;
   protected readonly unreadCount = this.inbox.unreadCount;
+  protected readonly total = this.inbox.total;
+  protected readonly pageSize = this.inbox.pageSize;
+  protected readonly page = this.inbox.page;
+  protected readonly shown = computed(() => this.inbox.notifications().length);
   protected readonly failed = signal(false);
 
   protected readonly groups = computed<NotificationGroup[]>(() => {
@@ -72,9 +77,16 @@ export class NotificationsPage {
     this.inbox.markAllRead();
   }
 
-  protected fetch(): void {
+  protected fetch(page = this.page()): void {
     this.failed.set(false);
-    this.inbox.load().subscribe({ error: () => this.failed.set(true) });
+    this.inbox.load(page).subscribe({ error: () => this.failed.set(true) });
+  }
+
+  protected onPage(page: number): void {
+    this.fetch(page);
+    // The groups are tall; paging without this leaves the reader at the bottom
+    // of a list they have not seen the top of.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
