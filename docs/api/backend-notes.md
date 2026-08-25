@@ -21,53 +21,124 @@ debugging anything in the client.**
 
 ## Seeded accounts — password `Hayzak@2026`
 
-| Mobile     | Role   | What it is for                                     |
-| ---------- | ------ | -------------------------------------------------- |
-| 0500000001 | RENTER | the ordinary case                                  |
-| 0500000002 | LESSOR | has a bank account                                 |
-| 0500000003 | LESSOR | `mobileVerifiedAt: null` — lands on `/auth/verify` |
-| 0500000004 | ADMIN  | the console                                        |
-| 0500000005 | RENTER | `SUSPENDED` — 403 `ACCOUNT_SUSPENDED`              |
+| Mobile     | Role   | `adminRole`  | What it is for                                     |
+| ---------- | ------ | ------------ | -------------------------------------------------- |
+| 0500000001 | RENTER | —            | the ordinary case                                  |
+| 0500000002 | LESSOR | —            | has units and a bank account                       |
+| 0500000003 | LESSOR | —            | `mobileVerifiedAt: null` — lands on `/auth/verify` |
+| 0500000004 | ADMIN  | SYSTEM_ADMIN | everything                                         |
+| 0500000005 | RENTER | —            | `SUSPENDED` — 403 `ACCOUNT_SUSPENDED`              |
+| 0500000006 | ADMIN  | OPERATIONS   | units and complaints, no money                     |
+| 0500000007 | ADMIN  | FINANCE      | transfers and refunds, no units                    |
 
-Five states, not five people. The database is shared: five wrong passwords lock
-an account for fifteen minutes, so tell the backend rather than waiting it out.
+Seven states, not seven people. The database is shared: five wrong passwords
+lock an account for fifteen minutes, so tell the backend rather than waiting it
+out. Run `npm run db:seed:dev` on the server after pulling.
 
-## Three places the server differs from the written guide
+## What is actually shipped
 
-These are not opinions — they are what the responses contain.
+Everything else in `api-endpoints.ts` answers **404** and is named only so the
+screen that will call it has somewhere to point.
 
-**1. Lists nest everything inside `data`.** The guide says rows in `data` and
-counts in `meta.pagination`. The server sends:
-
-```json
-{ "success": true, "data": { "items": [...], "pagination": {...} } }
+```
+auth      11 endpoints — terms, register, verify-mobile, resend-otp, login,
+                         refresh, logout, logout-all, forgot/reset-password, me
+public     3 — categories, cities (districts nested), prohibited-items
+me         2 — GET /me, PATCH /me, GET /me/notifications
+lessor     9 — units: list, create, detail, patch, images (post/delete),
+                       submit, archive, blocks (post/delete)
+admin      4 — units list, unit detail, approve, reject
 ```
 
-There is no `meta` key at all. `ApiService.list()` reads the server's shape and
-tolerates a bare array, so whichever way this is settled the client keeps
-working.
+`GET /lessor/units/:id` returns the images, the pin and the calendar nested, so
+the detail is **one** request, not three.
 
-**2. The page-size parameter is `pageSize`, not `limit`.** `?limit=2` is
-silently ignored and twelve rows come back. Sending an ignored parameter is
-worse than an error: the page looks like it worked.
+## Verified segregation of duties
 
-**3. `pagination` has no `hasNextPage` or `hasPrevPage`.** The guide says to
-drive infinite scroll from `hasNextPage`. The client derives it from
-`page < totalPages`, which is the same fact.
+The API refuses, not the guard. Straight from curl:
 
-## One conflict worth a decision before launch
+```
+FINANCE     → GET  /admin/units              403
+FINANCE     → POST /admin/units/:id/approve  403
+OPERATIONS  → GET  /admin/units              200
+```
 
-**The server has one `ADMIN` role; the console needs three.** The client's
-permission matrix distinguishes مدير النظام, مشرف العمليات and المسؤول المالي,
-and the console's navigation, its route guards and its screens are all built on
-that distinction — the client asked for the three by name.
+A hidden button is not access control. The client's guards exist only so a
+control that would be refused is never offered.
 
-Until the API splits them, everyone the server calls `ADMIN` is mapped to
-`SystemAdministrator`, which is the widest of the three, so nobody is locked
-out of a screen they should have. That is a **deliberate over-grant**: an
-operations supervisor currently holds finance permissions, which is a real
-segregation-of-duties problem rather than a cosmetic one. It needs either three
-role values on the wire or a permissions array on the user.
+## Settled
+
+All three of the earlier discrepancies were fixed on the server, and the roles
+question was answered better than either option put to it.
+
+- **Lists** nest rows and counts together inside `data`. No `meta` key.
+- **`limit` is now a 422**, naming the parameters it will accept. An unknown
+  *query* parameter is an error; an unknown *body* field is stripped in silence,
+  which is the mass-assignment guard and is deliberate — verified by posting
+  `{"role":"ADMIN"}` to `POST /lessor/units` and watching it vanish.
+- **`hasNextPage` and `hasPrevPage`** are sent. The client reads them and no
+  longer derives anything: two rules for one fact is one rule that drifts.
+- **Roles** are now three fields, each with one job:
+  `role` (RENTER/LESSOR/ADMIN) routes, `adminRole`
+  (SYSTEM_ADMIN/OPERATIONS/FINANCE) labels, and `permissions[]` decides. Guards
+  read `permissions` only — see `core/constants/permissions.ts`.
+
+The nine permissions the server issues:
+
+```
+units:review  users:manage  bookings:manage  complaints:manage
+payouts:approve  refunds:issue  settings:manage  reports:view  cms:manage
+```
+
+A renter and a lessor come back with `permissions: []`: their capabilities
+follow from `role`, and the client supplies those under a `client:` prefix so
+the nav and the routes have one vocabulary.
+
+## Open with the backend
+
+**1. Two console screens have no permission.** The reference lists and the audit
+trail are not covered by any of the nine, so both ride on `settings:manage` and
+are system-administrator only — narrower than SRS §5, which gives reference data
+to an operations supervisor. Under-granting is the safe direction to be wrong
+in, and the routing spec asserts the narrowing so it stays deliberate. Needs
+either `reference:manage` and `audit:view`, or a ruling that `settings:manage`
+is the right home.
+
+**2. The finance officer cannot configure commission.** `settings:manage` is
+system-administrator only on the server; SRS §5 gives financial configuration to
+the finance officer. One of the two is wrong.
+
+**3. Dates go in plain and come back as instants.** `POST /lessor/units/:id/blocks`
+refuses `2027-06-01T00:00:00.000Z` with "التاريخ يجب أن يكون بصيغة YYYY-MM-DD",
+then answers with `"startDate": "2027-05-01T00:00:00.000Z"`. The client narrows
+them back by taking the first ten characters — deliberately a string operation,
+because parsing a UTC midnight and reading its local day is a day out anywhere
+west of Greenwich. Symmetry would be better: send the date back as it was
+accepted.
+
+**4. Nothing can mark a notification read.** `GET /me/notifications` carries
+`readAt` and `unreadCount`, but `/me/notifications/:id/read` and `/read-all`
+both 404, so `readAt` is set by nothing and the badge can never be cleared. The
+client marks read locally and the state is lost on reload, which is at least
+visibly wrong rather than invisibly wrong.
+
+**5. Visiting hours are one window for the whole week.** The API stores
+`visitHoursFrom`/`visitHoursTo` as minutes since midnight; FR-UNT-06 and the
+design have a row per group of days. `unit-wire.ts` reduces a schedule to the
+widest window on the way out and expands it back as "every day" on the way in.
+A lessor who enters "Sunday to Thursday, 09:00–17:00" reads it back as "all
+week" — the days were never stored. Needs either a repeating structure on the
+wire, or a decision to drop the per-day table from the form.
+
+**6. No `isFullyBooked` on a unit.** FR-MKT-10 wants a "محجوزة بالكامل" badge on
+a search result. It cannot be derived client-side without fetching the
+availability of every card on the page, so the flag is optional in the model and
+the badge simply never appears against the real server.
+
+**7. The users list filter needs a decision.** The console filters by
+مستأجر/مؤجر and by the three kinds of administrator in one control. The client
+sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
+not shipped, so nothing has agreed to that yet.
 
 ## Shapes worth knowing
 
@@ -76,7 +147,7 @@ role values on the wire or a permissions array on the user.
 - `reset-password` returns no tokens either: every session including this one is
   revoked, so the only correct next screen is sign-in.
 - `logout` takes the **refresh** token, not a bearer.
-- `GET /auth/me` answers `{ user }`, not a bare user.
+- `GET /auth/me` and `GET /me` both answer `{ user }`, not a bare user.
 - `login` succeeds for an unverified account. Read `mobileVerifiedAt` and route
   to `/auth/verify` — every transactional endpoint refuses them until then.
 - Reference rows carry `nameAr` **and** `nameEn` together, so a language switch
@@ -86,3 +157,24 @@ role values on the wire or a permissions array on the user.
 - The mobile is normalised server-side: `0512345678` comes back
   `+966512345678`. The client sends what the user typed and validates nothing
   about its shape — a client-side check would only reject numbers the API takes.
+- `pageSize` is capped at **50**. Asking for more is a 422.
+- Unit statuses are `DRAFT PENDING_REVIEW REJECTED PUBLISHED SUSPENDED ARCHIVED`.
+  There is no `FULLY_BOOKED` — see open item 6.
+- There is **no `/admin/units/pending`**: `pending` is read as a unit identifier
+  and answers 422. The queue is `/admin/units?status=PENDING_REVIEW`.
+- There is **no `DELETE /lessor/units/:id`**. A unit is archived; bookings
+  reference it.
+- `POST /lessor/units/:id/submit` is refused with `UNIT_IMAGES_REQUIRED` under
+  two images.
+- Image upload is multipart under the field name **`images`** (several files per
+  call), and answers with the unit's whole image list.
+- Uploaded files are served from the API's **origin** — `http://host:4000/uploads/…`
+  — not from under `/api/v1`. Appending them to `apiUrl` is a 404 that renders
+  as a broken image.
+- Availability blocks are **half-open**: a block ending on the 10th and one
+  starting on the 10th are both accepted. Overlapping one is
+  `UNIT_DATES_UNAVAILABLE`.
+- `verificationStatus` is uppercase on the wire: `VERIFIED`, not `Verified`.
+- `GET /me` nests `identity` with `idNumberLast4` — not the `idNumberMasked` the
+  account screen models. That screen's endpoints are not shipped, so it has not
+  been reconciled.

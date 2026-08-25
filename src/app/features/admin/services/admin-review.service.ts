@@ -1,13 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
+import { UnitStatus } from '@core/enums/unit-status.enum';
+import { LanguageService } from '@core/i18n/language.service';
 import type { PaginatedResponse } from '@core/models/api-response.model';
 import type {
   ListingReviewDetail,
   ListingReviewRow,
   ReviewDecision,
 } from '@core/models/admin.model';
+import type { WireUnit } from '@core/models/unit-wire';
+import { fileUrl } from '@core/models/unit-wire';
 import { ApiService } from '@core/services/api.service';
 
 /**
@@ -27,16 +32,27 @@ import { ApiService } from '@core/services/api.service';
 @Injectable()
 export class AdminReviewService {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(LanguageService);
 
-  // ── Listings ───────────────────────────────────────────────────────────
+  /**
+   * The queue is `/admin/units` filtered, not a `/pending` route of its own —
+   * `pending` in that position is read as a unit identifier and answers 422.
+   *
+   * The same endpoint reaches every other status, which is why the filter is a
+   * parameter the caller may override rather than a constant buried here.
+   */
   listingQueue(params: Record<string, string>): Observable<PaginatedResponse<ListingReviewRow>> {
-    return this.api.list<ListingReviewRow>(API_ENDPOINTS.admin.pendingUnits, {
-      params,
-    });
+    return this.api
+      .list<WireUnit>(API_ENDPOINTS.admin.units, {
+        params: { status: UnitStatus.PendingReview, ...params },
+      })
+      .pipe(map((page) => ({ ...page, items: page.items.map((unit) => this.toRow(unit)) })));
   }
 
   listing(id: string): Observable<ListingReviewDetail> {
-    return this.api.get<ListingReviewDetail>(API_ENDPOINTS.admin.unitReviewById(id));
+    return this.api
+      .get<WireUnit>(API_ENDPOINTS.admin.unitById(id))
+      .pipe(map((unit) => this.toDetail(unit)));
   }
 
   approveListing(id: string): Observable<void> {
@@ -59,4 +75,58 @@ export class AdminReviewService {
   rejectListings(ids: readonly string[], decision: ReviewDecision): Observable<void[]> {
     return forkJoin(ids.map((id) => this.rejectListing(id, decision)));
   }
+
+  /**
+   * The API sends a unit; the queue shows a review row.
+   *
+   * Three of its fields are not on the wire and are derived here, each stated
+   * rather than assumed:
+   *
+   * - `submittedAt` is `updatedAt`. Submitting is the last thing that touches a
+   *   unit on its way into this queue, so for a PENDING_REVIEW row the two are
+   *   the same moment.
+   * - `waitingHours` is counted from it. The server does not send a figure, and
+   *   an operator sorting by "longest waiting" needs one.
+   * - `isEdit` is "has been reviewed before" — a unit with a `reviewedAt` is
+   *   back for a second look, which is what the badge means.
+   */
+  private toRow(unit: WireUnit): ListingReviewRow {
+    const submittedAt = unit.updatedAt;
+
+    return {
+      id: unit.id,
+      unitTitle: unit.title,
+      ownerName: unit.lessor?.fullName ?? '',
+      categoryName: this.i18n.pick(unit.category),
+      cityName: this.i18n.pick(unit.city),
+      dailyPriceHalalas: unit.dailyPriceHalalas,
+      areaSqm: unit.areaSqm,
+      submittedAt,
+      waitingHours: hoursSince(submittedAt),
+      isEdit: !!unit.reviewedAt,
+    };
+  }
+
+  private toDetail(unit: WireUnit): ListingReviewDetail {
+    return {
+      ...this.toRow(unit),
+      description: unit.description,
+      imageUrls: (unit.images ?? []).map((image) => fileUrl(image.url)),
+      districtName: this.i18n.pick(unit.district),
+      owner: {
+        name: unit.lessor?.fullName ?? '',
+        mobile: unit.lessor?.mobile ?? '',
+        // The API does not report whether the lessor's identity is verified on
+        // this projection. Claiming "verified" without being told would be the
+        // one wrong answer, so an unknown reads as not verified.
+        isVerified: false,
+      },
+    };
+  }
+}
+
+/** Whole hours between an instant and now, never negative. */
+function hoursSince(iso: string): number {
+  const elapsed = Date.now() - new Date(iso).getTime();
+  return Math.max(0, Math.floor(elapsed / 3_600_000));
 }

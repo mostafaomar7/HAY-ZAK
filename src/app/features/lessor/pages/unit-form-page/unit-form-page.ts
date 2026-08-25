@@ -11,7 +11,7 @@ import {
 import type { AbstractControl, ValidationErrors, FormArray, FormGroup } from '@angular/forms';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { type Observable, forkJoin, of } from 'rxjs';
+import { type Observable, of } from 'rxjs';
 import { finalize, map, switchMap, tap } from 'rxjs/operators';
 import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
@@ -384,12 +384,20 @@ export class UnitFormPage {
     const pending = this.images();
     if (!pending.length) return of(null);
 
-    return forkJoin(pending.map((image) => this.units.uploadImage(unitId, image.file))).pipe(
-      tap(() => {
-        pending.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-        this.images.set([]);
-      }),
-    );
+    // One request with every file, not one each: the endpoint takes them
+    // together and answers with the order it assigned, which parallel uploads
+    // would have raced for.
+    return this.units
+      .uploadImages(
+        unitId,
+        pending.map((image) => image.file),
+      )
+      .pipe(
+        tap(() => {
+          pending.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+          this.images.set([]);
+        }),
+      );
   }
 
   private toPayload(): Partial<UnitRequest> {

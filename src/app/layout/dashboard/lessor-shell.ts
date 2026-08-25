@@ -71,7 +71,7 @@ export class LessorShell {
 
   /** Opening a notification marks it read, so the badge drops immediately. */
   protected onOpenNotification(item: AppNotification): void {
-    if (!item.isRead) this.inbox.markRead(item.id).subscribe();
+    if (!item.isRead) this.inbox.markRead(item.id);
   }
 
   protected openDrawer(): void {

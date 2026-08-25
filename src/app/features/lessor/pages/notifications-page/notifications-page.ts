@@ -64,12 +64,12 @@ export class NotificationsPage {
   }
 
   protected open(item: AppNotification): void {
-    if (!item.isRead) this.inbox.markRead(item.id).subscribe();
+    if (!item.isRead) this.inbox.markRead(item.id);
     if (item.targetUrl) void this.router.navigateByUrl(item.targetUrl);
   }
 
   protected markAllRead(): void {
-    this.inbox.markAllRead().subscribe();
+    this.inbox.markAllRead();
   }
 
   protected fetch(): void {

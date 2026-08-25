@@ -4,8 +4,10 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
+import { toWireBlock, toWireUnit } from './wire';
 import {
   MOCK_ADMIN_KPIS,
   MOCK_ADMIN_RENTER_DETAIL,
@@ -20,8 +22,7 @@ import {
   MOCK_COMMISSION_EXCEPTIONS,
   MOCK_COMPLAINTS,
   MOCK_COMPLAINT_DETAIL,
-  MOCK_LISTING_DETAIL,
-  MOCK_LISTING_QUEUE,
+  MOCK_REVIEW_UNITS,
   MOCK_PAYMENT_ROWS,
   MOCK_PAYOUT_GROUPS,
   MOCK_REF_LISTS,
@@ -186,13 +187,21 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // disagree about what the new state is.
   if (path === API_ENDPOINTS.admin.dashboard) return ok(MOCK_ADMIN_KPIS);
 
-  if (path === API_ENDPOINTS.admin.pendingUnits) return paginate(MOCK_LISTING_QUEUE);
-  if (/^\/admin\/units\/[^/]+\/review-detail$/.test(path)) {
-    const id = path.split('/')[3];
-    const row = MOCK_LISTING_QUEUE.find((r) => r.id === id);
-    return ok(row ? { ...MOCK_LISTING_DETAIL, ...row } : MOCK_LISTING_DETAIL);
-  }
   if (/^\/admin\/units\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
+  if (/^\/admin\/units\/[^/]+$/.test(path) && method === 'GET') {
+    const id = path.split('/')[3];
+    const unit = MOCK_REVIEW_UNITS.find((u) => u.id === id) ?? MOCK_REVIEW_UNITS[0];
+    return ok(toWireUnit(unit, { detail: true, availability: MOCK_AVAILABILITY }));
+  }
+  // The queue is this endpoint filtered — there is no /admin/units/pending, and
+  // asking for one answers 422 with `pending` read as a unit identifier.
+  if (path === API_ENDPOINTS.admin.units && method === 'GET') {
+    const status = new URLSearchParams(query).get('status');
+    const units = status
+      ? MOCK_REVIEW_UNITS.filter((unit) => unit.status === status)
+      : MOCK_REVIEW_UNITS;
+    return paginate(units.map((unit) => toWireUnit(unit)));
+  }
 
   if (/^\/admin\/bookings\/[^/]+\/review-detail$/.test(path)) {
     const id = path.split('/')[3];
@@ -307,9 +316,52 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (path === API_ENDPOINTS.auth.changePassword) return ok(null);
   if (path.startsWith(API_ENDPOINTS.auth.me) && method !== 'GET') return ok(null);
 
-  if (path.startsWith(API_ENDPOINTS.lessor.units)) {
-    if (path.includes('publish-eligibility')) return ok({ allowed: true, reasons: [] });
-    if (method === 'GET') return paginate(filterUnits(query));
+  // ── The lessor's own spaces ────────────────────────────────────────────
+  // Every one of these is a route the server actually serves, answering in the
+  // shape it actually answers in: `unit-wire.ts` is exercised here or nowhere.
+  if (/^\/lessor\/units\/[^/]+\/(submit|archive)$/.test(path) && method === 'POST') {
+    const unit = unitById(path.split('/')[3]);
+    const status = path.endsWith('/archive') ? UnitStatus.Archived : UnitStatus.PendingReview;
+    return ok(toWireUnit({ ...unit, status }, { detail: true }));
+  }
+  if (/^\/lessor\/units\/[^/]+\/blocks\/[^/]+$/.test(path) && method === 'DELETE') {
+    return ok(null);
+  }
+  if (/^\/lessor\/units\/[^/]+\/blocks$/.test(path) && method === 'POST') {
+    const block = (payload ?? {}) as { startDate: string; endDate: string; note?: string };
+    return ok(
+      toWireBlock({
+        id: `blk-${block.startDate}`,
+        startDate: block.startDate,
+        endDate: block.endDate,
+        reason: AvailabilityBlockReason.ManualBlock,
+        note: block.note ?? null,
+      }),
+    );
+  }
+  if (/^\/lessor\/units\/[^/]+\/images\/[^/]+$/.test(path) && method === 'DELETE') {
+    return ok(null);
+  }
+  if (/^\/lessor\/units\/[^/]+\/images$/.test(path) && method === 'POST') {
+    // The endpoint answers with the unit's whole image list, not just the new
+    // rows — the client reads the order the server assigned.
+    return ok({ images: toWireUnit(unitById(path.split('/')[3]), { detail: true }).images ?? [] });
+  }
+  if (/^\/lessor\/units\/[^/]+$/.test(path) && (method === 'GET' || method === 'PATCH')) {
+    const unit = unitById(path.split('/')[3]);
+    return ok(toWireUnit(unit, { detail: true, availability: MOCK_AVAILABILITY }));
+  }
+  if (path === API_ENDPOINTS.lessor.units) {
+    // A create answers with the detail shape — pin and images included, the
+    // latter empty. The list shape here would hand the form a unit with no
+    // `images` array to append the uploads to.
+    if (method === 'POST') {
+      return ok(toWireUnit({ ...MOCK_UNITS[4], status: UnitStatus.Draft }, { detail: true }));
+    }
+    if (method === 'GET') return paginate(filterUnits(query).map((unit) => toWireUnit(unit)));
+  }
+  if (path.startsWith(API_ENDPOINTS.lessor.units) && path.includes('publish-eligibility')) {
+    return ok({ allowed: true, reasons: [] });
   }
 
   if (path.startsWith(API_ENDPOINTS.lessor.bookingRequests) && method === 'GET') {
@@ -319,24 +371,27 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Notifications ──────────────────────────────────────────────────────
   // Both inboxes are served from the same route; the renter fixtures win when a
   // renter session is active, which in development is the seeded one.
-  if (path === API_ENDPOINTS.notifications.base) {
-    return ok([...MOCK_RENTER_NOTIFICATIONS, ...MOCK_NOTIFICATIONS]);
+  // Rows and the badge in one response, as the server sends them — a mock that
+  // answered with a bare array would let the badge be wired to the wrong number
+  // and still look right here.
+  if (path === API_ENDPOINTS.me.notifications) {
+    const items = [...MOCK_RENTER_NOTIFICATIONS, ...MOCK_NOTIFICATIONS].map((n) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      body: n.body,
+      reference: n.targetUrl ? referenceFor(n.targetUrl) : null,
+      readAt: n.isRead ? n.createdAt : null,
+      createdAt: n.createdAt,
+    }));
+
+    return ok({ items, unreadCount: items.filter((n) => !n.readAt).length });
   }
-  if (path.startsWith('/notifications/') && method === 'POST') return ok(null);
 
   // ── Units ──────────────────────────────────────────────────────────────
-  if (/^\/units\/[^/]+\/availability$/.test(path) && method === 'GET') {
-    return ok(MOCK_AVAILABILITY);
-  }
-  if (/^\/units\/[^/]+\/(submit|archive|suspension-request)$/.test(path)) {
-    return ok(MOCK_UNITS[0]);
-  }
-  if (/^\/units\/[^/]+$/.test(path) && method === 'GET') {
-    const id = path.split('/')[2];
-    return ok(MOCK_UNITS.find((u) => u.id === id) ?? MOCK_UNITS[0]);
-  }
-  if (path === API_ENDPOINTS.units.base && method === 'POST') return ok(MOCK_UNITS[4]);
-  if (/^\/units\/[^/]+$/.test(path) && method === 'PUT') return ok(MOCK_UNITS[4]);
+  // FR-LSR-07 — the screen exists, the endpoint does not yet. Answered here so
+  // the demo is whole; against the real server it is a 404.
+  if (/^\/lessor\/units\/[^/]+\/suspension-request$/.test(path)) return ok(null);
 
   // ── Bookings ───────────────────────────────────────────────────────────
   if (/^\/bookings\/[^/]+$/.test(path) && method === 'GET') {
@@ -408,6 +463,26 @@ function quote(query: string) {
 function filterUnits(query: string) {
   const status = new URLSearchParams(query).get('status');
   return status ? MOCK_UNITS.filter((u) => u.status === status) : MOCK_UNITS;
+}
+
+/**
+ * What a notification is about, read back out of the fixture's deep link.
+ *
+ * The API sends the reference and the client builds the URL; the fixtures were
+ * written the other way round, so this reverses them rather than rewriting
+ * thirty rows to say the same thing twice.
+ */
+function referenceFor(targetUrl: string): { type: string; id: string } | null {
+  const unit = /\/units\/([^/]+)/.exec(targetUrl);
+  if (unit) return { type: 'unit', id: unit[1] };
+
+  const booking = /\/(?:my-bookings|booking|requests)\/([^/]+)/.exec(targetUrl);
+  return booking ? { type: 'booking', id: booking[1] } : null;
+}
+
+/** An unknown id falls back to the first fixture, so no route dead-ends. */
+function unitById(id: string) {
+  return MOCK_UNITS.find((unit) => unit.id === id) ?? MOCK_UNITS[0];
 }
 
 function dashboard() {

@@ -1,19 +1,21 @@
-/** FR-UNT-09. */
+/**
+ * FR-UNT-09, with the wire values the API sends.
+ *
+ * Six states, and no `FullyBooked` among them: whether a unit has free dates
+ * left is a fact about its calendar, not a column on the row, and the server
+ * reports it separately — see `Unit.isFullyBooked`.
+ */
 export enum UnitStatus {
-  Draft = 'Draft',
-  PendingReview = 'PendingReview',
-  Rejected = 'Rejected',
-  Published = 'Published',
-  FullyBooked = 'FullyBooked',
-  Suspended = 'Suspended',
-  Archived = 'Archived',
+  Draft = 'DRAFT',
+  PendingReview = 'PENDING_REVIEW',
+  Rejected = 'REJECTED',
+  Published = 'PUBLISHED',
+  Suspended = 'SUSPENDED',
+  Archived = 'ARCHIVED',
 }
 
 /** Only these appear in the marketplace (FR-UNT-07). */
-export const PUBLIC_UNIT_STATUSES: readonly UnitStatus[] = [
-  UnitStatus.Published,
-  UnitStatus.FullyBooked,
-] as const;
+export const PUBLIC_UNIT_STATUSES: readonly UnitStatus[] = [UnitStatus.Published] as const;
 
 /**
  * FR-UNT-04 — seeded from the admin panel, so this enum is a typed convenience
@@ -29,9 +31,9 @@ export enum UnitCategoryCode {
   Garage = 'garage',
 }
 
-/** unit_availability.reason. */
+/** unit_availability.reason, as the API spells it. */
 export enum AvailabilityBlockReason {
-  Booking = 'Booking',
-  ManualBlock = 'ManualBlock',
-  Suspension = 'Suspension',
+  Booking = 'BOOKING',
+  ManualBlock = 'MANUAL_BLOCK',
+  Suspension = 'SUSPENSION',
 }

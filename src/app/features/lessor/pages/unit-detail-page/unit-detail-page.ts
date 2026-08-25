@@ -74,7 +74,7 @@ export class UnitDetailPage {
   protected readonly canEdit = computed(() => this.unit()?.status !== UnitStatus.Archived);
 
   /** FR-UNT-10 — the price is frozen while a booking is live against the unit. */
-  protected readonly priceLocked = computed(() => this.unit()?.status === UnitStatus.FullyBooked);
+  protected readonly priceLocked = computed(() => this.unit()?.isFullyBooked === true);
 
   protected readonly canSuspend = computed(() => this.unit()?.status === UnitStatus.Published);
 
@@ -121,15 +121,13 @@ export class UnitDetailPage {
     this.failed.set(false);
     this.isLoading.set(true);
 
-    this.service.byId(id).subscribe({
-      next: (unit) => {
+    // One request: the calendar arrives inside the unit's detail, so there is
+    // no second call that could answer for a different unit.
+    this.service.detail(id).subscribe({
+      next: ({ unit, availability }) => {
         this.unit.set(unit);
+        this.blocks.set(availability);
         this.isLoading.set(false);
-        this.service.availability(unit.id).subscribe({
-          next: (blocks) => this.blocks.set(blocks),
-          // A missing calendar must not blank the whole page.
-          error: () => this.blocks.set([]),
-        });
       },
       error: () => {
         this.failed.set(true);

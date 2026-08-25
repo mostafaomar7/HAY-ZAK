@@ -40,12 +40,25 @@ export class UnitCard {
     () => this.unit().status === UnitStatus.PendingReview,
   );
 
-  /** Only a published unit can be paused — a booked one is already committed. */
-  protected readonly canSuspend = computed(() => this.unit().status === UnitStatus.Published);
+  /**
+   * Only a published unit with free dates can be paused — a fully booked one is
+   * already committed to the renters holding it.
+   *
+   * The second half of that is not the status: a fully booked unit is
+   * PUBLISHED, so checking the status alone would offer the control on exactly
+   * the units the rule exists to exclude.
+   */
+  protected readonly canSuspend = computed(
+    () => this.unit().status === UnitStatus.Published && !this.unit().isFullyBooked,
+  );
 
   protected readonly canEdit = computed(() => this.unit().status !== UnitStatus.Archived);
 
   protected readonly categoryLabel = computed(() => this.i18n.pick(this.unit().category));
 
-  protected readonly coverImage = computed(() => this.unit().images?.[0]?.url);
+  // `coverUrl` first: a list row carries a cover and a count rather than the
+  // images themselves, so reading `images[0]` shows nothing on every card.
+  protected readonly coverImage = computed(
+    () => this.unit().coverUrl ?? this.unit().images?.[0]?.url,
+  );
 }

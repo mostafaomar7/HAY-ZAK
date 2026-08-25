@@ -30,12 +30,28 @@ export interface DisputeAttachment {
 /** ERD-5 `notifications` — the in-app inbox. */
 export interface AppNotification {
   id: string;
-  type: NotificationType;
+  /**
+   * Widened past the enum on purpose: the server adds a type whenever a module
+   * ships, and a value this build has not heard of must still render. The title
+   * and body arrive already written, so nothing needs to recognise it.
+   */
+  type: NotificationType | string;
   title: string;
   body: string;
-  channel: NotificationChannel;
+  /** In-app only for now; the API sends no channel on the inbox. */
+  channel?: NotificationChannel;
+  /**
+   * When it was read, or null.
+   *
+   * `readAt` rather than `isRead` because that is what the API stores, and
+   * because "read at 09:14" is a fact a boolean throws away. `isRead` below is
+   * derived from it.
+   */
+  readAt?: string | null;
   isRead: boolean;
-  /** Deep link into the related booking or unit. */
+  /** What it is about — the deep link is built from this, not sent. */
+  reference?: { type: string; id: string };
+  /** Deep link into the related booking or unit, resolved by the client. */
   targetUrl?: string;
   createdAt: string;
 }

@@ -43,12 +43,15 @@ export enum AccountStatus {
   Locked = 'LOCKED',
 }
 
-/** user_identities.verification_status / lessor_bank_accounts.verification_status. */
+/**
+ * user_identities.verification_status / lessor_bank_accounts.verification_status,
+ * with the wire values — `GET /me` sends `"VERIFIED"`, not `"Verified"`.
+ */
 export enum VerificationStatus {
-  Unverified = 'Unverified',
-  Pending = 'Pending',
-  Verified = 'Verified',
-  Failed = 'Failed',
+  Unverified = 'UNVERIFIED',
+  Pending = 'PENDING',
+  Verified = 'VERIFIED',
+  Failed = 'FAILED',
 }
 
 export enum IdType {

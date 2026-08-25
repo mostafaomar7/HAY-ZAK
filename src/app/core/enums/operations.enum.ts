@@ -12,17 +12,31 @@ export enum NotificationChannel {
   InApp = 'InApp',
 }
 
+/**
+ * The `type` on a notification, dotted as the API sends it.
+ *
+ * **Open, not closed.** The four unit types were read off the running server;
+ * the rest follow its convention but have not been seen yet, because only the
+ * units module has shipped. Nothing branches on the value — the server sends the
+ * title and body already written and translated — so an unknown type renders
+ * correctly, and the model's field is widened to `string` to say so.
+ */
 export enum NotificationType {
-  AccountOtp = 'AccountOtp',
-  ListingApproved = 'ListingApproved',
-  ListingRejected = 'ListingRejected',
-  BookingPaid = 'BookingPaid',
-  BookingApproved = 'BookingApproved',
-  BookingRejected = 'BookingRejected',
-  BookingStartReminder = 'BookingStartReminder',
-  BookingEndReminder = 'BookingEndReminder',
-  BookingCancelled = 'BookingCancelled',
-  PayoutExecuted = 'PayoutExecuted',
+  // Verified against the API.
+  ListingApproved = 'unit.approved',
+  ListingRejected = 'unit.rejected',
+  ListingSuspended = 'unit.suspended',
+  ListingReinstated = 'unit.reinstated',
+
+  // Provisional — the modules that raise these are not shipped.
+  AccountOtp = 'account.otp',
+  BookingPaid = 'booking.paid',
+  BookingApproved = 'booking.approved',
+  BookingRejected = 'booking.rejected',
+  BookingStartReminder = 'booking.start_reminder',
+  BookingEndReminder = 'booking.end_reminder',
+  BookingCancelled = 'booking.cancelled',
+  PayoutExecuted = 'payout.executed',
 }
 
 export enum OtpChannel {

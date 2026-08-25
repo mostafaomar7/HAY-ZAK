@@ -55,9 +55,17 @@ export interface VisitWindow {
 
 export interface UnitImage {
   id: string;
+  /**
+   * Server-relative, e.g. `/uploads/units/<id>/<file>.jpg`.
+   *
+   * Served from the API's **origin**, not from under `/api/v1` — resolve it
+   * with `fileUrl()` rather than by concatenating `environment.apiUrl`, which
+   * would produce a 404 that looks like a missing image.
+   */
   url: string;
   sortOrder: number;
   sizeBytes: number;
+  contentType?: string;
 }
 
 /** ERD-2 `units` — the smallest bookable object. */
@@ -88,6 +96,15 @@ export interface Unit {
   /** Metres from the search origin, when the query supplied one. */
   distanceKm?: number;
 
+  /**
+   * The design's per-day table (FR-UNT-06).
+   *
+   * The API stores **one** window for the whole week — `visitHoursFrom` and
+   * `visitHoursTo`, minutes since midnight — so a schedule that came from the
+   * server is always a single row covering every day. `unit-wire.ts` does the
+   * conversion and is the only place that knows about it; the gap is logged in
+   * `docs/api/backend-notes.md`.
+   */
   visitSchedule: VisitWindow[];
   minDays?: number;
   maxDays?: number;
@@ -108,18 +125,45 @@ export interface Unit {
   perks?: string[];
 
   images: UnitImage[];
+  /** The first image, when the list projection sends one instead of them all. */
+  coverUrl?: string;
+  imageCount?: number;
   status: UnitStatus;
+  /**
+   * No free dates in the window the marketplace searches (FR-MKT-10).
+   *
+   * A fact about the calendar rather than a status, which is why it is a flag
+   * and not a seventh `UnitStatus`: a unit can be published and unbookable this
+   * month and free the next, and nothing about the listing changed.
+   *
+   * The API does not send it yet, so it is optional and absent reads as "not
+   * fully booked" — the badge simply does not appear. Deriving it here is not
+   * an option: it would mean fetching the availability of every card in a
+   * results page to render a label.
+   */
+  isFullyBooked?: boolean;
   rejectionReason?: string;
   publishedAt?: string;
+  reviewedAt?: string;
   createdAt: string;
 }
 
 /** ERD-2 `unit_availability` — date ranges, never a binary flag (FR-UNT-08). */
 export interface UnitAvailabilityBlock {
   id: string;
+  /**
+   * Plain `YYYY-MM-DD`, half-open: `endDate` is the first free day.
+   *
+   * The server accepts only plain dates and answers 422 for an instant, but
+   * *returns* instants at UTC midnight. `unit-wire.ts` narrows them back on the
+   * way in — parsing one with `new Date()` and reading its local day is the
+   * classic off-by-one, and the platform runs in +03.
+   */
   startDate: string;
   endDate: string;
   reason: AvailabilityBlockReason;
+  /** The lessor's own note on a manual block. */
+  note?: string | null;
   bookingId?: string;
 }
 
@@ -142,6 +186,15 @@ export interface UnitRequest {
    */
   addressLine: string;
   postalCode?: string;
+  /**
+   * The design's per-day table (FR-UNT-06).
+   *
+   * The API stores **one** window for the whole week — `visitHoursFrom` and
+   * `visitHoursTo`, minutes since midnight — so a schedule that came from the
+   * server is always a single row covering every day. `unit-wire.ts` does the
+   * conversion and is the only place that knows about it; the gap is logged in
+   * `docs/api/backend-notes.md`.
+   */
   visitSchedule: VisitWindow[];
   minDays?: number;
   maxDays?: number;

@@ -72,6 +72,7 @@ function marketUnit(
   perks: string[],
   photos: string[],
   status: UnitStatus = UnitStatus.Published,
+  isFullyBooked = false,
 ): Unit {
   return {
     id,
@@ -112,6 +113,7 @@ function marketUnit(
       sizeBytes: 0,
     })),
     status,
+    isFullyBooked,
     createdAt: '2026-07-28T09:00:00Z',
   };
 }
@@ -232,8 +234,10 @@ export const MOCK_MARKET_UNITS: Unit[] = [
     46.62,
     ['مكيّفة'],
     ['photo-1587293852726-70cdb56c2866', 'photo-1553413077-190dd305871c'],
-    // FR-MKT-10 — a booked unit is still listed but cannot be booked now.
-    UnitStatus.FullyBooked,
+    // FR-MKT-10 — a booked unit is still listed but cannot be booked now. It
+    // stays PUBLISHED: having no free dates is a fact about the calendar.
+    UnitStatus.Published,
+    true,
   ),
 ];
 

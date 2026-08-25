@@ -10,7 +10,6 @@ import {
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
 import type { Unit } from '@core/models/unit.model';
-import { UnitStatus } from '@core/enums/unit-status.enum';
 import { indicativeMonthlyPrice } from '@core/utils/money.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
@@ -57,9 +56,10 @@ export class UnitResultCard {
   protected readonly periodTotal = computed(() => this.unit().dailyPriceHalalas * this.days());
 
   /** FR-MKT-10 — a fully-booked unit stays listed but cannot be booked now. */
-  protected readonly isBooked = computed(() => this.unit().status === UnitStatus.FullyBooked);
+  protected readonly isBooked = computed(() => this.unit().isFullyBooked === true);
 
-  protected readonly cover = computed(() => this.unit().images[0]?.url);
+  // `coverUrl` first: a search result carries a cover, not the image list.
+  protected readonly cover = computed(() => this.unit().coverUrl ?? this.unit().images[0]?.url);
 
   protected readonly place = computed(() => {
     const unit = this.unit();

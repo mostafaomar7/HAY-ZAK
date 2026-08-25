@@ -9,6 +9,7 @@ import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { AdminKpiCard } from '../../components/admin-kpi-card/admin-kpi-card';
+import { AdminReviewService } from '../../services/admin-review.service';
 import { AdminSettingsStore } from '../../services/admin-settings.store';
 
 /**
@@ -25,9 +26,13 @@ import { AdminSettingsStore } from '../../services/admin-settings.store';
   imports: [RouterLink, AdminKpiCard, UiButton, UiEmptyState, UiSkeleton],
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
+  // The queue below the indicators is the same queue the review screen shows,
+  // read through the same service so the two cannot disagree about it.
+  providers: [AdminReviewService],
 })
 export class AdminDashboardPage {
   private readonly api = inject(ApiService);
+  private readonly review = inject(AdminReviewService);
 
   protected readonly i18n = inject(LanguageService);
   protected readonly settings = inject(AdminSettingsStore);
@@ -110,8 +115,8 @@ export class AdminDashboardPage {
 
     // The queue fails independently of the indicators above it: a broken
     // review service must not blank the figures beside it.
-    this.api
-      .list<ListingReviewRow>(API_ENDPOINTS.admin.pendingUnits)
+    this.review
+      .listingQueue({})
       .subscribe({ next: (page) => this.listings.set(page.items), error: () => undefined });
   }
 

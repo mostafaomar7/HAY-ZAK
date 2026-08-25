@@ -59,11 +59,11 @@ export class RenterNotificationsPage {
   }
 
   protected markAllRead(): void {
-    this.inbox.markAllRead().subscribe({ error: () => undefined });
+    this.inbox.markAllRead();
   }
 
   protected open(item: AppNotification): void {
-    if (!item.isRead) this.inbox.markRead(item.id).subscribe({ error: () => undefined });
+    if (!item.isRead) this.inbox.markRead(item.id);
   }
 
   private locale(): string {

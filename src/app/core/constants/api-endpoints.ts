@@ -54,16 +54,37 @@ export const API_ENDPOINTS = {
     delete: '/account',
   },
 
-  /** FR-LSR */
+  /**
+   * FR-LSR. The units journey is shipped and verified against the server; the
+   * rest of this group is not, and a call to one answers 404.
+   *
+   * Note what is **not** here. There is no `DELETE /lessor/units/:id` — a unit
+   * is archived, never deleted, because bookings reference it. There is no
+   * separate availability endpoint either: the calendar arrives inside the
+   * unit's detail, so reading it is one request rather than two.
+   */
   lessor: {
-    dashboard: '/lessor/dashboard',
     units: '/lessor/units',
+    unitById: (id: string) => `/lessor/units/${id}`,
+    /** Multipart, field name `images`, several files per call. */
+    unitImages: (id: string) => `/lessor/units/${id}/images`,
+    unitImageById: (unitId: string, imageId: string) => `/lessor/units/${unitId}/images/${imageId}`,
+    /** Draft or rejected to PENDING_REVIEW. Refused under two images. */
+    submitUnit: (id: string) => `/lessor/units/${id}/submit`,
+    archiveUnit: (id: string) => `/lessor/units/${id}/archive`,
+    /** Manual date blocks. Plain dates, half-open. */
+    unitBlocks: (id: string) => `/lessor/units/${id}/blocks`,
+    unitBlockById: (unitId: string, blockId: string) => `/lessor/units/${unitId}/blocks/${blockId}`,
+
+    // ── Not shipped yet; the screens that call them are behind these names.
+    dashboard: '/lessor/dashboard',
     bookingRequests: '/lessor/booking-requests',
     earnings: '/lessor/earnings',
     earningsTable: '/lessor/earnings/rows',
     earningsStatement: '/lessor/earnings/statement',
     bankAccounts: '/lessor/bank-accounts',
     bankAccountById: (id: string) => `/lessor/bank-accounts/${id}`,
+    requestUnitSuspension: (id: string) => `/lessor/units/${id}/suspension-request`,
   },
 
   /** FR-UNT */
@@ -125,18 +146,28 @@ export const API_ENDPOINTS = {
     ledger: '/admin/ledger',
   },
 
-  /** FR-ADM */
+  /**
+   * FR-ADM. Only the unit review is shipped; everything below it answers 404.
+   *
+   * There is no `/admin/units/pending`: `pending` would be read as a unit
+   * identifier and answer 422. The queue is `/admin/units?status=PENDING_REVIEW`
+   * — one endpoint, filtered, which is also how the other statuses are reached.
+   */
   admin: {
+    units: '/admin/units',
+    unitById: (id: string) => `/admin/units/${id}`,
+    approveUnit: (id: string) => `/admin/units/${id}/approve`,
+    /** `reason` is required — a rejection with no reason is refused. */
+    rejectUnit: (id: string) => `/admin/units/${id}/reject`,
+
+    // ── Not shipped yet.
     dashboard: '/admin/dashboard',
 
     users: '/admin/users',
     userById: (id: string) => `/admin/users/${id}`,
     setUserStatus: (id: string) => `/admin/users/${id}/status`,
 
-    pendingUnits: '/admin/units/pending',
     unitReviewById: (id: string) => `/admin/units/${id}/review-detail`,
-    approveUnit: (id: string) => `/admin/units/${id}/approve`,
-    rejectUnit: (id: string) => `/admin/units/${id}/reject`,
 
     bookingReviewById: (id: string) => `/admin/bookings/${id}/review-detail`,
 
@@ -191,7 +222,20 @@ export const API_ENDPOINTS = {
     banks: '/reference/banks',
   },
 
-  /** FR-NTF */
+  /**
+   * The signed-in account itself.
+   *
+   * `GET /me` is the profile; `GET /me/notifications` answers with the rows and
+   * `unreadCount` **together**, so the badge updates from the same response
+   * that fills the list. There is deliberately no `unread-count` endpoint to
+   * poll, and asking for one would be asking for two answers that disagree.
+   */
+  me: {
+    profile: '/me',
+    notifications: '/me/notifications',
+  },
+
+  /** FR-NTF — not shipped; see `me.notifications` for what exists. */
   notifications: {
     base: '/notifications',
     markRead: (id: string) => `/notifications/${id}/read`,

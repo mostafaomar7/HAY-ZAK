@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
-import { UnitStatus } from '@core/enums/unit-status.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { ReferenceItem, Unit } from '@core/models/unit.model';
 import { AuthService } from '@core/services/auth.service';
@@ -109,7 +108,7 @@ export class UnitDetailsPage {
     calculatePrice(this.unit()?.dailyPriceHalalas ?? 0, this.days()),
   );
 
-  protected readonly isBooked = computed(() => this.unit()?.status === UnitStatus.FullyBooked);
+  protected readonly isBooked = computed(() => this.unit()?.isFullyBooked === true);
 
   protected readonly photos = computed(() => this.unit()?.images ?? []);
 

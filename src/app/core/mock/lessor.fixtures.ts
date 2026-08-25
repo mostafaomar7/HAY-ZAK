@@ -41,6 +41,7 @@ function unit(
   dailyPriceSar: number,
   status: UnitStatus,
   rejectionReason?: string,
+  isFullyBooked = false,
 ): Unit {
   return {
     id,
@@ -64,6 +65,7 @@ function unit(
     ],
     images: [],
     status,
+    isFullyBooked,
     rejectionReason,
     createdAt: '2026-08-05T09:00:00Z',
   };
@@ -72,7 +74,17 @@ function unit(
 /** All seven unit states, matching the design's "الحالات السبع" board. */
 export const MOCK_UNITS: Unit[] = [
   unit('un-1', 'مستودع مكيّف — النرجس', 'مستودع', 35, 75, UnitStatus.Published),
-  unit('un-2', 'غرفة تخزين نظيفة — الياسمين', 'غرفة', 18, 45, UnitStatus.FullyBooked),
+  // Published and unbookable this month: a calendar fact, not a status.
+  unit(
+    'un-2',
+    'غرفة تخزين نظيفة — الياسمين',
+    'غرفة',
+    18,
+    45,
+    UnitStatus.Published,
+    undefined,
+    true,
+  ),
   unit(
     'un-3',
     'قراج مكشوف — القيروان',

@@ -1,6 +1,7 @@
 import { BookingStatus } from '../enums/booking-status.enum';
 import { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
+import { UnitStatus } from '../enums/unit-status.enum';
 import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 import { TermsVersionStatus } from '../models/admin.model';
 import type {
@@ -28,6 +29,7 @@ import type {
   TermsVersionRow,
 } from '../models/admin.model';
 import type { AdminDashboardKpis, PlatformSettings } from '../models/operations.model';
+import type { Unit } from '../models/unit.model';
 import type { User } from '../models/user.model';
 
 /**
@@ -156,6 +158,47 @@ export const MOCK_LISTING_DETAIL: ListingReviewDetail = {
     isVerified: true,
   },
 };
+
+/**
+ * The review queue as the API sends it: units, not review rows.
+ *
+ * `/admin/units?status=PENDING_REVIEW` answers with the same unit shape every
+ * other endpoint uses, and the console's row is a projection the client makes.
+ * Deriving these from the queue fixtures rather than replacing them keeps the
+ * eighteen rows the design's board shows while the mock still answers in the
+ * shape the server answers in — the demo would otherwise be a demo of a
+ * response nobody sends.
+ */
+export const MOCK_REVIEW_UNITS: Unit[] = MOCK_LISTING_QUEUE.map((row) => ({
+  id: row.id,
+  lessorId: `lsr-${row.id}`,
+  lessorName: row.ownerName,
+  categoryId: row.categoryName,
+  category: { id: row.categoryName, nameAr: row.categoryName, nameEn: row.categoryName },
+  cityId: row.cityName,
+  city: { id: row.cityName, nameAr: row.cityName, nameEn: row.cityName },
+  districtId: MOCK_LISTING_DETAIL.districtName,
+  district: {
+    id: MOCK_LISTING_DETAIL.districtName,
+    nameAr: MOCK_LISTING_DETAIL.districtName,
+    nameEn: MOCK_LISTING_DETAIL.districtName,
+  },
+  title: row.unitTitle,
+  description: MOCK_LISTING_DETAIL.description,
+  areaSqm: row.areaSqm,
+  dailyPriceHalalas: row.dailyPriceHalalas,
+  location: { latitude: 24.7136, longitude: 46.6753 },
+  isApproximateLocation: false,
+  addressLine: 'الرياض — حي النرجس، شارع أنس بن مالك',
+  visitSchedule: [{ days: [0, 1, 2, 3, 4, 5, 6], from: '09:00', to: '21:00' }],
+  images: [],
+  status: UnitStatus.PendingReview,
+  // `submittedAt` is the last touch before review, which is what the client
+  // reads `updatedAt` as; a re-submission is one that has been reviewed before.
+  publishedAt: row.submittedAt,
+  reviewedAt: row.isEdit ? row.submittedAt : undefined,
+  createdAt: row.submittedAt,
+}));
 
 export const MOCK_BOOKING_QUEUE: BookingReviewRow[] = [
   {

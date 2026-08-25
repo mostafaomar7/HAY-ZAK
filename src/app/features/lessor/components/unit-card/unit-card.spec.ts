@@ -5,7 +5,7 @@ import { UnitStatus } from '@core/enums/unit-status.enum';
 import type { Unit } from '@core/models/unit.model';
 import { UnitCard } from './unit-card';
 
-function makeUnit(status: UnitStatus, rejectionReason?: string): Unit {
+function makeUnit(status: UnitStatus, rejectionReason?: string, isFullyBooked = false): Unit {
   return {
     id: 'un-1',
     lessorId: 'u-1',
@@ -23,6 +23,7 @@ function makeUnit(status: UnitStatus, rejectionReason?: string): Unit {
     visitSchedule: [],
     images: [],
     status,
+    isFullyBooked,
     rejectionReason,
     createdAt: '2026-08-05T09:00:00Z',
   };
@@ -61,8 +62,10 @@ describe('UnitCard', () => {
     expect(actionLabels(el)).toEqual(['التفاصيل', 'تعديل', 'إيقاف مؤقت']);
   });
 
+  // Still PUBLISHED: having no free dates is a fact about the calendar, which
+  // is why it is a flag rather than a seventh status.
   it('drops the pause action once the unit is fully booked', () => {
-    const el = render(makeUnit(UnitStatus.FullyBooked));
+    const el = render(makeUnit(UnitStatus.Published, undefined, true));
     expect(actionLabels(el)).toEqual(['التفاصيل', 'تعديل']);
   });
 

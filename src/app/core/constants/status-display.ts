@@ -27,15 +27,27 @@ export function statusText(display: StatusDisplay, lang: 'ar' | 'en'): string {
   return lang === 'en' ? display.en : display.ar;
 }
 
-/** FR-UNT-09 — the seven unit states. */
+/** FR-UNT-09 — the six unit states the API stores. */
 export const UNIT_STATUS_DISPLAY: Readonly<Record<UnitStatus, StatusDisplay>> = {
   [UnitStatus.Draft]: { ar: 'مسودة', en: 'Draft', tone: 'neutral' },
   [UnitStatus.PendingReview]: { ar: 'قيد المراجعة', en: 'Pending review', tone: 'warning' },
   [UnitStatus.Rejected]: { ar: 'مرفوضة', en: 'Rejected', tone: 'danger' },
   [UnitStatus.Published]: { ar: 'منشورة', en: 'Published', tone: 'success' },
-  [UnitStatus.FullyBooked]: { ar: 'محجوزة بالكامل', en: 'Fully booked', tone: 'info' },
   [UnitStatus.Suspended]: { ar: 'موقوفة', en: 'Suspended', tone: 'warning' },
   [UnitStatus.Archived]: { ar: 'مؤرشفة', en: 'Archived', tone: 'neutral' },
+};
+
+/**
+ * Shown beside the status, not instead of it.
+ *
+ * "Fully booked" is not one of the six: a unit with no free dates is still
+ * published, and it is bookable again the moment a window opens. Reading
+ * `Unit.isFullyBooked` rather than the status is what keeps that true.
+ */
+export const FULLY_BOOKED_DISPLAY: StatusDisplay = {
+  ar: 'محجوزة بالكامل',
+  en: 'Fully booked',
+  tone: 'info',
 };
 
 /** SRS §6 — the nine booking states. */

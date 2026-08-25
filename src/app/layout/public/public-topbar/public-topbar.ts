@@ -65,6 +65,6 @@ export class PublicTopbar {
   }
 
   protected markAllRead(): void {
-    this.inbox.markAllRead().subscribe({ error: () => undefined });
+    this.inbox.markAllRead();
   }
 }
