@@ -46,7 +46,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         status: response.status,
         details: served?.details,
         requestId: failure?.requestId,
-        retryAfterSeconds: retryAfter(response),
+        retryAfterSeconds: retryAfter(response) ?? servedRetryAfter(served?.meta),
+        meta: served?.meta,
       });
 
       logger.error(`${req.method} ${req.url} → ${error.status} ${error.code}`, response.error);
@@ -71,6 +72,15 @@ function fallbackCode(status: number): string {
   if (status === HttpStatus.UnprocessableEntity) return ERROR_CODES.VALIDATION;
   if (status === HttpStatus.TooManyRequests) return ERROR_CODES.RATE_LIMITED;
   return ERROR_CODES.MALFORMED;
+}
+
+/**
+ * Some 429s carry the wait in the body rather than a header —
+ * `OTP_RESEND_TOO_SOON` sends `meta.retryAfterSeconds`. Read either.
+ */
+function servedRetryAfter(meta: Record<string, unknown> | undefined): number | undefined {
+  const seconds = Number(meta?.['retryAfterSeconds']);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : undefined;
 }
 
 /**

@@ -27,7 +27,7 @@
         <select id="b-bank" formControlName="bankName">
           <option value="">اختر البنك</option>
           @for (bank of banks(); track bank.id) {
-            <option [value]="bank.name">{{ bank.name }}</option>
+            <option [value]="i18n.pick(bank)">{{ i18n.pick(bank) }}</option>
           }
         </select>
       </app-ui-field>

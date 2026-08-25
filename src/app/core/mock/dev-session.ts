@@ -42,5 +42,13 @@ export function seedDevSession(): void {
   // (FR-AUTH-12), and a seeded user holding two used to make the storefront
   // look like a renter session and the portal like a lessor one — the same
   // person, two portals, and no way to tell which account you were.
-  auth.setSession({ accessToken: 'dev-mock-token', user: MOCK_LESSOR });
+  auth.setSession({
+    user: MOCK_LESSOR,
+    tokens: {
+      accessToken: 'dev-mock-token',
+      refreshToken: 'dev-mock-refresh',
+      expiresIn: 1800,
+      tokenType: 'Bearer',
+    },
+  });
 }

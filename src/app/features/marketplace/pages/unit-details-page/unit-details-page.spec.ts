@@ -119,14 +119,19 @@ describe('UnitDetailsPage', () => {
     await build();
 
     TestBed.inject(AuthService).setSession({
-      accessToken: 'test-token',
+      tokens: {
+        accessToken: 'test-token',
+        refreshToken: 'test-refresh',
+        expiresIn: 1800,
+        tokenType: 'Bearer',
+      },
       user: {
         id: 'r-1',
         fullName: 'فهد الدوسري',
         mobile: '0552104478',
         email: 'f@example.com',
-        roles: [],
-        status: 'Active' as never,
+        role: 'RENTER' as never,
+        status: 'ACTIVE' as never,
         createdAt: '2026-08-01T09:00:00Z',
       },
     });

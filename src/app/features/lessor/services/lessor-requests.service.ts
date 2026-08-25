@@ -43,7 +43,7 @@ export class LessorRequestsService {
     this.loading.set(true);
     return this.api
       .list<Booking>(API_ENDPOINTS.lessor.bookingRequests, {
-        params: { status, page, limit: APP.pageSize },
+        params: { status, page, pageSize: APP.pageSize },
       })
       .pipe(
         tap({

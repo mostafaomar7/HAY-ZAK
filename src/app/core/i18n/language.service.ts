@@ -77,4 +77,19 @@ export class LanguageService {
       value,
     );
   }
+  /**
+   * The right side of a bilingual reference row (categories, cities, banks).
+   *
+   * The server sends `nameAr` and `nameEn` together on every row, so the choice
+   * belongs to whoever is rendering — and being able to make it without a
+   * re-fetch is the point of getting both. It is a signal read, so a language
+   * switch re-renders every label that went through here.
+   *
+   * Reference data only. Anything a user typed — a unit title, a complaint —
+   * is in one language and is rendered with `dir="auto"` instead.
+   */
+  pick(item: { nameAr: string; nameEn: string } | undefined | null): string {
+    if (!item) return '';
+    return this.current() === 'en' ? item.nameEn : item.nameAr;
+  }
 }

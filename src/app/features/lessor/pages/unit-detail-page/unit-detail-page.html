@@ -19,13 +19,13 @@
             <app-ui-badge [tone]="status()!.tone" size="sm">{{ status()!.ar }}</app-ui-badge>
             <h2 class="head__title" dir="auto">{{ u.title }}</h2>
             <p class="head__meta">
-              {{ u.category?.name }} &middot;
+              {{ i18n.pick(u.category) }} &middot;
               <span class="num" dir="ltr">{{ u.areaSqm }} م²</span>
-              @if (u.city?.name) {
-                &middot; {{ u.city?.name }}
+              @if (u.city) {
+                &middot; {{ i18n.pick(u.city) }}
               }
-              @if (u.district?.name) {
-                — {{ u.district?.name }}
+              @if (u.district) {
+                — {{ i18n.pick(u.district) }}
               }
             </p>
           </div>

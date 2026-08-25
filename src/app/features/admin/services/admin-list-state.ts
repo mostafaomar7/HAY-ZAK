@@ -47,7 +47,7 @@ export class AdminListState {
     return {
       ...this.filters(),
       page: String(this.page()),
-      limit: String(PAGE_SIZE),
+      pageSize: String(PAGE_SIZE),
       ...(sort ? { sortBy: sort.key, sortDirection: sort.direction } : {}),
     };
   }

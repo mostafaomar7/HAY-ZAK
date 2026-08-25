@@ -141,7 +141,7 @@ export class HomePage {
     // "أحدث المساحات" — four newest, and the section hides itself if the call
     // fails. A landing page that renders an error box above the fold reads as a
     // broken site; the rest of it is still perfectly usable.
-    this.marketplace.search({ sortBy: 'newest', limit: 4 }).subscribe({
+    this.marketplace.search({ sortBy: 'newest', pageSize: 4 }).subscribe({
       next: (page) => this.latest.set(page.items.slice(0, 4)),
       error: () => this.latest.set([]),
     });

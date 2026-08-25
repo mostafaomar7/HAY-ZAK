@@ -14,7 +14,7 @@ function makeUnit(id: string, title: string, status: UnitStatus): Unit {
     id,
     lessorId: 'u-1',
     categoryId: 'c-1',
-    category: { id: 'c-1', name: 'مستودع' },
+    category: { id: 'c-1', nameAr: 'مستودع', nameEn: 'مستودع' },
     cityId: 'riyadh',
     districtId: 'd-1',
     title,

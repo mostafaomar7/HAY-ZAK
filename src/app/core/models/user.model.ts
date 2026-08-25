@@ -6,9 +6,23 @@ export interface User {
   fullName: string;
   mobile: string;
   email: string;
-  roles: UserRole[];
+  /**
+   * One role. The API sends `role`, singular, and the product allows exactly
+   * one per account (FR-AUTH-12) — an array was modelling something neither
+   * side does.
+   */
+  role: UserRole;
   status: AccountStatus;
-  mobileVerifiedAt?: string;
+  /**
+   * Null until the mobile OTP is verified.
+   *
+   * A user can sign in without it. Every transactional endpoint refuses them,
+   * so the sign-in flow reads this and routes to the OTP screen rather than to
+   * the portal — landing them on a dashboard whose every button fails is worse
+   * than sending them to the one screen that fixes it.
+   */
+  mobileVerifiedAt?: string | null;
+  locale?: 'ar' | 'en';
   emailVerifiedAt?: string;
   avatarUrl?: string;
   createdAt: string;
@@ -42,12 +56,49 @@ export interface BankAccountRequest {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken?: string;
-  expiresAt?: string;
+  refreshToken: string;
+  /** Seconds. The access token's life, not a deadline. */
+  expiresIn: number;
+  tokenType: 'Bearer';
 }
 
-export interface AuthResult extends AuthTokens {
+/** What `login`, `verify-mobile` and `refresh` all return. */
+export interface AuthResult {
   user: User;
+  tokens: AuthTokens;
+}
+
+/**
+ * What `register` returns — an account, and where the code went. No tokens:
+ * they are minted at `verify-mobile`, which is the step that makes the account
+ * usable.
+ */
+export interface RegisterResult {
+  user: User;
+  verification: OtpChallenge;
+}
+
+export interface OtpChallenge {
+  channel: 'SMS';
+  /** Masked, e.g. `+9665****5678`. Shown so the user confirms the number. */
+  destination: string;
+  expiresAt: string;
+  /** The resend button stays disabled this long. */
+  resendAfterSeconds: number;
+  /**
+   * Development only — the code itself, so a screen can be walked without a
+   * handset. Absent in staging and production, so nothing may branch on it.
+   */
+  devCode?: string;
+}
+
+/** The legal version a registration records consent against. */
+export interface SignupTerms {
+  id: string;
+  versionNo: number;
+  effectiveFrom: string;
+  /** Already in the requested language. */
+  content: string;
 }
 
 export interface LoginRequest {
@@ -66,18 +117,22 @@ export interface RegisterRequest {
   email: string;
   mobile: string;
   password: string;
-  /** Renter only (FR-AUTH-03). */
-  address?: string;
+  /** Renter only (FR-AUTH-03). `addressLine` on the wire. */
+  addressLine?: string;
   /** FR-AUTH-06 — the accepted document version is recorded with the consent. */
+  /** From `GET /auth/terms`. A stale one is refused. */
   termsVersionId: string;
   acceptedTerms: true;
 }
 
-export interface OtpRequest {
-  mobile: string;
-}
+/** Registration, or a password reset — the code is scoped to one of them. */
+export type OtpPurpose = 'REGISTRATION' | 'PASSWORD_RESET';
 
-export interface OtpVerifyRequest {
-  mobile: string;
-  code: string;
+/**
+ * What a reset returns. No tokens: `sessionsRevoked` includes this device, so
+ * the only correct next screen is sign-in.
+ */
+export interface PasswordResetResult {
+  passwordChanged: boolean;
+  sessionsRevoked: boolean;
 }

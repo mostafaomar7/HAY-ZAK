@@ -75,7 +75,9 @@ export class GoodsStep {
 
   protected readonly used = signal(0);
 
-  protected readonly prohibitedLabels = computed(() => this.prohibited().map((item) => item.name));
+  protected readonly prohibitedLabels = computed(() =>
+    this.prohibited().map((item) => this.i18n.pick(item)),
+  );
 
   protected readonly canContinue = computed(
     () => this.form.valid && this.acknowledged() && !this.submitting(),

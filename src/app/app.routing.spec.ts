@@ -36,7 +36,12 @@ describe('app routing (smoke)', () => {
     // The guards need a session; seedDevSession does this in the real app.
     localStorage.clear();
     TestBed.inject(AuthService).setSession({
-      accessToken: 'test-token',
+      tokens: {
+        accessToken: 'test-token',
+        refreshToken: 'test-refresh',
+        expiresIn: 1800,
+        tokenType: 'Bearer',
+      },
       user: MOCK_LESSOR,
     });
   });

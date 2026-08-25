@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LanguageService } from '@core/i18n/language.service';
 import { UNIT_STATUS_DISPLAY } from '@core/constants/status-display';
 import { UnitStatus } from '@core/enums/unit-status.enum';
 import type { Unit } from '@core/models/unit.model';
@@ -24,6 +25,8 @@ import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
   styleUrl: './unit-card.scss',
 })
 export class UnitCard {
+  protected readonly i18n = inject(LanguageService);
+
   readonly unit = input.required<Unit>();
 
   readonly suspendRequested = output<Unit>();
@@ -42,7 +45,7 @@ export class UnitCard {
 
   protected readonly canEdit = computed(() => this.unit().status !== UnitStatus.Archived);
 
-  protected readonly categoryLabel = computed(() => this.unit().category?.name ?? '');
+  protected readonly categoryLabel = computed(() => this.i18n.pick(this.unit().category));
 
   protected readonly coverImage = computed(() => this.unit().images?.[0]?.url);
 }

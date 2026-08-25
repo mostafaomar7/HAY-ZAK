@@ -13,6 +13,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { type Observable, forkJoin, of } from 'rxjs';
 import { finalize, map, switchMap, tap } from 'rxjs/operators';
+import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
 import type { ReferenceItem, UnitRequest, VisitWindow, Weekday } from '@core/models/unit.model';
 import { NotificationService } from '@core/services/notification.service';
@@ -86,6 +87,8 @@ function scheduleValidator(control: AbstractControl): ValidationErrors | null {
   styleUrl: './unit-form-page.scss',
 })
 export class UnitFormPage {
+  protected readonly i18n = inject(LanguageService);
+
   /** Present when editing; absent when creating. */
   readonly id = input<string>();
 
@@ -191,7 +194,7 @@ export class UnitFormPage {
   protected readonly uncovered = signal<string[]>([]);
 
   protected readonly categoryOptions = computed<ChoiceOption[]>(() =>
-    this.categories().map((c) => ({ value: c.id, label: c.name })),
+    this.categories().map((c) => ({ value: c.id, label: this.i18n.pick(c) })),
   );
 
   protected readonly categoryError = computed(() => {

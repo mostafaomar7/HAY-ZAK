@@ -68,7 +68,7 @@
       <div class="content">
         <header class="head">
           <p class="head__badges">
-            <app-ui-badge tone="info">{{ unit()!.category?.name }}</app-ui-badge>
+            <app-ui-badge tone="info">{{ i18n.pick(unit()!.category) }}</app-ui-badge>
             @if (isBooked()) {
               <app-ui-badge tone="neutral">{{ i18n.t('details.booked') }}</app-ui-badge>
             } @else {
@@ -94,7 +94,7 @@
         <dl class="specs">
           <div class="spec">
             <dt class="spec__label">{{ i18n.t('details.specCategory') }}</dt>
-            <dd class="spec__value">{{ unit()!.category?.name }}</dd>
+            <dd class="spec__value">{{ i18n.pick(unit()!.category) }}</dd>
           </div>
           <div class="spec">
             <dt class="spec__label">{{ i18n.t('details.specArea') }}</dt>
@@ -221,7 +221,7 @@
         <div class="similar__head">
           <h2 class="similar__title">{{ i18n.t('details.similar') }}</h2>
           <a class="similar__all" routerLink="/units">
-            {{ i18n.t('details.allInCity', { city: unit()!.city?.name ?? '' }) }}
+            {{ i18n.t('details.allInCity', { city: i18n.pick(unit()!.city) }) }}
           </a>
         </div>
 

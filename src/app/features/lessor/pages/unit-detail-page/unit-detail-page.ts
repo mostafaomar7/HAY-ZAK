@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
 import { UNIT_STATUS_DISPLAY } from '@core/constants/status-display';
 import { AvailabilityBlockReason, UnitStatus } from '@core/enums/unit-status.enum';
@@ -41,6 +42,8 @@ import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
   styleUrl: './unit-detail-page.scss',
 })
 export class UnitDetailPage {
+  protected readonly i18n = inject(LanguageService);
+
   /** FR-UNT-06 — the same grouping the renter sees, on one line. */
   protected visitSummary(unit: Unit): string {
     return summariseSchedule(unit.visitSchedule, 'ar-SA');

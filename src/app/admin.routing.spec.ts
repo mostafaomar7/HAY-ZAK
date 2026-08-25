@@ -22,7 +22,7 @@ import { App } from './app';
 describe('admin console routing (smoke)', () => {
   let router: Router;
 
-  async function configure(roles: UserRole[] | null): Promise<void> {
+  async function configure(role: UserRole | null): Promise<void> {
     TestBed.resetTestingModule();
 
     await TestBed.configureTestingModule({
@@ -38,10 +38,15 @@ describe('admin console routing (smoke)', () => {
     localStorage.clear();
     sessionStorage.clear();
 
-    if (roles) {
+    if (role) {
       TestBed.inject(AuthService).setSession({
-        accessToken: 'test-token',
-        user: { ...MOCK_ADMIN_USER, roles },
+        tokens: {
+          accessToken: 'test-token',
+          refreshToken: 'test-refresh',
+          expiresIn: 1800,
+          tokenType: 'Bearer',
+        },
+        user: { ...MOCK_ADMIN_USER, role },
       });
     }
   }
@@ -69,7 +74,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as a system administrator', () => {
     beforeEach(async () => {
-      await configure([UserRole.SystemAdministrator]);
+      await configure(UserRole.SystemAdministrator);
     });
 
     it('lands on the indicators from /admin', async () => {
@@ -119,7 +124,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as a finance officer', () => {
     beforeEach(async () => {
-      await configure([UserRole.FinanceOfficer]);
+      await configure(UserRole.FinanceOfficer);
     });
 
     it('reaches the transfers screen', async () => {
@@ -154,7 +159,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as an operations supervisor', () => {
     beforeEach(async () => {
-      await configure([UserRole.OperationsSupervisor]);
+      await configure(UserRole.OperationsSupervisor);
     });
 
     it('reaches both review queues', async () => {
@@ -173,7 +178,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as a lessor', () => {
     beforeEach(async () => {
-      await configure([UserRole.Lessor]);
+      await configure(UserRole.Lessor);
     });
 
     it('cannot reach the console at all', async () => {

@@ -25,18 +25,26 @@ import { sarToHalalas } from '../utils/money.utils';
  * Development only. See mock-api.interceptor.ts.
  */
 
-const RIYADH: ReferenceItem = { id: 'riyadh', name: 'الرياض' };
+const RIYADH: ReferenceItem = { id: 'riyadh', nameAr: 'الرياض', nameEn: 'Riyadh' };
 
-const district = (name: string, id: string): ReferenceItem => ({ id: id.toLowerCase(), name });
+const district = (nameAr: string, nameEn: string): ReferenceItem => ({
+  id: nameEn.toLowerCase(),
+  nameAr,
+  nameEn,
+});
 
-const category = (id: string, name: string): ReferenceItem => ({ id, name });
+const category = (id: string, nameAr: string, nameEn: string): ReferenceItem => ({
+  id,
+  nameAr,
+  nameEn,
+});
 
-const WAREHOUSE = category('warehouse', 'مستودع');
-const ROOM = category('room', 'غرفة');
-const GARAGE = category('garage', 'قراج');
+const WAREHOUSE = category('warehouse', 'مستودع', 'Warehouse');
+const ROOM = category('room', 'غرفة', 'Room');
+const GARAGE = category('garage', 'قراج', 'Garage');
 // OPEN: the lessor form calls this "مساحة مفتوحة" and the renter prototype calls
 // it "مكان مكشوف". The designer's wording is used here; see docs/design/renter-plan.md.
-const OPEN_SPACE = category('open_space', 'مكان مكشوف');
+const OPEN_SPACE = category('open_space', 'مكان مكشوف', 'Open space');
 
 /**
  * The stock photographs the design's prototype used, by their Unsplash id.
@@ -243,12 +251,13 @@ export const MOCK_MARKET_AVAILABILITY: UnitAvailabilityBlock[] = [
 export const MOCK_PROHIBITED_ITEMS: ReferenceItem[] = [
   {
     id: 'flammable',
-    name: 'مواد قابلة للاشتعال أو الانفجار',
+    nameAr: 'مواد قابلة للاشتعال أو الانفجار',
+    nameEn: 'Flammable or explosive materials',
   },
-  { id: 'chemical', name: 'مواد كيميائية خطرة' },
-  { id: 'illegal', name: 'ممنوعات قانونية' },
-  { id: 'animals', name: 'حيوانات حية' },
-  { id: 'perishable', name: 'مواد سريعة التلف' },
+  { id: 'chemical', nameAr: 'مواد كيميائية خطرة', nameEn: 'Hazardous chemicals' },
+  { id: 'illegal', nameAr: 'ممنوعات قانونية', nameEn: 'Legally prohibited items' },
+  { id: 'animals', nameAr: 'حيوانات حية', nameEn: 'Live animals' },
+  { id: 'perishable', nameAr: 'مواد سريعة التلف', nameEn: 'Perishable goods' },
 ];
 
 export const MOCK_RENTER_PROFILE: RenterProfile = {
@@ -508,7 +517,7 @@ export const MOCK_RENTER_NOTIFICATIONS: AppNotification[] = [
 ];
 
 // ── Static pages ─────────────────────────────────────────────────────────
-const PROHIBITED_TEXT = MOCK_PROHIBITED_ITEMS.map((item) => item.name);
+const PROHIBITED_TEXT = MOCK_PROHIBITED_ITEMS.map((item) => item.nameAr);
 
 const ABOUT: StaticPage = {
   slug: 'about',

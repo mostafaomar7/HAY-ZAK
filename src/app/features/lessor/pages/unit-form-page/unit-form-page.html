@@ -150,7 +150,7 @@
             >
               <option value="">اختر المدينة</option>
               @for (city of cities(); track city.id) {
-                <option [value]="city.id">{{ city.name }}</option>
+                <option [value]="city.id">{{ i18n.pick(city) }}</option>
               }
             </select>
           </app-ui-field>
@@ -163,7 +163,7 @@
             >
               <option value="">اختر الحي</option>
               @for (district of districts(); track district.id) {
-                <option [value]="district.id">{{ district.name }}</option>
+                <option [value]="district.id">{{ i18n.pick(district) }}</option>
               }
             </select>
           </app-ui-field>

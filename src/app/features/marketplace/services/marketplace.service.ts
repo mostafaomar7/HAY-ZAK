@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { APP } from '@core/constants/app.constants';
 import { SKIP_AUTH } from '@core/interceptors/auth.interceptor';
 import type { PaginatedResponse } from '@core/models/api-response.model';
+import { hasNextPage } from '@core/models/api-response.model';
 import type { Unit, UnitAvailabilityBlock, UnitSearchParams } from '@core/models/unit.model';
 import { ApiService } from '@core/services/api.service';
 
@@ -36,11 +37,11 @@ export class MarketplaceService {
   readonly total = this.totalCount.asReadonly();
 
   /**
-   * The server's own `hasNextPage`, not a comparison of counts.
+   * Derived from the server's own page count, not from `loaded < total`.
    *
    * A total that moves between pages — a unit published or unpublished while
-   * someone is scrolling — makes `loaded < total` either hide a page that
-   * exists or offer one that does not. The server knows.
+   * someone is scrolling — makes a length comparison either hide a page that
+   * exists or offer one that does not. `page < totalPages` cannot.
    */
   readonly hasMore = this.more.asReadonly();
   readonly remaining = computed(() =>
@@ -90,14 +91,14 @@ export class MarketplaceService {
     return this.api
       .list<Unit>(API_ENDPOINTS.marketplace.search, {
         context: this.context,
-        params: { ...params, page, limit: params.limit ?? APP.pageSize },
+        params: { ...params, page, pageSize: params.pageSize ?? APP.pageSize },
       })
       .pipe(
         tap({
           next: (result) => {
             this.items.update((current) => (append ? [...current, ...result.items] : result.items));
             this.totalCount.set(result.pagination.total);
-            this.more.set(result.pagination.hasNextPage);
+            this.more.set(hasNextPage(result.pagination));
             this.loading.set(false);
           },
           error: () => this.loading.set(false),

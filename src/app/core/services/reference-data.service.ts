@@ -1,8 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { type Observable, of } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import type { District, ReferenceItem } from '../models/unit.model';
+
+/** `/public/cities` nests its districts. */
+interface CityWithDistricts extends ReferenceItem {
+  districts?: ReferenceItem[];
+}
 import { ApiService } from './api.service';
 
 /**
@@ -15,20 +20,21 @@ export class ReferenceDataService {
   private readonly api = inject(ApiService);
 
   private categories$?: Observable<ReferenceItem[]>;
-  private cities$?: Observable<ReferenceItem[]>;
+  private cities$?: Observable<CityWithDistricts[]>;
   private banks$?: Observable<ReferenceItem[]>;
-  private readonly districtsByCity = new Map<string, Observable<District[]>>();
 
   categories(): Observable<ReferenceItem[]> {
     this.categories$ ??= this.api
-      .get<ReferenceItem[]>(API_ENDPOINTS.reference.categories)
+      .list<ReferenceItem>(API_ENDPOINTS.public.categories)
+      .pipe(map((page) => page.items))
       .pipe(shareReplay({ bufferSize: 1, refCount: false }));
     return this.categories$;
   }
 
-  cities(): Observable<ReferenceItem[]> {
+  cities(): Observable<CityWithDistricts[]> {
     this.cities$ ??= this.api
-      .get<ReferenceItem[]>(API_ENDPOINTS.reference.cities)
+      .list<CityWithDistricts>(API_ENDPOINTS.public.cities)
+      .pipe(map((page) => page.items))
       .pipe(shareReplay({ bufferSize: 1, refCount: false }));
     return this.cities$;
   }
@@ -41,22 +47,27 @@ export class ReferenceDataService {
     return this.banks$;
   }
 
+  /**
+   * Districts arrive nested inside their city, so this is a read of the cities
+   * response rather than a second request — one round trip for both, and no
+   * window where a city is on screen before its districts arrive.
+   */
   districts(cityId: string): Observable<District[]> {
     if (!cityId) return of([]);
 
-    let cached = this.districtsByCity.get(cityId);
-    if (!cached) {
-      cached = this.api
-        .get<District[]>(API_ENDPOINTS.reference.districts(cityId))
-        .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-      this.districtsByCity.set(cityId, cached);
-    }
-    return cached;
+    return this.cities().pipe(
+      map((cities) => {
+        const city = (cities as CityWithDistricts[]).find((item) => item.id === cityId);
+        return (city?.districts ?? []).map((district) => ({ ...district, cityId }));
+      }),
+    );
   }
 
   /** FR-BKG-04 — shown with a mandatory acknowledgement before payment. */
   prohibitedItems(): Observable<ReferenceItem[]> {
-    return this.api.get<ReferenceItem[]>(API_ENDPOINTS.reference.prohibitedItems);
+    return this.api
+      .list<ReferenceItem>(API_ENDPOINTS.public.prohibitedItems)
+      .pipe(map((page) => page.items));
   }
 
   /** Call after an admin edits a reference list so the next read is fresh. */
@@ -64,6 +75,5 @@ export class ReferenceDataService {
     this.categories$ = undefined;
     this.cities$ = undefined;
     this.banks$ = undefined;
-    this.districtsByCity.clear();
   }
 }

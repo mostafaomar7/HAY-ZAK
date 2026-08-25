@@ -50,7 +50,7 @@ export const MOCK_ADMIN_USER: User = {
   fullName: 'محمد الحربي',
   mobile: '0509001122',
   email: 'operations@hayzak.com',
-  roles: [UserRole.SystemAdministrator],
+  role: UserRole.SystemAdministrator,
   status: AccountStatus.Active,
   mobileVerifiedAt: '2026-01-04T09:00:00Z',
   createdAt: '2026-01-04T09:00:00Z',

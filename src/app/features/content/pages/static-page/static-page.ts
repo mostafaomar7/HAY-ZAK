@@ -86,7 +86,9 @@ export class StaticPageComponent {
   /** FR-ADM-05 — the prohibited list is reference data, never template text. */
   private readonly prohibited = signal<ReferenceItem[]>([]);
 
-  protected readonly prohibitedLabels = computed(() => this.prohibited().map((item) => item.name));
+  protected readonly prohibitedLabels = computed(() =>
+    this.prohibited().map((item) => this.i18n.pick(item)),
+  );
 
   protected readonly related = computed(() =>
     STATIC_PAGE_SLUGS.filter((slug) => slug !== this.slug()).slice(0, 5),

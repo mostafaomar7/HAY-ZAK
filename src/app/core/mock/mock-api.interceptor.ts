@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-import type { ApiSuccess, Pagination } from '../models/api-response.model';
+import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
 import {
   MOCK_ADMIN_KPIS,
@@ -98,6 +98,14 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (path === API_ENDPOINTS.auth.me) return ok(signedInUser);
 
   // ── Reference data ─────────────────────────────────────────────────────
+  // The public trio, in the server's shape: `data.items`, and cities carry
+  // their districts nested rather than behind a second request.
+  if (path === API_ENDPOINTS.public.categories) return paginate(MOCK_CATEGORIES);
+  if (path === API_ENDPOINTS.public.cities) {
+    return paginate(MOCK_CITIES.map((city) => ({ ...city, districts: MOCK_DISTRICTS })));
+  }
+  if (path === API_ENDPOINTS.public.prohibitedItems) return paginate(MOCK_PROHIBITED_ITEMS);
+
   if (path === API_ENDPOINTS.reference.categories) return ok(MOCK_CATEGORIES);
   if (path === API_ENDPOINTS.reference.cities) return ok(MOCK_CITIES);
   if (path === API_ENDPOINTS.reference.banks) return ok(MOCK_BANKS);
@@ -290,11 +298,11 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Auth ───────────────────────────────────────────────────────────────
   if (path === API_ENDPOINTS.auth.login || path === API_ENDPOINTS.auth.register) {
     signedInUser = userFor(payload);
-    return ok({ accessToken: 'dev-mock-token', user: signedInUser });
+    return ok(mockTokens(signedInUser));
   }
-  if (path === API_ENDPOINTS.auth.requestOtp) return ok(null);
-  if (path === API_ENDPOINTS.auth.verifyOtp) {
-    return ok({ accessToken: 'dev-mock-token', user: signedInUser });
+  if (path === API_ENDPOINTS.auth.resendOtp) return ok(mockChallenge());
+  if (path === API_ENDPOINTS.auth.verifyMobile) {
+    return ok(mockTokens(signedInUser));
   }
   if (path === API_ENDPOINTS.auth.changePassword) return ok(null);
   if (path.startsWith(API_ENDPOINTS.auth.me) && method !== 'GET') return ok(null);
@@ -427,15 +435,38 @@ function ok<T>(data: T): ApiSuccess<T> {
  * beside them in `meta.pagination`. The fixtures are small enough to return
  * whole, so this reports a single page rather than pretending to slice.
  */
-function paginate<T>(items: T[]): ApiSuccess<T[]> {
+function paginate<T>(items: T[]): ApiSuccess<ListPayload<T>> {
   const pagination: Pagination = {
     page: 1,
-    limit: items.length || 1,
+    pageSize: items.length || 1,
     total: items.length,
     totalPages: items.length > 0 ? 1 : 0,
-    hasNextPage: false,
-    hasPrevPage: false,
   };
 
-  return { success: true, data: items, meta: { pagination } };
+  // Rows and counts inside `data`, exactly as the server sends them.
+  return { success: true, data: { items, pagination } };
+}
+
+/** The token block the real endpoints return. */
+function mockTokens(user: User) {
+  return {
+    user,
+    tokens: {
+      accessToken: 'dev-mock-token',
+      refreshToken: 'dev-mock-refresh',
+      expiresIn: 1800,
+      tokenType: 'Bearer' as const,
+    },
+  };
+}
+
+/** The OTP challenge a register or resend answers with, `devCode` included. */
+function mockChallenge() {
+  return {
+    channel: 'SMS' as const,
+    destination: '+9665****5678',
+    expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+    resendAfterSeconds: 60,
+    devCode: '000000',
+  };
 }

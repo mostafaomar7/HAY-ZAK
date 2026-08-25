@@ -42,7 +42,12 @@ describe('renter routing (smoke)', () => {
       // session holding both roles would prove the renter screens open for
       // somebody who is also a lessor, which is not who uses them.
       TestBed.inject(AuthService).setSession({
-        accessToken: 'test-token',
+        tokens: {
+          accessToken: 'test-token',
+          refreshToken: 'test-refresh',
+          expiresIn: 1800,
+          tokenType: 'Bearer',
+        },
         user: MOCK_RENTER,
       });
     }

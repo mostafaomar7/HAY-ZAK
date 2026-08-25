@@ -122,12 +122,14 @@ export class UnitDetailsPage {
     }));
   });
 
-  protected readonly prohibitedLabels = computed(() => this.prohibited().map((item) => item.name));
+  protected readonly prohibitedLabels = computed(() =>
+    this.prohibited().map((item) => this.i18n.pick(item)),
+  );
 
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
-    return [unit.district?.name, unit.city?.name].filter(Boolean).join('، ');
+    return [this.i18n.pick(unit.district), this.i18n.pick(unit.city)].filter(Boolean).join('، ');
   });
 
   constructor() {

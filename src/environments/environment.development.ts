@@ -9,6 +9,9 @@ export const environment: Environment = {
   enableLogging: true,
   tokenKey: 'hayzaq_token',
   pageSize: 10,
+  // The fixtures. `npm run start:api` is the configuration that talks to the
+  // real server — this one also backs `ng test`, and a suite that depended on a
+  // machine on the LAN being up would fail for reasons that are not the code's.
   useMockApi: true,
   seedSession: true,
 };

@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
-import { ROLE_DISPLAY, primaryRole, statusText } from '@core/constants/status-display';
+import { ROLE_DISPLAY, statusText } from '@core/constants/status-display';
 import { AuthService } from '@core/services/auth.service';
 import { RouterLink } from '@angular/router';
 import { ClickOutsideDirective } from '@shared/directives/click-outside.directive';
@@ -44,7 +44,7 @@ export class AdminTopbar {
   protected readonly accountOpen = signal(false);
 
   protected readonly roleLabel = computed(() =>
-    statusText(ROLE_DISPLAY[primaryRole(this.auth.roles())], this.i18n.language()),
+    statusText(ROLE_DISPLAY[this.auth.role()], this.i18n.language()),
   );
 
   protected toggleAccount(): void {

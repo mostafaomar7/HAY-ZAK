@@ -6,22 +6,44 @@
  * (NFR-SCL-03) once the Technical Design Document lands.
  */
 export const API_ENDPOINTS = {
-  /** FR-AUTH */
+  /**
+   * FR-AUTH — the eleven the backend has shipped, verified against the running
+   * server rather than transcribed from the guide.
+   *
+   * Three of them have no obvious shape and are worth stating:
+   * `register` returns no tokens (they are minted at `verifyMobile`),
+   * `resetPassword` returns no tokens either (every session is revoked, so the
+   * user signs in again), and `logout` takes the refresh token rather than a
+   * bearer — by the time somebody signs out the access token is usually dead.
+   */
   auth: {
+    /** The version whose `id` must come back on register. */
+    terms: '/auth/terms',
     register: '/auth/register',
+    /** The only endpoint that mints the first pair of tokens. */
+    verifyMobile: '/auth/verify-mobile',
+    resendOtp: '/auth/resend-otp',
     login: '/auth/login',
     refresh: '/auth/refresh',
     logout: '/auth/logout',
+    logoutAll: '/auth/logout-all',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
     me: '/auth/me',
-    requestOtp: '/auth/otp/request',
-    verifyOtp: '/auth/otp/verify',
+
+    // ── Not shipped yet; the screens that call them are behind these names.
     verifyEmail: '/auth/email/verify',
-    forgotPassword: '/auth/password/forgot',
-    resetPassword: '/auth/password/reset',
     changePassword: '/auth/password/change',
     /** RNT-09 — starts a Nafath session and polls its outcome. */
     nafathStart: '/auth/identity/nafath',
     nafathStatus: (requestId: string) => `/auth/identity/nafath/${requestId}`,
+  },
+
+  /** Open reference data — no token, and both language columns on every row. */
+  public: {
+    categories: '/public/categories',
+    cities: '/public/cities',
+    prohibitedItems: '/public/prohibited-items',
   },
 
   /** The renter's own account — FR-AUTH, FR-NTF. */

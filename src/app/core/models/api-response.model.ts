@@ -7,14 +7,36 @@
  * an error and never sees the envelope at all.
  */
 
-/** A page of a list, as the backend reports it under `meta.pagination`. */
+/**
+ * A page of a list, as the running server reports it.
+ *
+ * It lives inside `data`, beside `items` — **not** under `meta.pagination`, and
+ * the size field is `pageSize`, not `limit`. Both differ from the written
+ * integration guide; these are the shapes verified against the server, and the
+ * discrepancy is logged in `docs/api/backend-notes.md`.
+ *
+ * There is no `hasNextPage`, so it is derived below rather than read.
+ */
 export interface Pagination {
   page: number;
-  limit: number;
+  pageSize: number;
   total: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
+}
+
+/** The server sends no `hasNextPage`; `page < totalPages` is the same fact. */
+export function hasNextPage(pagination: Pagination): boolean {
+  return pagination.page < pagination.totalPages;
+}
+
+export function hasPrevPage(pagination: Pagination): boolean {
+  return pagination.page > 1;
+}
+
+/** A list response's `data`. */
+export interface ListPayload<T> {
+  items: T[];
+  pagination?: Pagination;
 }
 
 export interface ResponseMeta {
@@ -42,6 +64,8 @@ export interface ApiFailure {
     /** Already translated by the server. Display as-is. */
     message: string;
     details?: FieldError[];
+    /** Optional extra facts — see `ApiError.meta`. Always read defensively. */
+    meta?: Record<string, unknown>;
   };
   /** Support quotes this back to find the exact request in the server log. */
   requestId: string;
@@ -64,20 +88,14 @@ export interface PaginatedResponse<T> {
 /** Query parameters every list endpoint accepts. Page size defaults to 12. */
 export interface PaginationParams {
   page?: number;
-  limit?: number;
+  /** `pageSize` on the wire — `limit` is silently ignored by the server. */
+  pageSize?: number;
   search?: string;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
 }
 
 /** Stands in when a list response arrives without its `meta.pagination`. */
-export function emptyPagination(limit = 12): Pagination {
-  return {
-    page: 1,
-    limit,
-    total: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-  };
+export function emptyPagination(pageSize = 12): Pagination {
+  return { page: 1, pageSize, total: 0, totalPages: 0 };
 }

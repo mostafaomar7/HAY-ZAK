@@ -45,7 +45,7 @@ export class LessorUnitsService {
     this.loading.set(true);
     return this.api
       .list<Unit>(API_ENDPOINTS.lessor.units, {
-        params: { status, page, limit: APP.pageSize },
+        params: { status, page, pageSize: APP.pageSize },
       })
       .pipe(
         tap({

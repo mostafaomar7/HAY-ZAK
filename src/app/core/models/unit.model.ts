@@ -5,14 +5,15 @@ import type { PaginationParams } from './api-response.model';
 export interface ReferenceItem {
   id: string;
   /**
-   * Already resolved into the language the request asked for.
+   * Both languages, on every row.
    *
-   * Not `nameAr`/`nameEn`: the server reads `Accept-Language` and answers in
-   * one language, so a component picking a side would be re-deciding something
-   * already decided — and would be wrong the moment a third language exists.
-   * Nothing in a template branches on locale.
+   * The running server sends `nameAr` and `nameEn` together and the reason is
+   * good: a language switch then re-renders instead of re-fetching, and a list
+   * cached under one locale can never be shown under the other. Read them
+   * through `referenceName()` so no template branches on locale itself.
    */
-  name: string;
+  nameAr: string;
+  nameEn: string;
   sortOrder?: number;
   /**
    * How many published units sit under this entry, for the landing page's

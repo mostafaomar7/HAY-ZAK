@@ -2,7 +2,7 @@ import { HttpContext } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { Observable } from 'rxjs';
-import { tap } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { SKIP_AUTH } from '../interceptors/auth.interceptor';
 import { STORAGE_KEYS } from '../constants/storage-keys';
@@ -10,9 +10,12 @@ import { ADMIN_ROLES, UserRole } from '../enums/user-role.enum';
 import type {
   AuthResult,
   LoginRequest,
-  OtpRequest,
-  OtpVerifyRequest,
+  OtpChallenge,
+  OtpPurpose,
+  PasswordResetResult,
   RegisterRequest,
+  RegisterResult,
+  SignupTerms,
   User,
 } from '../models/user.model';
 import { ApiService } from './api.service';
@@ -32,7 +35,8 @@ export class AuthService {
 
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => this.currentUser() !== null && !!this.token);
-  readonly roles = computed(() => this.currentUser()?.roles ?? []);
+  /** One role per account. Guest when nobody is signed in. */
+  readonly role = computed(() => this.currentUser()?.role ?? UserRole.Guest);
 
   get token(): string | null {
     return this.storage.get<string>(STORAGE_KEYS.accessToken);
@@ -42,27 +46,84 @@ export class AuthService {
     return this.storage.get<string>(STORAGE_KEYS.refreshToken);
   }
 
+  /**
+   * The legal version the registration must record consent against.
+   *
+   * Fetched rather than hard-coded, and its `id` goes back with the form: the
+   * server records consent against that exact version and refuses a stale one
+   * with `TERMS_ACCEPTANCE_REQUIRED`. Public - no token.
+   */
+  terms(): Observable<SignupTerms> {
+    return this.api.get<SignupTerms>(API_ENDPOINTS.auth.terms, {
+      context: new HttpContext().set(SKIP_AUTH, true),
+    });
+  }
+
   login(credentials: LoginRequest): Observable<AuthResult> {
     return this.api
       .post<AuthResult, LoginRequest>(API_ENDPOINTS.auth.login, credentials)
       .pipe(tap((result) => this.setSession(result)));
   }
 
-  register(payload: RegisterRequest): Observable<AuthResult> {
+  /**
+   * Creates the account. Returns **no tokens** - the user is
+   * PENDING_VERIFICATION until the OTP is verified, and nothing is stored here.
+   */
+  register(payload: RegisterRequest): Observable<RegisterResult> {
+    return this.api.post<RegisterResult, RegisterRequest>(API_ENDPOINTS.auth.register, payload);
+  }
+
+  /**
+   * The only endpoint that mints the first pair of tokens.
+   *
+   * The code is a string throughout: it is six digits and may start with a
+   * zero, which a number would silently eat.
+   */
+  verifyMobile(mobile: string, code: string): Observable<AuthResult> {
     return this.api
-      .post<AuthResult, RegisterRequest>(API_ENDPOINTS.auth.register, payload)
+      .post<AuthResult, { mobile: string; code: string }>(API_ENDPOINTS.auth.verifyMobile, {
+        mobile,
+        code,
+      })
       .pipe(tap((result) => this.setSession(result)));
   }
 
-  /** FR-AUTH-04 — the account stays inactive until the OTP is verified. */
-  requestOtp(mobile: string): Observable<void> {
-    return this.api.post<void, OtpRequest>(API_ENDPOINTS.auth.requestOtp, { mobile });
+  /**
+   * Sends a fresh code. Sixty-second cooldown, enforced server-side and counted
+   * down on screen; asking early is OTP_RESEND_TOO_SOON.
+   *
+   * Always answers 200, even for a number nobody registered - so nothing on
+   * screen may infer from it whether an account exists.
+   */
+  resendOtp(mobile: string, purpose: OtpPurpose = 'REGISTRATION'): Observable<OtpChallenge> {
+    return this.api.post<OtpChallenge, { mobile: string; purpose: OtpPurpose }>(
+      API_ENDPOINTS.auth.resendOtp,
+      { mobile, purpose },
+      { context: new HttpContext().set(SKIP_AUTH, true) },
+    );
   }
 
-  verifyOtp(payload: OtpVerifyRequest): Observable<AuthResult> {
+  /** Always 200, identical for an unknown number - say "if it is registered...". */
+  forgotPassword(mobile: string): Observable<OtpChallenge> {
+    return this.api.post<OtpChallenge, { mobile: string }>(
+      API_ENDPOINTS.auth.forgotPassword,
+      { mobile },
+      { context: new HttpContext().set(SKIP_AUTH, true) },
+    );
+  }
+
+  /**
+   * Sets the new password. Returns no tokens: every session on the account is
+   * revoked, including this device, so the user signs in again.
+   */
+  resetPassword(mobile: string, code: string, password: string): Observable<PasswordResetResult> {
     return this.api
-      .post<AuthResult, OtpVerifyRequest>(API_ENDPOINTS.auth.verifyOtp, payload)
-      .pipe(tap((result) => this.setSession(result)));
+      .post<PasswordResetResult, { mobile: string; code: string; password: string }>(
+        API_ENDPOINTS.auth.resetPassword,
+        { mobile, code, password },
+        { context: new HttpContext().set(SKIP_AUTH, true) },
+      )
+      .pipe(tap(() => this.clearSession()));
   }
 
   /**
@@ -90,14 +151,44 @@ export class AuthService {
       .pipe(tap((result) => this.setSession(result)));
   }
 
+  /** `GET /auth/me` answers `{ user }`, not a bare user. */
   loadProfile(): Observable<User> {
-    return this.api.get<User>(API_ENDPOINTS.auth.me).pipe(tap((user) => this.setUser(user)));
+    return this.api.get<{ user: User }>(API_ENDPOINTS.auth.me).pipe(
+      map((result) => result.user),
+      tap((user) => this.setUser(user)),
+    );
   }
 
-  /** The user asked to sign out. */
+  /**
+   * The user asked to sign out.
+   *
+   * The server is told first, with the **refresh** token - that endpoint takes
+   * no bearer, because by the time somebody signs out the access token is
+   * usually expired. Storage is cleared either way: a signed-out user must not
+   * stay signed in because the network was down.
+   */
   logout(redirect = true): void {
+    const refreshToken = this.refreshToken;
+
+    if (refreshToken) {
+      this.api
+        .post<void, { refreshToken: string }>(
+          API_ENDPOINTS.auth.logout,
+          { refreshToken },
+          { context: new HttpContext().set(SKIP_AUTH, true) },
+        )
+        .subscribe({ error: () => undefined });
+    }
+
     this.clearSession();
     if (redirect) void this.router.navigate(['/auth/login']);
+  }
+
+  /** Ends every session on the account. Needs the bearer, unlike `logout`. */
+  logoutEverywhere(): Observable<{ sessionsEnded: number }> {
+    return this.api
+      .post<{ sessionsEnded: number }>(API_ENDPOINTS.auth.logoutAll)
+      .pipe(tap(() => this.clearSession()));
   }
 
   /**
@@ -131,25 +222,31 @@ export class AuthService {
     if (returnUrl) return returnUrl;
     // Most privileged first: an operations account that also happens to be a
     // lessor belongs at the console, not the portal.
-    if (this.roles().some((role) => ADMIN_ROLES.includes(role))) return '/admin';
+    // An unverified mobile outranks the portal: every transactional endpoint
+    // refuses the account until it is verified, so a dashboard whose every
+    // button fails is a worse landing than the one screen that fixes it.
+    if (!this.isMobileVerified()) return '/auth/verify';
+
+    if (ADMIN_ROLES.includes(this.role())) return '/admin';
     // A lessor account belongs in the portal; everyone else belongs on the
     // storefront, which is also the right home for a role we do not know.
     return this.hasRole(UserRole.Lessor) ? '/lessor' : '/';
   }
 
   hasRole(role: UserRole): boolean {
-    return this.roles().includes(role);
+    return this.role() === role;
   }
 
   hasAnyRole(roles: UserRole[]): boolean {
-    return roles.some((role) => this.hasRole(role));
+    return roles.includes(this.role());
   }
 
   setSession(result: AuthResult): void {
-    this.storage.set(STORAGE_KEYS.accessToken, result.accessToken);
-    if (result.refreshToken) {
-      this.storage.set(STORAGE_KEYS.refreshToken, result.refreshToken);
-    }
+    this.storage.set(STORAGE_KEYS.accessToken, result.tokens.accessToken);
+    // Written the moment it arrives: the token just spent is already dead on
+    // the server, so a crash between here and the next line would leave the
+    // session holding a credential that can never be used again.
+    this.storage.set(STORAGE_KEYS.refreshToken, result.tokens.refreshToken);
     this.setUser(result.user);
   }
 

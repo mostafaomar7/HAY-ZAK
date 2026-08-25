@@ -13,9 +13,8 @@ export class PermissionService {
   private readonly auth = inject(AuthService);
 
   readonly permissions = computed<ReadonlySet<Permission>>(() => {
-    const roles = this.auth.roles();
-    const effective = roles.length ? roles : [UserRole.Guest];
-    return new Set(effective.flatMap((role) => ROLE_PERMISSIONS[role] ?? []));
+    const role = this.auth.role();
+    return new Set(ROLE_PERMISSIONS[role] ?? ROLE_PERMISSIONS[UserRole.Guest]);
   });
 
   can(permission: Permission): boolean {

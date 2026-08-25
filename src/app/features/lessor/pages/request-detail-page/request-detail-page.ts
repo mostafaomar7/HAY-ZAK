@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { LanguageService } from '@core/i18n/language.service';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { APP } from '@core/constants/app.constants';
 import { BOOKING_STATUS_DISPLAY } from '@core/constants/status-display';
@@ -58,6 +59,8 @@ import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
   styleUrl: './request-detail-page.scss',
 })
 export class RequestDetailPage {
+  protected readonly i18n = inject(LanguageService);
+
   /** Bound from the route param by withComponentInputBinding. */
   readonly id = input.required<string>();
 

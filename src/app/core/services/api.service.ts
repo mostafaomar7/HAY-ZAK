@@ -5,7 +5,7 @@ import type { Observable } from 'rxjs';
 import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiError, ERROR_CODES } from '../models/api-error.model';
-import type { ApiEnvelope, PaginatedResponse, Pagination } from '../models/api-response.model';
+import type { ApiEnvelope, ListPayload, PaginatedResponse } from '../models/api-response.model';
 import { emptyPagination } from '../models/api-response.model';
 
 type ParamValue = string | number | boolean | null | undefined;
@@ -39,12 +39,19 @@ export class ApiService {
       .pipe(map((envelope) => unwrap(envelope)));
   }
 
-  /** A paged list: the rows and their pagination as one value. */
+  /**
+   * A paged list.
+   *
+   * The rows and the counts both arrive inside `data` — `{ items, pagination }`
+   * — and some collections (the reference lists) send `items` with no
+   * pagination at all. Both are normalised here so a caller always receives the
+   * same pair.
+   */
   list<T>(path: string, options: RequestOptions = {}): Observable<PaginatedResponse<T>> {
     return this.http
-      .get<ApiEnvelope<T[]>>(this.url(path), this.build(options))
+      .get<ApiEnvelope<ListPayload<T>>>(this.url(path), this.build(options))
       .pipe(
-        map((envelope) => unwrapPage(envelope, Number(options.params?.['limit']) || undefined)),
+        map((envelope) => unwrapPage(envelope, Number(options.params?.['pageSize']) || undefined)),
       );
   }
 
@@ -138,9 +145,19 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
   return envelope?.data as T;
 }
 
-function unwrapPage<T>(envelope: ApiEnvelope<T[]>, limit?: number): PaginatedResponse<T> {
-  const items = unwrap(envelope) ?? [];
-  const pagination = (envelope as { meta?: { pagination?: Pagination } }).meta?.pagination;
+function unwrapPage<T>(
+  envelope: ApiEnvelope<ListPayload<T>>,
+  pageSize?: number,
+): PaginatedResponse<T> {
+  const payload = unwrap(envelope);
 
-  return { items, pagination: pagination ?? { ...emptyPagination(limit), total: items.length } };
+  // A bare array is tolerated: an endpoint that returns one is still a list,
+  // and failing on the shape would be failing on something that works.
+  const items = Array.isArray(payload) ? payload : (payload?.items ?? []);
+  const pagination = Array.isArray(payload) ? undefined : payload?.pagination;
+
+  return {
+    items,
+    pagination: pagination ?? { ...emptyPagination(pageSize), total: items.length, totalPages: 1 },
+  };
 }

@@ -23,6 +23,15 @@ export class ApiError extends Error {
   readonly requestId?: string;
   /** Seconds until a rate-limited action may be tried again (429 only). */
   readonly retryAfterSeconds?: number;
+  /**
+   * Extra facts about this particular failure — `attemptsRemaining` on a wrong
+   * OTP, `until` on a locked account, `fileIndex` on a rejected upload.
+   *
+   * Always optional and always read defensively: it is documented as such, and
+   * a screen that assumed a key was there would break on the first code that
+   * omits it.
+   */
+  readonly meta?: Readonly<Record<string, unknown>>;
 
   constructor(init: {
     code: string;
@@ -31,6 +40,7 @@ export class ApiError extends Error {
     details?: readonly FieldError[];
     requestId?: string;
     retryAfterSeconds?: number;
+    meta?: Readonly<Record<string, unknown>>;
   }) {
     super(init.message);
     this.name = 'ApiError';
@@ -39,6 +49,13 @@ export class ApiError extends Error {
     this.details = init.details ?? [];
     this.requestId = init.requestId;
     this.retryAfterSeconds = init.retryAfterSeconds;
+    this.meta = init.meta;
+  }
+
+  /** A number out of `meta`, or undefined — never NaN. */
+  metaNumber(key: string): number | undefined {
+    const value = Number(this.meta?.[key]);
+    return Number.isFinite(value) ? value : undefined;
   }
 
   /** True when the server sent per-field messages worth mapping onto a form. */

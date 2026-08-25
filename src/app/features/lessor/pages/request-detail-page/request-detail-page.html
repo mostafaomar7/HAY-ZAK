@@ -18,9 +18,9 @@
         <div class="detail__unit">
           <h2 class="detail__unitTitle" dir="auto">{{ b.unit?.title }}</h2>
           <p class="detail__unitMeta">
-            {{ b.unit?.city?.name }}
-            @if (b.unit?.district?.name) {
-              &mdash; {{ b.unit?.district?.name }}
+            {{ i18n.pick(b.unit?.city) }}
+            @if (b.unit?.district) {
+              &mdash; {{ i18n.pick(b.unit?.district) }}
             }
           </p>
           <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unitId]">عرض المساحة</a>

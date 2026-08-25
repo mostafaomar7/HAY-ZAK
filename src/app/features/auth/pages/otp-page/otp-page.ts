@@ -105,7 +105,7 @@ export class OtpPage {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.auth.verifyOtp({ mobile: this.mobile(), code: this.code() }).subscribe({
+    this.auth.verifyMobile(this.mobile(), this.code()).subscribe({
       next: () => {
         this.submitting.set(false);
         // FR-AUTH-04 — the account is usable from here; land it in the right
@@ -146,7 +146,7 @@ export class OtpPage {
   protected resend(): void {
     if (this.throttled()) return;
 
-    this.auth.requestOtp(this.mobile()).subscribe({
+    this.auth.resendOtp(this.mobile()).subscribe({
       next: () => {
         this.state.set('entering');
         this.code.set('');

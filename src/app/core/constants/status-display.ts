@@ -119,15 +119,3 @@ export const ROLE_DISPLAY: Readonly<Record<UserRole, StatusDisplay>> = {
     tone: 'info',
   },
 };
-
-/** The role a signed-in user is acting as — the most privileged one they hold. */
-export function primaryRole(roles: readonly UserRole[]): UserRole {
-  const order = [
-    UserRole.SystemAdministrator,
-    UserRole.FinanceOfficer,
-    UserRole.OperationsSupervisor,
-    UserRole.Lessor,
-    UserRole.Renter,
-  ];
-  return order.find((role) => roles.includes(role)) ?? UserRole.Guest;
-}

@@ -43,15 +43,13 @@ describe('authInterceptor', () => {
 
     localStorage.clear();
     auth.setSession({
-      accessToken: 'stale-access',
-      refreshToken: 'refresh-1',
-      user: {
-        id: 'u-1',
-        fullName: 'x',
-        mobile: '0500000000',
-        roles: [],
-        status: 'Active',
-      } as never,
+      user: { id: 'u-1', fullName: 'x', mobile: '0500000000' } as never,
+      tokens: {
+        accessToken: 'stale-access',
+        refreshToken: 'refresh-1',
+        expiresIn: 1800,
+        tokenType: 'Bearer',
+      },
     });
   });
 
@@ -86,7 +84,15 @@ describe('authInterceptor', () => {
 
     refresh.flush({
       success: true,
-      data: { accessToken: 'fresh-access', refreshToken: 'refresh-2', user: auth.user() },
+      data: {
+        user: auth.user(),
+        tokens: {
+          accessToken: 'fresh-access',
+          refreshToken: 'refresh-2',
+          expiresIn: 1800,
+          tokenType: 'Bearer',
+        },
+      },
     });
 
     // Both original requests are replayed, now carrying the new token.

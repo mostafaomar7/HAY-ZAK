@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { IdType, UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { ApiError } from '@core/models/api-error.model';
+import type { SignupTerms } from '@core/models/user.model';
 import { isApiError } from '@core/models/api-error.model';
 import { AuthService } from '@core/services/auth.service';
 import { applyFieldErrors, clearServerErrors } from '@core/utils/api-form';
@@ -14,7 +15,7 @@ import { UiField } from '@shared/components/ui-field/ui-field';
 import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
 import { UiPasswordStrength } from '@shared/components/ui-password-strength/ui-password-strength';
 import { matchFields, strongPassword } from '@shared/validators/custom.validators';
-import { saudiMobile, saudiNationalId } from '@shared/validators/saudi.validators';
+import { saudiNationalId } from '@shared/validators/saudi.validators';
 
 /** Which of the two accounts is being created (FR-AUTH-12: one role each). */
 export type RegistrationRole = 'renter' | 'lessor';
@@ -53,6 +54,15 @@ export class RegisterPage {
   protected readonly submitting = signal(false);
   protected readonly i18n = inject(LanguageService);
 
+  /**
+   * The legal version this signup consents to.
+   *
+   * Fetched, never assumed: consent is recorded against this exact id, and a
+   * stale one comes back as TERMS_ACCEPTANCE_REQUIRED. Submit stays disabled
+   * until it arrives — registering without it cannot succeed.
+   */
+  protected readonly terms = signal<SignupTerms | null>(null);
+
   protected readonly error = signal<ApiError | null>(null);
   /** Field messages for controls this form does not have. */
   protected readonly extras = signal<readonly string[]>([]);
@@ -73,7 +83,10 @@ export class RegisterPage {
       idNumber: ['', [Validators.required, saudiNationalId]],
       address: [''],
       email: ['', [Validators.required, Validators.email]],
-      mobile: ['', [Validators.required, saudiMobile]],
+      // Required, and nothing more. The server accepts 05…, +9665…, Arabic
+      // digits, spaces and dashes, and normalises them — a shape check here
+      // would only reject numbers the API would have taken.
+      mobile: ['', [Validators.required]],
       password: ['', [Validators.required, strongPassword]],
       confirmPassword: ['', [Validators.required]],
       acceptedTerms: [false, [Validators.requiredTrue]],
@@ -89,6 +102,11 @@ export class RegisterPage {
   );
 
   constructor() {
+    this.auth.terms().subscribe({
+      next: (terms) => this.terms.set(terms),
+      error: () => undefined,
+    });
+
     this.form.controls.password.valueChanges.subscribe((value) => this.password.set(value ?? ''));
 
     // FR-AUTH-03 makes the address mandatory for renters and irrelevant for
@@ -123,21 +141,28 @@ export class RegisterPage {
         fullName: value.fullName ?? '',
         idNumber: value.idNumber ?? '',
         idType: this.idType(),
-        address: this.isRenter() ? (value.address ?? '') : undefined,
+        addressLine: this.isRenter() ? (value.address ?? '') : undefined,
         email: value.email ?? '',
         mobile: value.mobile ?? '',
         password: value.password ?? '',
         // TODO: replace with the active version from /content/terms/active once
         // the CMS endpoint is live (FR-ADM-07).
-        termsVersionId: 'current',
+        termsVersionId: this.terms()?.id ?? '',
         acceptedTerms: true,
       })
       .subscribe({
-        next: () => {
+        next: (created) => {
           this.submitting.set(false);
-          // FR-AUTH-04 — the account is not usable until the mobile is verified.
+          // No tokens here: the account is PENDING_VERIFICATION and the OTP
+          // screen is what makes it usable. The masked destination travels with
+          // it so the user can confirm the number the code went to.
           void this.router.navigate(['/auth/verify'], {
-            queryParams: { mobile: value.mobile, returnUrl: this.returnUrl() || null },
+            queryParams: {
+              mobile: value.mobile,
+              destination: created.verification.destination,
+              devCode: created.verification.devCode ?? null,
+              returnUrl: this.returnUrl() || null,
+            },
           });
         },
         error: (failure: unknown) => {

@@ -71,7 +71,7 @@ function isRefreshCall(req: HttpRequest<unknown>): boolean {
  */
 function refreshOnce(auth: AuthService): Observable<string> {
   inFlightRefresh ??= auth.refresh().pipe(
-    map((result) => result.accessToken),
+    map((result) => result.tokens.accessToken),
     catchError((error: unknown) => {
       auth.endSession();
       return throwError(() => error);

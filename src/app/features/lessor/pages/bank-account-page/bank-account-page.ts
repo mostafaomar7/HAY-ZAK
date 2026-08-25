@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
 import type { LessorBankAccount, ReferenceItem } from '@core/models';
 import { NotificationService } from '@core/services/notification.service';
@@ -31,6 +32,8 @@ import { saudiIban } from '@shared/validators/saudi.validators';
   styleUrl: './bank-account-page.scss',
 })
 export class BankAccountPage {
+  protected readonly i18n = inject(LanguageService);
+
   private readonly fb = inject(FormBuilder);
   private readonly account = inject(LessorAccountService);
   private readonly reference = inject(ReferenceDataService);

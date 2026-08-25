@@ -4,7 +4,7 @@ import { MOCK_LESSOR } from './lessor.fixtures';
 
 describe('mock accounts', () => {
   it('covers every role a person can hold', () => {
-    const covered = MOCK_ACCOUNTS.flatMap((account) => account.roles);
+    const covered = MOCK_ACCOUNTS.map((account) => account.role);
 
     for (const role of Object.values(UserRole)) {
       if (role === UserRole.Guest) continue; // a guest is the absence of an account
@@ -12,11 +12,11 @@ describe('mock accounts', () => {
     }
   });
 
-  it('gives each account exactly one role, as the product requires', () => {
+  it('gives each account a role the product recognises', () => {
     for (const account of MOCK_ACCOUNTS) {
-      expect(account.roles.length)
+      expect(Object.values(UserRole))
         .withContext(account.email ?? account.mobile)
-        .toBe(1);
+        .toContain(account.role);
     }
   });
 

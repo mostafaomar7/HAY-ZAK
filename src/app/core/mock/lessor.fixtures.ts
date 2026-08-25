@@ -23,13 +23,13 @@ export const MOCK_LESSOR: User = {
   fullName: 'سعود العنزي',
   mobile: '0512345678',
   email: 'saud@example.com',
-  roles: [UserRole.Lessor],
+  role: UserRole.Lessor,
   status: AccountStatus.Active,
   mobileVerifiedAt: '2026-08-01T09:00:00Z',
   createdAt: '2026-07-20T09:00:00Z',
 };
 
-const category = (name: string) => ({ id: name, name });
+const category = (nameAr: string) => ({ id: nameAr, nameAr, nameEn: nameAr });
 
 function unit(
   id: string,
@@ -236,23 +236,23 @@ export const MOCK_BOOKINGS: Booking[] = [
 // designer's wording in both renter files; the lessor form said "مساحة مفتوحة"
 // and the two are now one row — see docs/design/renter-plan.md.
 export const MOCK_CATEGORIES: ReferenceItem[] = [
-  { id: 'warehouse', name: 'مستودع', sortOrder: 1, unitCount: 19 },
-  { id: 'room', name: 'غرفة', sortOrder: 2, unitCount: 14 },
-  { id: 'open_space', name: 'مكان مكشوف', sortOrder: 3, unitCount: 8 },
-  { id: 'garage', name: 'قراج', sortOrder: 4, unitCount: 7 },
+  { id: 'warehouse', nameAr: 'مستودع', nameEn: 'مستودع', sortOrder: 1, unitCount: 19 },
+  { id: 'room', nameAr: 'غرفة', nameEn: 'غرفة', sortOrder: 2, unitCount: 14 },
+  { id: 'open_space', nameAr: 'مكان مكشوف', nameEn: 'مكان مكشوف', sortOrder: 3, unitCount: 8 },
+  { id: 'garage', nameAr: 'قراج', nameEn: 'قراج', sortOrder: 4, unitCount: 7 },
 ];
 
 export const MOCK_CITIES: ReferenceItem[] = [
-  { id: 'riyadh', name: 'الرياض' },
-  { id: 'jeddah', name: 'جدة' },
-  { id: 'dammam', name: 'الدمام' },
+  { id: 'riyadh', nameAr: 'الرياض', nameEn: 'الرياض' },
+  { id: 'jeddah', nameAr: 'جدة', nameEn: 'جدة' },
+  { id: 'dammam', nameAr: 'الدمام', nameEn: 'الدمام' },
 ];
 
 export const MOCK_DISTRICTS: District[] = [
-  { id: 'd-1', cityId: 'riyadh', name: 'النرجس' },
-  { id: 'd-2', cityId: 'riyadh', name: 'الياسمين' },
-  { id: 'd-3', cityId: 'riyadh', name: 'الملقا' },
-  { id: 'd-4', cityId: 'riyadh', name: 'الصحافة' },
+  { id: 'd-1', cityId: 'riyadh', nameAr: 'النرجس', nameEn: 'النرجس' },
+  { id: 'd-2', cityId: 'riyadh', nameAr: 'الياسمين', nameEn: 'الياسمين' },
+  { id: 'd-3', cityId: 'riyadh', nameAr: 'الملقا', nameEn: 'الملقا' },
+  { id: 'd-4', cityId: 'riyadh', nameAr: 'الصحافة', nameEn: 'الصحافة' },
 ];
 
 /** FR-UNT-08 — date ranges, not a binary flag. */
@@ -407,4 +407,4 @@ export const MOCK_BANKS: ReferenceItem[] = [
   'البنك العربي الوطني',
   'بنك الجزيرة',
   'بنك الخليج الدولي',
-].map((name, i) => ({ id: `bank-${i + 1}`, name }));
+].map((name, i) => ({ id: `bank-${i + 1}`, nameAr: name, nameEn: name }));
