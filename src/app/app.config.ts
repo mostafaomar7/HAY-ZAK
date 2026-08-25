@@ -21,6 +21,7 @@ import { languageInterceptor } from '@core/interceptors/language.interceptor';
 import { loadingInterceptor } from '@core/interceptors/loading.interceptor';
 import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
 import { seedDevSession } from '@core/mock/dev-session';
+import { dropStaleMockSession, logStartupMode } from '@core/startup';
 import { environment } from '../environments/environment';
 
 // Required before LOCALE_ID may be anything other than 'en-US' — without it the
@@ -72,6 +73,12 @@ export const appConfig: ApplicationConfig = {
     // fixtures and must start signed out — see environment.model.ts. Spread
     // away entirely otherwise, so neither the initializer nor the fixtures it
     // pulls in are referenced.
+    // Which build this is, before anything else runs. Two development builds
+    // look identical on screen and behave completely differently — see
+    // startup-banner.ts.
+    provideAppInitializer(logStartupMode),
+    provideAppInitializer(dropStaleMockSession),
+
     ...(environment.seedSession ? [provideAppInitializer(seedDevSession)] : []),
 
     // SRS §2.4 — SAR is the sole currency, Riyadh (UTC+3) the reference timezone.
