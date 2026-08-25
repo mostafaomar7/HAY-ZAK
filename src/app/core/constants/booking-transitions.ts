@@ -1,5 +1,5 @@
 import { BookingStatus, TERMINAL_BOOKING_STATUSES } from '../enums/booking-status.enum';
-import { UserRole } from '../enums/user-role.enum';
+import { Permission } from './permissions';
 
 /** A single legal edge of the booking state machine. */
 export interface BookingTransition {
@@ -7,8 +7,16 @@ export interface BookingTransition {
   to: BookingStatus;
   /** What causes it. */
   trigger: string;
-  /** Empty means the system performs it (timer, gateway webhook), not a person. */
-  actors: readonly UserRole[];
+  /**
+   * What somebody must hold to perform it. Empty means the system does it
+   * (timer, gateway webhook) and no person can.
+   *
+   * A permission rather than a role: the server issues administration
+   * capabilities per account, so "who may cancel a booking" is answered by
+   * `complaints:manage` and stays answered when a fourth kind of administrator
+   * appears.
+   */
+  actors: readonly Permission[];
 }
 
 /**
@@ -28,13 +36,13 @@ export const BOOKING_TRANSITIONS: readonly BookingTransition[] = [
     from: BookingStatus.Draft,
     to: BookingStatus.AwaitingPayment,
     trigger: 'goods description entered + prohibited-items acknowledged',
-    actors: [UserRole.Renter],
+    actors: [Permission.CreateBooking],
   },
   {
     from: BookingStatus.AwaitingPayment,
     to: BookingStatus.Confirmed,
     trigger: 'payment captured',
-    actors: [UserRole.Renter],
+    actors: [Permission.CreateBooking],
   },
   {
     from: BookingStatus.AwaitingPayment,
@@ -52,13 +60,13 @@ export const BOOKING_TRANSITIONS: readonly BookingTransition[] = [
     from: BookingStatus.Confirmed,
     to: BookingStatus.Cancelled,
     trigger: 'administration resolves a complaint against the booking',
-    actors: [UserRole.OperationsSupervisor, UserRole.SystemAdministrator],
+    actors: [Permission.ManageComplaints],
   },
   {
     from: BookingStatus.Active,
     to: BookingStatus.Cancelled,
     trigger: 'administration resolves a complaint against a running booking',
-    actors: [UserRole.OperationsSupervisor, UserRole.SystemAdministrator],
+    actors: [Permission.ManageComplaints],
   },
   {
     from: BookingStatus.Active,
@@ -73,12 +81,25 @@ export function nextStatuses(from: BookingStatus): BookingStatus[] {
   return BOOKING_TRANSITIONS.filter((t) => t.from === from).map((t) => t.to);
 }
 
-/** Guard for any state-changing action, in the UI and mirrored server-side. */
-export function canTransition(from: BookingStatus, to: BookingStatus, role?: UserRole): boolean {
+/**
+ * Guard for any state-changing action, in the UI and mirrored server-side.
+ *
+ * Called with no permissions it answers only "is this edge legal at all",
+ * which is what the lifecycle diagram and the status chips need. Pass what the
+ * user holds — `PermissionService.permissions()` — to ask whether *they* may
+ * perform it.
+ */
+export function canTransition(
+  from: BookingStatus,
+  to: BookingStatus,
+  held?: Iterable<Permission>,
+): boolean {
   const edge = BOOKING_TRANSITIONS.find((t) => t.from === from && t.to === to);
   if (!edge) return false;
-  if (!role) return true;
-  return edge.actors.includes(role);
+  if (!held) return true;
+
+  const granted = new Set(held);
+  return edge.actors.some((permission) => granted.has(permission));
 }
 
 export function isTerminal(status: BookingStatus): boolean {

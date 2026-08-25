@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { APP } from '@core/constants/app.constants';
 import { SKIP_AUTH } from '@core/interceptors/auth.interceptor';
 import type { PaginatedResponse } from '@core/models/api-response.model';
-import { hasNextPage } from '@core/models/api-response.model';
 import type { Unit, UnitAvailabilityBlock, UnitSearchParams } from '@core/models/unit.model';
 import { ApiService } from '@core/services/api.service';
 
@@ -98,7 +97,8 @@ export class MarketplaceService {
           next: (result) => {
             this.items.update((current) => (append ? [...current, ...result.items] : result.items));
             this.totalCount.set(result.pagination.total);
-            this.more.set(hasNextPage(result.pagination));
+            // The server's flag, not `page < totalPages`: one rule, one place.
+            this.more.set(result.pagination.hasNextPage);
             this.loading.set(false);
           },
           error: () => this.loading.set(false),

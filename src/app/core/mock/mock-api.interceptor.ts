@@ -431,9 +431,9 @@ function ok<T>(data: T): ApiSuccess<T> {
 }
 
 /**
- * A list, in the shape the backend sends one: the rows in `data`, the counts
- * beside them in `meta.pagination`. The fixtures are small enough to return
- * whole, so this reports a single page rather than pretending to slice.
+ * A list, in the shape the backend sends one: the rows and the counts together
+ * inside `data`. The fixtures are small enough to return whole, so this reports
+ * a single page rather than pretending to slice.
  */
 function paginate<T>(items: T[]): ApiSuccess<ListPayload<T>> {
   const pagination: Pagination = {
@@ -441,9 +441,10 @@ function paginate<T>(items: T[]): ApiSuccess<ListPayload<T>> {
     pageSize: items.length || 1,
     total: items.length,
     totalPages: items.length > 0 ? 1 : 0,
+    hasNextPage: false,
+    hasPrevPage: false,
   };
 
-  // Rows and counts inside `data`, exactly as the server sends them.
   return { success: true, data: { items, pagination } };
 }
 

@@ -40,7 +40,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'dashboard',
         title: 'لوحة المؤشرات',
         data: { titleKey: 'adminNav.dashboard' },
-        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        canActivate: [permissionGuard([Permission.ViewReports])],
         loadComponent: () =>
           import('./pages/dashboard-page/dashboard-page').then((m) => m.AdminDashboardPage),
       },
@@ -57,7 +57,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'complaints',
         title: 'الشكاوى',
         data: { titleKey: 'adminNav.complaints' },
-        canActivate: [permissionGuard([Permission.ResolveDisputes])],
+        canActivate: [permissionGuard([Permission.ManageComplaints])],
         loadComponent: () =>
           import('./pages/complaints-page/complaints-page').then((m) => m.AdminComplaintsPage),
       },
@@ -66,7 +66,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'payments',
         title: 'متابعة المدفوعات',
         data: { titleKey: 'adminNav.payments' },
-        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        canActivate: [permissionGuard([Permission.ViewReports])],
         loadComponent: () =>
           import('./pages/payments-page/payments-page').then((m) => m.AdminPaymentsPage),
       },
@@ -82,7 +82,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'reports',
         title: 'التقارير',
         data: { titleKey: 'adminNav.reports' },
-        canActivate: [permissionGuard([Permission.ViewAllFinancialReports])],
+        canActivate: [permissionGuard([Permission.ViewReports])],
         loadComponent: () =>
           import('./pages/reports-page/reports-page').then((m) => m.AdminReportsPage),
       },
@@ -90,7 +90,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'financial-settings',
         title: 'الإعدادات المالية',
         data: { titleKey: 'adminNav.financialSettings' },
-        canActivate: [permissionGuard([Permission.ConfigureFinancials])],
+        canActivate: [permissionGuard([Permission.ManageSettings])],
         loadComponent: () =>
           import('./pages/financial-settings-page/financial-settings-page').then(
             (m) => m.AdminFinancialSettingsPage,
@@ -108,7 +108,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'reference-lists',
         title: 'القوائم المرجعية',
         data: { titleKey: 'adminNav.referenceLists' },
-        canActivate: [permissionGuard([Permission.ManageReferenceData])],
+        canActivate: [permissionGuard([Permission.ManageSettings])],
         loadComponent: () =>
           import('./pages/reference-lists-page/reference-lists-page').then(
             (m) => m.AdminReferenceListsPage,
@@ -118,7 +118,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'content',
         title: 'إدارة المحتوى',
         data: { titleKey: 'adminNav.content' },
-        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        canActivate: [permissionGuard([Permission.ManageCms])],
         loadComponent: () =>
           import('./pages/content-page/content-page').then((m) => m.AdminContentPage),
       },
@@ -126,21 +126,21 @@ export const ADMIN_ROUTES: Routes = [
         path: 'terms',
         title: 'الشروط والأحكام',
         data: { titleKey: 'adminNav.terms' },
-        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        canActivate: [permissionGuard([Permission.ManageCms])],
         loadComponent: () => import('./pages/terms-page/terms-page').then((m) => m.AdminTermsPage),
       },
       {
         path: 'audit',
         title: 'سجل التدقيق',
         data: { titleKey: 'adminNav.audit' },
-        canActivate: [permissionGuard([Permission.ViewAuditTrail])],
+        canActivate: [permissionGuard([Permission.ManageSettings])],
         loadComponent: () => import('./pages/audit-page/audit-page').then((m) => m.AdminAuditPage),
       },
       {
         path: 'library',
         title: 'مكتبة المكوّنات',
         data: { titleKey: 'adminNav.library' },
-        canActivate: [permissionGuard([Permission.ManageCmsAndTerms])],
+        canActivate: [permissionGuard([Permission.ManageCms])],
         loadComponent: () =>
           import('./pages/library-page/library-page').then((m) => m.AdminLibraryPage),
       },

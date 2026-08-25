@@ -3,7 +3,7 @@ import { TermsVersionStatus } from '../models/admin.model';
 import { DisputeStatus } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
 import { UnitStatus } from '../enums/unit-status.enum';
-import { AccountStatus, UserRole } from '../enums/user-role.enum';
+import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 
 /**
  * Semantic weight of a status, not a colour. Components map a tone to whatever
@@ -107,15 +107,23 @@ export const ROLE_DISPLAY: Readonly<Record<UserRole, StatusDisplay>> = {
   [UserRole.Guest]: { ar: 'زائر', en: 'Guest', tone: 'neutral' },
   [UserRole.Renter]: { ar: 'مستأجر', en: 'Renter', tone: 'neutral' },
   [UserRole.Lessor]: { ar: 'مؤجر', en: 'Lessor', tone: 'neutral' },
-  [UserRole.OperationsSupervisor]: {
-    ar: 'مشرف العمليات',
-    en: 'Operations supervisor',
-    tone: 'info',
-  },
-  [UserRole.FinanceOfficer]: { ar: 'المسؤول المالي', en: 'Finance officer', tone: 'info' },
-  [UserRole.SystemAdministrator]: {
-    ar: 'مدير النظام',
-    en: 'System administrator',
-    tone: 'info',
-  },
+  [UserRole.Admin]: { ar: 'إدارة', en: 'Administration', tone: 'info' },
 };
+
+/**
+ * The three kinds of administrator, by name.
+ *
+ * Separate from `ROLE_DISPLAY` because they are a separate field: the API
+ * sends one `ADMIN` role and an `adminRole` beside it. Use `userRoleText()`
+ * rather than either map — a user row wants "مشرف العمليات", not "إدارة".
+ */
+export const ADMIN_ROLE_DISPLAY: Readonly<Record<AdminRole, StatusDisplay>> = {
+  [AdminRole.SystemAdmin]: { ar: 'مدير النظام', en: 'System administrator', tone: 'info' },
+  [AdminRole.Operations]: { ar: 'مشرف العمليات', en: 'Operations supervisor', tone: 'info' },
+  [AdminRole.Finance]: { ar: 'المسؤول المالي', en: 'Finance officer', tone: 'info' },
+};
+
+/** What to call this account: the administrator's kind when there is one. */
+export function userRoleDisplay(role: UserRole, adminRole?: AdminRole | null): StatusDisplay {
+  return (adminRole && ADMIN_ROLE_DISPLAY[adminRole]) || ROLE_DISPLAY[role];
+}

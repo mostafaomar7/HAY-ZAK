@@ -1,33 +1,39 @@
 /**
- * SRS §5 Permission Matrix + §8.1 actors, with the wire values the API sends.
+ * The three roles the API issues, plus the guest the client invents for
+ * everybody who has not signed in.
  *
- * The server currently issues three: `RENTER`, `LESSOR` and one `ADMIN`. The
- * permission matrix distinguishes three administration roles, and the client
- * keeps them — the console's whole navigation is built on the distinction and
- * the client asked for it by name. Until the API splits `ADMIN`, everybody it
- * sends lands on `SystemAdministrator`, which is the widest of the three, so a
- * real operator is never locked out of a screen they should have.
- *
- * That is a deliberate temporary over-grant and it is recorded in
- * `docs/api/backend-notes.md` as something the backend has to resolve before
- * launch: an operations supervisor holding finance permissions is a real
- * segregation-of-duties problem, not a cosmetic one.
+ * `role` decides routing and nothing finer: `RENTER` belongs on the storefront,
+ * `LESSOR` in the portal, `ADMIN` in the console. What an administrator may
+ * actually *do* is not in here — it arrives per user as `permissions`, and
+ * `PermissionService` is the only thing that reads it. See `permissions.ts`.
  */
 export enum UserRole {
   Guest = 'GUEST',
   Renter = 'RENTER',
   Lessor = 'LESSOR',
-  OperationsSupervisor = 'OPERATIONS_SUPERVISOR',
-  FinanceOfficer = 'FINANCE_OFFICER',
-  SystemAdministrator = 'ADMIN',
+  Admin = 'ADMIN',
 }
 
-/** The three admin-side roles (FR-ADM-10). */
-export const ADMIN_ROLES: readonly UserRole[] = [
-  UserRole.OperationsSupervisor,
-  UserRole.FinanceOfficer,
-  UserRole.SystemAdministrator,
-] as const;
+/**
+ * Which kind of administrator, for display only.
+ *
+ * Present on the user beside `role`, and deliberately **not** a permission
+ * check: `adminRole === Finance` is the test that breaks the day the client
+ * asks for a fourth kind of administrator, which on this sort of platform they
+ * always do. Gate on a permission and a new role needs no client release.
+ *
+ * Null on a renter or a lessor.
+ */
+export enum AdminRole {
+  SystemAdmin = 'SYSTEM_ADMIN',
+  Operations = 'OPERATIONS',
+  Finance = 'FINANCE',
+}
+
+/** Whether this account belongs in the console at all. */
+export function isAdminRole(role: UserRole): boolean {
+  return role === UserRole.Admin;
+}
 
 export enum AccountStatus {
   PendingVerification = 'PENDING_VERIFICATION',

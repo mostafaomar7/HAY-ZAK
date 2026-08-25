@@ -1,7 +1,7 @@
 import { BookingStatus } from '../enums/booking-status.enum';
 import { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
-import { AccountStatus, UserRole } from '../enums/user-role.enum';
+import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 import { TermsVersionStatus } from '../models/admin.model';
 import type {
   AdminUserDetail,
@@ -45,12 +45,46 @@ import type { User } from '../models/user.model';
  * `accounts.ts` holds the whole sign-in directory, including the supervisor and
  * the finance officer, so all three console roles can be demonstrated.
  */
+/**
+ * What the API issues to each kind of administrator, copied from the running
+ * server rather than invented here.
+ *
+ * The mock exists to make the console walkable before the backend is reachable,
+ * so a demo that granted more than the server does would be a demo of a product
+ * that does not exist — the finance officer's console must be missing the same
+ * screens here as it is there.
+ */
+export const SEEDED_ADMIN_PERMISSIONS: Readonly<Record<AdminRole, readonly string[]>> = {
+  [AdminRole.SystemAdmin]: [
+    'units:review',
+    'users:manage',
+    'bookings:manage',
+    'complaints:manage',
+    'payouts:approve',
+    'refunds:issue',
+    'settings:manage',
+    'reports:view',
+    'cms:manage',
+  ],
+  [AdminRole.Operations]: [
+    'units:review',
+    'users:manage',
+    'bookings:manage',
+    'complaints:manage',
+    'reports:view',
+    'cms:manage',
+  ],
+  [AdminRole.Finance]: ['payouts:approve', 'refunds:issue', 'reports:view'],
+};
+
 export const MOCK_ADMIN_USER: User = {
   id: 'usr-5',
   fullName: 'محمد الحربي',
   mobile: '0509001122',
   email: 'operations@hayzak.com',
-  role: UserRole.SystemAdministrator,
+  role: UserRole.Admin,
+  adminRole: AdminRole.SystemAdmin,
+  permissions: SEEDED_ADMIN_PERMISSIONS[AdminRole.SystemAdmin],
   status: AccountStatus.Active,
   mobileVerifiedAt: '2026-01-04T09:00:00Z',
   createdAt: '2026-01-04T09:00:00Z',
@@ -191,7 +225,7 @@ export const MOCK_BOOKING_DETAIL: BookingReviewDetail = {
 // ── Dashboard ────────────────────────────────────────────────────────────
 
 export const MOCK_ADMIN_KPIS: AdminDashboardKpis = {
-  usersByRole: { Renter: 946, Lessor: 331, OperationsSupervisor: 4, FinanceOfficer: 2 },
+  usersByRole: { Renter: 946, Lessor: 331, Operations: 4, Finance: 2 },
   unitsByStatus: { Published: 214, PendingReview: 12, Rejected: 9, Suspended: 3 },
   bookingsCount: 148,
   grossCollection: 86_420,
@@ -470,7 +504,8 @@ export const MOCK_ADMIN_USERS: AdminUserRow[] = [
   {
     id: 'usr-5',
     fullName: 'محمد الحربي',
-    role: UserRole.SystemAdministrator,
+    role: UserRole.Admin,
+    adminRole: AdminRole.SystemAdmin,
     mobile: '+966 50 900 1122',
     email: 'operations@hayzak.com',
     registeredAt: '2026-01-04',
@@ -479,7 +514,8 @@ export const MOCK_ADMIN_USERS: AdminUserRow[] = [
   {
     id: 'usr-6',
     fullName: 'نوف السالم',
-    role: UserRole.OperationsSupervisor,
+    role: UserRole.Admin,
+    adminRole: AdminRole.Operations,
     mobile: '+966 54 220 8891',
     email: 'nouf@hayzak.com',
     registeredAt: '2026-01-19',
@@ -488,7 +524,8 @@ export const MOCK_ADMIN_USERS: AdminUserRow[] = [
   {
     id: 'usr-7',
     fullName: 'ريم الغامدي',
-    role: UserRole.FinanceOfficer,
+    role: UserRole.Admin,
+    adminRole: AdminRole.Finance,
     mobile: '+966 55 640 3312',
     email: 'reem@hayzak.com',
     registeredAt: '2026-02-02',
@@ -798,7 +835,8 @@ export const MOCK_AUDIT_ROWS: AuditRow[] = [
   {
     id: 'aud-1',
     actorName: 'محمد الحربي',
-    actorRole: UserRole.SystemAdministrator,
+    actorRole: UserRole.Admin,
+    actorAdminRole: AdminRole.SystemAdmin,
     action: 'تعديل الإعدادات المالية — نسبة العمولة',
     occurredAt: '2026-08-13T10:22:00Z',
     oldValue: '10 بالمئة',
@@ -807,7 +845,8 @@ export const MOCK_AUDIT_ROWS: AuditRow[] = [
   {
     id: 'aud-2',
     actorName: 'نوف السالم',
-    actorRole: UserRole.OperationsSupervisor,
+    actorRole: UserRole.Admin,
+    actorAdminRole: AdminRole.Operations,
     action: 'اعتماد إعلان — مستودع مكيّف، النرجس',
     occurredAt: '2026-08-13T08:41:00Z',
     oldValue: 'قيد المراجعة',
@@ -816,7 +855,8 @@ export const MOCK_AUDIT_ROWS: AuditRow[] = [
   {
     id: 'aud-3',
     actorName: 'ريم الغامدي',
-    actorRole: UserRole.FinanceOfficer,
+    actorRole: UserRole.Admin,
+    actorAdminRole: AdminRole.Finance,
     action: 'تنفيذ تحويل مالي — HZ-2026-01004',
     occurredAt: '2026-08-12T14:07:00Z',
     oldValue: 'مستحق',
@@ -825,7 +865,8 @@ export const MOCK_AUDIT_ROWS: AuditRow[] = [
   {
     id: 'aud-4',
     actorName: 'نوف السالم',
-    actorRole: UserRole.OperationsSupervisor,
+    actorRole: UserRole.Admin,
+    actorAdminRole: AdminRole.Operations,
     action: 'رفض حجز — HZ-2026-00964',
     occurredAt: '2026-08-11T17:55:00Z',
     oldValue: 'مدفوع — بانتظار الموافقة',
@@ -834,7 +875,8 @@ export const MOCK_AUDIT_ROWS: AuditRow[] = [
   {
     id: 'aud-5',
     actorName: 'محمد الحربي',
-    actorRole: UserRole.SystemAdministrator,
+    actorRole: UserRole.Admin,
+    actorAdminRole: AdminRole.SystemAdmin,
     action: 'إيقاف مستخدم — نورة الشمري',
     occurredAt: '2026-08-10T09:30:00Z',
     oldValue: 'نشط',

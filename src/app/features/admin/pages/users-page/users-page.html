@@ -29,7 +29,7 @@
 >
   <ng-template #row let-row>
     <span class="cell cell--strong">{{ row.fullName }}</span>
-    <span class="cell cell--muted">{{ roleLabel(row.role) }}</span>
+    <span class="cell cell--muted">{{ roleLabel(row.role, row.adminRole) }}</span>
     <span class="cell num" dir="ltr">{{ row.mobile }}</span>
     <span class="cell" dir="ltr">{{ row.email }}</span>
     <span class="cell num">{{ row.registeredAt | date: 'd MMM y' }}</span>
@@ -51,7 +51,7 @@
       <dl class="facts">
         <div class="fact">
           <dt>{{ i18n.t('users.role') }}</dt>
-          <dd>{{ roleLabel(user.role) }}</dd>
+          <dd>{{ roleLabel(user.role, user.adminRole) }}</dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('admin.status') }}</dt>

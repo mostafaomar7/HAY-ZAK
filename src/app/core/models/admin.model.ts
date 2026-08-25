@@ -1,7 +1,7 @@
 import type { BookingStatus } from '../enums/booking-status.enum';
 import type { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
 import type { PayoutStatus } from '../enums/payment.enum';
-import type { AccountStatus, UserRole } from '../enums/user-role.enum';
+import type { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 
 /**
  * The admin panel's read models (FR-ADM, FR-RPT).
@@ -234,6 +234,8 @@ export interface AdminUserRow {
   id: string;
   fullName: string;
   role: UserRole;
+  /** Which kind of administrator. Absent on a renter or a lessor. */
+  adminRole?: AdminRole | null;
   mobile: string;
   email: string;
   registeredAt: string;
@@ -372,6 +374,8 @@ export interface AuditRow {
   id: string;
   actorName: string;
   actorRole: UserRole;
+  /** Which kind of administrator acted. Absent when it was not one. */
+  actorAdminRole?: AdminRole | null;
   action: string;
   occurredAt: string;
   oldValue: string;

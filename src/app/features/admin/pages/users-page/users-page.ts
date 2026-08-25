@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ACCOUNT_STATUS_DISPLAY, ROLE_DISPLAY, statusText } from '@core/constants/status-display';
-import { AccountStatus, UserRole } from '@core/enums/user-role.enum';
+import {
+  ACCOUNT_STATUS_DISPLAY,
+  statusText,
+  userRoleDisplay,
+} from '@core/constants/status-display';
+import { AccountStatus, AdminRole, UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AdminUserDetail, AdminUserRow } from '@core/models/admin.model';
 import { NotificationService } from '@core/services/notification.service';
@@ -66,9 +70,15 @@ export class AdminUsersPage {
       label: this.i18n.t('users.role'),
       options: [
         { value: '', label: this.i18n.t('users.allRoles') },
-        ...Object.values(UserRole)
-          .filter((role) => role !== UserRole.Guest)
-          .map((role) => ({ value: role, label: this.roleLabel(role) })),
+        // The two public roles, then the three kinds of administrator. `ADMIN`
+        // itself is not offered: "إدارة" is not a filter anybody wants, and the
+        // operator is looking for a finance officer or a supervisor by name.
+        { value: UserRole.Renter, label: this.roleLabel(UserRole.Renter) },
+        { value: UserRole.Lessor, label: this.roleLabel(UserRole.Lessor) },
+        ...Object.values(AdminRole).map((adminRole) => ({
+          value: adminRole,
+          label: this.roleLabel(UserRole.Admin, adminRole),
+        })),
       ],
     },
     {
@@ -95,7 +105,7 @@ export class AdminUsersPage {
 
   protected fetch(): void {
     this.list.begin();
-    this.users.list(this.list.params()).subscribe({
+    this.users.list(splitRoleFilter(this.list.params())).subscribe({
       next: (page) => {
         this.rows.set(page.items);
         this.list.succeed(page.items.length, page.pagination.total);
@@ -135,8 +145,8 @@ export class AdminUsersPage {
     this.detail.set(null);
   }
 
-  protected roleLabel(role: UserRole): string {
-    return statusText(ROLE_DISPLAY[role], this.i18n.language());
+  protected roleLabel(role: UserRole, adminRole?: AdminRole | null): string {
+    return statusText(userRoleDisplay(role, adminRole), this.i18n.language());
   }
 
   protected statusLabel(status: AccountStatus): string {
@@ -178,4 +188,22 @@ export class AdminUsersPage {
       error: () => this.notifications.error(this.i18n.t('admin.actionFailed')),
     });
   }
+}
+
+/**
+ * The role select carries two different fields in one control.
+ *
+ * `RENTER` and `LESSOR` are values of `role`; the three administrator kinds are
+ * values of `adminRole`, because the API sends a single `ADMIN` role with the
+ * kind beside it. One select is right for the operator — they are looking for a
+ * finance officer, not for a field — so the split happens here, on the way out,
+ * rather than by making them choose a field first.
+ */
+function splitRoleFilter(params: Record<string, string>): Record<string, string> {
+  const { role, ...rest } = params;
+  if (!role) return params;
+
+  return Object.values(AdminRole).includes(role as AdminRole)
+    ? { ...rest, role: UserRole.Admin, adminRole: role }
+    : params;
 }

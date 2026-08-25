@@ -1,4 +1,10 @@
-import type { AccountStatus, IdType, UserRole, VerificationStatus } from '../enums/user-role.enum';
+import type {
+  AccountStatus,
+  AdminRole,
+  IdType,
+  UserRole,
+  VerificationStatus,
+} from '../enums/user-role.enum';
 
 /** ERD-1 `users`. Sensitive fields live in the separate models below. */
 export interface User {
@@ -10,8 +16,26 @@ export interface User {
    * One role. The API sends `role`, singular, and the product allows exactly
    * one per account (FR-AUTH-12) — an array was modelling something neither
    * side does.
+   *
+   * It decides routing and nothing finer. What the account may *do* is
+   * `permissions`.
    */
   role: UserRole;
+  /**
+   * Which kind of administrator, for display. Absent on a renter or a lessor.
+   *
+   * Never gate on it — see `AdminRole`, and gate on a permission instead.
+   */
+  adminRole?: AdminRole | null;
+  /**
+   * The administration capabilities the server issued to this account, as wire
+   * strings (`units:review`, `payouts:approve`, …).
+   *
+   * Empty for a renter and a lessor: their capabilities follow from `role`.
+   * Read it through `PermissionService`, which joins the two — nothing else
+   * should touch this array.
+   */
+  permissions?: readonly string[];
   status: AccountStatus;
   /**
    * Null until the mobile OTP is verified.

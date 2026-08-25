@@ -34,7 +34,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/dashboard',
         labelKey: 'adminNav.dashboard',
-        permission: Permission.ViewAllFinancialReports,
+        permission: Permission.ViewReports,
       },
       {
         route: '/admin/listings',
@@ -45,7 +45,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/complaints',
         labelKey: 'adminNav.complaints',
-        permission: Permission.ResolveDisputes,
+        permission: Permission.ManageComplaints,
         badge: 'complaints',
       },
     ],
@@ -56,7 +56,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/payments',
         labelKey: 'adminNav.payments',
-        permission: Permission.ViewAllFinancialReports,
+        permission: Permission.ViewReports,
       },
       {
         route: '/admin/transfers',
@@ -66,12 +66,12 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/reports',
         labelKey: 'adminNav.reports',
-        permission: Permission.ViewAllFinancialReports,
+        permission: Permission.ViewReports,
       },
       {
         route: '/admin/financial-settings',
         labelKey: 'adminNav.financialSettings',
-        permission: Permission.ConfigureFinancials,
+        permission: Permission.ManageSettings,
       },
     ],
   },
@@ -82,23 +82,23 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/reference-lists',
         labelKey: 'adminNav.referenceLists',
-        permission: Permission.ManageReferenceData,
+        permission: Permission.ManageSettings,
       },
       {
         route: '/admin/content',
         labelKey: 'adminNav.content',
-        permission: Permission.ManageCmsAndTerms,
+        permission: Permission.ManageCms,
       },
       {
         route: '/admin/terms',
         labelKey: 'adminNav.terms',
-        permission: Permission.ManageCmsAndTerms,
+        permission: Permission.ManageCms,
       },
-      { route: '/admin/audit', labelKey: 'adminNav.audit', permission: Permission.ViewAuditTrail },
+      { route: '/admin/audit', labelKey: 'adminNav.audit', permission: Permission.ManageSettings },
       {
         route: '/admin/library',
         labelKey: 'adminNav.library',
-        permission: Permission.ManageCmsAndTerms,
+        permission: Permission.ManageCms,
       },
     ],
   },

@@ -8,29 +8,26 @@
  */
 
 /**
- * A page of a list, as the running server reports it.
+ * A page of a list, exactly as the server reports it.
  *
- * It lives inside `data`, beside `items` — **not** under `meta.pagination`, and
- * the size field is `pageSize`, not `limit`. Both differ from the written
- * integration guide; these are the shapes verified against the server, and the
- * discrepancy is logged in `docs/api/backend-notes.md`.
+ * It lives inside `data`, beside `items` — not under `meta` — and the size
+ * field is `pageSize`. `limit` is not a synonym: the server answers 422 for it,
+ * which is the right answer, because a query parameter that is quietly ignored
+ * is a page that looks like it worked while returning the wrong rows.
  *
- * There is no `hasNextPage`, so it is derived below rather than read.
+ * **Read `hasNextPage`, never derive it.** `page < totalPages` and
+ * `items.length === pageSize` both look equivalent and are not: the second
+ * scrolls forever on a set that divides exactly by the page size. The server
+ * computes it in one place; a second rule here would be a second rule to keep
+ * right, and only one of them would ever be tested.
  */
 export interface Pagination {
   page: number;
   pageSize: number;
   total: number;
   totalPages: number;
-}
-
-/** The server sends no `hasNextPage`; `page < totalPages` is the same fact. */
-export function hasNextPage(pagination: Pagination): boolean {
-  return pagination.page < pagination.totalPages;
-}
-
-export function hasPrevPage(pagination: Pagination): boolean {
-  return pagination.page > 1;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 /** A list response's `data`. */
@@ -73,13 +70,7 @@ export interface ApiFailure {
 
 export type ApiEnvelope<T> = ApiSuccess<T> | ApiFailure;
 
-/**
- * A list and its pagination as one value.
- *
- * The wire format splits them — the rows are `data`, the counts are
- * `meta.pagination` — and rejoining them here means a caller holds one object
- * rather than two halves it has to keep together.
- */
+/** A list and its pagination as one value, so a caller holds one object. */
 export interface PaginatedResponse<T> {
   items: T[];
   pagination: Pagination;
@@ -95,7 +86,7 @@ export interface PaginationParams {
   sortDirection?: 'asc' | 'desc';
 }
 
-/** Stands in when a list response arrives without its `meta.pagination`. */
+/** Stands in when a list response arrives with no pagination of its own. */
 export function emptyPagination(pageSize = 12): Pagination {
-  return { page: 1, pageSize, total: 0, totalPages: 0 };
+  return { page: 1, pageSize, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false };
 }

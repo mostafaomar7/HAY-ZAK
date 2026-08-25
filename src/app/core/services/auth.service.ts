@@ -6,7 +6,7 @@ import { map, tap } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { SKIP_AUTH } from '../interceptors/auth.interceptor';
 import { STORAGE_KEYS } from '../constants/storage-keys';
-import { ADMIN_ROLES, UserRole } from '../enums/user-role.enum';
+import { UserRole, isAdminRole } from '../enums/user-role.enum';
 import type {
   AuthResult,
   LoginRequest,
@@ -37,6 +37,11 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.currentUser() !== null && !!this.token);
   /** One role per account. Guest when nobody is signed in. */
   readonly role = computed(() => this.currentUser()?.role ?? UserRole.Guest);
+  /**
+   * Which kind of administrator, for the console's header and the user list.
+   * Null for everybody else — and never a permission check.
+   */
+  readonly adminRole = computed(() => this.currentUser()?.adminRole ?? null);
 
   get token(): string | null {
     return this.storage.get<string>(STORAGE_KEYS.accessToken);
@@ -220,14 +225,14 @@ export class AuthService {
    */
   landingUrl(returnUrl?: string | null): string {
     if (returnUrl) return returnUrl;
-    // Most privileged first: an operations account that also happens to be a
-    // lessor belongs at the console, not the portal.
+    // The console outranks the portal: an administration account belongs at
+    // /admin whatever else is true of it.
     // An unverified mobile outranks the portal: every transactional endpoint
     // refuses the account until it is verified, so a dashboard whose every
     // button fails is a worse landing than the one screen that fixes it.
     if (!this.isMobileVerified()) return '/auth/verify';
 
-    if (ADMIN_ROLES.includes(this.role())) return '/admin';
+    if (isAdminRole(this.role())) return '/admin';
     // A lessor account belongs in the portal; everyone else belongs on the
     // storefront, which is also the right home for a role we do not know.
     return this.hasRole(UserRole.Lessor) ? '/lessor' : '/';

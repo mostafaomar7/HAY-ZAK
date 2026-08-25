@@ -1,6 +1,6 @@
-import { AccountStatus, UserRole } from '../enums/user-role.enum';
+import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 import type { User } from '../models/user.model';
-import { MOCK_ADMIN_USER } from './admin.fixtures';
+import { MOCK_ADMIN_USER, SEEDED_ADMIN_PERMISSIONS } from './admin.fixtures';
 import { MOCK_LESSOR } from './lessor.fixtures';
 
 /**
@@ -36,7 +36,9 @@ export const MOCK_OPERATIONS_SUPERVISOR: User = {
   fullName: 'نوف السالم',
   mobile: '0542208891',
   email: 'nouf@hayzak.com',
-  role: UserRole.OperationsSupervisor,
+  role: UserRole.Admin,
+  adminRole: AdminRole.Operations,
+  permissions: SEEDED_ADMIN_PERMISSIONS[AdminRole.Operations],
   status: AccountStatus.Active,
   mobileVerifiedAt: '2026-01-19T09:00:00Z',
   createdAt: '2026-01-19T09:00:00Z',
@@ -48,7 +50,9 @@ export const MOCK_FINANCE_OFFICER: User = {
   fullName: 'ريم الغامدي',
   mobile: '0556403312',
   email: 'reem@hayzak.com',
-  role: UserRole.FinanceOfficer,
+  role: UserRole.Admin,
+  adminRole: AdminRole.Finance,
+  permissions: SEEDED_ADMIN_PERMISSIONS[AdminRole.Finance],
   status: AccountStatus.Active,
   mobileVerifiedAt: '2026-02-02T09:00:00Z',
   createdAt: '2026-02-02T09:00:00Z',

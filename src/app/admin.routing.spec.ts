@@ -4,8 +4,8 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { By } from '@angular/platform-browser';
-import { UserRole } from '@core/enums/user-role.enum';
-import { MOCK_ADMIN_USER } from '@core/mock/admin.fixtures';
+import { AdminRole, UserRole } from '@core/enums/user-role.enum';
+import { MOCK_ADMIN_USER, SEEDED_ADMIN_PERMISSIONS } from '@core/mock/admin.fixtures';
 import { mockApiInterceptor } from '@core/mock/mock-api.interceptor';
 import { AuthService } from '@core/services/auth.service';
 import { routes } from './app.routes';
@@ -17,12 +17,17 @@ import { App } from './app';
  *
  * The permission cases are the point. Fourteen screens each declare a permission
  * and each has a matching sidebar entry, and the only way to know the two agree
- * is to sign in as each role and look.
+ * is to sign in as each kind of administrator and look.
+ *
+ * Signing in means holding the permissions the server issues, not naming a
+ * role: the API sends one `ADMIN` role and a per-account permission list, so a
+ * test that set a role would be testing a rule nothing enforces. The sets come
+ * from `SEEDED_ADMIN_PERMISSIONS`, read off the running server.
  */
 describe('admin console routing (smoke)', () => {
   let router: Router;
 
-  async function configure(role: UserRole | null): Promise<void> {
+  async function configure(who: AdminRole | UserRole.Lessor | null): Promise<void> {
     TestBed.resetTestingModule();
 
     await TestBed.configureTestingModule({
@@ -38,17 +43,21 @@ describe('admin console routing (smoke)', () => {
     localStorage.clear();
     sessionStorage.clear();
 
-    if (role) {
-      TestBed.inject(AuthService).setSession({
-        tokens: {
-          accessToken: 'test-token',
-          refreshToken: 'test-refresh',
-          expiresIn: 1800,
-          tokenType: 'Bearer',
-        },
-        user: { ...MOCK_ADMIN_USER, role },
-      });
-    }
+    if (!who) return;
+
+    const administrator = who !== UserRole.Lessor;
+
+    TestBed.inject(AuthService).setSession({
+      tokens: {
+        accessToken: 'test-token',
+        refreshToken: 'test-refresh',
+        expiresIn: 1800,
+        tokenType: 'Bearer',
+      },
+      user: administrator
+        ? { ...MOCK_ADMIN_USER, adminRole: who, permissions: SEEDED_ADMIN_PERMISSIONS[who] }
+        : { ...MOCK_ADMIN_USER, role: UserRole.Lessor, adminRole: null, permissions: [] },
+    });
   }
 
   async function open(url: string): Promise<ComponentFixture<App>> {
@@ -74,7 +83,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as a system administrator', () => {
     beforeEach(async () => {
-      await configure(UserRole.SystemAdministrator);
+      await configure(AdminRole.SystemAdmin);
     });
 
     it('lands on the indicators from /admin', async () => {
@@ -124,7 +133,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as a finance officer', () => {
     beforeEach(async () => {
-      await configure(UserRole.FinanceOfficer);
+      await configure(AdminRole.Finance);
     });
 
     it('reaches the transfers screen', async () => {
@@ -144,6 +153,16 @@ describe('admin console routing (smoke)', () => {
       expect(router.url).toBe('/forbidden');
     });
 
+    /**
+     * The same refusal the API makes: `GET /admin/units` answers 403 to a
+     * finance token. Asserted here so the console never offers a queue the
+     * server would refuse to fill.
+     */
+    it('is refused the listing review queue', async () => {
+      await open('/admin/listings');
+      expect(router.url).toBe('/forbidden');
+    });
+
     it('is offered no link to a screen it cannot open', async () => {
       const fixture = await open('/admin/transfers');
       // The sidebar specifically: "سجل التدقيق" also appears in the page's own
@@ -159,7 +178,7 @@ describe('admin console routing (smoke)', () => {
 
   describe('as an operations supervisor', () => {
     beforeEach(async () => {
-      await configure(UserRole.OperationsSupervisor);
+      await configure(AdminRole.Operations);
     });
 
     it('reaches both review queues', async () => {
@@ -172,6 +191,17 @@ describe('admin console routing (smoke)', () => {
 
     it('is refused the financial settings', async () => {
       await open('/admin/financial-settings');
+      expect(router.url).toBe('/forbidden');
+    });
+
+    /**
+     * Reference lists and the audit trail have no permission of their own on
+     * the wire, so they ride on `settings:manage` and are system-administrator
+     * only — narrower than SRS §5, which grants reference data to operations.
+     * Raised with the backend; asserted so the narrowing is deliberate.
+     */
+    it('is refused the reference lists it holds under SRS §5', async () => {
+      await open('/admin/reference-lists');
       expect(router.url).toBe('/forbidden');
     });
   });

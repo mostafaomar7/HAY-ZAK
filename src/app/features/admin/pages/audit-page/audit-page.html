@@ -31,7 +31,7 @@
   <ng-template #row let-row>
     <span class="cell cell--stack">
       <span class="cell--strong">{{ row.actorName }}</span>
-      <span class="cell__sub">{{ roleLabel(row.actorRole) }}</span>
+      <span class="cell__sub">{{ roleLabel(row.actorRole, row.actorAdminRole) }}</span>
     </span>
     <span class="cell">{{ row.action }}</span>
     <span class="cell num">{{ row.occurredAt | date: 'd MMM y · HH:mm' }}</span>
@@ -55,7 +55,7 @@
         </div>
         <div class="fact">
           <dt>{{ i18n.t('users.role') }}</dt>
-          <dd>{{ roleLabel(entry.actorRole) }}</dd>
+          <dd>{{ roleLabel(entry.actorRole, entry.actorAdminRole) }}</dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('audit.action') }}</dt>

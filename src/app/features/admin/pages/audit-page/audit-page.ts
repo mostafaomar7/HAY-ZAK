@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ROLE_DISPLAY, statusText } from '@core/constants/status-display';
-import type { UserRole } from '@core/enums/user-role.enum';
+import { statusText, userRoleDisplay } from '@core/constants/status-display';
+import type { AdminRole, UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AuditDetail, AuditRow } from '@core/models/admin.model';
 import { NotificationService } from '@core/services/notification.service';
@@ -116,7 +116,7 @@ export class AdminAuditPage {
     this.detail.set(null);
   }
 
-  protected roleLabel(role: UserRole): string {
-    return statusText(ROLE_DISPLAY[role], this.i18n.language());
+  protected roleLabel(role: UserRole, adminRole?: AdminRole | null): string {
+    return statusText(userRoleDisplay(role, adminRole), this.i18n.language());
   }
 }

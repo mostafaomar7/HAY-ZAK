@@ -8,6 +8,7 @@ import {
   nextStatuses,
 } from './booking-transitions';
 import { BookingStatus } from '../enums/booking-status.enum';
+import { Permission, ROLE_PERMISSIONS } from './permissions';
 import { UserRole } from '../enums/user-role.enum';
 
 describe('booking state machine', () => {
@@ -47,21 +48,28 @@ describe('booking state machine', () => {
    */
   it('lets nobody but administration cancel a booking', () => {
     for (const from of [BookingStatus.Confirmed, BookingStatus.Active]) {
-      expect(canTransition(from, BookingStatus.Cancelled, UserRole.Renter))
+      expect(canTransition(from, BookingStatus.Cancelled, ROLE_PERMISSIONS[UserRole.Renter]))
         .withContext(`renter from ${from}`)
         .toBeFalse();
-      expect(canTransition(from, BookingStatus.Cancelled, UserRole.Lessor))
+      expect(canTransition(from, BookingStatus.Cancelled, ROLE_PERMISSIONS[UserRole.Lessor]))
         .withContext(`lessor from ${from}`)
         .toBeFalse();
-      expect(canTransition(from, BookingStatus.Cancelled, UserRole.OperationsSupervisor))
+      expect(canTransition(from, BookingStatus.Cancelled, [Permission.ManageComplaints]))
         .withContext(`operations from ${from}`)
         .toBeTrue();
     }
   });
 
-  /** The lessor has no verb in this machine at all. */
+  /**
+   * The lessor has no verb in this machine at all — asserted against what the
+   * role actually grants, so adding a lessor permission to an edge fails here
+   * rather than quietly shipping an accept/reject button the API refuses.
+   */
   it('gives the lessor no transition anywhere in the table', () => {
-    const lessorEdges = BOOKING_TRANSITIONS.filter((t) => t.actors.includes(UserRole.Lessor));
+    const lessorGrants = new Set(ROLE_PERMISSIONS[UserRole.Lessor]);
+    const lessorEdges = BOOKING_TRANSITIONS.filter((t) =>
+      t.actors.some((permission) => lessorGrants.has(permission)),
+    );
     expect(lessorEdges).toEqual([]);
   });
 
