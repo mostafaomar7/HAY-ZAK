@@ -1,10 +1,10 @@
 import { FINANCIAL_DEFAULTS } from '../constants/app.constants';
 import { BookingStatus } from '../enums/booking-status.enum';
 import { NotificationChannel, NotificationType } from '../enums/operations.enum';
-import { PayoutStatus } from '../enums/payment.enum';
 import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import { AccountStatus, UserRole, VerificationStatus } from '../enums/user-role.enum';
-import type { EarningsResponse } from '../models/earnings.model';
+import type { EarningsResponse, EarningsRow } from '../models/earnings.model';
+import type { LessorEarnings } from '../models/payment.model';
 import type { Booking } from '../models/booking.model';
 import type { AppNotification } from '../models/operations.model';
 import type { District, ReferenceItem, Unit, UnitAvailabilityBlock } from '../models/unit.model';
@@ -300,7 +300,7 @@ export const MOCK_EARNINGS: EarningsResponse = {
       grossHalalas: 52500,
       commissionHalalas: 2625,
       netHalalas: 49875,
-      payoutStatus: PayoutStatus.Paid,
+      bucket: 'PAID',
       bankReference: 'TRF-88214',
       transferredAt: '2026-08-13',
     },
@@ -313,7 +313,7 @@ export const MOCK_EARNINGS: EarningsResponse = {
       grossHalalas: 52500,
       commissionHalalas: 2625,
       netHalalas: 49875,
-      payoutStatus: PayoutStatus.Processing,
+      bucket: 'RELEASABLE',
     },
     {
       bookingId: 'bk-1',
@@ -324,7 +324,7 @@ export const MOCK_EARNINGS: EarningsResponse = {
       grossHalalas: 180000,
       commissionHalalas: 9000,
       netHalalas: 171000,
-      payoutStatus: PayoutStatus.OnHold,
+      bucket: 'PENDING',
       holdReason:
         'لا يطابق رقم الآيبان المسجّل اسمك في المنصة، وتعذّر إجراء التحويل. يُرجى تصحيح البيانات البنكية ليتم التحويل تلقائيًا.',
     },
@@ -420,3 +420,34 @@ export const MOCK_BANKS: ReferenceItem[] = [
   'بنك الجزيرة',
   'بنك الخليج الدولي',
 ].map((name, i) => ({ id: `bank-${i + 1}`, nameAr: name, nameEn: name }));
+
+/**
+ * The three buckets, in the shape `/lessor/earnings` sends them.
+ *
+ * Derived from the dues table rather than typed out twice, so the summary and
+ * the rows below it cannot tell the demo two different stories.
+ */
+export const MOCK_LESSOR_EARNINGS: LessorEarnings = {
+  pendingHalalas: bucketTotal('PENDING'),
+  pendingBookings: bucketCount('PENDING'),
+  releasableHalalas: bucketTotal('RELEASABLE'),
+  releasableBookings: bucketCount('RELEASABLE'),
+  paidHalalas: bucketTotal('PAID'),
+  paidPayouts: bucketCount('PAID'),
+  lastPayout: {
+    executedAt: '2026-08-13T10:20:00Z',
+    totalHalalas: bucketTotal('PAID'),
+    bankReference: 'TRF-88214',
+  },
+  releaseRule: 'after_booking_start_24h',
+};
+
+function bucketTotal(bucket: EarningsRow['bucket']): number {
+  return MOCK_EARNINGS.rows
+    .filter((row) => row.bucket === bucket)
+    .reduce((sum, row) => sum + row.netHalalas, 0);
+}
+
+function bucketCount(bucket: EarningsRow['bucket']): number {
+  return MOCK_EARNINGS.rows.filter((row) => row.bucket === bucket).length;
+}

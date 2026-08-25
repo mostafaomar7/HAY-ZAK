@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import type { LessorDashboard, LessorEarnings, Payout } from '@core/models';
-import type { PaginatedResponse } from '@core/models/api-response.model';
+import type { LessorDashboard, LessorEarnings } from '@core/models';
 import type { BankAccountRequest, LessorBankAccount } from '@core/models/user.model';
 import { ApiService } from '@core/services/api.service';
 import { saveBlob } from '@core/utils/file.utils';
@@ -16,15 +16,27 @@ import type { EarningsResponse } from '@core/models/earnings.model';
 export class LessorAccountService {
   private readonly api = inject(ApiService);
 
+  /**
+   * The whole landing screen in one request — counts, money and the badge.
+   *
+   * Wrapped in `{ dashboard }` on the wire, like `/auth/me` wraps its user.
+   */
   dashboard(): Observable<LessorDashboard> {
-    return this.api.get<LessorDashboard>(API_ENDPOINTS.lessor.dashboard);
+    return this.api
+      .get<{ dashboard: LessorDashboard }>(API_ENDPOINTS.lessor.dashboard)
+      .pipe(map((result) => result.dashboard));
   }
 
-  /** FR-LSR-08 — paid bookings, commission deducted, net, transfer status. */
-  earnings(fromDate?: string, toDate?: string): Observable<LessorEarnings> {
-    return this.api.get<LessorEarnings>(API_ENDPOINTS.lessor.earnings, {
-      params: { fromDate, toDate },
-    });
+  /**
+   * FR-LSR-08 — the three money buckets and the rule that separates them.
+   *
+   * Takes no date range: the buckets are the current position of the account,
+   * not a period's activity. The per-booking history is `earningsTable()`.
+   */
+  earnings(): Observable<LessorEarnings> {
+    return this.api
+      .get<{ earnings: LessorEarnings }>(API_ENDPOINTS.lessor.earnings)
+      .pipe(map((result) => result.earnings));
   }
 
   /**
@@ -35,12 +47,6 @@ export class LessorAccountService {
   earningsTable(fromDate: string, toDate: string): Observable<EarningsResponse> {
     return this.api.get<EarningsResponse>(API_ENDPOINTS.lessor.earningsTable, {
       params: { fromDate, toDate },
-    });
-  }
-
-  payouts(page = 1): Observable<PaginatedResponse<Payout>> {
-    return this.api.list<Payout>(API_ENDPOINTS.payments.payouts, {
-      params: { page },
     });
   }
 

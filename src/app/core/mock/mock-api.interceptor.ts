@@ -4,6 +4,8 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { BookingStatus } from '../enums/booking-status.enum';
+import { PayoutStatus } from '../enums/payment.enum';
 import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
@@ -15,7 +17,6 @@ import {
   MOCK_ADMIN_USER_DETAIL,
   MOCK_AUDIT_DETAIL,
   MOCK_AUDIT_ROWS,
-  MOCK_BANK_DETAILS,
   MOCK_BOOKING_DETAIL,
   MOCK_BOOKING_QUEUE,
   MOCK_CMS_PAGES,
@@ -24,7 +25,8 @@ import {
   MOCK_COMPLAINT_DETAIL,
   MOCK_REVIEW_UNITS,
   MOCK_PAYMENT_ROWS,
-  MOCK_PAYOUT_GROUPS,
+  MOCK_ELIGIBLE_PAYOUTS,
+  MOCK_PAYOUTS,
   MOCK_REF_LISTS,
   MOCK_SETTINGS,
   MOCK_REPORT_BOOKINGS,
@@ -43,6 +45,7 @@ import {
   MOCK_CITIES,
   MOCK_DISTRICTS,
   MOCK_EARNINGS,
+  MOCK_LESSOR_EARNINGS,
   MOCK_LESSOR,
   MOCK_NOTIFICATIONS,
   MOCK_UNITS,
@@ -211,9 +214,33 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (/^\/admin\/bookings\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
 
   if (path === API_ENDPOINTS.payments.tracking) return paginate(MOCK_PAYMENT_ROWS);
-  if (path === API_ENDPOINTS.payments.payouts) return ok(MOCK_PAYOUT_GROUPS);
-  if (/^\/admin\/payouts\/[^/]+\/bank-details$/.test(path)) return ok(MOCK_BANK_DETAILS);
-  if (/^\/admin\/payouts\/[^/]+\/(execute|reschedule)$/.test(path)) return ok(null);
+  if (path === API_ENDPOINTS.payments.eligiblePayouts) return paginate(MOCK_ELIGIBLE_PAYOUTS);
+  // Approving answers with the payout it created, so the screen refreshes from
+  // the response rather than guessing what the server made.
+  if (path === API_ENDPOINTS.payments.payouts && method === 'POST') {
+    return ok({ ...MOCK_PAYOUTS[0], id: `po-${MOCK_PAYOUTS.length + 1}` });
+  }
+  if (path === API_ENDPOINTS.payments.payouts) {
+    const status = new URLSearchParams(query).get('status');
+    const rows = status ? MOCK_PAYOUTS.filter((p) => p.status === status) : MOCK_PAYOUTS;
+    return paginate(rows);
+  }
+  if (/^\/admin\/payouts\/[^/]+\/paid$/.test(path)) {
+    const body = (payload ?? {}) as { bankReference: string };
+    return ok({ ...payoutById(path.split('/')[3]), status: PayoutStatus.Paid, ...body });
+  }
+  if (/^\/admin\/payouts\/[^/]+\/failed$/.test(path)) {
+    const body = (payload ?? {}) as { reason: string };
+    return ok({
+      ...payoutById(path.split('/')[3]),
+      status: PayoutStatus.Failed,
+      failureReason: body.reason,
+    });
+  }
+  if (/^\/admin\/payouts\/[^/]+\/retry$/.test(path)) {
+    return ok({ ...payoutById(path.split('/')[3]), status: PayoutStatus.Approved });
+  }
+  if (/^\/admin\/payouts\/[^/]+$/.test(path)) return ok(payoutById(path.split('/')[3]));
   if (/^\/admin\/lessors\/[^/]+\/bank-details-demand$/.test(path)) return ok(null);
 
   if (path === API_ENDPOINTS.reports.bookings) return ok(MOCK_REPORT_BOOKINGS);
@@ -287,17 +314,9 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Lessor ─────────────────────────────────────────────────────────────
   if (path === API_ENDPOINTS.lessor.earningsTable) return ok(MOCK_EARNINGS);
   if (path === API_ENDPOINTS.lessor.earnings) {
-    const s = MOCK_EARNINGS.summary;
-    return ok({
-      totalPaidBookings: MOCK_EARNINGS.rows.length,
-      grossHalalas: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.grossHalalas, 0),
-      commissionDeducted: MOCK_EARNINGS.rows.reduce((sum, r) => sum + r.commissionHalalas, 0),
-      netReceivable: s.totalEarnings,
-      netTransferred: s.transferred,
-      netOutstanding: s.pending + s.onHold,
-    });
+    return ok({ earnings: MOCK_LESSOR_EARNINGS });
   }
-  if (path === API_ENDPOINTS.lessor.dashboard) return ok(dashboard());
+  if (path === API_ENDPOINTS.lessor.dashboard) return ok({ dashboard: dashboard() });
 
   if (path.startsWith(API_ENDPOINTS.lessor.bankAccounts)) {
     if (method === 'GET') return ok(MOCK_BANK_ACCOUNTS);
@@ -481,19 +500,38 @@ function referenceFor(targetUrl: string): { type: string; id: string } | null {
 }
 
 /** An unknown id falls back to the first fixture, so no route dead-ends. */
+function payoutById(id: string) {
+  return MOCK_PAYOUTS.find((payout) => payout.id === id) ?? MOCK_PAYOUTS[0];
+}
+
+/** An unknown id falls back to the first fixture, so no route dead-ends. */
 function unitById(id: string) {
   return MOCK_UNITS.find((unit) => unit.id === id) ?? MOCK_UNITS[0];
 }
 
+/**
+ * The landing screen in the shape the server sends it.
+ *
+ * Every status key is present, zero included — the same promise the API makes,
+ * so a screen that read one with `?? 0` would pass here and hide a real gap
+ * there.
+ */
 function dashboard() {
+  const units = countBy(Object.values(UnitStatus), MOCK_UNITS);
+
   return {
-    totalUnits: MOCK_UNITS.length,
-    availableUnits: 1,
-    bookedUnits: 1,
-    activeBookings: 1,
-    totalReceivable: MOCK_EARNINGS.summary.pending,
-    recentNotifications: MOCK_NOTIFICATIONS.slice(0, 5),
+    units,
+    bookings: countBy(Object.values(BookingStatus), MOCK_BOOKINGS),
+    earnings: MOCK_LESSOR_EARNINGS,
+    unreadNotifications: MOCK_NOTIFICATIONS.filter((n) => !n.isRead).length,
   };
+}
+
+/** Zero for every key, then the ones that occur — never a missing key. */
+function countBy<T extends string>(all: T[], rows: readonly { status: T }[]): Record<T, number> {
+  const counts = Object.fromEntries(all.map((key) => [key, 0])) as Record<T, number>;
+  for (const row of rows) if (row.status in counts) counts[row.status] += 1;
+  return counts;
 }
 
 /** Which account a sign-in produces — see `accounts.ts` for the directory. */

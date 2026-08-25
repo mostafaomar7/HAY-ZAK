@@ -64,6 +64,10 @@ export const API_ENDPOINTS = {
    * unit's detail, so reading it is one request rather than two.
    */
   lessor: {
+    /** One request for the whole landing screen — counts, money and the badge. */
+    dashboard: '/lessor/dashboard',
+    /** The three money buckets, plus the rule that separates the first two. */
+    earnings: '/lessor/earnings',
     units: '/lessor/units',
     unitById: (id: string) => `/lessor/units/${id}`,
     /** Multipart, field name `images`, several files per call. */
@@ -77,9 +81,7 @@ export const API_ENDPOINTS = {
     unitBlockById: (unitId: string, blockId: string) => `/lessor/units/${unitId}/blocks/${blockId}`,
 
     // ── Not shipped yet; the screens that call them are behind these names.
-    dashboard: '/lessor/dashboard',
     bookingRequests: '/lessor/booking-requests',
-    earnings: '/lessor/earnings',
     earningsTable: '/lessor/earnings/rows',
     earningsStatement: '/lessor/earnings/statement',
     bankAccounts: '/lessor/bank-accounts',
@@ -134,14 +136,27 @@ export const API_ENDPOINTS = {
   payments: {
     createIntent: (bookingId: string) => `/bookings/${bookingId}/payment-intent`,
     status: (bookingId: string) => `/bookings/${bookingId}/payment`,
-    tracking: '/admin/payments',
-    refunds: '/admin/refunds',
+    /**
+     * Money that is releasable but has no payout yet, one row per lessor.
+     *
+     * Not a payout status: a payout exists only once an operator approves one.
+     * Each row carries `blocked` — `null`, or the reason it cannot be paid —
+     * so the obstacle is visible before the button is pressed.
+     */
+    eligiblePayouts: '/admin/payouts/eligible',
+    /** GET lists them; POST `{ lessorId }` approves one. */
     payouts: '/admin/payouts',
     payoutById: (id: string) => `/admin/payouts/${id}`,
-    executePayout: (id: string) => `/admin/payouts/${id}/execute`,
-    reschedulePayout: (id: string) => `/admin/payouts/${id}/reschedule`,
-    /** The unmasked IBAN, fetched only when the operator asks — it is logged. */
-    payoutBankDetails: (id: string) => `/admin/payouts/${id}/bank-details`,
+    /** `{ bankReference }` — required; 422 without it. */
+    markPayoutPaid: (id: string) => `/admin/payouts/${id}/paid`,
+    /** `{ reason }` — required. */
+    markPayoutFailed: (id: string) => `/admin/payouts/${id}/failed`,
+    /** Back to APPROVED once whatever failed has been corrected. */
+    retryPayout: (id: string) => `/admin/payouts/${id}/retry`,
+
+    // ── Not shipped yet.
+    tracking: '/admin/payments',
+    refunds: '/admin/refunds',
     demandBankDetails: (lessorId: string) => `/admin/lessors/${lessorId}/bank-details-demand`,
     ledger: '/admin/ledger',
   },

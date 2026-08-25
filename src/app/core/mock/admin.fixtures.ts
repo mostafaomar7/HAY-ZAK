@@ -20,7 +20,6 @@ import type {
   ListingReviewDetail,
   ListingReviewRow,
   OccupancyReportRow,
-  PayoutGroup,
   PayoutReportRow,
   PaymentTrackingRow,
   ReferenceListRow,
@@ -29,6 +28,7 @@ import type {
   TermsVersionRow,
 } from '../models/admin.model';
 import type { AdminDashboardKpis, PlatformSettings } from '../models/operations.model';
+import type { EligiblePayout, Payout } from '../models/payment.model';
 import type { Unit } from '../models/unit.model';
 import type { User } from '../models/user.model';
 
@@ -291,7 +291,7 @@ export const MOCK_PAYMENT_ROWS: PaymentTrackingRow[] = [
     commissionHalalas: 2625,
     netHalalas: 49875,
     isRefunded: false,
-    payoutStatus: PayoutStatus.Paid,
+    bucket: 'PAID',
     bankReference: 'TRF-20260812',
   },
   {
@@ -304,7 +304,7 @@ export const MOCK_PAYMENT_ROWS: PaymentTrackingRow[] = [
     commissionHalalas: 1575,
     netHalalas: 29925,
     isRefunded: false,
-    payoutStatus: PayoutStatus.Processing,
+    bucket: 'RELEASABLE',
   },
   {
     id: 'pay-3',
@@ -316,7 +316,7 @@ export const MOCK_PAYMENT_ROWS: PaymentTrackingRow[] = [
     commissionHalalas: 2100,
     netHalalas: 39900,
     isRefunded: false,
-    payoutStatus: PayoutStatus.OnHold,
+    bucket: 'PENDING',
   },
   {
     id: 'pay-4',
@@ -328,76 +328,75 @@ export const MOCK_PAYMENT_ROWS: PaymentTrackingRow[] = [
     commissionHalalas: 3325,
     netHalalas: 63175,
     isRefunded: true,
-    payoutStatus: PayoutStatus.Failed,
+    bucket: 'PENDING',
     bankReference: 'TRF-20260805',
   },
 ];
 
-export const MOCK_PAYOUT_GROUPS: PayoutGroup[] = [
+/**
+ * Money that is releasable and has no payout yet, one row per lessor.
+ *
+ * `blocked` is the whole point of the second row: an operator sees the obstacle
+ * on the row rather than discovering it when the button fails.
+ */
+export const MOCK_ELIGIBLE_PAYOUTS: EligiblePayout[] = [
   {
     lessorId: 'lsr-1',
-    lessorName: 'سعود العنزي',
-    bankName: 'البنك الأهلي السعودي',
-    accountHolder: 'سعود بن ناصر العنزي',
-    ibanMasked: 'SA•• •••• •••• •••• 4523',
-    totalDue: 1197,
-    rowCount: 3,
-    bankDetailsMissing: false,
-    rows: [
-      {
-        id: 'po-1',
-        bookingReferenceNo: 'HZ-2026-00981',
-        unitTitle: 'مستودع مكيّف — النرجس',
-        dueDate: '2026-08-13',
-        netHalalas: 49875,
-        status: PayoutStatus.Due,
-      },
-      {
-        id: 'po-2',
-        bookingReferenceNo: 'HZ-2026-01004',
-        unitTitle: 'غرفة تخزين نظيفة — الياسمين',
-        dueDate: '2026-08-14',
-        netHalalas: 29925,
-        status: PayoutStatus.Paid,
-        bankReference: 'TRF-20260814',
-      },
-      {
-        id: 'po-3',
-        bookingReferenceNo: 'HZ-2026-01033',
-        unitTitle: 'مستودع أرضي — الصحافة',
-        dueDate: '2026-08-10',
-        netHalalas: 39900,
-        status: PayoutStatus.Failed,
-        note: 'رفض البنك التحويل: اسم صاحب الحساب لا يطابق اسم المؤجر في السجل.',
-      },
-    ],
+    lessorName: 'سعود بن ناصر العنزي',
+    totalHalalas: 119700,
+    bookingsCount: 3,
+    ibanLast4: '4523',
+    blocked: null,
   },
   {
     lessorId: 'lsr-2',
     lessorName: 'فهد بن سعد العمري',
-    totalDue: 798,
-    rowCount: 2,
-    bankDetailsMissing: true,
-    rows: [
-      {
-        id: 'po-4',
-        bookingReferenceNo: 'HZ-2026-01021',
-        unitTitle: 'قراج مغلق — الملقا',
-        dueDate: '2026-08-12',
-        netHalalas: 39900,
-        status: PayoutStatus.OnHold,
-        note: 'مجمّد حتى إغلاق الشكوى CMP-2026-0042 المرتبطة بهذا الحجز.',
-      },
-      {
-        id: 'po-5',
-        bookingReferenceNo: 'HZ-2026-01044',
-        unitTitle: 'قراج مغلق — الملقا',
-        dueDate: '2026-08-15',
-        netHalalas: 39900,
-        status: PayoutStatus.Due,
-        note: 'بيانات الحساب البنكي غير مكتملة لدى المؤجر.',
-      },
+    totalHalalas: 79800,
+    bookingsCount: 2,
+    blocked: 'NO_BANK_ACCOUNT',
+  },
+];
+
+/** Payouts an operator has already approved — the three states, one each. */
+export const MOCK_PAYOUTS: Payout[] = [
+  {
+    id: 'po-1',
+    lessorId: 'lsr-3',
+    lessorName: 'منيرة بنت عبدالله القحطاني',
+    ibanLast4: '8871',
+    totalHalalas: 89775,
+    status: PayoutStatus.Approved,
+    createdAt: '2026-08-24T08:10:00Z',
+    items: [
+      { bookingId: 'bk-9', bookingReferenceNo: 'HZ-2026-01102', netHalalas: 49875 },
+      { bookingId: 'bk-10', bookingReferenceNo: 'HZ-2026-01118', netHalalas: 39900 },
     ],
+  },
+  {
+    id: 'po-2',
+    lessorId: 'lsr-4',
+    lessorName: 'عبدالرحمن بن خالد الشمري',
+    ibanLast4: '2214',
+    totalHalalas: 29925,
+    status: PayoutStatus.Paid,
+    bankReference: 'TRF-20260814',
+    executedBy: 'ريم الغامدي',
+    executedAt: '2026-08-14T11:02:00Z',
+    createdAt: '2026-08-13T09:00:00Z',
+    items: [{ bookingId: 'bk-11', bookingReferenceNo: 'HZ-2026-01004', netHalalas: 29925 }],
+  },
+  {
+    id: 'po-3',
+    lessorId: 'lsr-5',
+    lessorName: 'نورة بنت سلطان الدوسري',
+    ibanLast4: '9930',
+    totalHalalas: 39900,
+    status: PayoutStatus.Failed,
+    failureReason: 'رفض البنك التحويل: اسم صاحب الحساب لا يطابق اسم المؤجّر في السجل.',
+    executedBy: 'ريم الغامدي',
+    executedAt: '2026-08-15T13:40:00Z',
+    createdAt: '2026-08-15T09:20:00Z',
+    items: [{ bookingId: 'bk-12', bookingReferenceNo: 'HZ-2026-01033', netHalalas: 39900 }],
   },
 ];
 

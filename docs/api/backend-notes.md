@@ -45,13 +45,19 @@ auth      11 endpoints — terms, register, verify-mobile, resend-otp, login,
                          refresh, logout, logout-all, forgot/reset-password, me
 public     3 — categories, cities (districts nested), prohibited-items
 me         2 — GET /me, PATCH /me, GET /me/notifications
-lessor     9 — units: list, create, detail, patch, images (post/delete),
-                       submit, archive, blocks (post/delete)
-admin      4 — units list, unit detail, approve, reject
+lessor    11 — dashboard, earnings,
+               units: list, create, detail, patch, images (post/delete),
+                      submit, archive, blocks (post/delete)
+admin     11 — units: list, detail, approve, reject
+               payouts: eligible, list, approve, detail, paid, failed, retry
 ```
 
 `GET /lessor/units/:id` returns the images, the pin and the calendar nested, so
-the detail is **one** request, not three.
+the detail is **one** request, not three. `GET /lessor/dashboard` is the same
+idea for the landing screen: counts, money and the unread badge in one call.
+
+Two responses wrap their payload in a named key rather than sending it bare —
+`{ dashboard: … }` and `{ earnings: … }`, the way `/auth/me` sends `{ user }`.
 
 ## Verified segregation of duties
 
@@ -61,7 +67,14 @@ The API refuses, not the guard. Straight from curl:
 FINANCE     → GET  /admin/units              403
 FINANCE     → POST /admin/units/:id/approve  403
 OPERATIONS  → GET  /admin/units              200
+
+OPERATIONS  → GET  /admin/payouts/eligible   403
+FINANCE     → GET  /admin/payouts/eligible   200
 ```
+
+The second pair is the mirror of the first, and together they are the whole
+point of splitting the console: neither administrator can reach the other's
+work, and the refusal is the server's.
 
 A hidden button is not access control. The client's guards exist only so a
 control that would be refused is never offered.
@@ -141,7 +154,20 @@ pages the lessor's search box therefore filters the twelve on screen and not the
 other thirty-nine. The screen says nothing about that, because the honest fix is
 a `search` parameter, not a caption explaining a limitation.
 
-**8. The users list filter needs a decision.** The console filters by
+**8. `/lessor/earnings/rows` is not shipped.** The dues table (LSR-07) shows a
+row per booking with its commission and its transfer. `/lessor/earnings` gives
+the three totals and nothing per booking, so the table renders its error state
+against the real server while the buckets above it work. Needs the per-booking
+projection, or a decision that the totals are enough.
+
+**9. A booking's money has no status of its own.** The client models it as
+`PENDING | RELEASABLE | PAID` — the same three buckets the summary uses —
+because `PayoutStatus` describes a transfer, which covers several bookings and
+does not exist until an operator approves one. Reusing it meant a booking could
+read "APPROVED" before any payout covered it. Provisional until the rows
+endpoint lands and says otherwise.
+
+**10. The users list filter needs a decision.** The console filters by
 مستأجر/مؤجر and by the three kinds of administrator in one control. The client
 sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
 not shipped, so nothing has agreed to that yet.
@@ -181,6 +207,18 @@ not shipped, so nothing has agreed to that yet.
   starting on the 10th are both accepted. Overlapping one is
   `UNIT_DATES_UNAVAILABLE`.
 - `verificationStatus` is uppercase on the wire: `VERIFIED`, not `Verified`.
+- Payout statuses are `APPROVED PAID FAILED` — three, not five. There is no
+  "due" or "on hold" payout: money with no transfer yet lives in
+  `/admin/payouts/eligible`, where a row carries `blocked` (`null`, or
+  `NO_BANK_ACCOUNT`) instead of a status.
+- `POST /admin/payouts/:id/paid` requires `bankReference` and
+  `/failed` requires `reason`; both are 422 without.
+- `POST /admin/payouts` with a lessor who has nothing releasable answers
+  `PAYOUT_NOTHING_ELIGIBLE`, not an empty payout.
+- A payout never carries a full IBAN — `ibanLast4` only.
+- `releaseRule` on the earnings response names the policy
+  (`after_booking_start_24h`) so the screen can explain why money is pending.
+  An unrecognised rule renders nothing rather than a guessed sentence.
 - `GET /me` nests `identity` with `idNumberLast4` — not the `idNumberMasked` the
   account screen models. That screen's endpoints are not shipped, so it has not
   been reconciled.

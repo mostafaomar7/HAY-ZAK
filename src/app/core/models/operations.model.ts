@@ -5,6 +5,9 @@ import type {
   NotificationType,
 } from '../enums/operations.enum';
 import type { CommissionBearer, VatBase } from '../constants/app.constants';
+import type { BookingStatus } from '../enums/booking-status.enum';
+import type { UnitStatus } from '../enums/unit-status.enum';
+import type { LessorEarnings } from './payment.model';
 
 /** ERD-5 `disputes`. */
 export interface Dispute {
@@ -125,12 +128,16 @@ export interface AdminDashboardKpis {
   slaBreaches: number;
 }
 
-/** FR-LSR-01 — the lessor dashboard. */
+/**
+ * FR-LSR-01 — the lessor's landing screen, in one request.
+ *
+ * Every status key is always present, zero included. Nothing here may be read
+ * with `?? 0`: a missing key would mean the server changed its vocabulary, and
+ * quietly rendering nought would hide that behind a plausible number.
+ */
 export interface LessorDashboard {
-  totalUnits: number;
-  availableUnits: number;
-  bookedUnits: number;
-  activeBookings: number;
-  totalReceivable: number;
-  recentNotifications: AppNotification[];
+  units: Record<UnitStatus, number>;
+  bookings: Record<BookingStatus, number>;
+  earnings: LessorEarnings;
+  unreadNotifications: number;
 }

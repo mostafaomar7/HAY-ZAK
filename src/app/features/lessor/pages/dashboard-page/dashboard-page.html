@@ -35,12 +35,23 @@
   } @else if (data()) {
     @let d = data()!;
 
-    <app-ui-stat-tile
-      label="إجمالي المستحقات"
-      [value]="d.totalReceivable"
-      [filled]="true"
-      hint="الصافي بعد خصم عمولة المنصة"
-    />
+    <!-- Three buckets, not one total: "how much do I have" and "how much can
+         reach my bank this week" are different questions, and answering only
+         the first is what makes the second a support ticket. -->
+    <div class="page__money">
+      <app-ui-stat-tile
+        label="جاهز للتحويل"
+        [value]="d.earnings.releasableHalalas"
+        [filled]="true"
+        hint="سيُحوّل في الدورة القادمة"
+      />
+      <app-ui-stat-tile label="قيد الانتظار" [value]="d.earnings.pendingHalalas" />
+      <app-ui-stat-tile label="حُوِّل" [value]="d.earnings.paidHalalas" />
+    </div>
+
+    @if (releaseRule(); as rule) {
+      <p class="page__rule">{{ rule }}</p>
+    }
 
     <div class="page__tiles">
       @for (tile of tiles(); track tile.label) {
@@ -54,9 +65,9 @@
         <a class="recent__all" routerLink="/lessor/notifications">عرض الكل</a>
       </div>
 
-      @if (d.recentNotifications.length) {
+      @if (recentNotifications().length) {
         <ul class="recent__list">
-          @for (item of d.recentNotifications; track item.id) {
+          @for (item of recentNotifications(); track item.id) {
             <li class="recent__item">
               <span
                 class="recent__dot"

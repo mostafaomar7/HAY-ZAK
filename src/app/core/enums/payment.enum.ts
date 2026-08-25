@@ -23,12 +23,19 @@ export enum RefundStatus {
 }
 
 /** payouts.status — FR-PAY-06, UC-04. */
+/**
+ * A payout's life, with the wire values. Three states, not five.
+ *
+ * "Due" and "on hold" are not among them because they are not states of a
+ * payout — they describe money that has no payout yet. That lives in
+ * `/admin/payouts/eligible`, where a row is either ready or carries the reason
+ * it is not (`blocked`). A payout exists from the moment an operator approves
+ * one, and from then on it is only ever paid or failed.
+ */
 export enum PayoutStatus {
-  Due = 'Due',
-  OnHold = 'OnHold',
-  Processing = 'Processing',
-  Paid = 'Paid',
-  Failed = 'Failed',
+  Approved = 'APPROVED',
+  Paid = 'PAID',
+  Failed = 'FAILED',
 }
 
 /** ledger_entries.entry_type — append-only journal (FR-PAY-10). */

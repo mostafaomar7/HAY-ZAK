@@ -1,6 +1,6 @@
+import type { EarningsBucket } from './earnings.model';
 import type { BookingStatus } from '../enums/booking-status.enum';
 import type { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
-import type { PayoutStatus } from '../enums/payment.enum';
 import type { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 
 /**
@@ -107,52 +107,16 @@ export interface PaymentTrackingRow {
   netHalalas: number;
   /** Whether the money reached the platform, and whether it left again. */
   isRefunded: boolean;
-  payoutStatus: PayoutStatus;
+  /**
+   * Where this booking's share of the lessor's money sits.
+   *
+   * Not a `PayoutStatus`: a payout covers several bookings and does not exist
+   * until an operator approves one, so a booking cannot have one of its own.
+   */
+  bucket: EarningsBucket;
   bankReference?: string;
 }
 
-/**
- * Dues are grouped by lessor, because that is the unit a transfer is executed
- * in — one bank instruction per lessor per cycle, not one per booking.
- */
-export interface PayoutGroup {
-  lessorId: string;
-  lessorName: string;
-  bankName?: string;
-  accountHolder?: string;
-  /** Masked to the last four digits until the operator reveals it. */
-  ibanMasked?: string;
-  totalDue: number;
-  rowCount: number;
-  /** FR-PAY-06 — no transfer can be executed while this is true. */
-  bankDetailsMissing: boolean;
-  rows: PayoutRow[];
-}
-
-export interface PayoutRow {
-  id: string;
-  bookingReferenceNo: string;
-  unitTitle: string;
-  dueDate: string;
-  netHalalas: number;
-  status: PayoutStatus;
-  bankReference?: string;
-  /** Why it is frozen or why the last attempt failed (UC-04). */
-  note?: string;
-}
-
-/** What the operator types to record an executed transfer. */
-export interface PayoutExecution {
-  bankReference: string;
-  executedOn: string;
-}
-
-export interface PayoutReschedule {
-  scheduledFor: string;
-  reason: string;
-}
-
-/** The full IBAN, fetched only when the operator asks to see it. */
 export interface LessorBankDetails {
   bankName: string;
   accountHolder: string;

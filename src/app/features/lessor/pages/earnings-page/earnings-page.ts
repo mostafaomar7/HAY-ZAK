@@ -2,13 +2,17 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
-import { PAYOUT_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
+import {
+  EARNINGS_BUCKET_DISPLAY,
+  RELEASE_RULE_TEXT,
+  statusText,
+} from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import type { TranslationKey } from '@core/i18n/translations';
-import { PayoutStatus } from '@core/enums/payment.enum';
 import { NotificationService } from '@core/services/notification.service';
 import { LessorAccountService } from '../../services/lessor-account.service';
 import type { EarningsRow } from '@core/models/earnings.model';
+import type { LessorEarnings } from '@core/models/payment.model';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -41,6 +45,29 @@ export class EarningsPage {
 
   protected readonly rows = signal<EarningsRow[]>([]);
   protected readonly totalEarnings = signal(0);
+
+  /**
+   * The three buckets, from the endpoint that actually ships.
+   *
+   * Loaded beside the table rather than derived from it: the table is a period
+   * the lessor chose, and the buckets are the account's position now. Summing
+   * three months of rows would answer a question nobody asked.
+   */
+  protected readonly buckets = signal<LessorEarnings | null>(null);
+
+  /**
+   * Why money is in the pending bucket, in a sentence.
+   *
+   * The backend asked for this on the screen and was right to: "why is my
+   * money still pending" is the question that becomes a support ticket when
+   * the page does not answer it. A rule this build has not heard of renders
+   * nothing — a wrong explanation is worse than none.
+   */
+  protected readonly releaseRule = computed(() => {
+    const rule = this.buckets()?.releaseRule;
+    const text = rule ? RELEASE_RULE_TEXT[rule] : undefined;
+    return text ? statusText(text, this.i18n.language()) : '';
+  });
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
 
@@ -70,20 +97,20 @@ export class EarningsPage {
   }
 
   protected statusOf(row: EarningsRow) {
-    return PAYOUT_STATUS_DISPLAY[row.payoutStatus];
+    return EARNINGS_BUCKET_DISPLAY[row.bucket];
   }
 
   protected statusLabel(row: EarningsRow): string {
-    return statusText(PAYOUT_STATUS_DISPLAY[row.payoutStatus], this.i18n.language());
+    return statusText(EARNINGS_BUCKET_DISPLAY[row.bucket], this.i18n.language());
   }
 
-  /** UC-04 — a frozen payout must explain itself and offer the way out. */
+  /** UC-04 — money that is not releasable yet must explain why. */
   protected isOnHold(row: EarningsRow): boolean {
-    return row.payoutStatus === PayoutStatus.OnHold;
+    return row.bucket === 'PENDING';
   }
 
   protected isProcessing(row: EarningsRow): boolean {
-    return row.payoutStatus === PayoutStatus.Processing;
+    return row.bucket === 'RELEASABLE';
   }
 
   protected onPeriod(value: string): void {
@@ -106,6 +133,14 @@ export class EarningsPage {
   protected fetch(): void {
     this.failed.set(false);
     this.isLoading.set(true);
+
+    // The buckets are the account's position and do not depend on the period,
+    // so their failure must not blank the page: the table below is what the
+    // period filter is for.
+    this.account.earnings().subscribe({
+      next: (earnings) => this.buckets.set(earnings),
+      error: () => this.buckets.set(null),
+    });
 
     const { from, to } = periodRange(this.period());
     this.account.earningsTable(from, to).subscribe({

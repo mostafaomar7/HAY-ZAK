@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
-import { PAYOUT_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
+import {
+  PAYOUT_BLOCKED_DISPLAY,
+  PAYOUT_STATUS_DISPLAY,
+  statusText,
+} from '@core/constants/status-display';
 import { PayoutStatus } from '@core/enums/payment.enum';
 import { LanguageService } from '@core/i18n/language.service';
-import type { LessorBankDetails, PayoutGroup, PayoutRow } from '@core/models/admin.model';
+import type { EligiblePayout, Payout } from '@core/models/payment.model';
 import { NotificationService } from '@core/services/notification.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -16,23 +19,32 @@ import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { AdminFinanceService } from '../../services/admin-finance.service';
 import { AdminSettingsStore } from '../../services/admin-settings.store';
 
-/** Which dialog, if any, is open over the list. */
-type Dialog = 'none' | 'execute' | 'reschedule' | 'frozen' | 'demand';
+/** Which dialog, if any, is open over the lists. */
+type Dialog = 'none' | 'approve' | 'paid' | 'failed';
 
 /**
  * ADM-06 — payouts (FR-PAY-06, UC-04).
  *
- * Dues are grouped by lessor because a transfer is executed per lessor, not per
- * booking, and the operator needs the bank details beside the total before they
- * touch anything.
+ * Two lists, because the API has two things and they are not the same thing:
  *
- * Four states, four different actions, and no default: a due row can be
- * executed, a failed one rescheduled, a frozen one only read, and one belonging
- * to a lessor with no bank details can only be chased. Offering "execute" on all
- * four would be how a payment goes to an account nobody verified.
+ * - **Releasable money with no payout yet.** Grouped by lessor, because a
+ *   transfer is one bank instruction to one account — paying per booking would
+ *   be a bank charge per night rented. Each row carries `blocked`, and a
+ *   blocked row shows the obstacle instead of a button: an operator should see
+ *   why they cannot pay before they try.
+ * - **Payouts.** These exist only once somebody approves one, and from then on
+ *   they are approved, paid, or failed. There is no "due" payout and no "on
+ *   hold" one — those describe money, not transfers, and they live in the list
+ *   above.
  *
- * The full IBAN is never rendered until the operator asks for it, and asking is
- * a separate request the server can log (NFR-SEC-02).
+ * Recording an execution requires the bank reference. The server refuses
+ * without it and so does this screen: a transfer marked done with nothing tying
+ * it to a bank statement is not a record anybody can audit, which is the whole
+ * reason for recording it.
+ *
+ * The full IBAN is never shown. The API sends the last four digits and nothing
+ * else, which is the right amount for confirming an account before sending
+ * money to it (NFR-SEC-02).
  */
 @Component({
   selector: 'app-admin-transfers-page',
@@ -45,45 +57,42 @@ type Dialog = 'none' | 'execute' | 'reschedule' | 'frozen' | 'demand';
 export class AdminTransfersPage {
   private readonly finance = inject(AdminFinanceService);
   private readonly notifications = inject(NotificationService);
-  private readonly router = inject(Router);
 
   protected readonly i18n = inject(LanguageService);
   protected readonly settings = inject(AdminSettingsStore);
 
-  protected readonly groups = signal<PayoutGroup[]>([]);
+  protected readonly eligible = signal<EligiblePayout[]>([]);
+  protected readonly payouts = signal<Payout[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
   protected readonly submitting = signal(false);
 
   protected readonly dialog = signal<Dialog>('none');
-  protected readonly target = signal<{ group: PayoutGroup; row: PayoutRow } | null>(null);
-
-  /** Populated only once the operator presses "كشف". */
-  protected readonly revealed = signal<LessorBankDetails | null>(null);
+  protected readonly lessor = signal<EligiblePayout | null>(null);
+  protected readonly payout = signal<Payout | null>(null);
 
   protected readonly bankReference = signal('');
-  protected readonly executedOn = signal(today());
-  protected readonly rescheduleDate = signal(today());
-  protected readonly rescheduleReason = signal('');
-  protected readonly demandMessage = signal('');
+  protected readonly failureReason = signal('');
 
-  protected readonly isEmpty = computed(() => this.groups().length === 0);
+  protected readonly isEmpty = computed(
+    () => this.eligible().length === 0 && this.payouts().length === 0,
+  );
 
-  protected readonly canExecute = computed(() => this.bankReference().trim().length >= 4);
-  protected readonly canReschedule = computed(() => this.rescheduleReason().trim().length > 0);
+  /** Enough of a reference to find the transfer on a statement. */
+  protected readonly canConfirmPaid = computed(() => this.bankReference().trim().length >= 4);
+  protected readonly canRecordFailure = computed(() => this.failureReason().trim().length > 0);
 
   constructor() {
     this.fetch();
-    this.demandMessage.set(this.i18n.t('transfers.demandDefault'));
   }
 
   protected fetch(): void {
     this.failed.set(false);
     this.isLoading.set(true);
 
-    this.finance.payoutGroups().subscribe({
-      next: (groups) => {
-        this.groups.set(groups);
+    this.finance.eligiblePayouts().subscribe({
+      next: (page) => {
+        this.eligible.set(page.items);
         this.isLoading.set(false);
       },
       error: () => {
@@ -91,9 +100,17 @@ export class AdminTransfersPage {
         this.isLoading.set(false);
       },
     });
+
+    // The two lists fail independently: an empty eligible list is the ordinary
+    // state once everything is approved, and it must not blank the payouts
+    // beside it.
+    this.finance.payouts().subscribe({
+      next: (page) => this.payouts.set(page.items),
+      error: () => this.payouts.set([]),
+    });
   }
 
-  // ── Row state helpers ──────────────────────────────────────────────────
+  // ── Row state ──────────────────────────────────────────────────────────
   protected display(status: PayoutStatus) {
     return PAYOUT_STATUS_DISPLAY[status];
   }
@@ -102,123 +119,103 @@ export class AdminTransfersPage {
     return statusText(PAYOUT_STATUS_DISPLAY[status], this.i18n.language());
   }
 
-  /** Due, and the lessor's account is complete — the only executable state. */
-  protected isExecutable(group: PayoutGroup, row: PayoutRow): boolean {
-    return row.status === PayoutStatus.Due && !group.bankDetailsMissing;
+  /** Why this lessor's money cannot be sent, in the operator's language. */
+  protected blockedText(row: EligiblePayout): string {
+    const display = row.blocked ? PAYOUT_BLOCKED_DISPLAY[row.blocked] : null;
+    return display ? statusText(display, this.i18n.language()) : '';
   }
 
-  protected isBlocked(group: PayoutGroup, row: PayoutRow): boolean {
-    return row.status === PayoutStatus.Due && group.bankDetailsMissing;
+  protected isAwaitingExecution(payout: Payout): boolean {
+    return payout.status === PayoutStatus.Approved;
   }
 
-  protected isFailed(row: PayoutRow): boolean {
-    return row.status === PayoutStatus.Failed;
+  protected isFailed(payout: Payout): boolean {
+    return payout.status === PayoutStatus.Failed;
   }
 
-  protected isFrozen(row: PayoutRow): boolean {
-    return row.status === PayoutStatus.OnHold;
-  }
-
-  protected isPaid(row: PayoutRow): boolean {
-    return row.status === PayoutStatus.Paid;
+  protected isPaid(payout: Payout): boolean {
+    return payout.status === PayoutStatus.Paid;
   }
 
   // ── Dialogs ────────────────────────────────────────────────────────────
-  protected openExecute(group: PayoutGroup, row: PayoutRow): void {
-    this.target.set({ group, row });
-    this.revealed.set(null);
+  protected openApprove(row: EligiblePayout): void {
+    this.lessor.set(row);
+    this.dialog.set('approve');
+  }
+
+  protected openPaid(payout: Payout): void {
+    this.payout.set(payout);
     this.bankReference.set('');
-    this.executedOn.set(today());
-    this.dialog.set('execute');
+    this.dialog.set('paid');
   }
 
-  protected openReschedule(group: PayoutGroup, row: PayoutRow): void {
-    this.target.set({ group, row });
-    this.rescheduleDate.set(today());
-    this.rescheduleReason.set('');
-    this.dialog.set('reschedule');
-  }
-
-  protected openFrozen(group: PayoutGroup, row: PayoutRow): void {
-    this.target.set({ group, row });
-    this.dialog.set('frozen');
-  }
-
-  protected openDemand(group: PayoutGroup, row: PayoutRow): void {
-    this.target.set({ group, row });
-    this.demandMessage.set(this.i18n.t('transfers.demandDefault'));
-    this.dialog.set('demand');
+  protected openFailed(payout: Payout): void {
+    this.payout.set(payout);
+    this.failureReason.set('');
+    this.dialog.set('failed');
   }
 
   protected close(): void {
     this.dialog.set('none');
-    this.target.set(null);
-    this.revealed.set(null);
-  }
-
-  protected reveal(): void {
-    const row = this.target()?.row;
-    if (!row) return;
-
-    this.finance.bankDetails(row.id).subscribe({
-      next: (details) => this.revealed.set(details),
-      error: () => this.notifications.error(this.i18n.t('admin.actionFailed')),
-    });
+    this.lessor.set(null);
+    this.payout.set(null);
   }
 
   // ── Actions ────────────────────────────────────────────────────────────
-  protected execute(): void {
-    const row = this.target()?.row;
-    if (!row || !this.canExecute()) return;
+  protected approve(): void {
+    const row = this.lessor();
+    if (!row || row.blocked) return;
 
     this.submitting.set(true);
-    this.finance
-      .executePayout(row.id, {
-        bankReference: this.bankReference().trim(),
-        executedOn: this.executedOn(),
-      })
-      .subscribe({
-        next: () => this.done('transfers.executed'),
-        error: () => this.fail(),
-      });
-  }
-
-  protected reschedule(): void {
-    const row = this.target()?.row;
-    if (!row || !this.canReschedule()) return;
-
-    this.submitting.set(true);
-    this.finance
-      .reschedulePayout(row.id, {
-        scheduledFor: this.rescheduleDate(),
-        reason: this.rescheduleReason().trim(),
-      })
-      .subscribe({
-        next: () => this.done('transfers.rescheduled'),
-        error: () => this.fail(),
-      });
-  }
-
-  protected demand(): void {
-    const group = this.target()?.group;
-    if (!group) return;
-
-    this.submitting.set(true);
-    this.finance.demandBankDetails(group.lessorId, this.demandMessage().trim()).subscribe({
-      next: () => this.done('transfers.demandSent'),
+    this.finance.approvePayout(row.lessorId).subscribe({
+      next: () => this.done('transfers.approved'),
       error: () => this.fail(),
     });
   }
 
-  protected goToComplaints(): void {
-    this.close();
-    void this.router.navigateByUrl('/admin/complaints');
+  protected confirmPaid(): void {
+    const payout = this.payout();
+    if (!payout || !this.canConfirmPaid()) return;
+
+    this.submitting.set(true);
+    this.finance.markPaid(payout.id, this.bankReference().trim()).subscribe({
+      next: () => this.done('transfers.executed'),
+      error: () => this.fail(),
+    });
   }
 
-  private done(key: 'transfers.executed' | 'transfers.rescheduled' | 'transfers.demandSent'): void {
+  protected recordFailure(): void {
+    const payout = this.payout();
+    if (!payout || !this.canRecordFailure()) return;
+
+    this.submitting.set(true);
+    this.finance.markFailed(payout.id, this.failureReason().trim()).subscribe({
+      next: () => this.done('transfers.failureRecorded'),
+      error: () => this.fail(),
+    });
+  }
+
+  /** Back to awaiting execution, once whatever failed has been corrected. */
+  protected retry(payout: Payout): void {
+    this.submitting.set(true);
+    this.finance.retryPayout(payout.id).subscribe({
+      next: () => this.done('transfers.retried'),
+      error: () => this.fail(),
+    });
+  }
+
+  private done(
+    key:
+      | 'transfers.approved'
+      | 'transfers.executed'
+      | 'transfers.failureRecorded'
+      | 'transfers.retried',
+  ): void {
     this.submitting.set(false);
     this.close();
     this.notifications.success(this.i18n.t(key));
+    // Both lists move together: approving takes a row out of one and puts a
+    // payout into the other.
     this.fetch();
   }
 
@@ -226,10 +223,4 @@ export class AdminTransfersPage {
     this.submitting.set(false);
     this.notifications.error(this.i18n.t('admin.actionFailed'));
   }
-}
-
-function today(): string {
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60_000;
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }

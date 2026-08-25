@@ -57,8 +57,8 @@
       </app-ui-badge>
     </span>
     <span class="cell cell--stack">
-      <app-ui-badge [tone]="payoutDisplay(row.payoutStatus).tone">
-        {{ payoutLabel(row.payoutStatus) }}
+      <app-ui-badge [tone]="bucketDisplay(row.bucket).tone">
+        {{ bucketLabel(row.bucket) }}
       </app-ui-badge>
       @if (row.bankReference) {
         <span class="cell__sub num" dir="ltr">{{ row.bankReference }}</span>

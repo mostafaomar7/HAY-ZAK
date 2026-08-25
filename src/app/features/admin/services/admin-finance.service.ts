@@ -5,12 +5,15 @@ import type { PaginatedResponse } from '@core/models/api-response.model';
 import type {
   CommissionException,
   CommissionExceptionRequest,
-  LessorBankDetails,
   PaymentTrackingRow,
-  PayoutExecution,
-  PayoutGroup,
-  PayoutReschedule,
 } from '@core/models/admin.model';
+import type { PayoutStatus } from '@core/enums/payment.enum';
+import type {
+  EligiblePayout,
+  Payout,
+  PayoutFailedRequest,
+  PayoutPaidRequest,
+} from '@core/models/payment.model';
 import type { PlatformSettings } from '@core/models/operations.model';
 import { ApiService } from '@core/services/api.service';
 
@@ -25,33 +28,58 @@ export class AdminFinanceService {
     });
   }
 
-  payoutGroups(): Observable<PayoutGroup[]> {
-    return this.api.get<PayoutGroup[]>(API_ENDPOINTS.payments.payouts);
+  /**
+   * Money that is releasable and has no payout yet, one row per lessor.
+   *
+   * A transfer is made per lessor rather than per booking, which is why the
+   * server groups it: an operator sends one amount to one account, and paying
+   * each booking separately would be a bank charge per night rented.
+   */
+  eligiblePayouts(page = 1): Observable<PaginatedResponse<EligiblePayout>> {
+    return this.api.list<EligiblePayout>(API_ENDPOINTS.payments.eligiblePayouts, {
+      params: { page },
+    });
+  }
+
+  payouts(
+    params: { page?: number; status?: PayoutStatus } = {},
+  ): Observable<PaginatedResponse<Payout>> {
+    return this.api.list<Payout>(API_ENDPOINTS.payments.payouts, { params });
+  }
+
+  payout(id: string): Observable<Payout> {
+    return this.api.get<Payout>(API_ENDPOINTS.payments.payoutById(id));
+  }
+
+  /** Approves one lessor's releasable total into a payout awaiting execution. */
+  approvePayout(lessorId: string): Observable<Payout> {
+    return this.api.post<Payout, { lessorId: string }>(API_ENDPOINTS.payments.payouts, {
+      lessorId,
+    });
   }
 
   /**
-   * The unmasked IBAN, fetched only when the operator asks to see it.
+   * Records that the transfer was actually made.
    *
-   * A separate request rather than a field on the group: the read is itself an
-   * auditable event (NFR-SEC-02), and a payload that always carried the full
-   * number would be logged, cached and screenshotted along with it.
+   * `bankReference` is required and the server refuses without it. A payout
+   * marked done with nothing tying it to a bank statement is not a record
+   * anybody can audit, which is the entire point of recording it.
    */
-  bankDetails(payoutId: string): Observable<LessorBankDetails> {
-    return this.api.get<LessorBankDetails>(API_ENDPOINTS.payments.payoutBankDetails(payoutId));
+  markPaid(id: string, bankReference: string): Observable<Payout> {
+    return this.api.post<Payout, PayoutPaidRequest>(API_ENDPOINTS.payments.markPayoutPaid(id), {
+      bankReference,
+    });
   }
 
-  executePayout(id: string, execution: PayoutExecution): Observable<void> {
-    return this.api.post<void, PayoutExecution>(
-      API_ENDPOINTS.payments.executePayout(id),
-      execution,
-    );
+  markFailed(id: string, reason: string): Observable<Payout> {
+    return this.api.post<Payout, PayoutFailedRequest>(API_ENDPOINTS.payments.markPayoutFailed(id), {
+      reason,
+    });
   }
 
-  reschedulePayout(id: string, reschedule: PayoutReschedule): Observable<void> {
-    return this.api.post<void, PayoutReschedule>(
-      API_ENDPOINTS.payments.reschedulePayout(id),
-      reschedule,
-    );
+  /** Back to awaiting execution, once whatever failed has been corrected. */
+  retryPayout(id: string): Observable<Payout> {
+    return this.api.post<Payout>(API_ENDPOINTS.payments.retryPayout(id));
   }
 
   demandBankDetails(lessorId: string, message: string): Observable<void> {

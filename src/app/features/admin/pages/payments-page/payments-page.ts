@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { PAYOUT_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
-import { PayoutStatus } from '@core/enums/payment.enum';
+import { EARNINGS_BUCKET_DISPLAY, statusText } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import type { PaymentTrackingRow } from '@core/models/admin.model';
+import type { EarningsBucket } from '@core/models/earnings.model';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { AdminFilterBar } from '../../components/admin-filter-bar/admin-filter-bar';
 import type { AdminFilterValues } from '../../components/admin-filter-bar/admin-filter-bar';
@@ -61,13 +61,13 @@ export class AdminPaymentsPage {
       {
         key: 'transferred',
         label: this.i18n.t('payments.kpiTransferred'),
-        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? row.netHalalas : 0)),
+        value: sum((row) => (row.bucket === 'PAID' ? row.netHalalas : 0)),
         icon: 'check' as const,
       },
       {
         key: 'pending',
         label: this.i18n.t('payments.kpiPending'),
-        value: sum((row) => (row.payoutStatus === PayoutStatus.Paid ? 0 : row.netHalalas)),
+        value: sum((row) => (row.bucket === 'PAID' ? 0 : row.netHalalas)),
         icon: 'clock' as const,
       },
     ];
@@ -81,7 +81,7 @@ export class AdminPaymentsPage {
     { key: 'commissionHalalas', label: this.i18n.t('payments.commission'), width: '0.8fr' },
     { key: 'netHalalas', label: this.i18n.t('payments.net'), width: '0.9fr', sortable: true },
     { key: 'collection', label: this.i18n.t('payments.collectionStatus'), width: '1fr' },
-    { key: 'payoutStatus', label: this.i18n.t('payments.transferStatus'), width: '1.3fr' },
+    { key: 'bucket', label: this.i18n.t('payments.transferStatus'), width: '1.3fr' },
   ]);
 
   protected readonly selects = computed(() => [
@@ -104,13 +104,13 @@ export class AdminPaymentsPage {
       ],
     },
     {
-      key: 'payoutStatus',
+      key: 'bucket',
       label: this.i18n.t('payments.transferStatus'),
       options: [
         { value: '', label: this.i18n.t('admin.allStatuses') },
-        ...Object.values(PayoutStatus).map((status) => ({
-          value: status,
-          label: statusText(PAYOUT_STATUS_DISPLAY[status], this.i18n.language()),
+        ...(['PENDING', 'RELEASABLE', 'PAID'] as const).map((bucket) => ({
+          value: bucket,
+          label: this.bucketLabel(bucket),
         })),
       ],
     },
@@ -156,12 +156,19 @@ export class AdminPaymentsPage {
     this.fetch();
   }
 
-  protected payoutDisplay(status: PayoutStatus) {
-    return PAYOUT_STATUS_DISPLAY[status];
+  /**
+   * Where this booking's money sits, not the state of a transfer.
+   *
+   * A payout covers several bookings and does not exist until an operator
+   * approves one, so a row cannot carry a `PayoutStatus` — it carries the
+   * bucket its share is in.
+   */
+  protected bucketDisplay(bucket: EarningsBucket) {
+    return EARNINGS_BUCKET_DISPLAY[bucket];
   }
 
-  protected payoutLabel(status: PayoutStatus): string {
-    return statusText(PAYOUT_STATUS_DISPLAY[status], this.i18n.language());
+  protected bucketLabel(bucket: EarningsBucket): string {
+    return statusText(EARNINGS_BUCKET_DISPLAY[bucket], this.i18n.language());
   }
 }
 

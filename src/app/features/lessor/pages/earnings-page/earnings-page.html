@@ -1,10 +1,39 @@
 <section class="page">
-  <app-ui-stat-tile
-    [label]="i18n.t('earnings.total')"
-    [value]="totalEarnings()"
-    [filled]="true"
-    [hint]="i18n.t('earnings.totalHint')"
-  />
+  <!-- The account's position now, in the server's own three buckets. The
+       table below is a period the lessor chose; these are not. -->
+  @if (buckets(); as money) {
+    <div class="page__money">
+      <app-ui-stat-tile
+        [label]="i18n.t('earnings.releasable')"
+        [value]="money.releasableHalalas"
+        [filled]="true"
+      />
+      <app-ui-stat-tile [label]="i18n.t('earnings.pending')" [value]="money.pendingHalalas" />
+      <app-ui-stat-tile [label]="i18n.t('earnings.paid')" [value]="money.paidHalalas" />
+    </div>
+
+    @if (releaseRule(); as rule) {
+      <p class="page__rule">{{ rule }}</p>
+    }
+
+    @if (money.lastPayout; as last) {
+      <p class="page__last num">
+        {{
+          i18n.t('earnings.lastPayout', {
+            date: (last.executedAt | date: dateFormat) ?? last.executedAt,
+            reference: last.bankReference,
+          })
+        }}
+      </p>
+    }
+  } @else {
+    <app-ui-stat-tile
+      [label]="i18n.t('earnings.total')"
+      [value]="totalEarnings()"
+      [filled]="true"
+      [hint]="i18n.t('earnings.totalHint')"
+    />
+  }
 
   <div class="page__toolbar">
     <label class="page__filter">

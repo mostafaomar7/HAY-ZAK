@@ -4,8 +4,8 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import { PayoutStatus } from '@core/enums/payment.enum';
 import type { EarningsResponse, EarningsRow } from '@core/models/earnings.model';
+import type { LessorEarnings } from '@core/models/payment.model';
 import { environment } from '../../../../../environments/environment';
 import { EarningsPage } from './earnings-page';
 
@@ -19,7 +19,7 @@ function row(overrides: Partial<EarningsRow> = {}): EarningsRow {
     grossHalalas: 52500,
     commissionHalalas: 2625,
     netHalalas: 49875,
-    payoutStatus: PayoutStatus.Paid,
+    bucket: 'PAID',
     bankReference: 'TRF-88214',
     transferredAt: '2026-08-13',
     ...overrides,
@@ -32,14 +32,36 @@ describe('EarningsPage (LSR-07)', () => {
   let el: HTMLElement;
 
   const url = `${environment.apiUrl}${API_ENDPOINTS.lessor.earningsTable}`;
+  const bucketsUrl = `${environment.apiUrl}${API_ENDPOINTS.lessor.earnings}`;
 
+  /**
+   * The screen makes two requests, and they answer different questions: the
+   * table is a period the lessor chose, the buckets are the account's position
+   * now. Both are answered here so no test has to know which one it wanted.
+   */
   function flush(rows: EarningsRow[], totalEarnings = 2707.5) {
     const body: EarningsResponse = {
       summary: { totalEarnings, transferred: 0, pending: 0, onHold: 0 },
       rows,
     };
     http.expectOne((r) => r.url === url).flush({ data: body, success: true });
+    flushBuckets();
     fixture.detectChanges();
+  }
+
+  function flushBuckets(overrides: Partial<LessorEarnings> = {}) {
+    const earnings: LessorEarnings = {
+      pendingHalalas: 0,
+      pendingBookings: 0,
+      releasableHalalas: 0,
+      releasableBookings: 0,
+      paidHalalas: 0,
+      paidPayouts: 0,
+      lastPayout: null,
+      releaseRule: 'after_booking_start_24h',
+      ...overrides,
+    };
+    http.expectOne((r) => r.url === bucketsUrl).flush({ data: { earnings }, success: true });
   }
 
   beforeEach(async () => {
@@ -61,12 +83,45 @@ describe('EarningsPage (LSR-07)', () => {
     flush([]);
   });
 
-  it('renders the hero total and one row per payout', () => {
-    flush([row(), row({ bookingId: 'bk-2', payoutStatus: PayoutStatus.Processing })]);
+  /**
+   * The three buckets are the hero, not one total. "How much have I earned"
+   * and "how much can reach my bank this week" are different questions, and
+   * only the second is actionable.
+   */
+  it('renders the three buckets and one row per booking', () => {
+    flush([row(), row({ bookingId: 'bk-2', bucket: 'RELEASABLE' })]);
 
-    expect(el.querySelector('app-ui-stat-tile')?.textContent).toContain('إجمالي الأرباح');
-    expect(el.textContent).toContain('2,707.50');
+    const tiles = Array.from(el.querySelectorAll('app-ui-stat-tile')).map((t) => t.textContent);
+    expect(tiles.length).toBe(3);
+    expect(tiles[0]).toContain('جاهز للتحويل');
+    expect(tiles[1]).toContain('قيد الانتظار');
+    expect(tiles[2]).toContain('حُوِّل');
+
     expect(el.querySelectorAll('.table__row').length).toBe(2);
+  });
+
+  /**
+   * The backend asked for this on the screen and was right to: "why is my
+   * money still pending" is the question that becomes a support ticket when
+   * the page does not answer it.
+   */
+  it('says in words why money is not releasable yet', () => {
+    flush([row()]);
+    expect(el.textContent).toContain('بعد ٢٤ ساعة من بداية الحجز');
+  });
+
+  /** A rule this build has not heard of gets no sentence, not a guessed one. */
+  it('explains nothing rather than guessing at an unknown release rule', () => {
+    http
+      .expectOne((r) => r.url === url)
+      .flush({
+        data: { summary: { totalEarnings: 0, transferred: 0, pending: 0, onHold: 0 }, rows: [] },
+        success: true,
+      });
+    flushBuckets({ releaseRule: 'after_some_rule_this_build_does_not_know' });
+    fixture.detectChanges();
+
+    expect(el.querySelector('.page__rule')).toBeNull();
   });
 
   it('offers a way to the requests screen when there is nothing to show', () => {
@@ -79,7 +134,7 @@ describe('EarningsPage (LSR-07)', () => {
   // UC-04 — a frozen payout is only actionable if it points at the screen that
   // actually fixes it, which is the bank details, not the profile.
   it('sends a frozen payout to the bank-details screen', () => {
-    flush([row({ payoutStatus: PayoutStatus.OnHold, holdReason: 'الآيبان لا يطابق اسمك.' })]);
+    flush([row({ bucket: 'PENDING', holdReason: 'الآيبان لا يطابق اسمك.' })]);
 
     const hold = el.querySelector('.hold');
     expect(hold).not.toBeNull();
@@ -91,7 +146,7 @@ describe('EarningsPage (LSR-07)', () => {
   });
 
   it('explains when a transfer is still in progress', () => {
-    flush([row({ payoutStatus: PayoutStatus.Processing, bankReference: undefined })]);
+    flush([row({ bucket: 'RELEASABLE', bankReference: undefined })]);
 
     expect(el.querySelector('.note')?.textContent).toContain('خلال يومي عمل');
   });
@@ -127,5 +182,9 @@ describe('EarningsPage (LSR-07)', () => {
       data: { summary: { totalEarnings: 0, transferred: 0, pending: 0, onHold: 0 }, rows: [] },
       success: true,
     });
+
+    // The buckets are refetched too — they are the account's position, and a
+    // stale one beside a fresh table is the disagreement this avoids.
+    flushBuckets();
   });
 });

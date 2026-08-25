@@ -105,13 +105,15 @@ describe('app routing (smoke)', () => {
     expect(el.querySelectorAll('app-request-card').length).toBeGreaterThan(0);
   });
 
-  it('renders the earnings table with the hero total', async () => {
+  it('renders the earnings table under the three money buckets', async () => {
     const fixture = await open('/lessor/earnings');
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-earnings-page')).not.toBeNull();
-    expect(el.textContent).toContain('إجمالي الأرباح');
-    expect(el.textContent).toContain('2,707.50');
+    expect(el.textContent).toContain('جاهز للتحويل');
+    expect(el.textContent).toContain('قيد الانتظار');
+    // The rule that separates the first bucket from the second, in words.
+    expect(el.textContent).toContain('بعد ٢٤ ساعة من بداية الحجز');
   });
 
   it('renders the notifications inbox', async () => {
@@ -179,7 +181,7 @@ describe('app routing (smoke)', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     expect(el.querySelector('app-dashboard-page')).not.toBeNull();
-    expect(el.textContent).toContain('إجمالي المستحقات');
+    expect(el.textContent).toContain('جاهز للتحويل');
     expect(el.textContent).toContain('آخر الإشعارات');
   });
 

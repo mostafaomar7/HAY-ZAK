@@ -94,8 +94,13 @@ export class ProfilePage {
   constructor() {
     // The deletion panel must state the real balance — SRS §10 and UC-04 mean
     // outstanding money is settled before an account can go.
+    //
+    // Both unpaid buckets, not just the releasable one: money that has not
+    // matured yet is still owed, and an account closed against a figure that
+    // omitted it would leave the lessor short by exactly that amount.
     this.account.earnings().subscribe({
-      next: (earnings) => this.outstanding.set(earnings.netOutstanding),
+      next: (earnings) =>
+        this.outstanding.set(earnings.pendingHalalas + earnings.releasableHalalas),
       error: () => this.outstanding.set(0),
     });
   }

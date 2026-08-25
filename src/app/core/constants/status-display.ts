@@ -2,6 +2,8 @@ import { BookingStatus } from '../enums/booking-status.enum';
 import { TermsVersionStatus } from '../models/admin.model';
 import { DisputeStatus } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
+import type { EarningsBucket } from '../models/earnings.model';
+import type { PayoutBlockedReason } from '../models/payment.model';
 import { UnitStatus } from '../enums/unit-status.enum';
 import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 
@@ -71,13 +73,49 @@ export const BOOKING_STATUS_DISPLAY: Readonly<Record<BookingStatus, StatusDispla
   [BookingStatus.Expired]: { ar: 'انتهت مهلة الحجز', en: 'Hold expired', tone: 'neutral' },
 };
 
-/** FR-LSR-08 — the transfer status column on the earnings page. */
+/** FR-LSR-08 — a payout's three states. */
 export const PAYOUT_STATUS_DISPLAY: Readonly<Record<PayoutStatus, StatusDisplay>> = {
-  [PayoutStatus.Due]: { ar: 'مستحق', en: 'Due', tone: 'info' },
-  [PayoutStatus.OnHold]: { ar: 'معلّق', en: 'On hold', tone: 'warning' },
-  [PayoutStatus.Processing]: { ar: 'جاري التحويل', en: 'Processing', tone: 'info' },
+  [PayoutStatus.Approved]: { ar: 'معتمد — بانتظار التنفيذ', en: 'Approved', tone: 'info' },
   [PayoutStatus.Paid]: { ar: 'محوّل', en: 'Paid', tone: 'success' },
   [PayoutStatus.Failed]: { ar: 'فشل التحويل', en: 'Failed', tone: 'danger' },
+};
+
+/**
+ * Why releasable money has no payout yet, in the operator's words.
+ *
+ * On the row itself, never in a toast after the fact: the point is that the
+ * obstacle is visible before anybody presses a button that cannot work.
+ */
+export const PAYOUT_BLOCKED_DISPLAY: Readonly<Record<PayoutBlockedReason, StatusDisplay>> = {
+  NO_BANK_ACCOUNT: {
+    ar: 'لا يوجد حساب بنكي للمؤجّر',
+    en: 'The lessor has no bank account',
+    tone: 'warning',
+  },
+};
+
+/** Where one booking's money sits, on the dues table (LSR-07). */
+export const EARNINGS_BUCKET_DISPLAY: Readonly<Record<EarningsBucket, StatusDisplay>> = {
+  PENDING: { ar: 'قيد الانتظار', en: 'Pending', tone: 'warning' },
+  RELEASABLE: { ar: 'جاهز للتحويل', en: 'Releasable', tone: 'info' },
+  PAID: { ar: 'محوّل', en: 'Paid', tone: 'success' },
+};
+
+/**
+ * What decides when earned money becomes releasable.
+ *
+ * Shown on the lessor's earnings screen rather than kept in the backend's head.
+ * "Why is my money still pending" is the question that becomes a support ticket
+ * when nothing on the page answers it, and the server names the rule precisely
+ * so that it can be answered. An unknown rule renders nothing — inventing a
+ * sentence for a policy this build has not heard of would be worse than silence.
+ */
+export const RELEASE_RULE_TEXT: Readonly<Record<string, StatusDisplay>> = {
+  after_booking_start_24h: {
+    ar: 'تصبح المستحقات جاهزة للتحويل بعد ٢٤ ساعة من بداية الحجز.',
+    en: 'Earnings become releasable 24 hours after the booking starts.',
+    tone: 'neutral',
+  },
 };
 
 /** FR-ADM-08 — the complaints queue. */
