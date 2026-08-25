@@ -10,6 +10,7 @@ import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
 import { UiFilterChips } from '@shared/components/ui-filter-chips/ui-filter-chips';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiSearchField } from '@shared/components/ui-search-field/ui-search-field';
+import { UiPager } from '@shared/components/ui-pager/ui-pager';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 
 type UnitFilter = UnitStatus | 'all';
@@ -19,7 +20,16 @@ type UnitFilter = UnitStatus | 'all';
   selector: 'app-units-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [LessorUnitsService],
-  imports: [RouterLink, UnitCard, UiButton, UiEmptyState, UiFilterChips, UiSearchField, UiSkeleton],
+  imports: [
+    RouterLink,
+    UnitCard,
+    UiButton,
+    UiEmptyState,
+    UiFilterChips,
+    UiPager,
+    UiSearchField,
+    UiSkeleton,
+  ],
   templateUrl: './units-page.html',
   styleUrl: './units-page.scss',
 })
@@ -33,6 +43,8 @@ export class UnitsPage {
   protected readonly filter = signal<UnitFilter>('all');
   protected readonly query = signal('');
   protected readonly failed = signal(false);
+  protected readonly page = signal(1);
+  protected readonly pageSize = this.service.pageSize;
 
   /** Order matches the design's chip row. */
   protected readonly chips: readonly FilterChip<UnitFilter>[] = [
@@ -44,9 +56,13 @@ export class UnitsPage {
   ];
 
   /**
-   * Search filters the loaded page in memory; the status chip refetches. The
-   * split is deliberate — typing must not cost a request (NFR-PRF-03), while a
-   * status change needs the server's full count for that status.
+   * Search filters the page that is loaded, in memory.
+   *
+   * Not a choice: `/lessor/units` accepts `status`, `page` and `pageSize` and
+   * answers 422 for anything else, so there is nowhere to send a search term.
+   * With fifty-one spaces across five pages that means typing searches the
+   * twelve on screen and not the other thirty-nine — a real limitation, logged
+   * in `docs/api/backend-notes.md` rather than papered over here.
    */
   protected readonly visibleUnits = computed(() => {
     const term = this.query().toLocaleLowerCase('ar');
@@ -63,7 +79,18 @@ export class UnitsPage {
 
   protected onFilter(value: UnitFilter): void {
     this.filter.set(value);
+    // Back to the first page: page four of "الكل" is rarely page four of
+    // "مرفوضة", and staying there lands the lessor on an empty grid.
+    this.page.set(1);
     this.fetch();
+  }
+
+  protected onPage(page: number): void {
+    this.page.set(page);
+    this.fetch();
+    // The grid is below the fold once it is full; paging without this leaves
+    // the lessor looking at the bottom of a page they have not seen the top of.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected onSearch(term: string): void {
@@ -73,6 +100,7 @@ export class UnitsPage {
   protected clearFilters(): void {
     this.query.set('');
     this.filter.set('all');
+    this.page.set(1);
     this.fetch();
   }
 
@@ -88,6 +116,6 @@ export class UnitsPage {
   protected fetch(): void {
     this.failed.set(false);
     const status = this.filter() === 'all' ? undefined : (this.filter() as UnitStatus);
-    this.service.load(status).subscribe({ error: () => this.failed.set(true) });
+    this.service.load(status, this.page()).subscribe({ error: () => this.failed.set(true) });
   }
 }

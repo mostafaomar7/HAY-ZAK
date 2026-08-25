@@ -13,6 +13,7 @@ import type { TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { LanguageService } from '@core/i18n/language.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
+import { UiPager } from '@shared/components/ui-pager/ui-pager';
 
 export interface AdminColumn {
   key: string;
@@ -60,7 +61,7 @@ export interface AdminRow {
 @Component({
   selector: 'app-admin-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, UiButton],
+  imports: [NgTemplateOutlet, UiButton, UiPager],
   templateUrl: './admin-table.html',
   styleUrl: './admin-table.scss',
 })
@@ -113,25 +114,6 @@ export class AdminTable<T extends AdminRow> {
     return rows.length > 0 && rows.every((row) => this.selected().includes(row.id));
   });
 
-  protected readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.total() / Math.max(1, this.pageSize()))),
-  );
-
-  /** At most five page buttons, centred on the current one. */
-  protected readonly pages = computed(() => {
-    const last = this.totalPages();
-    const start = Math.max(1, Math.min(this.page() - 2, last - 4));
-    return Array.from({ length: Math.min(5, last) }, (_, index) => start + index);
-  });
-
-  protected readonly firstShown = computed(() =>
-    this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1,
-  );
-
-  protected readonly lastShown = computed(() =>
-    Math.min(this.total(), (this.page() - 1) * this.pageSize() + this.rows().length),
-  );
-
   protected readonly skeletonRows = Array.from({ length: 6 }, (_, index) => index);
 
   protected isSelected(id: string): boolean {
@@ -163,10 +145,5 @@ export class AdminTable<T extends AdminRow> {
     const current = this.sort();
     if (current?.key !== column.key) return '↕';
     return current.direction === 'asc' ? '▲' : '▼';
-  }
-
-  protected go(page: number): void {
-    if (page < 1 || page > this.totalPages() || page === this.page()) return;
-    this.pageChange.emit(page);
   }
 }

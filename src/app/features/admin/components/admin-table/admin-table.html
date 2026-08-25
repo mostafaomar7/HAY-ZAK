@@ -138,48 +138,13 @@
         </div>
       </div>
 
-      @if (total() > pageSize()) {
-        <footer class="pager">
-          <p class="pager__range num">
-            {{
-              i18n.t('admin.showingRange', {
-                from: firstShown(),
-                to: lastShown(),
-                total: total(),
-              })
-            }}
-          </p>
-          <div class="pager__pages">
-            <button
-              class="pager__btn"
-              type="button"
-              [disabled]="page() === 1"
-              (click)="go(page() - 1)"
-            >
-              {{ i18n.t('admin.previous') }}
-            </button>
-            @for (number of pages(); track number) {
-              <button
-                class="pager__btn pager__btn--num num"
-                type="button"
-                [class.pager__btn--on]="number === page()"
-                [attr.aria-current]="number === page() ? 'page' : null"
-                (click)="go(number)"
-              >
-                {{ number }}
-              </button>
-            }
-            <button
-              class="pager__btn"
-              type="button"
-              [disabled]="page() === totalPages()"
-              (click)="go(page() + 1)"
-            >
-              {{ i18n.t('admin.next') }}
-            </button>
-          </div>
-        </footer>
-      }
+      <app-ui-pager
+        [total]="total()"
+        [page]="page()"
+        [pageSize]="pageSize()"
+        [shown]="rows().length"
+        (pageChange)="pageChange.emit($event)"
+      />
     }
   }
 </section>

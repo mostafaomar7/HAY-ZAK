@@ -135,7 +135,13 @@ a search result. It cannot be derived client-side without fetching the
 availability of every card on the page, so the flag is optional in the model and
 the badge simply never appears against the real server.
 
-**7. The users list filter needs a decision.** The console filters by
+**7. `/lessor/units` takes no search term.** It accepts `status`, `page` and
+`pageSize` and answers 422 for anything else. With fifty-one spaces across five
+pages the lessor's search box therefore filters the twelve on screen and not the
+other thirty-nine. The screen says nothing about that, because the honest fix is
+a `search` parameter, not a caption explaining a limitation.
+
+**8. The users list filter needs a decision.** The console filters by
 مستأجر/مؤجر and by the three kinds of administrator in one control. The client
 sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
 not shipped, so nothing has agreed to that yet.

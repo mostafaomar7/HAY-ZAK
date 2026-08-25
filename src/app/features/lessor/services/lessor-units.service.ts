@@ -38,10 +38,18 @@ export class LessorUnitsService {
   private readonly items = signal<Unit[]>([]);
   private readonly loading = signal(false);
   private readonly totalCount = signal(0);
+  private readonly size = signal<number>(APP.pageSize);
 
   readonly units = this.items.asReadonly();
   readonly isLoading = this.loading.asReadonly();
   readonly total = this.totalCount.asReadonly();
+  /**
+   * The page size the **server** used, not the one that was asked for.
+   *
+   * It caps the value — 50 is the ceiling — so a pager that divided the total
+   * by what it requested would number pages that do not exist.
+   */
+  readonly pageSize = this.size.asReadonly();
 
   /** FR-LSR-01 — the counters the dashboard shows, derived not re-fetched. */
   readonly counts = computed(() => {
@@ -75,6 +83,7 @@ export class LessorUnitsService {
           next: (result) => {
             this.items.set(result.items);
             this.totalCount.set(result.pagination.total);
+            this.size.set(result.pagination.pageSize || APP.pageSize);
             this.loading.set(false);
           },
           error: () => this.loading.set(false),

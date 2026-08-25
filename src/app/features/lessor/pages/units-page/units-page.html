@@ -42,17 +42,18 @@
       </app-ui-empty-state>
     }
   } @else {
-    <p class="page__count">
-      <span class="num" dir="ltr">{{ visibleUnits().length }}</span>
-      من
-      <span class="num" dir="ltr">{{ total() }}</span>
-      مساحة
-    </p>
-
     <div class="page__grid">
       @for (unit of visibleUnits(); track unit.id) {
         <app-unit-card [unit]="unit" (suspendRequested)="onSuspend($event.id)" />
       }
     </div>
+
+    <app-ui-pager
+      [total]="total()"
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [shown]="visibleUnits().length"
+      (pageChange)="onPage($event)"
+    />
   }
 </section>

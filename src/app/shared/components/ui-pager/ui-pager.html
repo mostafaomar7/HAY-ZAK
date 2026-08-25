@@ -1,0 +1,37 @@
+@if (hasPages()) {
+  <nav class="pager" [attr.aria-label]="i18n.t('admin.pagination')">
+    <p class="pager__range num">
+      {{
+        i18n.t('admin.showingRange', {
+          from: firstShown(),
+          to: lastShown(),
+          total: total(),
+        })
+      }}
+    </p>
+    <div class="pager__pages">
+      <button class="pager__btn" type="button" [disabled]="page() === 1" (click)="go(page() - 1)">
+        {{ i18n.t('admin.previous') }}
+      </button>
+      @for (number of pages(); track number) {
+        <button
+          class="pager__btn pager__btn--num num"
+          type="button"
+          [class.pager__btn--on]="number === page()"
+          [attr.aria-current]="number === page() ? 'page' : null"
+          (click)="go(number)"
+        >
+          {{ number }}
+        </button>
+      }
+      <button
+        class="pager__btn"
+        type="button"
+        [disabled]="page() === totalPages()"
+        (click)="go(page() + 1)"
+      >
+        {{ i18n.t('admin.next') }}
+      </button>
+    </div>
+  </nav>
+}
