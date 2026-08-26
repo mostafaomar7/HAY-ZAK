@@ -41,7 +41,11 @@ const POLL_MS = 1500;
 @Component({
   selector: 'app-payment-return-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [RenterBookingsService],
+  // Both, because this page sits *outside* the wizard shell — it is where the
+  // gateway drops the browser, not a step — so it inherits nothing from it.
+  // Injecting one it does not provide is a NullInjectorError at construction,
+  // which the router renders as an empty page after the money has moved.
+  providers: [RenterBookingsService, BookingWizardService],
   imports: [RouterLink, UiButton, UiEmptyState, UiMoney, UiNotice, UiSkeleton],
   templateUrl: './payment-return-page.html',
   styleUrl: './payment-return-page.scss',

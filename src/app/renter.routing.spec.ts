@@ -175,6 +175,38 @@ describe('renter routing (smoke)', () => {
       expect(el.querySelector('app-ui-range-calendar')).withContext('calendar').not.toBeNull();
     });
 
+    /**
+     * Every step renders, which is a lower bar than it sounds.
+     *
+     * A step that injects a service nobody provides throws at construction, and
+     * the router responds by showing *nothing* — the shell and its step header
+     * stay on screen with an empty outlet underneath. It reads as a blank page
+     * rather than as an error, and the build cannot catch it because the
+     * injector is a runtime graph. It happened; this is the guard.
+     */
+    for (const [step, selector] of [
+      ['new/m-1', 'app-dates-step'],
+      ['new/m-1/goods', 'app-goods-step'],
+      ['bk-1/pay', 'app-payment-step'],
+    ] as const) {
+      it(`renders a component at /booking/${step}`, async () => {
+        const fixture = await open(`/booking/${step}`);
+        const el = fixture.nativeElement as HTMLElement;
+
+        expect(el.querySelector(selector)).withContext(`${selector} is missing`).not.toBeNull();
+      });
+    }
+
+    it('renders the payment return page the gateway sends the browser to', async () => {
+      // A fixed address on this origin — the API validates it, so it cannot
+      // move without a conversation. If it stops resolving, payment ends on a
+      // blank page after the money has moved.
+      const fixture = await open('/bookings/return?bookingId=rb-1&status=paid');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-payment-return-page')).not.toBeNull();
+    });
+
     it('renders the account screen with the ID masked', async () => {
       const fixture = await open('/account');
       const el = fixture.nativeElement as HTMLElement;

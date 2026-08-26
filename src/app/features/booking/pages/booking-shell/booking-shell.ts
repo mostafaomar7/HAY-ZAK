@@ -11,6 +11,7 @@ import type { WizardStep } from '@shared/components/ui-wizard-steps/ui-wizard-st
 import { UiWizardSteps } from '@shared/components/ui-wizard-steps/ui-wizard-steps';
 import type { BookingStep } from '../../services/booking-wizard.service';
 import { BOOKING_STEPS, BookingWizardService } from '../../services/booking-wizard.service';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 
 /** Under this, the design turns the hold banner from informational to urgent. */
 const URGENT_SECONDS = 3 * 60;
@@ -30,7 +31,12 @@ const URGENT_SECONDS = 3 * 60;
 @Component({
   selector: 'app-booking-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [BookingWizardService],
+  // Both services are provided here, for the whole wizard, rather than on each
+  // step. A step that injects one and forgets to provide it fails with a
+  // NullInjectorError at construction — which renders as an empty page, not as
+  // an error, because the router simply has no component to show. That is
+  // exactly what happened, and providing them once is what stops it recurring.
+  providers: [BookingWizardService, RenterBookingsService],
   imports: [RouterOutlet, UiCountdown, UiWizardSteps],
   templateUrl: './booking-shell.html',
   styleUrl: './booking-shell.scss',
