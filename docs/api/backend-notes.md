@@ -193,6 +193,25 @@ several categories at once. `categoryId` is a single string and repeating it is
 rejected, so the panel is now one-at-a-time. Filtering the rest on the client
 was the alternative and would have filtered the page rather than the catalogue.
 
+**14. The CMS is not shipped, and four header links depend on it.**
+`/content/pages/{how-it-works,faq,contact,about,terms,privacy,refund-policy}`,
+`/content/terms/active` and `/content/contact` all answer 404. Those pages are
+in the header and the footer of every screen, so a visitor's second click is
+usually one of them. They are server-held on purpose (FR-CMS-01 — an operator
+edits them without a release), so there is nothing sensible to hard-code.
+
+The page used to answer this with "الصفحة غير متاحة — قد تكون أُزيلت أو تغيّر
+رابطها", which denies a link the application itself had just drawn. It now
+separates a slug it has never heard of from a fetch that failed, and offers a
+retry for the second.
+
+**15. The renter's own area is not shipped either.** Signed in as
+`0500000001` (RENTER): `/me` and `/me/notifications` answer 200,
+`/me/bank-accounts` correctly 403s a renter, and `/bookings/mine`,
+`/bookings` and every `/account/*` route answer 404. So a renter can sign in,
+read their profile and their notifications — and has no "حجوزاتي" and no
+account screen.
+
 ## Shapes worth knowing
 
 - `register` returns **no tokens** — the account is `PENDING_VERIFICATION` and

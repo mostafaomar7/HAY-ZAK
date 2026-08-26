@@ -64,7 +64,16 @@ export class StaticPageComponent {
 
   protected readonly page = signal<StaticPage | null>(null);
   protected readonly isLoading = signal(true);
-  protected readonly failed = signal(false);
+  /**
+   * The fetch failed. Distinct from a slug this application has never heard
+   * of, and the difference is what the visitor is told: one is "there is no
+   * such page", the other is "we could not fetch a page that exists". These
+   * were one flag, so every footer link led to "قد تكون أُزيلت أو تغيّر
+   * رابطها" whenever the CMS was unreachable — which is a lie about a link
+   * the application itself had just drawn.
+   */
+  protected readonly loadFailed = signal(false);
+  protected readonly unknownSlug = signal(false);
 
   protected readonly isAuthenticated = this.auth.isAuthenticated;
 
@@ -105,7 +114,7 @@ export class StaticPageComponent {
     effect(() => {
       const slug = this.slug();
       if (!STATIC_PAGE_SLUGS.includes(slug as StaticPageSlug)) {
-        this.failed.set(true);
+        this.unknownSlug.set(true);
         this.isLoading.set(false);
         return;
       }
@@ -126,9 +135,16 @@ export class StaticPageComponent {
     return this.i18n.t(RELATED_LABELS[slug]);
   }
 
+  /** Re-runs the fetch after a failure — the retry button on the error state. */
+  protected reload(): void {
+    if (this.unknownSlug()) return;
+    this.load(this.slug() as StaticPageSlug);
+  }
+
   private load(slug: StaticPageSlug): void {
     this.isLoading.set(true);
-    this.failed.set(false);
+    this.loadFailed.set(false);
+    this.unknownSlug.set(false);
 
     this.content.page(slug).subscribe({
       next: (page) => {
@@ -136,7 +152,7 @@ export class StaticPageComponent {
         this.isLoading.set(false);
       },
       error: () => {
-        this.failed.set(true);
+        this.loadFailed.set(true);
         this.isLoading.set(false);
       },
     });

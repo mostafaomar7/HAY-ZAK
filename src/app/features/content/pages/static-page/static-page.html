@@ -2,7 +2,7 @@
   <div class="page">
     <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
   </div>
-} @else if (failed() || !page()) {
+} @else if (unknownSlug()) {
   <div class="page">
     <app-ui-empty-state
       tone="error"
@@ -10,6 +10,21 @@
       [hint]="i18n.t('pages.notFoundHint')"
     >
       <a appUiButton variant="primary" routerLink="/">{{ i18n.t('system.goHome') }}</a>
+    </app-ui-empty-state>
+  </div>
+} @else if (loadFailed() || !page()) {
+  <!-- The page exists; its content did not arrive. Saying it was removed
+       would be denying a link this application drew a second ago. -->
+  <div class="page">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('pages.loadFailed')"
+      [hint]="i18n.t('pages.loadFailedHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="reload()">
+        {{ i18n.t('common.retry') }}
+      </button>
+      <a appUiButton variant="outline" routerLink="/">{{ i18n.t('system.goHome') }}</a>
     </app-ui-empty-state>
   </div>
 } @else {

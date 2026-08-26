@@ -63,7 +63,13 @@ export const API_ENDPOINTS = {
     unitById: (id: string) => `/public/units/${id}`,
   },
 
-  /** The renter's own account — FR-AUTH, FR-NTF. */
+  /**
+   * The renter's own account — FR-AUTH, FR-NTF.
+   *
+   * **Not shipped.** Every route here answers 404; the signed-in account lives
+   * at `me.*` instead, which is shipped and is what these screens should be
+   * moved onto once someone decides which of the two survives.
+   */
   account: {
     profile: '/account/profile',
     identity: '/account/identity',
@@ -130,7 +136,13 @@ export const API_ENDPOINTS = {
     similarUnits: (id: string) => `/public/units/${id}/similar`,
   },
 
-  /** FR-BKG */
+  /**
+   * FR-BKG — **not shipped**, every route answers 404.
+   *
+   * This is the whole renter journey past the details page: the draft, the
+   * quote, the payment, "حجوزاتي" and the complaint that is the only way out
+   * of a booking. The wizard is built and points at these names.
+   */
   bookings: {
     base: '/bookings',
     byId: (id: string) => `/bookings/${id}`,
@@ -294,7 +306,14 @@ export const API_ENDPOINTS = {
     unreadCount: '/notifications/unread-count',
   },
 
-  /** FR-CMS */
+  /**
+   * FR-CMS — **not shipped**, every route answers 404.
+   *
+   * "كيف تعمل المنصة", the FAQ, the contact page and the policies are all
+   * server-held documents (FR-CMS-01) so an operator can edit them without a
+   * release. Until the module exists those four links in the header and footer
+   * reach a page that cannot fill itself.
+   */
   content: {
     pageBySlug: (slug: string) => `/content/pages/${slug}`,
     faq: '/content/pages/faq',
