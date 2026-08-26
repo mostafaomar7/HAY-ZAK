@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { LanguageService } from '@core/i18n/language.service';
 import { ApiService } from '@core/services/api.service';
+import { controlChanges } from '@core/utils/form-signals';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiCountdown } from '@shared/components/ui-countdown/ui-countdown';
 import { UiField } from '@shared/components/ui-field/ui-field';
@@ -45,7 +46,12 @@ export class ForgotPasswordPage {
     identifier: ['', [Validators.required]],
   });
 
-  protected readonly target = computed(() => this.form.controls.identifier.value ?? '');
+  private readonly changes = controlChanges(this.form);
+
+  protected readonly target = computed(() => {
+    this.changes();
+    return this.form.controls.identifier.value ?? '';
+  });
 
   protected setChannel(channel: Channel): void {
     this.channel.set(channel);

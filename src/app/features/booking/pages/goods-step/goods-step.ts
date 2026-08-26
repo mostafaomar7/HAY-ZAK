@@ -10,6 +10,7 @@ import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiProhibitedList } from '@shared/components/ui-prohibited-list/ui-prohibited-list';
 import { BookingSummary } from '../../components/booking-summary/booking-summary';
 import { ApiError } from '@core/models/api-error.model';
+import { controlChanges } from '@core/utils/form-signals';
 import { RenterBookingsService } from '../../services/renter-bookings.service';
 import { BookingWizardService } from '../../services/booking-wizard.service';
 
@@ -89,9 +90,18 @@ export class GoodsStep {
     this.prohibited().map((item) => this.i18n.pick(item)),
   );
 
-  protected readonly canContinue = computed(
-    () => this.form.valid && this.acknowledged() && !this.submitting(),
-  );
+  private readonly changes = controlChanges(this.form);
+
+  /**
+   * `changes()` is read first and its value discarded — it is the dependency
+   * that makes this recompute. `form.valid` is a plain property, so without it
+   * this evaluated once on an empty form and cached `false`: filling the
+   * description in *after* ticking the box left the button grey forever.
+   */
+  protected readonly canContinue = computed(() => {
+    this.changes();
+    return this.form.valid && this.acknowledged() && !this.submitting();
+  });
 
   constructor() {
     this.reference.prohibitedItems().subscribe({

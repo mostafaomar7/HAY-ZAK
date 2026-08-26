@@ -5,9 +5,8 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
-import { EMPTY, switchMap } from 'rxjs';
+import { controlChanges } from '@core/utils/form-signals';
 
 /**
  * Label + control + hint + error, wrapped once so no form re-implements the
@@ -66,9 +65,7 @@ export class UiField {
    * `AbstractControl.events` is the one stream that covers all four; status
    * alone misses `touched`, which is half of when an error is allowed to show.
    */
-  private readonly changes = toSignal(
-    toObservable(this.control).pipe(switchMap((control) => control?.events ?? EMPTY)),
-  );
+  private readonly changes = controlChanges(this.control);
 
   protected readonly showError = computed(() => {
     this.changes();

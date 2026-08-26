@@ -21,6 +21,7 @@ import { ReferenceDataService } from '@core/services/reference-data.service';
 import { markFormTouched } from '@core/utils/form.utils';
 import { halalasToSar, sarToHalalas } from '@core/utils/money.utils';
 import { isValidWindow, uncoveredDays, weekdayName } from '@core/utils/schedule.utils';
+import { controlChanges } from '@core/utils/form-signals';
 import { LessorUnitsService } from '../../services/lessor-units.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import type { ChoiceOption } from '@shared/components/ui-choice-chips/ui-choice-chips';
@@ -197,18 +198,24 @@ export class UnitFormPage {
     this.categories().map((c) => ({ value: c.id, label: this.i18n.pick(c) })),
   );
 
+  /** See `controlChanges` — reactive forms are not signals. */
+  private readonly changes = controlChanges(this.form);
+
   protected readonly categoryError = computed(() => {
+    this.changes();
     const control = this.form.controls.categoryId;
     return control.touched && control.invalid ? 'اختر تصنيف المساحة.' : undefined;
   });
 
   protected readonly descriptionCount = computed(() => {
+    this.changes();
     const value = this.form.controls.description.value ?? '';
     return `${value.length} / ${this.descriptionLimit}`;
   });
 
   /** FR-UNT-05 — indicative monthly figure, shown for guidance only. */
   protected readonly monthlyHint = computed(() => {
+    this.changes();
     const sar = this.form.controls.dailyPriceSar.value;
     if (!sar) return '';
     const monthly = sar * APP.monthlyPriceMultiplier;

@@ -7,6 +7,7 @@ import { ApiService } from '@core/services/api.service';
 import { AuthService } from '@core/services/auth.service';
 import { NotificationService } from '@core/services/notification.service';
 import { markFormTouched } from '@core/utils/form.utils';
+import { controlChanges } from '@core/utils/form-signals';
 import { LessorAccountService } from '../../services/lessor-account.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiField } from '@shared/components/ui-field/ui-field';
@@ -89,7 +90,18 @@ export class ProfilePage {
     confirmation: ['', [Validators.required, Validators.pattern(/^حذف$/)]],
   });
 
-  protected readonly canDelete = computed(() => this.deleteForm.valid && !this.deleting());
+  private readonly deleteChanges = controlChanges(this.deleteForm);
+
+  /**
+   * Typing "حذف" has to enable this, and `deleteForm.valid` is a plain
+   * property — see `controlChanges`. Without the dependency the button stayed
+   * disabled no matter what was typed, because `deleting()` was the only
+   * signal in the expression and it never moves before the first press.
+   */
+  protected readonly canDelete = computed(() => {
+    this.deleteChanges();
+    return this.deleteForm.valid && !this.deleting();
+  });
 
   constructor() {
     // The deletion panel must state the real balance — SRS §10 and UC-04 mean

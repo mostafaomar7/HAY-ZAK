@@ -6,6 +6,7 @@ import type { ApiError } from '@core/models/api-error.model';
 import { isApiError } from '@core/models/api-error.model';
 import { applyFieldErrors, clearServerErrors } from '@core/utils/api-form';
 import { markFormTouched } from '@core/utils/form.utils';
+import { controlChanges } from '@core/utils/form-signals';
 import { NotificationService } from '@core/services/notification.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
@@ -66,9 +67,12 @@ export class RaiseComplaintPage {
     body: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(2000)]],
   });
 
-  protected readonly bodyCount = computed(
-    () => `${this.form.controls.body.value?.length ?? 0} / 2000`,
-  );
+  private readonly changes = controlChanges(this.form);
+
+  protected readonly bodyCount = computed(() => {
+    this.changes();
+    return `${this.form.controls.body.value?.length ?? 0} / 2000`;
+  });
 
   constructor() {
     // Deferred a tick, like the sibling pages: a required route input has no

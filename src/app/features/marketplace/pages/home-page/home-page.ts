@@ -6,6 +6,7 @@ import type { PublicUnitSummary } from '@core/models/public-unit';
 import type { ReferenceItem } from '@core/models/unit.model';
 import { ReferenceDataService } from '@core/services/reference-data.service';
 import { todayPlain, toPlainDate } from '@core/utils/date.utils';
+import { controlChanges } from '@core/utils/form-signals';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import type { IconName } from '@shared/components/ui-icon/ui-icon';
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
@@ -112,7 +113,10 @@ export class HomePage {
    * control. That satisfies NFR-USB-05's display requirement without a date
    * library, and keeps one unambiguous value going to the API.
    */
+  private readonly changes = controlChanges(this.form);
+
   protected readonly hijriDate = computed(() => {
+    this.changes();
     const value = this.form.controls.startDate.value;
     if (!value) return '';
 
