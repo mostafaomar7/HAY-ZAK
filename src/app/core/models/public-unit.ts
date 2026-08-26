@@ -63,7 +63,19 @@ export interface PublicUnitSummary {
   district: ReferenceItem | null;
   /** Absolute, already resolved against the API origin. */
   coverUrl: string | null;
-  area: ApproximateArea;
+  /**
+   * `null` when the unit has no location at all.
+   *
+   * Not hypothetical: 54 of 79 published units on the development server carry
+   * `location: null`, along with no images and no visiting hours. Whether that
+   * should be publishable is the backend's question — see
+   * `docs/api/backend-notes.md` — but a client that assumed a point was always
+   * there would spread `null` into an object and hand the map `undefined`
+   * coordinates, which draws a circle in the sea rather than failing.
+   *
+   * So it is nullable here, and every screen decides what to do without one.
+   */
+  area: ApproximateArea | null;
   /**
    * From the search origin, **rounded to the nearest 100 m** — and `null`
    * whenever the query carried no `lat`/`lng`. Present it as approximate;
@@ -146,7 +158,7 @@ export interface WirePublicUnit {
   city: ReferenceItem | null;
   district: ReferenceItem | null;
   coverUrl: string | null;
-  location: WireArea;
+  location: WireArea | null;
   distanceMeters: number | null;
   isFullyBooked: boolean;
   publishedAt: string;
@@ -237,7 +249,9 @@ export function publicUnitSummaryFromWire(wire: WirePublicUnit): PublicUnitSumma
     district: wire.district,
     // Served from the API's origin, not from under /api/v1.
     coverUrl: wire.coverUrl ? fileUrl(wire.coverUrl) : null,
-    area: { ...wire.location },
+    // Copied rather than spread-with-a-fallback: `{ ...null }` is `{}`, which
+    // type-checks as an area and is not one.
+    area: wire.location ? { ...wire.location } : null,
     distanceMeters: wire.distanceMeters,
     isFullyBooked: wire.isFullyBooked,
     publishedAt: wire.publishedAt,

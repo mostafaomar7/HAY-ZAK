@@ -48,8 +48,9 @@ export class ResultsMap {
 
   readonly hovered = output<string | null>();
 
+  /** Only the results the API gave a circle for — see `placed`. */
   protected readonly discs = computed<Disc[]>(() => {
-    const units = this.units().filter((unit) => !!unit.area);
+    const units = this.placed();
     if (units.length === 0) return [];
 
     const lats = units.map((unit) => unit.area.latitude);
@@ -75,6 +76,21 @@ export class ResultsMap {
       size: `${diameter(unit.area.radiusMeters, spanLngMetres)}%`,
     }));
   });
+
+  /**
+   * A unit with no location cannot be drawn, and drawing it anywhere would be
+   * inventing a position — the one thing this component exists not to do. The
+   * caption says how many are missing rather than letting the map quietly
+   * disagree with the list beside it.
+   */
+  private readonly placed = computed(() =>
+    this.units().filter(
+      (unit): unit is PublicUnitSummary & { area: NonNullable<PublicUnitSummary['area']> } =>
+        unit.area !== null,
+    ),
+  );
+
+  protected readonly unplacedCount = computed(() => this.units().length - this.placed().length);
 
   protected readonly hoveredTitle = computed(() => {
     const id = this.activeId();

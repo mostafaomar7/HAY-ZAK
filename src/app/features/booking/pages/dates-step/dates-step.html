@@ -50,12 +50,15 @@
       <section class="location">
         <h2 class="location__title">{{ i18n.t('booking.unitLocation') }}</h2>
         <!-- The circle the API drew, never a pin: the point is displaced and the
-             exact address is released only once the booking is approved. -->
-        <app-ui-location-map
-          height="sm"
-          [point]="{ latitude: unit()!.area.latitude, longitude: unit()!.area.longitude }"
-          [radiusMeters]="unit()!.area.radiusMeters"
-        />
+             exact address is released only once the booking is approved. Absent
+             on a unit the API gave no location for. -->
+        @if (unit()!.area; as area) {
+          <app-ui-location-map
+            height="sm"
+            [point]="{ latitude: area.latitude, longitude: area.longitude }"
+            [radiusMeters]="area.radiusMeters"
+          />
+        }
       </section>
     </aside>
   </div>

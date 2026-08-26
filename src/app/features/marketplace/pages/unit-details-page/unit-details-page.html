@@ -143,18 +143,28 @@
           <p class="block__note">{{ i18n.t('details.visitHoursNote') }}</p>
         </section>
 
-        <section class="block">
-          <h2 class="block__title">{{ i18n.t('details.location') }}</h2>
-          <!-- FR-UNT-11: never `precise` here — approval releases the address.
-               The point is displaced on purpose and the space sits somewhere
-               inside the circle, so the radius comes from the server rather
-               than from a constant that might disagree with it. -->
-          <app-ui-location-map
-            [point]="{ latitude: unit()!.area.latitude, longitude: unit()!.area.longitude }"
-            [radiusMeters]="unit()!.area.radiusMeters"
-            [areaLabel]="place()"
-          />
-        </section>
+        <!-- No circle, no map. Drawing one centred on nothing would be
+             inventing a position, which is the one thing the approximate
+             location exists to prevent. -->
+        @if (unit()!.area; as area) {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('details.location') }}</h2>
+            <!-- FR-UNT-11: never `precise` here — approval releases the
+                 address. The point is displaced on purpose and the space sits
+                 somewhere inside the circle, so the radius comes from the
+                 server rather than from a constant that might disagree. -->
+            <app-ui-location-map
+              [point]="{ latitude: area.latitude, longitude: area.longitude }"
+              [radiusMeters]="area.radiusMeters"
+              [areaLabel]="place()"
+            />
+          </section>
+        } @else {
+          <section class="block">
+            <h2 class="block__title">{{ i18n.t('details.location') }}</h2>
+            <p class="block__note">{{ i18n.t('details.locationMissing') }}</p>
+          </section>
+        }
 
         <section class="block">
           <h2 class="block__title">{{ i18n.t('details.prohibitedTitle') }}</h2>

@@ -30,6 +30,14 @@
   }
 
   <p class="map__status" aria-live="polite">
-    {{ hoveredTitle() || i18n.t('results.mapHoverHint') }}
+    @if (hoveredTitle()) {
+      {{ hoveredTitle() }}
+    } @else if (unplacedCount() > 0) {
+      <!-- Said rather than hidden: the map is showing fewer spaces than the
+           list beside it, and a silent difference reads as a bug in the map. -->
+      <span class="num">{{ i18n.t('results.mapUnplaced', { count: unplacedCount() }) }}</span>
+    } @else {
+      {{ i18n.t('results.mapHoverHint') }}
+    }
   </p>
 </section>

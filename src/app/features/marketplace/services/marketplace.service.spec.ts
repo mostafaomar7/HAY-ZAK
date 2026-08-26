@@ -180,6 +180,78 @@ describe('MarketplaceService', () => {
     expect(received?.coverUrl).toContain('/uploads/units/u-1/a.jpg');
   });
 
+  /**
+   * A published unit with no location at all.
+   *
+   * Not hypothetical: 54 of 79 published units on the development server carry
+   * `location: null`. The adapter used to spread it — `{ ...null }` is `{}`,
+   * which satisfies the type and is not an area — and the map would then place
+   * a circle at `undefined, undefined`. Null must survive as null so every
+   * screen can decide what to do without one.
+   */
+  it('keeps a missing location as null rather than an empty area', () => {
+    let received: { area: unknown } | undefined;
+    service.search({}).subscribe((page) => (received = page.items[0] as never));
+
+    http
+      .expectOne((candidate) => candidate.url.endsWith('/public/units'))
+      .flush({
+        success: true,
+        data: {
+          items: [
+            {
+              id: 'u-1',
+              title: 'مستودع',
+              areaSqm: 45,
+              dailyPriceHalalas: 7500,
+              indicativeMonthlyHalalas: 225000,
+              minDays: 3,
+              maxDays: null,
+              category: null,
+              city: null,
+              district: null,
+              coverUrl: null,
+              location: null,
+              distanceMeters: null,
+              isFullyBooked: false,
+              publishedAt: '2026-08-25T10:23:37.528Z',
+            },
+          ],
+          pagination: { page: 1, pageSize: 12, total: 1, totalPages: 1, hasNextPage: false },
+        },
+      });
+
+    expect(received?.area).toBeNull();
+  });
+
+  /**
+   * The availability window has a 365-day ceiling, so the `to` that comes back
+   * is not the one asked for. Days past it were never described — unknown, not
+   * free — and `unknownFrom` is the first of them.
+   */
+  it('marks where the availability window stops speaking', () => {
+    let received: { unknownFrom: string; blocked: unknown[] } | undefined;
+    service.availability('u-1').subscribe((a) => (received = a));
+
+    http
+      .expectOne((candidate) => candidate.url.endsWith('/public/units/u-1/availability'))
+      .flush({
+        success: true,
+        data: {
+          unitId: 'u-1',
+          from: '2026-08-26',
+          to: '2026-11-24',
+          minDays: 1,
+          maxDays: null,
+          // Already merged by the server, and half-open: the 11th is free.
+          blocked: [{ startDate: '2026-10-05', endDate: '2026-10-11' }],
+        },
+      });
+
+    expect(received?.unknownFrom).toBe('2026-11-25');
+    expect(received?.blocked).toEqual([{ startDate: '2026-10-05', endDate: '2026-10-11' }]);
+  });
+
   it('takes the server at its word about whether there is another page', () => {
     service.search({}).subscribe();
 

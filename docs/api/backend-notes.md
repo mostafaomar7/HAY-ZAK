@@ -188,37 +188,64 @@ endpoint lands and says otherwise.
 sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
 not shipped, so nothing has agreed to that yet.
 
-**11. `q` — unresolved, and the disagreement is worth stating precisely.**
-Twelve terms all returned `total: 0` here, including a unit's exact title. The
-backend re-ran the same query on the same server and got 25, and diagnosed
-double-encoding: `%25D9%2585…` produces exactly zero, and every Latin term I
-tried genuinely has no matches, so "Latin works, Arabic does not" was a
-reasonable read of the table.
+**11. `q` works. The zeros were my probe, not the server.** Closed.
 
-Three things now stand against that on this side. Nothing in the client calls
-`encodeURIComponent` — `HttpParams` encodes once and a spec pins it. The probes
-were curl, not the application, and the one run with `--data-urlencode` from a
-file built `q=%d9%85%d8%b3…`, which is a single correct encoding. And the same
-full query returned 25 with `q` removed and 0 with it present, on the same
-connection.
+Re-run against the live server with the term written to a file as UTF-8 and
+sent with `--data-urlencode "q@file"`, so the bytes were under my control:
+مستودع، مكيّف، العليا، تخزين، نظيف — **25 each**.
 
-Unfinished: the server went unreachable (100% packet loss to `192.168.1.12`)
-before the file-based probe could complete, so the decisive run — byte-exact
-single-encoded Arabic, with the effective URL captured — has not happened. Do
-that first when it is back, and send the Request URL rather than the term.
+The cause, captured with `-w '%{url_effective}'`, is worth writing down because
+it will happen again. The same term passed inline on this Windows shell went out
+as:
 
-**12. The catalogue's two extra routes are shipped.** `GET
+```
+?q=%3f%3f%3f%3f%3f%3f      # six literal '?'
+?q=%d9%85%d8%b3%d8%aa…     # the same term, read from a file
+```
+
+The shell replaced every Arabic character with `?` before curl ever saw the
+argument — a codepage conversion, not double-encoding, and not the application.
+So the search was answering a question nobody asked.
+
+Two lessons, both cheap: **never pass a non-ASCII argument inline from this
+shell** — write it to a file and use `q@file` — and **capture
+`%{url_effective}` on any probe whose result is surprising**, because the URL is
+the evidence and the term is not.
+
+The application was never implicated: nothing calls `encodeURIComponent`,
+`HttpParams` encodes once, and a spec pins it — a double-encoded term would
+return zero with a 200, which looks like a broken search rather than a broken
+client, so it is worth keeping pinned.
+
+**12. 54 of 79 published units have no location, no images and no visiting
+hours.** `location: null`, `coverUrl: null`, `images: []`, `visitHours: null`,
+`maxDays: null` — the same 54, so it is one batch rather than a scattering.
+`district` is `null` on all 79.
+
+That should not be publishable by your own rules: `POST
+/lessor/units/:id/submit` is refused with `UNIT_IMAGES_REQUIRED` under two
+images, and FR-UNT requires a location. So either the seed wrote them straight
+to `PUBLISHED` past the validation, or publishing does not check what submit
+checks. Worth knowing which, because the second is a hole.
+
+The client no longer assumes any of them: `area` is nullable, the results map
+draws only the units it has a circle for and says how many it left out, and the
+details page says the owner has not set a location rather than drawing a circle
+centred on nothing. A circle at `undefined, undefined` was the alternative, and
+it renders — in the sea.
+
+**13. The catalogue's two extra routes are shipped.** `GET
 /public/units/:id/availability?from=&to=` and `GET
 /public/units/:id/similar?limit=` both answer now, and both are wired. See
 "The public catalogue" below for the three things about availability that are
 easy to get wrong quietly.
 
-**13. Repeated `categoryId` is a 422.** The filter panel was built to tick
+**14. Repeated `categoryId` is a 422.** The filter panel was built to tick
 several categories at once. `categoryId` is a single string and repeating it is
 rejected, so the panel is now one-at-a-time. Filtering the rest on the client
 was the alternative and would have filtered the page rather than the catalogue.
 
-**14. The CMS is not shipped, and four header links depend on it.**
+**15. The CMS is not shipped, and four header links depend on it.**
 `/content/pages/{how-it-works,faq,contact,about,terms,privacy,refund-policy}`,
 `/content/terms/active` and `/content/contact` all answer 404. Those pages are
 in the header and the footer of every screen, so a visitor's second click is
@@ -234,7 +261,7 @@ Since then the seven documents ship in the bundle
 falling back to them. So the pages read today, and the day this module lands an
 administrator's published version takes over with no change on this side.
 
-**15. The renter's own area is not shipped either.** Signed in as
+**16. The renter's own area is not shipped either.** Signed in as
 `0500000001` (RENTER): `/me` and `/me/notifications` answer 200,
 `/me/bank-accounts` correctly 403s a renter, and `/bookings/mine`,
 `/bookings` and every `/account/*` route answer 404. So a renter can sign in,
@@ -338,12 +365,13 @@ account screen.
 - `visitHours` is `{ fromMinutes, toMinutes }` — minutes since midnight, Riyadh,
   a window repeated *daily*. Not an instant: formatted by arithmetic, never
   through a date library.
-- Four combinations answer 422 rather than failing quietly, and each is a real
-  mistake worth surfacing: `sort=nearest` with no point, latitude and longitude
-  transposed (caught by Saudi bounds), `minPrice > maxPrice`, and one end of a
-  date range without the other. The client prevents the first and the last —
-  they come from controls, not from the visitor — and shows the server's own
-  Arabic sentence for the other two.
+- **Five** combinations answer 422 rather than failing quietly, each a real
+  mistake worth surfacing: `sort=nearest` with no point, `radiusKm` with no
+  point, latitude and longitude transposed (caught by Saudi bounds),
+  `minPrice > maxPrice`, and one end of a date range without the other. The
+  client prevents the ones that come from its own controls rather than from the
+  visitor, and shows the server's own Arabic sentence for the rest. All five
+  re-verified against the live server.
 - Anything not published answers `404 UNIT_NOT_FOUND`: draft, rejected,
   archived and "never existed" are indistinguishable, so a caller cannot probe
   what lessors are working on. A malformed id is a 422 on `params.unitId`.
@@ -351,7 +379,8 @@ account screen.
 - `radiusKm` **without** `lat`/`lng` is a 422 now — it used to be accepted and
   ignored. That is the better behaviour and the slider is visible again:
   moving it without a point asks for the location instead of hiding.
-  The range is 0.5–200 km, defaulting to 25 when a point arrives without one.
+  The range is 0.5–200 km, defaulting to 25 when a point arrives without one,
+  and both bounds now answer in Arabic («أقل نطاق بحث هو 0.5 كم»).
 - The detail wraps its payload: `{ unit: … }`; `/similar` wraps its own in
   `{ items: [ … ] }`.
 
@@ -381,9 +410,22 @@ maxDays, blocked: [{ startDate, endDate }] }`.
   at creation by a database constraint; what changed is whether the date was
   ever offered.
 
+Verified rather than taken on trust: two adjacent blocks posted as `2026-10-05
+→ 2026-10-08` and `2026-10-08 → 2026-10-11` came back from the public route as
+a single `2026-10-05 → 2026-10-11`. That is the merge *and* the half-open rule
+in one answer — the 8th being both an end and a start is what lets them join.
+Both test blocks were deleted afterwards.
+
+The `to` ceiling is real and worth handling: asking `from=2026-08-26` with
+`to=2028-01-01` answers `to=2027-08-26`, exactly 365 days. Everything past it
+was never described, which is why the client keeps `unknownFrom` rather than
+assuming the rest of the year is free. No seeded unit has a blocked range, so
+the greyed-out path only exists in the fixtures and in the one probe above.
+
 ### Similar spaces
 
-`GET /public/units/:id/similar?limit=` (1–12, default 6) → `{ items }`, the
+`GET /public/units/:id/similar?limit=` (1–12, default 6 — `0` and `13` are both
+422) → `{ items }`, the
 same card shape as a search result, ordered same-city → same-district →
 nearest → closest in price. Never the unit itself, never anything unpublished.
 
