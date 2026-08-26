@@ -1,6 +1,6 @@
 import type { EarningsBucket } from './earnings.model';
 import type { BookingStatus } from '../enums/booking-status.enum';
-import type { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
+import type { LegalDocumentType } from '../enums/operations.enum';
 import type { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
 
 /**
@@ -285,47 +285,14 @@ export interface TermsApprovalRow {
   acceptedAt: string;
 }
 
-// ── Complaints (FR-ADM-08) ───────────────────────────────────────────────
-
-export interface ComplaintRow {
-  id: string;
-  referenceNo: string;
-  bookingReferenceNo: string;
-  raisedByName: string;
-  subject: string;
-  status: DisputeStatus;
-  openedAt: string;
-}
-
-export interface ComplaintDetail extends ComplaintRow {
-  bookingId: string;
-  raisedByRole: UserRole;
-  bookingHalalas: number;
-  /** True while a payout is held against this dispute (UC-04). */
-  payoutFrozen: boolean;
-  messages: ComplaintMessage[];
-  resolution?: string;
-}
-
-/**
- * How an operator closes a complaint.
- *
- * `cancelBooking` is the only path to `BookingStatus.Cancelled` in the whole
- * system. It is a separate flag rather than something read out of the
- * resolution text, because a state transition that moves money must be an
- * explicit decision and must be visible as one in the audit trail.
+/*
+ * Complaints — FR-ADM-08 — are in `complaint.ts`, with the wire types and the
+ * adapters beside them. What used to be here was drawn before the endpoints
+ * shipped and had a `DisputeStatus` of four values, one `resolution` string
+ * and a boolean for cancelling the booking. The real thing has five statuses,
+ * six resolutions, attachments, a reply deadline and a permission split inside
+ * the resolution — none of which a screen can be talked into by a shape.
  */
-export interface ResolveComplaintRequest {
-  resolution: string;
-  cancelBooking: boolean;
-}
-
-export interface ComplaintMessage {
-  id: string;
-  authorName: string;
-  body: string;
-  sentAt: string;
-}
 
 // ── Audit trail (FR-ADM-09) ──────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 import { BookingStatus } from '../enums/booking-status.enum';
-import { DisputeStatus, LegalDocumentType } from '../enums/operations.enum';
+import { ComplaintCategory, ComplaintStatus } from '../enums/complaint.enum';
+import { LegalDocumentType } from '../enums/operations.enum';
 import { PayoutStatus } from '../enums/payment.enum';
 import { UnitStatus } from '../enums/unit-status.enum';
 import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
@@ -14,8 +15,6 @@ import type {
   BookingsReportRow,
   CmsPageDetail,
   CommissionException,
-  ComplaintDetail,
-  ComplaintRow,
   LessorBankDetails,
   ListingReviewDetail,
   ListingReviewRow,
@@ -27,6 +26,7 @@ import type {
   TermsApprovalRow,
   TermsVersionRow,
 } from '../models/admin.model';
+import type { WireComplaint, WireComplaintDetail } from '../models/complaint';
 import type { AdminDashboardKpis, PlatformSettings } from '../models/operations.model';
 import type { EligiblePayout, Payout } from '../models/payment.model';
 import type { Unit } from '../models/unit.model';
@@ -818,60 +818,102 @@ export const MOCK_TERMS_APPROVALS: TermsApprovalRow[] = [
 
 // ── Complaints ───────────────────────────────────────────────────────────
 
-export const MOCK_COMPLAINTS: ComplaintRow[] = [
+/**
+ * The wire shape, not the domain one — the interceptor stands in for the
+ * server, so it sends `isOverdue`, the nested booking and the message
+ * attachments exactly as `/admin/complaints` does. A fixture in the domain
+ * shape would mean the adapter is never exercised.
+ *
+ * One of the three is overdue on purpose: the queue is ordered by `slaDueAt`
+ * and paints an overdue row red, and a fixture where nothing is late would
+ * demo a screen whose whole point never fires.
+ */
+export const MOCK_COMPLAINTS: WireComplaint[] = [
   {
     id: 'cmp-1',
-    referenceNo: 'CMP-2026-0042',
-    bookingReferenceNo: 'HZ-2026-01021',
-    raisedByName: 'نورة الشمري',
+    referenceNo: 'CMP-2026-08-0042',
+    booking: { id: 'bk-r3', referenceNo: 'HZ-2026-01021', unitTitle: 'مستودع مكيّف — النرجس' },
+    category: ComplaintCategory.SpaceNotAsDescribed,
     subject: 'الوحدة غير مطابقة للوصف المنشور',
-    status: DisputeStatus.UnderReview,
-    openedAt: '2026-07-18',
+    status: ComplaintStatus.InProgress,
+    slaDueAt: '2026-07-19T09:10:00Z',
+    isOverdue: true,
+    firstResponseAt: '2026-07-19T13:40:00Z',
+    createdAt: '2026-07-18T09:10:00Z',
+    updatedAt: '2026-07-20T08:05:00Z',
   },
   {
     id: 'cmp-2',
-    referenceNo: 'CMP-2026-0051',
-    bookingReferenceNo: 'HZ-2026-01033',
-    raisedByName: 'ماجد الدوسري',
+    referenceNo: 'CMP-2026-08-0051',
+    booking: { id: 'bk-r4', referenceNo: 'HZ-2026-01033', unitTitle: 'غرفة تخزين — الياسمين' },
+    category: ComplaintCategory.AccessProblem,
     subject: 'تأخر تسليم مفاتيح المستودع',
-    status: DisputeStatus.Open,
-    openedAt: '2026-08-04',
+    status: ComplaintStatus.Open,
+    slaDueAt: '2026-08-05T12:00:00Z',
+    isOverdue: false,
+    // Nobody has answered this one yet, which is a different thing from new.
+    firstResponseAt: null,
+    createdAt: '2026-08-04T11:20:00Z',
+    updatedAt: '2026-08-04T11:20:00Z',
   },
   {
     id: 'cmp-3',
-    referenceNo: 'CMP-2026-0038',
-    bookingReferenceNo: 'HZ-2026-00981',
-    raisedByName: 'سعود العنزي',
+    referenceNo: 'CMP-2026-08-0038',
+    booking: { id: 'bk-r5', referenceNo: 'HZ-2026-00981', unitTitle: 'مستودع صغير — الملقا' },
+    category: ComplaintCategory.ProhibitedGoods,
     subject: 'بضاعة مخالفة لقائمة الممنوعات',
-    status: DisputeStatus.Closed,
-    openedAt: '2026-07-02',
+    status: ComplaintStatus.Resolved,
+    slaDueAt: '2026-07-03T09:00:00Z',
+    isOverdue: false,
+    firstResponseAt: '2026-07-02T15:00:00Z',
+    createdAt: '2026-07-02T08:00:00Z',
+    updatedAt: '2026-07-04T10:00:00Z',
   },
 ];
 
-export const MOCK_COMPLAINT_DETAIL: ComplaintDetail = {
+export const MOCK_COMPLAINT_DETAIL: WireComplaintDetail = {
   ...MOCK_COMPLAINTS[0],
-  bookingId: 'bk-r3',
-  raisedByRole: UserRole.Renter,
-  bookingHalalas: 42000,
-  payoutFrozen: true,
+  description:
+    'المساحة الفعلية أصغر من المعلن، ولا يوجد تكييف كما ورد في الوصف. زرت المكان يوم الأحد ووجدت الباب الداخلي مغلقًا.',
+  attachments: [],
+  resolution: null,
+  resolutionNote: null,
+  resolvedAt: null,
+  assignedToName: 'نوف السالم',
+  refunds: [],
   messages: [
     {
       id: 'msg-1',
       authorName: 'نورة الشمري',
       body: 'المساحة الفعلية أصغر من المعلن، ولا يوجد تكييف كما ورد في الوصف.',
+      attachments: [],
       sentAt: '2026-07-18T09:10:00Z',
     },
     {
+      // The other party to the booking answers in the same thread — the lessor
+      // being complained about has to be able to speak for themselves.
       id: 'msg-2',
       authorName: 'فهد بن سعد العمري',
       body: 'التكييف متوقف مؤقتًا للصيانة، والمساحة مطابقة للمخطط المرفق.',
+      attachments: [],
       sentAt: '2026-07-19T13:40:00Z',
     },
     {
       id: 'msg-3',
       authorName: 'نوف السالم — مشرف العمليات',
-      body: 'طُلب من المؤجر إرفاق صور محدّثة، وجُمّد التحويل حتى إغلاق الشكوى.',
+      body: 'طُلب من المؤجر إرفاق صور محدّثة، وجُمّد التحويل حتى حسم الشكوى.',
+      attachments: [],
       sentAt: '2026-07-20T08:05:00Z',
+    },
+    {
+      // Console only. `/me/complaints` never sends one of these, so the
+      // interceptor strips it below — the same way the server does.
+      id: 'msg-4',
+      authorName: 'نوف السالم — مشرف العمليات',
+      body: 'ملاحظة: نفس المؤجر عليه شكوى سابقة بنفس السبب.',
+      attachments: [],
+      isInternal: true,
+      sentAt: '2026-07-20T08:07:00Z',
     },
   ],
 };

@@ -2,8 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { AdminDashboardKpis } from '@core/models/operations.model';
-import type { ComplaintRow } from '@core/models/admin.model';
-import { DisputeStatus } from '@core/enums/operations.enum';
+import type { WireComplaint } from '@core/models/complaint';
+import { SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
 import { ApiService } from '@core/services/api.service';
 
 /**
@@ -28,13 +28,16 @@ export class AdminQueueCountsService {
   refresh(): void {
     forkJoin({
       kpis: this.api.get<AdminDashboardKpis>(API_ENDPOINTS.admin.dashboard),
-      disputes: this.api.list<ComplaintRow>(API_ENDPOINTS.admin.disputes),
+      complaints: this.api.list<WireComplaint>(API_ENDPOINTS.admin.complaints),
     }).subscribe({
-      next: ({ kpis, disputes }) => {
+      next: ({ kpis, complaints }) => {
         this.listings.set(kpis.pendingListings);
-        // Closed complaints are not work; only the open ones belong on a badge.
+        // Settled complaints are not work; only the live ones belong on a
+        // badge. Both terminal states count as settled — a duplicate that was
+        // closed without a decision is no more outstanding than a resolved one.
         this.complaints.set(
-          disputes.items.filter((item) => item.status !== DisputeStatus.Closed).length,
+          complaints.items.filter((item) => !SETTLED_COMPLAINT_STATUSES.includes(item.status))
+            .length,
         );
       },
       // A failed count is not worth an error toast on every screen; the badges

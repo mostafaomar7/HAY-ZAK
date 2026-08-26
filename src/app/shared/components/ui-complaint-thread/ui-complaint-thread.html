@@ -1,0 +1,46 @@
+@if (messages().length) {
+  <ol class="thread">
+    @for (message of messages(); track message.id) {
+      <li
+        class="msg"
+        [class.msg--internal]="message.isInternal"
+        [class.msg--stray]="isStray(message)"
+      >
+        <div class="msg__head">
+          <span class="msg__author" dir="auto">{{ message.authorName }}</span>
+          <time class="msg__time num" dir="ltr">{{ message.sentAt }}</time>
+        </div>
+
+        @if (message.isInternal) {
+          <!-- On the console this is an ordinary label. On a user's screen it
+               should be impossible — the server does not send these to /me —
+               so it says so rather than being quietly dropped. -->
+          <span class="msg__tag">
+            {{
+              isStray(message) ? i18n.t('complaint.strayInternal') : i18n.t('complaint.internal')
+            }}
+          </span>
+        }
+
+        @if (message.body) {
+          <p class="msg__body" dir="auto">{{ message.body }}</p>
+        }
+
+        @if (message.attachments.length) {
+          <ul class="files">
+            @for (file of message.attachments; track file.id) {
+              <li>
+                <a class="files__link" [href]="file.url" target="_blank" rel="noopener noreferrer">
+                  <span class="files__name">{{ i18n.t('complaint.attachment') }}</span>
+                  <span class="files__size num" dir="ltr">{{ sizeLabel(file) }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </li>
+    }
+  </ol>
+} @else {
+  <p class="empty">{{ i18n.t('complaint.noMessages') }}</p>
+}

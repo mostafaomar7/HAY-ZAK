@@ -196,11 +196,6 @@ export const API_ENDPOINTS = {
     forLessorById: (id: string) => `/lessor/bookings/${id}`,
 
     // ── Not shipped yet; the screens that call them are behind these names.
-    /**
-     * The one route out of a problem with a booking. Neither party can
-     * cancel — see `booking-transitions.ts`.
-     */
-    complaints: (id: string) => `/bookings/${id}/complaints`,
     history: (id: string) => `/bookings/${id}/history`,
     contract: (id: string) => `/bookings/${id}/contract`,
   },
@@ -266,9 +261,29 @@ export const API_ENDPOINTS = {
     auditLog: '/admin/audit-log',
     auditEntryById: (id: string) => `/admin/audit-log/${id}`,
 
-    disputes: '/admin/disputes',
-    disputeById: (id: string) => `/admin/disputes/${id}`,
-    resolveDispute: (id: string) => `/admin/disputes/${id}/resolve`,
+    /**
+     * FR-ADM-08 — the complaints queue, and the only exception path in the
+     * product. Ordered by `slaDueAt`, most overdue first; `?overdue=true`
+     * narrows it to the ones already past it.
+     *
+     * `complaints:manage` — the system administrator and the operations
+     * supervisor. The finance officer is refused the queue outright.
+     */
+    complaints: '/admin/complaints',
+    complaintById: (id: string) => `/admin/complaints/${id}`,
+    /** **multipart/form-data**, with `isInternal` as the string `"true"`. */
+    complaintMessages: (id: string) => `/admin/complaints/${id}/messages`,
+    assignComplaint: (id: string) => `/admin/complaints/${id}/assign`,
+    /**
+     * Ends it with a decision. **Final** — a second attempt is a 409.
+     *
+     * A resolution that moves money needs `refunds:issue` on top of
+     * `complaints:manage`, so an operations supervisor can cancel a booking
+     * and suspend a listing but cannot refund a halala.
+     */
+    resolveComplaint: (id: string) => `/admin/complaints/${id}/resolve`,
+    /** Ends it without one — a duplicate, or somebody withdrew it. */
+    closeComplaint: (id: string) => `/admin/complaints/${id}/close`,
 
     /** FR-ADM-05 — one endpoint per list kind, so ordering stays per list. */
     referenceList: (kind: string) => `/admin/reference/${kind}`,
@@ -337,6 +352,22 @@ export const API_ENDPOINTS = {
     /** Both answer with the fresh `unreadCount`, so the badge needs no refetch. */
     markNotificationRead: (id: string) => `/me/notifications/${id}/read`,
     markAllNotificationsRead: '/me/notifications/read-all',
+
+    /**
+     * Complaints — the renter's and the lessor's, on the same routes.
+     *
+     * This is the whole exception path: there is no cancel, no self-service
+     * refund, and no editing a paid booking. `POST` is **multipart/form-data**
+     * and refuses JSON even with nothing attached.
+     *
+     * A second complaint on a booking that already has an open one is a 409
+     * carrying `meta.complaintId` — which is a link to offer, not an error to
+     * print.
+     */
+    complaints: '/me/complaints',
+    complaintById: (id: string) => `/me/complaints/${id}`,
+    /** **multipart/form-data**. Empty body with no files is a 422. */
+    complaintMessages: (id: string) => `/me/complaints/${id}/messages`,
   },
 
   /**

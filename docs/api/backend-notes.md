@@ -617,3 +617,102 @@ here: `BookingStatus` has carried all seven states since the enum was written,
 `TERMINAL_BOOKING_STATUSES` puts `COMPLETED`, `CANCELLED` and `EXPIRED` in
 "السابقة", and `bookingPrimaryAction` offers the invoice from `CONFIRMED`
 onward — which is right, because payment is what issues it.
+
+### Complaints — the only exception path
+
+There is no cancel button in the product, no self-service refund, and no
+editing a booking after payment. Every exception — "I want out", "the space was
+locked", "it was nothing like the listing" — is a complaint, and an
+administrator decides the outcome. That is why `ComplaintResolution` carries
+actions like cancelling a booking and suspending a listing: it is not a status
+vocabulary, it is the whole set of things the platform can do about a problem.
+
+**Both `POST`s are `multipart/form-data` and refuse JSON**, even with nothing
+attached. The file field is literally `attachments`, and a typo there uploads
+nothing while still answering 201 — `complaint.spec.ts` pins the field names
+for that reason.
+
+```
+POST /me/complaints                          bookingId, category, subject(≥5),
+                                             description(≥20), attachments(0-5)
+GET  /me/complaints?status=&page=
+GET  /me/complaints/:id
+POST /me/complaints/:id/messages             body (optional with files), attachments
+```
+
+`description` has a floor of 20 characters and it is the point: a person reads
+this and decides something with money attached.
+
+An empty reply with no files is a 422 `COMPLAINT_MESSAGE_EMPTY`, so the send
+button is off until there is text or a file.
+
+**409 `COMPLAINT_ALREADY_OPEN` carries `meta.complaintId`.** The answer to "you
+already have one of these" is a link to it, not an error message — the screen
+reads the id and offers "افتح الشكوى الحالية".
+
+`OPEN → IN_PROGRESS ⇄ AWAITING_USER → RESOLVED | CLOSED`. Replying while
+`AWAITING_USER` returns it to `IN_PROGRESS` **on its own**; nothing on this side
+tries to, and every write answers with the whole complaint so the badge learns
+the new status from the same response.
+
+**Both parties read and answer the same thread.** The lessor being complained
+about sees it, deliberately, because they have to answer for themselves. So the
+complaint screens are top-level at `/my-complaints` and guarded on `authGuard`
+alone — not under `my-bookings`, which a lessor has no version of.
+
+**`isInternal` messages never reach `/me`.** The client does not filter them:
+the thread component renders one with a visible "ظهرت بالخطأ" marker instead,
+because a `.filter()` here would hide exactly the leak worth catching. The mock
+strips them the way the server does, and the routing spec asserts the operator's
+note in the fixture does not reach a user's screen.
+
+#### The console, and the permission split inside `resolve`
+
+```
+GET  /admin/complaints?status=&category=&overdue=true&assignedToId=
+GET  /admin/complaints/:id
+POST /admin/complaints/:id/messages    multipart; isInternal is the string "true"
+POST /admin/complaints/:id/assign
+POST /admin/complaints/:id/resolve     final — a second attempt is 409
+POST /admin/complaints/:id/close       note ≥ 10
+```
+
+The queue is ordered by `slaDueAt`, most overdue first, and **no column offers
+to re-sort it** — "who has waited longest for an answer we promised" is the
+question the screen exists to answer. Every row carries `isOverdue`, which the
+adapter defaults to `false` rather than letting `undefined` reach a template
+that paints a row red.
+
+`complaints:manage` opens all of it — **except** a resolution that moves money:
+
+| Resolution                           | Needs                                 |
+| ------------------------------------ | ------------------------------------- |
+| `NO_ACTION` `PAYOUT_HOLD`            | `complaints:manage`                   |
+| `BOOKING_CANCELLED` `UNIT_SUSPENDED` | `complaints:manage`                   |
+| `REFUND` `REFUND_AND_CANCEL`         | `complaints:manage` + `refunds:issue` |
+
+So the operations supervisor can cancel a booking, suspend a listing and freeze
+a transfer, and cannot move a single halala. Practically only `SYSTEM_ADMIN`
+holds both. The two refunding options are **disabled in the select** rather than
+offered — the server refuses them regardless, but meeting a 403 after typing an
+amount, a method and a bank reference is not the same as being told at the start.
+
+The finance officer, who _does_ hold `refunds:issue`, is refused the queue
+outright: holding half the pair opens nothing. Asserted in `admin.routing.spec`.
+
+An **internal note does not stop the SLA clock** and does not move the status.
+Only a real reply does — which is why the console re-reads the queue after a
+reply and not after a note, and why the toggle says so on the control itself.
+
+Refund failures all leave the complaint open with no money moved, so each ends
+in a form that can be corrected:
+
+- 422 `REFUND_EXCEEDS_PAYMENT` carries `meta.remaining` — put on screen, which
+  turns a rejection into an instruction.
+- 422 for a missing amount, or `MANUAL_TRANSFER` with no `refundReference`.
+- 409 `REFUND_NO_CAPTURED_PAYMENT`.
+- 502 `REFUND_GATEWAY_FAILED` — "حاول مرة أخرى", never "تم".
+
+`close` is a separate call from `resolve`, not a resolution value. "How many
+complaints did we settle" is a question a report will be asked, and closing a
+duplicate settled nothing.

@@ -166,6 +166,44 @@ describe('renter routing (smoke)', () => {
       expect(el.textContent).toContain('لا يمكن إلغاء الحجز من الطرفين');
     });
 
+    /**
+     * The complaint list is top-level, not under `my-bookings`, because a
+     * lessor reaches the same screens for a complaint about their own space
+     * and has no "حجوزاتي". A guard scoped to renters would have hidden it
+     * from half the people who need it.
+     */
+    it("lists the account's own complaints", async () => {
+      const fixture = await open('/my-complaints');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-my-complaints-page')).not.toBeNull();
+      expect(el.textContent).toContain('CMP-2026-08-0042');
+    });
+
+    it('opens one complaint as a conversation', async () => {
+      const fixture = await open('/my-complaints/cmp-1');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('app-complaint-detail-page')).not.toBeNull();
+      expect(el.querySelector('app-ui-complaint-thread')).withContext('the thread').not.toBeNull();
+    });
+
+    /**
+     * The server strips internal notes from `/me/complaints` and the mock does
+     * the same. This asserts the note in the fixture does not reach a user's
+     * screen — the leak it guards against is one nobody would notice by
+     * looking, because an internal note reads like an ordinary message.
+     */
+    it('shows the user no internal note', async () => {
+      const fixture = await open('/my-complaints/cmp-1');
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.textContent).toContain('التكييف متوقف مؤقتًا للصيانة');
+      expect(el.textContent)
+        .withContext('an operator note must never reach the complainant')
+        .not.toContain('نفس المؤجر عليه شكوى سابقة');
+    });
+
     it('starts the booking wizard on step one', async () => {
       const fixture = await open('/booking/new/m-1');
       const el = fixture.nativeElement as HTMLElement;

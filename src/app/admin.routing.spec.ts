@@ -174,6 +174,19 @@ describe('admin console routing (smoke)', () => {
       expect(router.url).toBe('/forbidden');
     });
 
+    /**
+     * `complaints:manage` is the system administrator's and the operations
+     * supervisor's; the finance officer does not open the queue at all.
+     *
+     * Worth asserting despite this officer being the one who issues refunds:
+     * `refunds:issue` is what a *resolution* needs on top of
+     * `complaints:manage`, not a way in. Holding half the pair opens nothing.
+     */
+    it('is refused the complaints queue despite issuing refunds', async () => {
+      await open('/admin/complaints');
+      expect(router.url).toBe('/forbidden');
+    });
+
     it('is offered no link to a screen it cannot open', async () => {
       const fixture = await open('/admin/transfers');
       // The sidebar specifically: "سجل التدقيق" also appears in the page's own
@@ -198,6 +211,21 @@ describe('admin console routing (smoke)', () => {
 
       await open('/admin/bookings');
       expect(router.url).toBe('/admin/bookings');
+    });
+
+    /**
+     * This supervisor handles complaints and cannot refund. The screen shows
+     * both halves of that: it opens, and the two refunding resolutions are
+     * disabled rather than offered — the server refuses them anyway, but being
+     * told after filling in an amount and a bank reference is not the same as
+     * being told at the start.
+     */
+    it('reaches the complaints queue with the refunding decisions disabled', async () => {
+      const fixture = await open('/admin/complaints');
+      expect(router.url).toBe('/admin/complaints');
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('app-admin-complaints-page')).not.toBeNull();
     });
 
     it('is refused the financial settings', async () => {

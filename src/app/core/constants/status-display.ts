@@ -1,6 +1,11 @@
 import { BookingStatus } from '../enums/booking-status.enum';
 import { TermsVersionStatus } from '../models/admin.model';
-import { DisputeStatus } from '../enums/operations.enum';
+import {
+  ComplaintCategory,
+  ComplaintResolution,
+  ComplaintStatus,
+  RefundMethod,
+} from '../enums/complaint.enum';
 import { PayoutStatus } from '../enums/payment.enum';
 import type { EarningsBucket } from '../models/earnings.model';
 import type { PayoutBlockedReason } from '../models/payment.model';
@@ -137,11 +142,117 @@ export const RELEASE_RULE_TEXT: Readonly<Record<string, StatusDisplay>> = {
 };
 
 /** FR-ADM-08 — the complaints queue. */
-export const DISPUTE_STATUS_DISPLAY: Readonly<Record<DisputeStatus, StatusDisplay>> = {
-  [DisputeStatus.Open]: { ar: 'مفتوحة', en: 'Open', tone: 'warning' },
-  [DisputeStatus.UnderReview]: { ar: 'تحت المراجعة', en: 'Under review', tone: 'info' },
-  [DisputeStatus.Resolved]: { ar: 'محلولة', en: 'Resolved', tone: 'success' },
-  [DisputeStatus.Closed]: { ar: 'مغلقة', en: 'Closed', tone: 'success' },
+/**
+ * FR-ADM-08 — the shipped complaint vocabulary.
+ *
+ * "بانتظار ردّك" is `warning` rather than `info` on purpose: it is the one
+ * state where nothing moves until the person reading the screen does
+ * something, and it should not look like a state they can leave alone.
+ */
+export const COMPLAINT_STATUS_DISPLAY: Readonly<Record<ComplaintStatus, StatusDisplay>> = {
+  [ComplaintStatus.Open]: { ar: 'مفتوحة', en: 'Open', tone: 'warning' },
+  [ComplaintStatus.InProgress]: { ar: 'قيد المعالجة', en: 'In progress', tone: 'info' },
+  [ComplaintStatus.AwaitingUser]: {
+    ar: 'بانتظار ردّك',
+    en: 'Awaiting your reply',
+    tone: 'warning',
+  },
+  [ComplaintStatus.Resolved]: { ar: 'تم الحسم', en: 'Resolved', tone: 'success' },
+  [ComplaintStatus.Closed]: { ar: 'مغلقة', en: 'Closed', tone: 'neutral' },
+};
+
+/**
+ * The console's view of the same statuses.
+ *
+ * "بانتظار المستخدم" is `neutral` here and `warning` on the user's screen —
+ * the same fact, and whose move it is flips between the two readers.
+ */
+export const COMPLAINT_STATUS_ADMIN_DISPLAY: Readonly<Record<ComplaintStatus, StatusDisplay>> = {
+  ...COMPLAINT_STATUS_DISPLAY,
+  [ComplaintStatus.AwaitingUser]: {
+    ar: 'بانتظار المستخدم',
+    en: 'Awaiting the user',
+    tone: 'neutral',
+  },
+};
+
+export const COMPLAINT_CATEGORY_DISPLAY: Readonly<Record<ComplaintCategory, StatusDisplay>> = {
+  [ComplaintCategory.CancellationRequest]: {
+    ar: 'طلب إلغاء أو استرداد',
+    en: 'Cancellation or refund request',
+    tone: 'warning',
+  },
+  [ComplaintCategory.SpaceNotAsDescribed]: {
+    ar: 'المساحة ليست كما وُصفت',
+    en: 'Space not as described',
+    tone: 'warning',
+  },
+  [ComplaintCategory.AccessProblem]: {
+    ar: 'تعذّر الدخول إلى المساحة',
+    en: 'Could not get in',
+    tone: 'warning',
+  },
+  [ComplaintCategory.PaymentIssue]: { ar: 'مشكلة في الدفع', en: 'Payment issue', tone: 'danger' },
+  [ComplaintCategory.PayoutIssue]: {
+    ar: 'مشكلة في التحويل المستحق',
+    en: 'Payout issue',
+    tone: 'danger',
+  },
+  [ComplaintCategory.GoodsDamage]: { ar: 'تلف في البضاعة', en: 'Damage to goods', tone: 'danger' },
+  [ComplaintCategory.ProhibitedGoods]: {
+    ar: 'بضاعة ممنوعة',
+    en: 'Prohibited goods',
+    tone: 'danger',
+  },
+  [ComplaintCategory.Other]: { ar: 'أخرى', en: 'Other', tone: 'neutral' },
+};
+
+/**
+ * What was decided, written as the outcome rather than the verb.
+ *
+ * The user reads these on their own complaint, so they say what happened to
+ * them — "أُلغي الحجز" — not what an operator pressed.
+ */
+export const COMPLAINT_RESOLUTION_DISPLAY: Readonly<Record<ComplaintResolution, StatusDisplay>> = {
+  [ComplaintResolution.NoAction]: {
+    ar: 'لا يوجد إجراء',
+    en: 'No action',
+    tone: 'neutral',
+  },
+  [ComplaintResolution.PayoutHold]: {
+    ar: 'تجميد تحويل المؤجّر',
+    en: 'Payout held',
+    tone: 'warning',
+  },
+  [ComplaintResolution.BookingCancelled]: {
+    ar: 'أُلغي الحجز',
+    en: 'Booking cancelled',
+    tone: 'info',
+  },
+  [ComplaintResolution.UnitSuspended]: {
+    ar: 'أُوقف الإعلان',
+    en: 'Listing suspended',
+    tone: 'warning',
+  },
+  [ComplaintResolution.Refund]: { ar: 'استرداد مبلغ', en: 'Refund issued', tone: 'success' },
+  [ComplaintResolution.RefundAndCancel]: {
+    ar: 'استرداد مبلغ وإلغاء الحجز',
+    en: 'Refunded and cancelled',
+    tone: 'success',
+  },
+};
+
+export const REFUND_METHOD_DISPLAY: Readonly<Record<RefundMethod, StatusDisplay>> = {
+  [RefundMethod.Gateway]: {
+    ar: 'عبر بوابة الدفع',
+    en: 'Through the gateway',
+    tone: 'success',
+  },
+  [RefundMethod.ManualTransfer]: {
+    ar: 'تحويل بنكي يدوي',
+    en: 'Manual bank transfer',
+    tone: 'info',
+  },
 };
 
 /** FR-ADM-04 — the status column on the users table. */

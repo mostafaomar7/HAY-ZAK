@@ -49,6 +49,13 @@ export const PUBLIC_ROUTES: Routes = [
           import('@features/account/account.routes').then((m) => m.ACCOUNT_ROUTES),
       },
       {
+        // Top-level rather than under `my-bookings`: a lessor reaches the same
+        // complaint about their own space, and they have no "حجوزاتي".
+        path: 'my-complaints',
+        loadChildren: () =>
+          import('@features/complaints/complaints.routes').then((m) => m.COMPLAINTS_ROUTES),
+      },
+      {
         path: 'pages',
         loadChildren: () =>
           import('@features/content/content.routes').then((m) => m.CONTENT_ROUTES),

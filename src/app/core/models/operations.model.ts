@@ -1,5 +1,4 @@
 import type {
-  DisputeStatus,
   LegalDocumentType,
   NotificationChannel,
   NotificationType,
@@ -9,26 +8,12 @@ import type { BookingStatus } from '../enums/booking-status.enum';
 import type { UnitStatus } from '../enums/unit-status.enum';
 import type { LessorEarnings } from './payment.model';
 
-/** ERD-5 `disputes`. */
-export interface Dispute {
-  id: string;
-  bookingId: string;
-  bookingReferenceNo: string;
-  raisedBy: string;
-  description: string;
-  status: DisputeStatus;
-  resolution?: string;
-  resolvedBy?: string;
-  resolvedAt?: string;
-  attachments: DisputeAttachment[];
-  createdAt: string;
-}
-
-export interface DisputeAttachment {
-  id: string;
-  url: string;
-  fileName: string;
-}
+/*
+ * ERD-5 `disputes` is `Complaint` in `complaint.ts` now — the shipped name,
+ * the shipped states, and the adapters beside them. `Dispute` and
+ * `DisputeAttachment` were modelled from the ERD, matched nothing on the wire
+ * and were referenced by nothing.
+ */
 
 /** ERD-5 `notifications` — the in-app inbox. */
 export interface AppNotification {

@@ -1,0 +1,92 @@
+<section class="page">
+  <header class="head">
+    <h1 class="head__title">{{ i18n.t('complaints.mine') }}</h1>
+    <p class="head__sub">{{ i18n.t('complaints.mineIntro') }}</p>
+  </header>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="3" [label]="i18n.t('common.loading')" />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('complaints.loadFailed')"
+      [hint]="i18n.t('results.errorHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="fetch()">
+        {{ i18n.t('common.retry') }}
+      </button>
+    </app-ui-empty-state>
+  } @else if (!items().length) {
+    <!-- The good state, so it does not read as a failure. -->
+    <app-ui-empty-state
+      [title]="i18n.t('complaints.noneTitle')"
+      [hint]="i18n.t('complaints.noneHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/my-bookings">
+        {{ i18n.t('bookings.title') }}
+      </a>
+    </app-ui-empty-state>
+  } @else {
+    @if (live().length) {
+      <h2 class="group">{{ i18n.t('complaints.live') }}</h2>
+      <ul class="list">
+        @for (c of live(); track c.id) {
+          <li class="row" [class.row--waiting]="needsReply(c)">
+            <a class="row__link" [routerLink]="['/my-complaints', c.id]">
+              <span class="row__top">
+                <span class="row__ref num" dir="ltr">{{ c.referenceNo }}</span>
+                <app-ui-badge [tone]="statusTone(c)">{{ statusLabel(c) }}</app-ui-badge>
+              </span>
+
+              <span class="row__subject" dir="auto">{{ c.subject }}</span>
+
+              <span class="row__meta">
+                <span>{{ categoryLabel(c) }}</span>
+                <span class="row__dot" aria-hidden="true">·</span>
+                <span dir="auto">{{ c.booking.unitTitle }}</span>
+              </span>
+
+              @if (needsReply(c)) {
+                <!-- Nothing moves until this person answers, so it is said in
+                     words rather than left to the badge colour alone. -->
+                <span class="row__prompt">{{ i18n.t('complaints.yourTurn') }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (settled().length) {
+      <h2 class="group">{{ i18n.t('complaints.settled') }}</h2>
+      <ul class="list">
+        @for (c of settled(); track c.id) {
+          <li class="row row--quiet">
+            <a class="row__link" [routerLink]="['/my-complaints', c.id]">
+              <span class="row__top">
+                <span class="row__ref num" dir="ltr">{{ c.referenceNo }}</span>
+                <app-ui-badge [tone]="statusTone(c)">{{ statusLabel(c) }}</app-ui-badge>
+              </span>
+
+              <span class="row__subject" dir="auto">{{ c.subject }}</span>
+
+              <span class="row__meta">
+                <span>{{ categoryLabel(c) }}</span>
+                <span class="row__dot" aria-hidden="true">·</span>
+                <span dir="auto">{{ c.booking.unitTitle }}</span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    <app-ui-pager
+      [total]="total()"
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [shown]="items().length"
+      (pageChange)="onPage($event)"
+    />
+  }
+</section>

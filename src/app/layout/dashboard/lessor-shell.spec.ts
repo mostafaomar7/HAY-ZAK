@@ -63,7 +63,17 @@ describe('LessorShell (integration)', () => {
     const labels = Array.from(el.querySelectorAll('.sidebar__item')).map((a) =>
       a.textContent?.trim(),
     );
-    expect(labels).toEqual(['اللوحة', 'المساحات المسجّلة', 'الطلبات', 'المستحقات', 'حسابي']);
+    // "شكاويّ" sits with the rest rather than inside the account screen: the
+    // lessor answers complaints about their own spaces, and somebody who
+    // cannot find the way in telephones instead.
+    expect(labels).toEqual([
+      'اللوحة',
+      'المساحات المسجّلة',
+      'الطلبات',
+      'المستحقات',
+      'شكاويّ',
+      'حسابي',
+    ]);
 
     // Regression: the icon SVG must have real children, not an empty <svg>.
     expect(el.querySelector('.sidebar__item app-ui-icon svg')?.children.length).toBeGreaterThan(0);

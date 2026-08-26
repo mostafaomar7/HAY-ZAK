@@ -25,6 +25,13 @@
       <a class="nav__link" routerLink="/my-bookings" routerLinkActive="nav__link--active">
         {{ i18n.t('public.myBookings') }}
       </a>
+
+      <!-- In the header rather than buried in the account screen: it is the
+           only route out of a problem, and somebody who cannot find it
+           telephones instead. -->
+      <a class="nav__link" routerLink="/my-complaints" routerLinkActive="nav__link--active">
+        {{ i18n.t('complaints.mine') }}
+      </a>
     }
   </nav>
 

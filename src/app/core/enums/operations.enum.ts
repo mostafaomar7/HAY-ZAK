@@ -1,9 +1,10 @@
-export enum DisputeStatus {
-  Open = 'Open',
-  UnderReview = 'UnderReview',
-  Resolved = 'Resolved',
-  Closed = 'Closed',
-}
+/*
+ * `DisputeStatus` was this file's guess at a complaint's states, written
+ * before the endpoints shipped. The real vocabulary is `ComplaintStatus` in
+ * `complaint.enum.ts` — five values, not four, and the difference is the one
+ * that matters: `AWAITING_USER`, which is the state where nothing moves until
+ * the person reading the screen answers.
+ */
 
 /** FR-NTF-01 notification matrix. */
 export enum NotificationChannel {

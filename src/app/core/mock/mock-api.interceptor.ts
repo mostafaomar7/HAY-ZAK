@@ -338,12 +338,29 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return ok(row ? { ...MOCK_AUDIT_DETAIL, ...row } : MOCK_AUDIT_DETAIL);
   }
 
-  if (/^\/admin\/disputes\/[^/]+\/resolve$/.test(path)) return ok(null);
-  if (path === API_ENDPOINTS.admin.disputes) return paginate(MOCK_COMPLAINTS);
-  if (/^\/admin\/disputes\/[^/]+$/.test(path)) {
-    const id = path.split('/')[3];
-    const row = MOCK_COMPLAINTS.find((c) => c.id === id);
-    return ok(row ? { ...MOCK_COMPLAINT_DETAIL, ...row } : MOCK_COMPLAINT_DETAIL);
+  // ── Complaints (FR-ADM-08) ─────────────────────────────────────────────
+  // The console's side. Every write answers with the whole complaint, as the
+  // server does, so a screen never has to guess what the status became.
+  if (/^\/admin\/complaints\/[^/]+\/(messages|assign|resolve|close)$/.test(path)) {
+    return ok({ complaint: MOCK_COMPLAINT_DETAIL });
+  }
+  if (path === API_ENDPOINTS.admin.complaints) return paginate(MOCK_COMPLAINTS);
+  if (/^\/admin\/complaints\/[^/]+$/.test(path)) {
+    return ok({ complaint: adminComplaint(path.split('/')[3]) });
+  }
+
+  // The user's own. Internal notes are stripped here exactly as the server
+  // strips them — a mock that leaked one would make the leak look supported.
+  if (/^\/me\/complaints\/[^/]+\/messages$/.test(path)) {
+    return ok({ complaint: userComplaint(path.split('/')[3]) });
+  }
+  if (path === API_ENDPOINTS.me.complaints) {
+    return method === 'POST'
+      ? ok({ complaint: userComplaint('cmp-1') })
+      : paginate(MOCK_COMPLAINTS);
+  }
+  if (/^\/me\/complaints\/[^/]+$/.test(path)) {
+    return ok({ complaint: userComplaint(path.split('/')[3]) });
   }
 
   // ── Content (FR-CMS) ───────────────────────────────────────────────────
@@ -592,6 +609,28 @@ function referenceFor(targetUrl: string): { type: string; id: string } | null {
 
   const booking = /\/(?:my-bookings|booking|requests)\/([^/]+)/.exec(targetUrl);
   return booking ? { type: 'booking', id: booking[1] } : null;
+}
+
+/** An unknown id falls back to the detailed fixture, so no route dead-ends. */
+function adminComplaint(id: string) {
+  const row = MOCK_COMPLAINTS.find((c) => c.id === id);
+  return row ? { ...MOCK_COMPLAINT_DETAIL, ...row } : MOCK_COMPLAINT_DETAIL;
+}
+
+/**
+ * The same complaint as the user is allowed to see it.
+ *
+ * The internal note is removed rather than hidden by the screen, because that
+ * is where the server removes it: a mock that sent one would make a leak look
+ * like something the client is supposed to cope with.
+ */
+function userComplaint(id: string) {
+  const complaint = adminComplaint(id);
+  return {
+    ...complaint,
+    assignedToName: undefined,
+    messages: (complaint.messages ?? []).filter((message) => !message.isInternal),
+  };
 }
 
 /** An unknown id falls back to the first fixture, so no route dead-ends. */

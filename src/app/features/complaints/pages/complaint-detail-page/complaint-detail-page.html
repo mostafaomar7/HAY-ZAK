@@ -1,0 +1,175 @@
+@if (isLoading()) {
+  <section class="page">
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  </section>
+} @else if (failed() || !complaint()) {
+  <section class="page">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('complaints.loadFailed')"
+      [hint]="i18n.t('results.errorHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/my-complaints">
+        {{ i18n.t('complaints.mine') }}
+      </a>
+    </app-ui-empty-state>
+  </section>
+} @else {
+  <article class="page">
+    @let c = complaint()!;
+
+    <nav class="crumbs" [attr.aria-label]="i18n.t('complaints.mine')">
+      <a routerLink="/my-complaints">{{ i18n.t('complaints.mine') }}</a>
+      <span aria-hidden="true">←</span>
+      <span class="crumbs__current num" dir="ltr">{{ c.referenceNo }}</span>
+    </nav>
+
+    <header class="head">
+      <div class="head__row">
+        <h1 class="head__title" dir="auto">{{ c.subject }}</h1>
+        <app-ui-badge [tone]="statusTone(c)">{{ statusLabel(c) }}</app-ui-badge>
+      </div>
+
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('complaint.category') }}</dt>
+          <dd>{{ categoryLabel(c) }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('complaints.booking') }}</dt>
+          <dd>
+            <a [routerLink]="['/my-bookings', c.booking.id]" dir="auto">
+              {{ c.booking.unitTitle }}
+            </a>
+            <span class="fact__ref num" dir="ltr">{{ c.booking.referenceNo }}</span>
+          </dd>
+        </div>
+        @if (c.slaDueAt && !isSettled()) {
+          <div class="fact">
+            <dt>{{ i18n.t('complaints.slaDue') }}</dt>
+            <dd class="num" dir="ltr">{{ c.slaDueAt }}</dd>
+          </div>
+        }
+      </dl>
+    </header>
+
+    <!-- The decision, said before the conversation that led to it: somebody
+         opening a settled complaint came to find out what happened. -->
+    @if (c.resolution) {
+      <app-ui-notice tone="success">
+        <span class="outcome__title">{{ resolutionLabel(c) }}</span>
+        @if (c.resolutionNote) {
+          <span dir="auto">{{ c.resolutionNote }}</span>
+        }
+      </app-ui-notice>
+    } @else if (c.status === 'CLOSED') {
+      <app-ui-notice tone="info">{{ i18n.t('complaints.closedNoDecision') }}</app-ui-notice>
+    }
+
+    @if (c.refunds.length) {
+      <section class="refunds">
+        <h2 class="refunds__title">{{ i18n.t('complaints.refunds') }}</h2>
+        <ul class="refunds__list">
+          @for (refund of c.refunds; track refund.id) {
+            <li class="refund">
+              <app-ui-money strong [halalas]="refund.amountHalalas" />
+              <span class="refund__method">{{ refundMethodLabel(refund) }}</span>
+              @if (refund.reference) {
+                <span class="refund__ref num" dir="ltr">{{ refund.reference }}</span>
+              }
+              <time class="refund__at num" dir="ltr">{{ refund.refundedAt }}</time>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="original">
+      <h2 class="original__title">{{ i18n.t('complaints.whatYouWrote') }}</h2>
+      <p class="original__body" dir="auto">{{ c.description }}</p>
+
+      @if (c.attachments.length) {
+        <ul class="files">
+          @for (file of c.attachments; track file.id) {
+            <li>
+              <a class="files__link" [href]="file.url" target="_blank" rel="noopener noreferrer">
+                {{ i18n.t('complaint.attachment') }}
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (awaitingFirstReply()) {
+      <!-- "No replies yet" is a fact about the team, not an empty list. -->
+      <app-ui-notice tone="info">{{ i18n.t('complaints.awaitingFirst') }}</app-ui-notice>
+    }
+
+    <section class="thread">
+      <h2 class="thread__title">{{ i18n.t('complaints.conversation') }}</h2>
+      <app-ui-complaint-thread [messages]="c.messages" />
+    </section>
+
+    @if (isSettled()) {
+      <app-ui-notice tone="info">{{ i18n.t('complaints.noMoreReplies') }}</app-ui-notice>
+    } @else {
+      <section class="reply">
+        <h2 class="reply__title">
+          {{ isYourTurn() ? i18n.t('complaints.yourTurn') : i18n.t('complaints.addReply') }}
+        </h2>
+
+        @if (errorText()) {
+          <app-ui-notice tone="danger">{{ errorText() }}</app-ui-notice>
+        }
+
+        <label class="reply__field">
+          <span class="reply__label">{{ i18n.t('complaints.replyBody') }}</span>
+          <textarea
+            rows="4"
+            dir="auto"
+            [value]="body()"
+            (input)="onBody($event)"
+            [attr.placeholder]="i18n.t('complaints.replyPlaceholder')"
+          ></textarea>
+        </label>
+
+        <div class="reply__files">
+          <span class="reply__label">{{ i18n.t('complaint.attachments') }}</span>
+          <span class="reply__hint">{{
+            i18n.t('complaint.attachmentsHint', { max: maxFiles })
+          }}</span>
+          <input type="file" accept="image/*" multiple (change)="onFiles($event)" />
+
+          @if (files().length) {
+            <ul class="files">
+              @for (file of files(); track file.name; let i = $index) {
+                <li class="files__pending">
+                  <span dir="auto">{{ file.name }}</span>
+                  <button
+                    type="button"
+                    class="files__remove"
+                    [attr.aria-label]="i18n.t('complaint.removeAttachment')"
+                    (click)="removeFile(i)"
+                  >
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <button
+          appUiButton
+          variant="primary"
+          type="button"
+          [disabled]="!canSend()"
+          (click)="send()"
+        >
+          {{ sending() ? i18n.t('complaint.sending') : i18n.t('complaints.sendReply') }}
+        </button>
+      </section>
+    }
+  </article>
+}

@@ -41,6 +41,16 @@ export const LESSOR_NAV: readonly NavItem[] = [
     permission: Permission.ViewOwnFinancialReports,
   },
   {
+    // The lessor reads and answers complaints about their own spaces, so this
+    // is not a renter-only screen. Guarded on the same permission as the rest
+    // of the portal rather than on a complaint-specific one: there is none,
+    // and being a party to the booking is what the server checks.
+    route: '/my-complaints',
+    labelKey: 'complaints.mine',
+    icon: 'list',
+    permission: Permission.RaiseComplaint,
+  },
+  {
     route: '/lessor/account',
     labelKey: 'nav.account',
     icon: 'user',

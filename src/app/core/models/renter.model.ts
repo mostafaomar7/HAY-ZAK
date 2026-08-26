@@ -40,17 +40,12 @@ export interface NotificationPreference {
  * confirmation dialog, and a number that disagrees with the server would be a
  * refund dispute. The client only renders what this returns.
  */
-/**
- * What the renter writes when something is wrong with a booking.
- *
- * No "desired outcome" field. The renter says what happened; an administrator
- * decides what follows. Offering "I want a refund" as an input would be asking
- * for a decision this form cannot make and the platform has not promised.
+/*
+ * What the renter writes is `CreateComplaintRequest` in `complaint.ts`. It
+ * still has no "desired outcome" field — the writer says what happened and an
+ * administrator decides what follows — but it now carries the category and the
+ * attachments the shipped endpoint takes, and goes as multipart.
  */
-export interface ComplaintRequest {
-  subject: string;
-  body: string;
-}
 
 /** FR-PAY-01 — the three methods the payment step offers. */
 export interface PaymentOption {
