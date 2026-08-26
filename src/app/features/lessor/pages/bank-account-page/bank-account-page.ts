@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LanguageService } from '@core/i18n/language.service';
 import { ACCOUNT_VERIFICATION_DISPLAY, statusText } from '@core/constants/status-display';
@@ -66,9 +67,20 @@ export class BankAccountPage {
     iban: ['', [Validators.required, saudiIban]],
   });
 
-  /** Live "n / 24" counter, matching the design's input hint. */
+  /**
+   * Live "n / 24" counter, matching the design's input hint.
+   *
+   * Fed from `valueChanges` rather than read off the control inside a
+   * `computed`: a form control's `value` is a plain property, so a computed
+   * over it evaluates once — against the empty initial value — and then shows
+   * `0 / 24` for ever, however much is typed.
+   */
+  private readonly ibanValue = toSignal(this.form.controls.iban.valueChanges, {
+    initialValue: '',
+  });
+
   protected readonly ibanCount = computed(() => {
-    const digits = (this.form.controls.iban.value ?? '').replace(/[\s-]/g, '').length;
+    const digits = (this.ibanValue() ?? '').replace(/[\s-]/g, '').length;
     return `${digits} / 24`;
   });
 

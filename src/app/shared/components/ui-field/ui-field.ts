@@ -5,7 +5,9 @@ import {
   computed,
   input,
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
+import { EMPTY, switchMap } from 'rxjs';
 
 /**
  * Label + control + hint + error, wrapped once so no form re-implements the
@@ -49,14 +51,36 @@ export class UiField {
   /** Overrides the generated message when a field needs specific wording. */
   readonly errorOverride = input<string>();
 
+  /**
+   * Every change the control announces — value, status, touched, pristine.
+   *
+   * Without it the two computeds below never recompute. `control()` is a stable
+   * reference and `invalid`, `touched` and `errors` are plain properties, not
+   * signals, so a `computed` over them evaluates once — while the form is still
+   * pristine and valid — and caches "no error" for the lifetime of the field.
+   *
+   * That is not a subtle degradation: it meant no validation message appeared
+   * anywhere in the application. Fields turned red from the stylesheet and
+   * never said why.
+   *
+   * `AbstractControl.events` is the one stream that covers all four; status
+   * alone misses `touched`, which is half of when an error is allowed to show.
+   */
+  private readonly changes = toSignal(
+    toObservable(this.control).pipe(switchMap((control) => control?.events ?? EMPTY)),
+  );
+
   protected readonly showError = computed(() => {
+    this.changes();
+
     const control = this.control();
     return !!control && control.invalid && (control.touched || control.dirty);
   });
 
-  protected readonly errorText = computed(
-    () => this.errorOverride() ?? describe(this.control()?.errors ?? null),
-  );
+  protected readonly errorText = computed(() => {
+    this.changes();
+    return this.errorOverride() ?? describe(this.control()?.errors ?? null);
+  });
 }
 
 /**

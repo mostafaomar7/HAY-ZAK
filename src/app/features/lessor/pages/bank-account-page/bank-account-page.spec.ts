@@ -134,9 +134,33 @@ describe('BankAccountPage (LSR-08)', () => {
     makeDefault.click();
     fixture.detectChanges();
 
-    // The dialog is open and nothing has been sent yet.
-    expect(el.textContent).toContain('ستُحوَّل مستحقاتك القادمة');
+    // Open on screen, not merely in a signal: the dialog reached the DOM
+    // through `[open]`, which is the binding whose absence made every one of
+    // these buttons do nothing at all.
+    const dialog = el.querySelector('dialog');
+    expect(dialog).withContext('no dialog rendered').not.toBeNull();
+    expect(dialog?.hasAttribute('open')).withContext('dialog not opened').toBeTrue();
+    expect(dialog?.textContent).toContain('ستُحوَّل مستحقاتك القادمة');
+
+    // And nothing has been sent yet.
     http.expectNone((r) => r.method === 'PUT');
+  });
+
+  it('confirms before removing an account, rather than removing it', () => {
+    flush([account()]);
+
+    const remove = Array.from(el.querySelectorAll('.account__actions button')).find((b) =>
+      b.textContent?.trim().startsWith('حذف'),
+    ) as HTMLButtonElement;
+
+    remove.click();
+    fixture.detectChanges();
+
+    const dialog = Array.from(el.querySelectorAll('dialog')).find((d) => d.hasAttribute('open'));
+    expect(dialog).withContext('no dialog opened').toBeTruthy();
+    expect(dialog?.textContent).toContain('سيُحذف');
+
+    http.expectNone((r) => r.method === 'DELETE');
   });
 
   /**

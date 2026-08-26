@@ -13,7 +13,121 @@
   color: var(--color-text-muted);
 }
 
-.card {
+.page__intro {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.page__heading {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-primary);
+}
+
+// ── The accounts ─────────────────────────────────────────────────────────
+.accounts {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-12;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account {
+  @include a.surface(a.$radius-2xl);
+
+  display: grid;
+  gap: a.$space-12;
+  padding: a.$space-16 a.$space-20;
+}
+
+// The account the money actually goes to, marked rather than merely labelled.
+.account--default {
+  border-color: var(--color-primary);
+}
+
+.account__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: a.$space-4 a.$space-12;
+}
+
+.account__bank {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+}
+
+.account__iban {
+  @include a.numeric;
+
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+}
+
+.account__holder {
+  flex-basis: 100%;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+}
+
+.account__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-8;
+}
+
+.account__default {
+  padding: a.$space-2 a.$space-10;
+  border-radius: a.$radius-pill;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: a.$fs-xs;
+  font-weight: a.$fw-semibold;
+}
+
+.account__badge {
+  padding: a.$space-2 a.$space-10;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-pill;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+
+  // Informational only — it never gates a control, so it never reads as an
+  // error, only as a state somebody else is still working through.
+  &[data-tone='success'] {
+    border-color: var(--color-success);
+    color: var(--color-success);
+  }
+
+  &[data-tone='info'] {
+    border-color: var(--color-info);
+    color: var(--color-info);
+  }
+
+  &[data-tone='danger'] {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
+}
+
+.account__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-8;
+  padding-top: a.$space-4;
+  border-top: 1px solid var(--color-border-divider);
+}
+
+// ── Adding one ───────────────────────────────────────────────────────────
+.form {
   @include a.surface(a.$radius-2xl);
 
   display: flex;
@@ -22,58 +136,26 @@
   padding: a.$space-20;
 }
 
-.card__heading {
-  margin: 0;
-  font-size: a.$fs-2xl;
-  font-weight: a.$fw-bold;
-  color: var(--color-primary);
-}
+.form__count {
+  @include a.numeric;
 
-.card__intro,
-.card__note {
-  margin: 0;
-  font-size: a.$fs-md;
+  align-self: flex-start;
+  font-size: a.$fs-xs;
   color: var(--color-text-muted);
-  text-wrap: pretty;
 }
 
-.card__actions {
+.form__actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: a.$space-12;
-  padding-top: a.$space-8;
+  padding-top: a.$space-4;
 }
 
-.facts {
-  display: flex;
-  flex-direction: column;
-  gap: a.$space-12;
-  margin: 0;
-}
-
-.facts__row {
+.dialog__actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: a.$space-8;
-  padding-bottom: a.$space-12;
-  border-bottom: 1px solid var(--color-border-divider);
-
-  &:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
-
-  dt {
-    font-size: a.$fs-md;
-    color: var(--color-text-muted);
-  }
-
-  dd {
-    margin: 0;
-    font-size: a.$fs-lg;
-    font-weight: a.$fw-semibold;
-    color: var(--color-text);
-  }
+  justify-content: flex-end;
+  gap: a.$space-12;
+  padding-top: a.$space-16;
 }

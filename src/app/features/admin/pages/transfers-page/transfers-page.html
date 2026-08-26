@@ -129,8 +129,12 @@
 }
 
 <!-- ── Approve ─────────────────────────────────────────────────────────── -->
-@if (dialog() === 'approve' && lessor(); as target) {
-  <app-ui-modal [title]="i18n.t('transfers.approveTitle')" (closed)="close()">
+@if (lessor(); as target) {
+  <app-ui-modal
+    [open]="dialog() === 'approve'"
+    [title]="i18n.t('transfers.approveTitle')"
+    (dismissed)="close()"
+  >
     <p class="dialog__who">{{ target.lessorName }}</p>
     <div class="amount">
       <span class="amount__label">{{ i18n.t('transfers.netToTransfer') }}</span>
@@ -138,7 +142,7 @@
     </div>
     <app-ui-notice tone="info">{{ i18n.t('transfers.approveNote') }}</app-ui-notice>
 
-    <div class="dialog__actions">
+    <ng-container slot="actions">
       <button appUiButton variant="ghost" type="button" (click)="close()">
         {{ i18n.t('common.cancel') }}
       </button>
@@ -151,13 +155,17 @@
       >
         {{ i18n.t('transfers.approve') }}
       </button>
-    </div>
+    </ng-container>
   </app-ui-modal>
 }
 
 <!-- ── Record the execution ────────────────────────────────────────────── -->
-@if (dialog() === 'paid' && payout(); as target) {
-  <app-ui-modal [title]="i18n.t('transfers.executeTitle')" (closed)="close()">
+@if (payout(); as target) {
+  <app-ui-modal
+    [open]="dialog() === 'paid'"
+    [title]="i18n.t('transfers.executeTitle')"
+    (dismissed)="close()"
+  >
     <p class="dialog__who">{{ target.lessorName }}</p>
     <div class="amount">
       <span class="amount__label">{{ i18n.t('transfers.netToTransfer') }}</span>
@@ -176,7 +184,7 @@
       <span class="field__hint">{{ i18n.t('transfers.bankReferenceHint') }}</span>
     </label>
 
-    <div class="dialog__actions">
+    <ng-container slot="actions">
       <button appUiButton variant="ghost" type="button" (click)="close()">
         {{ i18n.t('common.cancel') }}
       </button>
@@ -189,13 +197,16 @@
       >
         {{ i18n.t('transfers.confirmExecute') }}
       </button>
-    </div>
+    </ng-container>
   </app-ui-modal>
-}
 
-<!-- ── Record a failure ────────────────────────────────────────────────── -->
-@if (dialog() === 'failed' && payout(); as target) {
-  <app-ui-modal [title]="i18n.t('transfers.failureTitle')" (closed)="close()">
+  <!-- ── Record a failure ──────────────────────────────────────────────── -->
+  <app-ui-modal
+    tone="danger"
+    [open]="dialog() === 'failed'"
+    [title]="i18n.t('transfers.failureTitle')"
+    (dismissed)="close()"
+  >
     <p class="dialog__who">{{ target.lessorName }}</p>
 
     <label class="field">
@@ -209,7 +220,7 @@
       <span class="field__hint">{{ i18n.t('transfers.failureHint') }}</span>
     </label>
 
-    <div class="dialog__actions">
+    <ng-container slot="actions">
       <button appUiButton variant="ghost" type="button" (click)="close()">
         {{ i18n.t('common.cancel') }}
       </button>
@@ -222,6 +233,6 @@
       >
         {{ i18n.t('transfers.markFailed') }}
       </button>
-    </div>
+    </ng-container>
   </app-ui-modal>
 }

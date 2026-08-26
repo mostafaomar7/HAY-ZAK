@@ -118,14 +118,18 @@
 </section>
 
 <!-- Where the money goes. Never a one-click change. -->
-@if (dialog() === 'default' && target(); as account) {
-  <app-ui-modal [title]="i18n.t('bank.confirmDefaultTitle')" (closed)="closeDialog()">
+@if (target(); as account) {
+  <app-ui-modal
+    [open]="dialog() === 'default'"
+    [title]="i18n.t('bank.confirmDefaultTitle')"
+    (dismissed)="closeDialog()"
+  >
     <p>
       {{ i18n.t('bank.confirmDefaultBody', { bank: account.bankName, last4: account.ibanLast4 }) }}
     </p>
 
-    <div class="dialog__actions">
-      <button appUiButton variant="ghost" type="button" (click)="closeDialog()">
+    <ng-container slot="actions">
+      <button appUiButton variant="outline" type="button" (click)="closeDialog()">
         {{ i18n.t('common.cancel') }}
       </button>
       <button
@@ -137,23 +141,26 @@
       >
         {{ i18n.t('bank.makeDefault') }}
       </button>
-    </div>
+    </ng-container>
   </app-ui-modal>
-}
 
-@if (dialog() === 'remove' && target(); as account) {
-  <app-ui-modal [title]="i18n.t('bank.confirmRemoveTitle')" (closed)="closeDialog()">
+  <app-ui-modal
+    tone="danger"
+    [open]="dialog() === 'remove'"
+    [title]="i18n.t('bank.confirmRemoveTitle')"
+    (dismissed)="closeDialog()"
+  >
     <p>
       {{ i18n.t('bank.confirmRemoveBody', { bank: account.bankName, last4: account.ibanLast4 }) }}
     </p>
 
-    <div class="dialog__actions">
-      <button appUiButton variant="ghost" type="button" (click)="closeDialog()">
+    <ng-container slot="actions">
+      <button appUiButton variant="outline" type="button" (click)="closeDialog()">
         {{ i18n.t('common.cancel') }}
       </button>
       <button appUiButton variant="danger" type="button" [disabled]="saving()" (click)="remove()">
         {{ i18n.t('bank.remove') }}
       </button>
-    </div>
+    </ng-container>
   </app-ui-modal>
 }
