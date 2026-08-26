@@ -13,14 +13,17 @@ const MOCK_TOKENS = ['dev-mock-token', 'dev-mock-refresh'];
  * It exists because two development builds look identical on screen and behave
  * completely differently, and nothing told you which one you had:
  *
- * - `npm start` answers every request from fixtures inside the browser, so the
- *   Network tab is **empty** — which reads as "the app is making no requests"
- *   rather than "there are no requests to make" — and signs a lessor in on
- *   load, so `/admin/login` bounces off the guard to the portal and the tokens
- *   appear to write themselves.
- * - `npm run start:api` talks to the real server and does neither.
+ * - `npm run start:mock` answers every request from fixtures inside the
+ *   browser, so the Network tab is **empty** — which reads as "the app is
+ *   making no requests" rather than "there are no requests to make" — and signs
+ *   a lessor in on load, so `/admin/login` bounces off the guard to the portal
+ *   and the tokens appear to write themselves.
+ * - `npm start` talks to the real server and does neither.
  *
- * Both behaviours are deliberate. Being unable to tell them apart was not.
+ * Both behaviours are deliberate. Being unable to tell them apart was not, and
+ * neither was which of the two you got by default: the fixtures used to answer
+ * a bare `ng serve`, so a newly wired endpoint could change nothing on screen
+ * and nothing would say why.
  */
 export function logStartupMode(): void {
   const log = inject(LoggerService);
@@ -40,7 +43,7 @@ export function logStartupMode(): void {
     log.warn('تم تسجيل دخول مؤجّر تلقائيًا، لذلك تنتقل صفحات الدخول إلى البوابة.');
   }
 
-  log.warn('للعمل على السيرفر الحقيقي: امسح بيانات الموقع ثم شغّل npm run start:api');
+  log.warn('للعمل على السيرفر الحقيقي: أوقف الخادم ثم شغّل npm start.');
 }
 
 /**

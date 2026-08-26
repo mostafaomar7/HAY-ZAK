@@ -16,14 +16,19 @@ spec, so any behaviour can be traced back to the clause that demanded it.
 
 ```bash
 npm install
-npm start          # http://localhost:4200
+npm start          # http://localhost:4200 — talks to the real API
 ```
+
+`npm start` points at the backend named in `environment.local-api.ts`; edit
+that host when it moves. For the offline fixtures, `npm run start:mock`. The
+console says which of the two is running on every start.
 
 ## Scripts
 
 | Script                            | Purpose                                        |
 | --------------------------------- | ---------------------------------------------- |
-| `npm start`                       | Dev server (uses `environment.development.ts`) |
+| `npm start`                       | Dev server against the real API (`environment.local-api.ts`) |
+| `npm run start:mock`              | Dev server on the offline fixtures (`environment.development.ts`) |
 | `npm run build`                   | Production build                               |
 | `npm run build:demo`              | Production build served from the fixtures      |
 | `npm test` / `npm run test:ci`    | Unit tests (Karma + Jasmine)                   |

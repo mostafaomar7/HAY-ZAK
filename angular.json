@@ -148,7 +148,7 @@
               "buildTarget": "hayzaq:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "local-api"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"

@@ -7,13 +7,28 @@ server and the disagreement is listed below so the backend can settle it.
 ## Working against it
 
 ```
-npm run start:api      # ng serve, pointed at the LAN server
-npm start              # the fixtures, offline
+npm start              # the LAN server — the default, and a bare `ng serve` too
+npm run start:mock     # the fixtures, offline
 ```
 
-`start:api` is a separate configuration because `npm start` also backs
-`ng test`: a suite that pointed at a machine on the LAN would fail whenever
-that machine was off, for reasons that are not the code's.
+The real server is what `ng serve` gives you with no flags. It was the other
+way round, and that was a trap: the obvious command answered every request from
+inside the browser, so an endpoint could be wired, reloaded, and change nothing
+on screen. The console says which mode is running on every start.
+
+The fixtures keep their own configuration because `ng test` uses it: a suite
+that pointed at a machine on the LAN would fail whenever that machine was off,
+for reasons that are not the code's.
+
+Switching modes leaves a token from the other one in the browser. The
+application drops a fixture token before its first real request rather than
+after two 401s — see `core/startup.ts`.
+
+If a change does not appear after a restart, the build cache is stale:
+
+```
+rm -rf .angular/cache && npm start
+```
 
 The host is in `src/environments/environment.local-api.ts` and is the only line
 to edit when it moves. **Check `http://<host>:4000/health` returns 200 before
