@@ -40,7 +40,7 @@ export class BookingSummary {
   protected readonly monthly = computed(() => this.unit()?.indicativeMonthlyHalalas ?? 0);
 
   protected readonly periodTotal = computed(
-    () => (this.unit()?.dailyPriceHalalas ?? 0) * (this.draft()?.daysCount ?? 0),
+    () => (this.unit()?.dailyPriceHalalas ?? 0) * (this.draft()?.nights ?? 0),
   );
 
   protected readonly place = computed(() => {

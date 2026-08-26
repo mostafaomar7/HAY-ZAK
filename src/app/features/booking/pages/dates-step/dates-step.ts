@@ -23,7 +23,6 @@ import {
 import type { DateRange } from '@shared/components/ui-range-calendar/ui-range-calendar';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { BookingSummary } from '../../components/booking-summary/booking-summary';
-import { BookingService } from '../../services/booking.service';
 import { BookingWizardService } from '../../services/booking-wizard.service';
 
 /**
@@ -52,7 +51,6 @@ import { BookingWizardService } from '../../services/booking-wizard.service';
 })
 export class DatesStep {
   private readonly api = inject(ApiService);
-  private readonly bookings = inject(BookingService);
   private readonly wizard = inject(BookingWizardService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
@@ -68,7 +66,6 @@ export class DatesStep {
   protected readonly blockedDates = signal<string[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
-  protected readonly submitting = signal(false);
 
   protected readonly today = todayPlain();
   protected readonly holdMinutes = APP.bookingHoldMinutes;
@@ -135,30 +132,16 @@ export class DatesStep {
   }
 
   /**
-   * Creates the Draft booking server-side and moves on. The draft is created
-   * here rather than at the end so an interrupted journey leaves something the
-   * renter can resume from "حجوزاتي" (SRS §2.2).
+   * Moves on. Nothing is created and nothing is held yet — the design says so
+   * on screen, and the reason matters: a hold taken at the calendar would let
+   * one browser tab lock a popular space for fifteen minutes at a time. The
+   * booking is created by the next step, and the hold starts there.
    */
   protected goNext(): void {
     const draft = this.draft();
-    if (!draft || !this.wizard.hasDates() || this.submitting()) return;
+    if (!draft || !this.wizard.hasDates()) return;
 
-    this.submitting.set(true);
-
-    this.bookings
-      .createDraft({
-        unitId: draft.unitId,
-        startDate: draft.startDate,
-        daysCount: draft.daysCount,
-      })
-      .subscribe({
-        next: (booking) => {
-          this.wizard.setBookingId(booking.id);
-          this.submitting.set(false);
-          void this.router.navigate(['/booking', booking.id, 'goods']);
-        },
-        error: () => this.submitting.set(false),
-      });
+    void this.router.navigate(['/booking', 'new', this.unitId(), 'goods']);
   }
 
   protected notifyMissing(): void {

@@ -31,7 +31,7 @@ describe('BookingWizardService', () => {
     wizard.setDates('u-1', '2026-08-12', '2026-08-22');
 
     expect(wizard.hasDates()).toBeTrue();
-    expect(wizard.draft()?.daysCount).toBe(10);
+    expect(wizard.draft()?.nights).toBe(10);
   });
 
   it('holds the goods and the acknowledgement together', () => {

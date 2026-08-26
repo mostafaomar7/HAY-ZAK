@@ -17,13 +17,9 @@
         <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="md" />
         <div class="detail__unit">
           <h2 class="detail__unitTitle" dir="auto">{{ b.unit?.title }}</h2>
-          <p class="detail__unitMeta">
-            {{ i18n.pick(b.unit?.city) }}
-            @if (b.unit?.district) {
-              &mdash; {{ i18n.pick(b.unit?.district) }}
-            }
-          </p>
-          <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unitId]">عرض المساحة</a>
+          <!-- City only: a booking carries no district. -->
+          <p class="detail__unitMeta">{{ i18n.pick(b.unit.city ?? undefined) }}</p>
+          <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unit.id]">عرض المساحة</a>
         </div>
         <app-ui-badge class="detail__status" [tone]="status()!.tone">
           {{ status()!.ar }}
@@ -48,7 +44,7 @@
           </div>
           <div class="detail__cell">
             <dt>عدد الأيام</dt>
-            <dd class="num" dir="ltr">{{ b.daysCount }}</dd>
+            <dd class="num" dir="ltr">{{ b.nights }}</dd>
           </div>
         </dl>
 
@@ -65,29 +61,38 @@
 
         <div class="amount__row">
           <span>قيمة الحجز</span>
-          <app-ui-money [halalas]="b.subtotalHalalas" />
+          <app-ui-money [halalas]="b.price.subtotalHalalas" />
         </div>
 
-        <div class="amount__row">
-          <span>عمولة المنصة</span>
-          <span class="amount__deduction">
-            &minus;&nbsp;<app-ui-money [halalas]="b.commissionHalalas" />
-          </span>
-        </div>
+        <!-- Both figures are the server's. Neither is derived here: the day a
+             commission exception or a rounding rule lands, a subtraction of our
+             own would quietly disagree with the payout. -->
+        @if (b.commission; as commission) {
+          <div class="amount__row">
+            <span>عمولة المنصة</span>
+            <span class="amount__deduction">
+              &minus;&nbsp;<app-ui-money [halalas]="commission.commissionHalalas" />
+            </span>
+          </div>
+        }
 
         <div class="amount__row amount__row--total">
           <span>صافي المستحقات</span>
-          <app-ui-money [halalas]="netToLessorHalalas()" [strong]="true" />
+          @if (netToLessorHalalas(); as net) {
+            <app-ui-money [halalas]="net" [strong]="true" />
+          } @else {
+            <span class="amount__unknown">{{ i18n.t('common.notAvailable') }}</span>
+          }
         </div>
       </section>
 
       <section>
-        @if (contactVisible() && b.counterpartyContact) {
+        @if (contactVisible() && b.contact) {
           <div class="card">
             <h3 class="card__heading">بيانات المستأجر</h3>
-            <p class="renter__name">{{ b.counterpartyContact.fullName }}</p>
+            <p class="renter__name">{{ b.contact.fullName }}</p>
             <a class="renter__phone num" dir="ltr" [href]="telHref()">
-              {{ b.counterpartyContact.mobile }}
+              {{ b.contact.mobile }}
             </a>
           </div>
         } @else {

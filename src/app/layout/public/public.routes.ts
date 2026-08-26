@@ -30,6 +30,15 @@ export const PUBLIC_ROUTES: Routes = [
           import('@features/booking/booking.routes').then((m) => m.BOOKING_ROUTES),
       },
       {
+        // Where the payment gateway sends the browser back to. A top-level
+        // segment because `returnUrl` must be a stable, whole URL on this
+        // origin — the API refuses anything else, and it is the one address
+        // that cannot move without a conversation.
+        path: 'bookings/return',
+        loadChildren: () =>
+          import('@features/booking/payment-return.routes').then((m) => m.PAYMENT_RETURN_ROUTES),
+      },
+      {
         path: 'my-bookings',
         loadChildren: () =>
           import('@features/booking/my-bookings.routes').then((m) => m.MY_BOOKINGS_ROUTES),

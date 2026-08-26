@@ -268,6 +268,39 @@ administrator's published version takes over with no change on this side.
 read their profile and their notifications — and has no "حجوزاتي" and no
 account screen.
 
+**17. `returnUrl` rejects the domain your own note used.** `POST
+/renter/bookings/:id/pay` with `https://app.hayzak.sa/bookings/return` — the
+example in the handover — answers 422 «رابط العودة لازم يكون على نطاق
+المنصة». Only `localhost:4200` and `192.168.1.12:4200` are accepted today, so
+the allow-list is the dev origins and nothing else. The client sends
+`window.location.origin + '/bookings/return'`, which is the right thing anyway
+and works in both; but the production origin will need adding before it can.
+
+**18. `redirectUrl` is built from the server's own idea of its host.** It comes
+back as `http://localhost:4000/api/v1/webhooks/payments/fake/checkout/…` even
+when the request arrived on `192.168.1.12:4000`. A browser on any other machine
+follows that to nothing. Harmless with a real gateway, whose URL is absolute
+and external — but for the fake provider it means the flow can only be walked
+from the server's own machine.
+
+**19. `CANNOT_BOOK_OWN_UNIT` was not reachable.** A lessor posting to
+`/renter/bookings` is stopped by the role guard first — 403 `FORBIDDEN`, not
+409. So the documented code needs an account that is both, or it is unreachable
+and the "hide احجز on your own space" advice is the whole mitigation. The
+client hides it either way.
+
+**20. `goodsDescription` has an undocumented minimum.** Between 7 and 10
+characters; «أثاث م» is refused, «أثاث منزلي» accepted, with a good message
+(«اكتب وصفاً أوضح للبضاعة — ده اللي بيتراجع قبل تحويل المبلغ»). Worth stating
+the number. The client's own floor is 20, deliberately stricter: a human reads
+this before money moves.
+
+Worth saying plainly, because it cost an hour: the specific booking codes only
+surface once the *field* validation passes. A create with a short
+`goodsDescription` and dates in the past answers `VALIDATION_ERROR`, not
+`BOOKING_DATES_IN_PAST` — which reads as "the codes are not implemented" until
+you send a longer description. They are all implemented.
+
 ## Shapes worth knowing
 
 - `register` returns **no tokens** — the account is `PENDING_VERIFICATION` and
@@ -437,3 +470,53 @@ the rail and is never displayed.
 
 No paging, by design — "page 2 of similar" is the catalogue filtered by
 category, and that route already exists. The rail links to it instead.
+
+### Bookings and payment
+
+Verified end to end against the fake provider, including a declined card.
+
+- The routes are **`/renter/bookings`** and **`/lessor/bookings`**, not
+  `/bookings/*`. A lessor asking for the renter list gets 403, not an empty
+  page, and the same the other way.
+- **One create.** `POST /renter/bookings { unitId, startDate, endDate,
+  goodsDescription, prohibitedAck }` → `201 { booking, holdExpiresAt }`, and
+  the dates are already held. There is no draft, no separate confirm, and no
+  quote endpoint — the answer carries the price it committed to.
+- `holdExpiresAt` sits **beside** `booking`, not inside it, on create and on
+  read alike, and is `null` once nothing is held. `GET /renter/bookings` (the
+  list) does not carry it at all — only the detail does, which is why a card
+  cannot show a countdown.
+- **`daysCount` is nights.** 2028-03-01 → 2028-03-05 comes back as 4. The
+  client renames it on the way in and every screen says "ليالٍ".
+- `price` on a renter's booking has four fields. The lessor's has three more —
+  `commissionRateBps`, `commissionHalalas`, `netToLessorHalalas` — and the
+  renter's response carries none of them, which is why the client's model makes
+  the commission a separate optional branch rather than optional fields.
+  Defaulting them to zero would print "عمولة المنصة: 0.00" on a receipt.
+- `contact` and `unit.addressLine` are `null` until `CONFIRMED` and populated
+  after. Confirmed by walking a payment through: both appeared in the same
+  response that flipped the status.
+- `POST /renter/bookings/:id/pay { returnUrl }` → `{ redirectUrl }`. Idempotent:
+  the same `chg_…` comes back on a second call. Send the **whole browser** —
+  3-D Secure will not run in an iframe.
+- The gateway returns `?status=paid|failed&charge=…`. **Do not read it.** The
+  webhook that settles the payment races the redirect; the client polls the
+  booking instead and treats `AWAITING_PAYMENT` as "still settling" for a few
+  seconds before calling it unpaid.
+- A declined card leaves the booking `AWAITING_PAYMENT` with the hold intact,
+  and `pay` can be called again. Verified.
+- `POST .../pay` on a confirmed booking is 409 `BOOKING_NOT_PAYABLE`.
+- `GET /lessor/bookings/:id` exists (it was not in the handover) and answers
+  `{ booking }` with **no** `holdExpiresAt` — which is right: the countdown is
+  the renter's to act on. The lessor's list and detail both carry the
+  commission.
+- A hold that lapses moves the booking to `EXPIRED` on its own. Observed on a
+  declined-card booking left for fifteen minutes.
+- `BOOKING_DATES_UNAVAILABLE` is 409 and carries no `meta`. It is not a fault —
+  it is what happens to the best space in the best week — so the client sends
+  the visitor back to the calendar rather than showing an error and leaving
+  them there.
+- `BOOKING_DURATION_TOO_SHORT` / `_TOO_LONG` carry `meta.minDays` /
+  `meta.maxDays` alongside `meta.requested`. `_IN_PAST` carries none.
+- `prohibitedAck: false` is a field error on `prohibitedAck`, not a booking
+  code.

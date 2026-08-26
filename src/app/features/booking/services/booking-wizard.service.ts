@@ -4,10 +4,17 @@ import type { PublicUnit } from '@core/models/public-unit';
 import { StorageService } from '@core/services/storage.service';
 import { nightsBetween } from '@core/utils/date.utils';
 
-/** The four steps of RNT-03 → RNT-05, in order. */
-export type BookingStep = 'dates' | 'goods' | 'identity' | 'pay';
+/**
+ * The three steps of RNT-03 → RNT-05, in order.
+ *
+ * There were four. The identity step went because nothing asks for it: the API
+ * creates a booking from the dates, the goods and the acknowledgement, and
+ * Nafath is not part of that call. A step that collected something no endpoint
+ * wanted was a step that could only fail silently.
+ */
+export type BookingStep = 'dates' | 'goods' | 'pay';
 
-export const BOOKING_STEPS: readonly BookingStep[] = ['dates', 'goods', 'identity', 'pay'] as const;
+export const BOOKING_STEPS: readonly BookingStep[] = ['dates', 'goods', 'pay'] as const;
 
 /**
  * What survives between steps and across a mid-journey sign-up.
@@ -19,13 +26,19 @@ export const BOOKING_STEPS: readonly BookingStep[] = ['dates', 'goods', 'identit
 export interface BookingDraft {
   unitId: string;
   startDate: string;
+  /** Half-open — the day of departure, not the last night. */
   endDate: string;
-  daysCount: number;
+  /**
+   * **Nights.** 1 → 8 is seven of them, which is what the server counts and
+   * what the screens say. It was called `daysCount`, which is the name the
+   * wire uses and the one worth not repeating.
+   */
+  nights: number;
   goodsDescription: string;
   prohibitedAck: boolean;
-  /** Set once the server has created the Draft booking. */
+  /** Set once the server has created the booking — not before. */
   bookingId?: string;
-  /** FR-BKG-05 — when the 15-minute hold lapses; absent before the identity step. */
+  /** FR-BKG-05 — the server's deadline for the hold, never a local timer. */
   holdExpiresAt?: string;
 }
 
@@ -53,7 +66,7 @@ export class BookingWizardService {
   /** Guards the later steps: you cannot describe goods for dates you never picked. */
   readonly hasDates = computed(() => {
     const draft = this.state();
-    return !!draft?.startDate && !!draft?.endDate && draft.daysCount > 0;
+    return !!draft?.startDate && !!draft?.endDate && draft.nights > 0;
   });
 
   readonly hasGoods = computed(() => {
@@ -88,7 +101,7 @@ export class BookingWizardService {
       unitId,
       startDate,
       endDate,
-      daysCount: nightsBetween(startDate, endDate),
+      nights: nightsBetween(startDate, endDate),
       goodsDescription:
         this.state()?.unitId === unitId ? (this.state()?.goodsDescription ?? '') : '',
       prohibitedAck:
@@ -123,7 +136,7 @@ export class BookingWizardService {
       unitId: '',
       startDate: '',
       endDate: '',
-      daysCount: 0,
+      nights: 0,
       goodsDescription: '',
       prohibitedAck: false,
       ...current,

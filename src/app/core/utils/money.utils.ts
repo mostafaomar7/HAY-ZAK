@@ -39,12 +39,21 @@ export interface PriceBreakdown {
   days: number;
   /** days × dailyPriceHalalas — the lessor's gross. */
   subtotalHalalas: number;
-  commissionHalalas: number;
+  /**
+   * Absent on a renter's figures, and absent means absent.
+   *
+   * The commission is deducted from the lessor rather than added to the
+   * renter, and the API sends neither this nor `netToLessorHalalas` on a
+   * renter's booking — 100 ﷼/day × 4 is 400 charged and 340 received, and the
+   * renter is party to the first number only. Defaulting either to zero would
+   * put "عمولة المنصة: 0.00" on screen, which is a claim rather than a blank.
+   */
+  commissionHalalas?: number;
   vatHalalas: number;
   /** What the renter pays. */
   totalHalalas: number;
   /** What the lessor receives after settlement (FR-PAY-04). */
-  netToLessorHalalas: number;
+  netToLessorHalalas?: number;
 }
 
 /**

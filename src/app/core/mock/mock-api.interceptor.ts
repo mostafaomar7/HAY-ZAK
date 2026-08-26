@@ -12,7 +12,7 @@ import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
 import { addDaysPlain as addPlainDays, todayPlain } from '../utils/date.utils';
-import { toWireBlock, toWirePublicUnit, toWireUnit } from './wire';
+import { toWireBlock, toWireBooking, toWirePublicUnit, toWireUnit } from './wire';
 import {
   MOCK_ADMIN_KPIS,
   MOCK_ADMIN_RENTER_DETAIL,
@@ -54,7 +54,6 @@ import {
   MOCK_UNITS,
 } from './lessor.fixtures';
 import {
-  MOCK_ALTERNATIVES,
   MOCK_BOOKING_HISTORY,
   MOCK_IDENTITY,
   MOCK_INVOICE,
@@ -70,7 +69,6 @@ import {
 } from './renter.fixtures';
 import type { StaticPageSlug } from '../models/content.model';
 import type { User } from '../models/user.model';
-import { calculatePrice } from '../utils/money.utils';
 
 /**
  * Development-only stand-in for the backend, so the lessor screens can be
@@ -190,33 +188,45 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return ok(null);
   }
 
-  // ── Renter bookings (FR-BKG, FR-PAY) ───────────────────────────────────
-  if (path === API_ENDPOINTS.bookings.mine) return paginate(MOCK_RENTER_BOOKINGS);
-  if (/^\/bookings\/[^/]+\/complaints$/.test(path) && method === 'POST') return ok(null);
-  if (path === API_ENDPOINTS.bookings.quote) return ok(quote(query));
-  if (path === API_ENDPOINTS.bookings.base && method === 'POST') {
-    return ok(MOCK_RENTER_BOOKINGS[4]);
-  }
-  if (/^\/bookings\/[^/]+\/confirm$/.test(path)) {
+  // ── Bookings (FR-BKG, FR-PAY) ──────────────────────────────────────────
+  // Through the wire projection, and split by party: only the lessor's rows
+  // carry the commission. A renter screen that could read it here would work
+  // in the mock and show a blank against the real API.
+  if (path === API_ENDPOINTS.bookings.mine && method === 'POST') {
+    const booking = MOCK_RENTER_BOOKINGS[4];
     return ok({
-      ...MOCK_RENTER_BOOKINGS[3],
+      booking: toWireBooking({ ...booking, status: BookingStatus.AwaitingPayment }),
       holdExpiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
     });
   }
-  if (/^\/bookings\/[^/]+\/payment-intent$/.test(path)) {
+  if (path === API_ENDPOINTS.bookings.mine) {
+    return paginate(MOCK_RENTER_BOOKINGS.map((b) => toWireBooking(b)));
+  }
+  if (path === API_ENDPOINTS.bookings.forLessor) {
+    return paginate(MOCK_RENTER_BOOKINGS.map((b) => toWireBooking(b, { forLessor: true })));
+  }
+  if (/^\/renter\/bookings\/[^/]+\/pay$/.test(path) && method === 'POST') {
+    // The real one hands back a gateway URL and the browser leaves. There is
+    // nowhere for the mock to send it, so it names the fake checkout it would
+    // have gone to and the screen's own redirect is what does not happen.
     return ok({
-      bookingId: path.split('/')[2],
-      gatewayReference: 'mock-intent',
-      clientSecret: 'mock-secret',
-      expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+      redirectUrl: `${window.location.origin}/bookings/return?bookingId=mock&status=paid`,
     });
   }
-  if (/^\/bookings\/[^/]+\/alternative-periods$/.test(path)) return ok(MOCK_ALTERNATIVES);
+  if (/^\/renter\/bookings\/[^/]+$/.test(path)) {
+    const id = path.split('/')[3];
+    const booking = MOCK_RENTER_BOOKINGS.find((b) => b.id === id) ?? MOCK_RENTER_BOOKINGS[0];
+    return ok({
+      booking: toWireBooking(booking),
+      holdExpiresAt:
+        booking.status === BookingStatus.AwaitingPayment
+          ? new Date(Date.now() + 15 * 60_000).toISOString()
+          : null,
+    });
+  }
+  if (/^\/bookings\/[^/]+\/complaints$/.test(path) && method === 'POST') return ok(null);
   if (/^\/bookings\/[^/]+\/history$/.test(path)) return ok(MOCK_BOOKING_HISTORY);
   if (/^\/bookings\/[^/]+\/invoice$/.test(path)) return ok(MOCK_INVOICE);
-  if (/^\/bookings\/[^/]+\/cancel$/.test(path)) {
-    return ok({ ...MOCK_RENTER_BOOKINGS[7] });
-  }
 
   // ── Admin panel (FR-ADM, FR-RPT) ───────────────────────────────────────
   // A decision verb returns the row it acted on rather than a bare 204: the
@@ -552,12 +562,6 @@ function filterMarket(query: string) {
   // "nearest" needs a point the fixtures have no distance for; the server
   // refuses the sort without one, so falling back to the default is honest.
   return matched;
-}
-
-function quote(query: string) {
-  const params = new URLSearchParams(query);
-  const unit = MOCK_MARKET_UNITS.find((u) => u.id === params.get('unitId')) ?? MOCK_MARKET_UNITS[0];
-  return calculatePrice(unit.dailyPriceHalalas, Number(params.get('daysCount') ?? 1));
 }
 
 function filterUnits(query: string) {

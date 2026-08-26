@@ -23,7 +23,7 @@ describe('money.utils', () => {
       expect(result.totalHalalas).toBe(100_000);
       expect(result.commissionHalalas).toBe(10_000);
       expect(result.vatHalalas).toBe(1_500);
-      expect(result.netToLessorHalalas).toBe(88_500);
+      expect(result.netToLessorHalalas!).toBe(88_500);
     });
 
     it('adds commission on top when the renter bears it', () => {
@@ -33,7 +33,7 @@ describe('money.utils', () => {
         vatBase: 'commission',
       });
       expect(result.totalHalalas).toBe(111_500);
-      expect(result.netToLessorHalalas).toBe(100_000);
+      expect(result.netToLessorHalalas!).toBe(100_000);
     });
 
     it('charges VAT on the whole booking when vatBase is total', () => {
@@ -62,7 +62,7 @@ describe('money.utils', () => {
         result.commissionHalalas,
         result.vatHalalas,
         result.totalHalalas,
-        result.netToLessorHalalas,
+        result.netToLessorHalalas!,
       ]) {
         expect(Number.isInteger(value)).withContext(String(value)).toBeTrue();
       }
@@ -77,9 +77,9 @@ describe('money.utils', () => {
       });
 
       const renterPaid = result.totalHalalas - result.subtotalHalalas - result.vatHalalas;
-      const lessorPaid = result.subtotalHalalas - result.netToLessorHalalas;
+      const lessorPaid = result.subtotalHalalas - result.netToLessorHalalas!;
 
-      expect(renterPaid + lessorPaid).toBe(result.commissionHalalas);
+      expect(renterPaid + lessorPaid).toBe(result.commissionHalalas!);
     });
 
     it('never lets the split option pay out more than the gross', () => {
@@ -88,7 +88,7 @@ describe('money.utils', () => {
         commissionBearer: 'shared',
         vatBase: 'commission',
       });
-      expect(result.netToLessorHalalas).toBeLessThan(result.subtotalHalalas);
+      expect(result.netToLessorHalalas!).toBeLessThan(result.subtotalHalalas);
       expect(result.totalHalalas).toBeGreaterThan(result.subtotalHalalas);
     });
   });

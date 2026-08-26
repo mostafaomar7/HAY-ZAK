@@ -1,0 +1,73 @@
+@use 'abstracts' as a;
+
+:host {
+  display: block;
+}
+
+.result {
+  max-width: 620px;
+  margin-inline: auto;
+  padding-block: a.$space-32;
+}
+
+.result__wait,
+.result__panel {
+  @include a.stack(a.$space-16);
+
+  padding: a.$space-24;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-2xl;
+  background: var(--color-surface);
+}
+
+// The tone carries the outcome, so it must not be the only thing that does —
+// every panel states it in words above the colour.
+.result__panel--ok {
+  border-color: var(--color-success);
+}
+
+.result__panel--warn {
+  border-color: var(--color-warning);
+}
+
+.result__title {
+  margin: 0;
+  font-size: a.$fs-xl;
+  font-weight: a.$fw-bold;
+}
+
+.result__body {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.facts {
+  @include a.stack(a.$space-10);
+
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  justify-content: space-between;
+  gap: a.$space-16;
+  padding-block-end: a.$space-10;
+  border-block-end: 1px solid var(--color-border);
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: a.$fs-sm;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: a.$fw-semibold;
+    text-align: end;
+  }
+}
+
+.result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-10;
+}

@@ -2,8 +2,8 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
-import type { Booking } from '@core/models/booking.model';
 import type { Invoice } from '@core/models/payment.model';
+import type { PriceBreakdown } from '@core/utils/money.utils';
 import { NotificationService } from '@core/services/notification.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -13,6 +13,8 @@ import { UiMoney } from '@shared/components/ui-money/ui-money';
 import { UiPriceBreakdown } from '@shared/components/ui-price-breakdown/ui-price-breakdown';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { BookingService } from '../../services/booking.service';
+import type { RenterBooking } from '@core/models/renter-booking';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 
 /**
  * The ZATCA tax invoice (RNT-07, FR-PAY-09).
@@ -29,6 +31,7 @@ import { BookingService } from '../../services/booking.service';
 @Component({
   selector: 'app-invoice-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RenterBookingsService],
   imports: [
     RouterLink,
     UiBadge,
@@ -44,6 +47,7 @@ import { BookingService } from '../../services/booking.service';
 })
 export class InvoicePage {
   private readonly bookings = inject(BookingService);
+  private readonly renterBookings = inject(RenterBookingsService);
   private readonly notifications = inject(NotificationService);
   private readonly document = inject(DOCUMENT);
 
@@ -51,22 +55,27 @@ export class InvoicePage {
 
   readonly bookingId = input.required<string>();
 
-  protected readonly booking = signal<Booking | null>(null);
+  protected readonly booking = signal<RenterBooking | null>(null);
   protected readonly invoice = signal<Invoice | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
   protected readonly previewOpen = signal(false);
 
-  protected readonly price = computed(() => {
+  /**
+   * What the renter was charged, and nothing else.
+   *
+   * No commission and no net-to-lessor: the API does not send them on a
+   * renter's booking, and the breakdown omits the row rather than printing a
+   * zero for a number that was never theirs to see.
+   */
+  protected readonly price = computed<PriceBreakdown>(() => {
     const booking = this.booking();
     return {
-      dailyPriceHalalas: booking?.dailyPriceSnapshotHalalas ?? 0,
-      days: booking?.daysCount ?? 0,
-      subtotalHalalas: booking?.subtotalHalalas ?? 0,
-      commissionHalalas: booking?.commissionHalalas ?? 0,
-      vatHalalas: booking?.vatHalalas ?? 0,
-      totalHalalas: booking?.totalHalalas ?? 0,
-      netToLessorHalalas: booking?.netToLessorHalalas ?? 0,
+      dailyPriceHalalas: booking?.price.dailyPriceHalalas ?? 0,
+      days: booking?.nights ?? 0,
+      subtotalHalalas: booking?.price.subtotalHalalas ?? 0,
+      vatHalalas: booking?.price.vatHalalas ?? 0,
+      totalHalalas: booking?.price.totalHalalas ?? 0,
     };
   });
 
@@ -78,8 +87,8 @@ export class InvoicePage {
     this.isLoading.set(true);
     this.failed.set(false);
 
-    this.bookings.byId(this.bookingId()).subscribe({
-      next: (booking) => this.booking.set(booking),
+    this.renterBookings.byId(this.bookingId()).subscribe({
+      next: ({ booking }) => this.booking.set(booking),
       error: () => this.failed.set(true),
     });
 

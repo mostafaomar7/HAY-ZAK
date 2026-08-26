@@ -1,27 +1,35 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { BookingStatus, TERMINAL_BOOKING_STATUSES } from '@core/enums/booking-status.enum';
 import type { PaginatedResponse } from '@core/models/api-response.model';
-import type { Booking } from '@core/models/booking.model';
+import type {
+  BookingWithHold,
+  CreateBookingRequest,
+  RenterBooking,
+  WireBooking,
+  WireBookingWithHold,
+  WirePaymentSession,
+} from '@core/models/renter-booking';
+import { bookingFromWire, bookingWithHoldFromWire } from '@core/models/renter-booking';
 import { ApiService } from '@core/services/api.service';
 
 /** The two tabs on "حجوزاتي" (RNT-01). */
 export type BookingTab = 'current' | 'previous';
 
 /**
- * The renter's own bookings.
+ * The renter's own bookings, and the two writes in the journey.
  *
  * The split between the two tabs is derived from the status, not asked of the
- * server: SRS §6 already defines which four states are terminal, and duplicating
+ * server: SRS §6 already defines which states are terminal, and duplicating
  * that judgement in a query parameter is how the two ends drift apart.
  */
 @Injectable()
 export class RenterBookingsService {
   private readonly api = inject(ApiService);
 
-  private readonly items = signal<Booking[]>([]);
+  private readonly items = signal<RenterBooking[]>([]);
   private readonly loading = signal(false);
 
   readonly bookings = this.items.asReadonly();
@@ -35,9 +43,10 @@ export class RenterBookingsService {
     this.items().filter((b) => TERMINAL_BOOKING_STATUSES.includes(b.status)),
   );
 
-  load(): Observable<PaginatedResponse<Booking>> {
+  load(): Observable<PaginatedResponse<RenterBooking>> {
     this.loading.set(true);
-    return this.api.list<Booking>(API_ENDPOINTS.bookings.mine).pipe(
+    return this.api.list<WireBooking>(API_ENDPOINTS.bookings.mine).pipe(
+      map((page) => ({ items: page.items.map(bookingFromWire), pagination: page.pagination })),
       tap({
         next: (page) => {
           this.items.set(page.items);
@@ -47,26 +56,66 @@ export class RenterBookingsService {
       }),
     );
   }
+
+  /**
+   * One call: the dates, the goods and the acknowledgement together.
+   *
+   * It comes back already holding the dates, so this is the moment the clock
+   * starts — which is why the whole booking is submitted at once rather than
+   * assembled across steps. Read `holdExpiresAt` from the answer.
+   */
+  create(payload: CreateBookingRequest): Observable<BookingWithHold> {
+    return this.api
+      .post<WireBookingWithHold, CreateBookingRequest>(API_ENDPOINTS.bookings.mine, payload)
+      .pipe(map(bookingWithHoldFromWire));
+  }
+
+  byId(id: string): Observable<BookingWithHold> {
+    return this.api
+      .get<WireBookingWithHold>(API_ENDPOINTS.bookings.byId(id))
+      .pipe(map(bookingWithHoldFromWire));
+  }
+
+  /**
+   * Starts the payment and answers where to send the browser.
+   *
+   * `returnUrl` is this application's own origin — the API refuses anything
+   * else, and it is right to: an open return parameter is a phishing tool.
+   * Built here rather than configured, so the address is always the one the
+   * visitor is actually on.
+   *
+   * Calling it twice is safe and returns the same charge, which matters after
+   * a declined card: the booking is still held and the retry is a retry, not a
+   * second attempt to pay for the same nights.
+   */
+  pay(id: string, returnPath = '/bookings/return'): Observable<string> {
+    return this.api
+      .post<WirePaymentSession, { returnUrl: string }>(API_ENDPOINTS.bookings.pay(id), {
+        returnUrl: `${window.location.origin}${returnPath}`,
+      })
+      .pipe(map((session) => session.redirectUrl));
+  }
 }
 
 /**
- * The row action the design puts next to "تفاصيل الحجز", which changes with the
- * state. Returns null where the design shows no secondary action at all.
+ * The row action next to "تفاصيل الحجز", which changes with the state.
+ *
+ * There is no "resume" and no draft to resume: a booking exists only once it
+ * has been paid for or is waiting to be. Returns null where the design shows
+ * no secondary action.
  */
-export function bookingPrimaryAction(booking: Booking): {
-  labelKey: 'bookings.viewInvoice' | 'bookings.completePayment' | 'bookings.resume';
+export function bookingPrimaryAction(booking: RenterBooking): {
+  labelKey: 'bookings.viewInvoice' | 'bookings.completePayment';
   link: unknown[];
 } | null {
   switch (booking.status) {
-    case BookingStatus.Draft:
-      return { labelKey: 'bookings.resume', link: ['/booking', 'new', booking.unitId] };
     case BookingStatus.AwaitingPayment:
       return { labelKey: 'bookings.completePayment', link: ['/booking', booking.id, 'pay'] };
     case BookingStatus.Confirmed:
     case BookingStatus.Active:
     case BookingStatus.Completed:
       // Payment is what confirms a booking, so an invoice exists from
-      // CONFIRMED onward — there is no longer a pending state to wait through.
+      // CONFIRMED onward — there is no pending state to wait through.
       return { labelKey: 'bookings.viewInvoice', link: ['/my-bookings', booking.id, 'invoice'] };
     default:
       return null;
@@ -76,17 +125,22 @@ export function bookingPrimaryAction(booking: Booking): {
 /**
  * Whether "لديّ مشكلة" belongs on this booking.
  *
- * Everything that is not a draft: a renter with a live, finished or cancelled
- * booking may still need to raise something about it, and a draft holds
- * nothing to complain about. It replaced `canCancelBooking`, which offered a
- * button for an action nobody on this platform can take.
+ * Everything that is not still waiting to be paid for: a renter with a live,
+ * finished or cancelled booking may need to raise something about it, and an
+ * unpaid hold holds nothing to complain about. It replaced `canCancelBooking`,
+ * which offered a button for an action nobody on this platform can take.
  */
-export function canRaiseComplaint(booking: Booking): boolean {
-  return booking.status !== BookingStatus.Draft;
+export function canRaiseComplaint(booking: RenterBooking): boolean {
+  return booking.status !== BookingStatus.AwaitingPayment;
 }
 
-/** FR-UNT-11 — the exact address is released by approval and nothing earlier. */
-export function isAddressReleased(booking: Booking): boolean {
+/**
+ * FR-UNT-11 — the address and the counterparty are released by confirmation.
+ *
+ * Derived from the status rather than from `contact !== null` so a screen
+ * cannot be talked into revealing one by a response that carried it early.
+ */
+export function isAddressReleased(booking: RenterBooking): boolean {
   return [BookingStatus.Confirmed, BookingStatus.Active, BookingStatus.Completed].includes(
     booking.status,
   );

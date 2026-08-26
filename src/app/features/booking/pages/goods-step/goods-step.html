@@ -59,6 +59,13 @@
 
     <aside class="step__side">
       <app-booking-summary [unit]="unit()" [draft]="draft()" [showPrice]="false">
+        <!-- The server's own sentence. A submit that fails without a word is
+             indistinguishable from one that worked, and this one takes money
+             next. -->
+        @if (errorText()) {
+          <app-ui-notice tone="danger">{{ errorText() }}</app-ui-notice>
+        }
+
         <button appUiButton variant="primary" type="submit" fullWidth [disabled]="!canContinue()">
           {{ i18n.t('booking.continueToPayment') }}
         </button>

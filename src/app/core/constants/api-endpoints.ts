@@ -154,28 +154,44 @@ export const API_ENDPOINTS = {
   },
 
   /**
-   * FR-BKG — **not shipped**, every route answers 404.
+   * FR-BKG, FR-PAY — the booking journey, scoped to the party reading it.
    *
-   * This is the whole renter journey past the details page: the draft, the
-   * quote, the payment, "حجوزاتي" and the complaint that is the only way out
-   * of a booking. The wizard is built and points at these names.
+   * Two endpoints answer the same object and the difference is deliberate: the
+   * lessor's `price` carries the commission and their net, and the renter's
+   * does not. Neither list is reachable by the other role — a lessor asking
+   * for `/renter/bookings` gets a 403, not an empty page.
+   *
+   * There is **one** create. It takes the dates, the goods description and the
+   * acknowledgement together and comes back holding the dates for fifteen
+   * minutes; there is no draft to build up across steps and no separate
+   * confirm. Payment is what confirms — no approval sits between them, so
+   * there is no approve or reject here for anyone, and no cancel: a problem
+   * with a booking is a complaint an administrator resolves.
    */
   bookings: {
-    base: '/bookings',
-    byId: (id: string) => `/bookings/${id}`,
-    mine: '/bookings/mine',
+    /** POST creates and holds; GET lists the renter's own. */
+    mine: '/renter/bookings',
+    byId: (id: string) => `/renter/bookings/${id}`,
     /**
-     * The one route out of a problem with a booking.
+     * `{ returnUrl }` → `{ redirectUrl }`.
      *
-     * Neither party can cancel — a complaint is raised against the booking and
-     * an administrator resolves it, which is the only path to CANCELLED. See
-     * `booking-transitions.ts`.
+     * Send the browser to `redirectUrl` — the whole browser. 3-D Secure does
+     * not run inside an iframe, and a fetch cannot carry a challenge.
+     * `returnUrl` must be on this application's own origin or it is a 422; an
+     * open return is a phishing tool. Safe to call twice: the same charge
+     * comes back rather than a second one.
+     */
+    pay: (id: string) => `/renter/bookings/${id}/pay`,
+    /** Read-only. The lessor's own bookings, with the commission on them. */
+    forLessor: '/lessor/bookings',
+    forLessorById: (id: string) => `/lessor/bookings/${id}`,
+
+    // ── Not shipped yet; the screens that call them are behind these names.
+    /**
+     * The one route out of a problem with a booking. Neither party can
+     * cancel — see `booking-transitions.ts`.
      */
     complaints: (id: string) => `/bookings/${id}/complaints`,
-    quote: '/bookings/quote',
-    confirm: (id: string) => `/bookings/${id}/confirm`,
-    /** Free windows offered when the chosen one was taken during payment. */
-    alternatives: (id: string) => `/bookings/${id}/alternative-periods`,
     history: (id: string) => `/bookings/${id}/history`,
     contract: (id: string) => `/bookings/${id}/contract`,
     invoice: (id: string) => `/bookings/${id}/invoice`,

@@ -1,0 +1,92 @@
+<section class="result">
+  @if (isSettling()) {
+    <!-- Not "success" and not "failed": the webhook may still be in flight,
+         and naming an outcome now would be guessing at one. -->
+    <div class="result__wait">
+      <h1 class="result__title">{{ i18n.t('pay.settling') }}</h1>
+      <p class="result__body">{{ i18n.t('pay.settlingBody') }}</p>
+      <app-ui-skeleton [count]="3" [label]="i18n.t('pay.settling')" />
+    </div>
+  } @else if (outcome() === 'confirmed' && booking(); as _) {
+    <div class="result__panel result__panel--ok">
+      <h1 class="result__title">{{ i18n.t('pay.confirmed') }}</h1>
+      <p class="result__body">{{ i18n.t('pay.confirmedBody') }}</p>
+
+      <dl class="facts">
+        <div class="fact">
+          <dt>{{ i18n.t('bookings.reference') }}</dt>
+          <dd class="num" dir="ltr">{{ booking()!.referenceNo }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bookings.space') }}</dt>
+          <dd>{{ booking()!.unit.title }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bookings.dates') }}</dt>
+          <dd class="num" dir="ltr">{{ booking()!.startDate }} → {{ booking()!.endDate }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('bookings.paid') }}</dt>
+          <dd><app-ui-money [halalas]="booking()!.price.totalHalalas" strong /></dd>
+        </div>
+      </dl>
+
+      <!-- Released by confirmation and by nothing earlier (FR-UNT-11). -->
+      @if (booking()!.contact; as contact) {
+        <app-ui-notice tone="success">
+          {{ i18n.t('pay.contactReleased', { name: contact.fullName, mobile: contact.mobile }) }}
+        </app-ui-notice>
+      }
+
+      <div class="result__actions">
+        <a appUiButton variant="primary" [routerLink]="['/my-bookings', booking()!.id]">
+          {{ i18n.t('pay.viewBooking') }}
+        </a>
+        <a appUiButton variant="outline" routerLink="/my-bookings">
+          {{ i18n.t('bookings.title') }}
+        </a>
+      </div>
+    </div>
+  } @else if (outcome() === 'unpaid') {
+    <!-- A declined card is not a lost booking: the hold survives, so the way
+         out is another card on the same booking, not the calendar again. -->
+    <div class="result__panel result__panel--warn">
+      <h1 class="result__title">{{ i18n.t('pay.notPaid') }}</h1>
+      <p class="result__body">{{ i18n.t('pay.notPaidBody') }}</p>
+
+      <div class="result__actions">
+        @if (booking(); as b) {
+          <a appUiButton variant="primary" [routerLink]="['/booking', b.id, 'pay']">
+            {{ i18n.t('pay.tryAnotherCard') }}
+          </a>
+        }
+        <button appUiButton variant="ghost" type="button" (click)="check()">
+          {{ i18n.t('pay.checkAgain') }}
+        </button>
+      </div>
+    </div>
+  } @else if (outcome() === 'gone') {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('pay.holdLapsed')"
+      [hint]="i18n.t('pay.holdLapsedHint')"
+    >
+      <a appUiButton variant="primary" routerLink="/units">
+        {{ i18n.t('result.exploreSpaces') }}
+      </a>
+    </app-ui-empty-state>
+  } @else {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('pay.unknown')"
+      [hint]="i18n.t('pay.unknownHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="check()">
+        {{ i18n.t('common.retry') }}
+      </button>
+      <a appUiButton variant="outline" routerLink="/my-bookings">
+        {{ i18n.t('bookings.title') }}
+      </a>
+    </app-ui-empty-state>
+  }
+</section>

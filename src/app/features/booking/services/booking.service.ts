@@ -1,88 +1,41 @@
-import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import { SKIP_AUTH } from '@core/interceptors/auth.interceptor';
-import type {
-  Booking,
-  BookingConfirmRequest,
-  BookingDraftRequest,
-  BookingStatusHistoryEntry,
-} from '@core/models/booking.model';
-import type { Invoice, PaymentIntent } from '@core/models/payment.model';
-import type { AlternativePeriod, ComplaintRequest } from '@core/models/renter.model';
-import type { PaymentMethod } from '@core/enums/payment.enum';
-import type { PriceBreakdown } from '@core/utils/money.utils';
+import type { BookingStatusHistoryEntry } from '@core/models/booking.model';
+import type { Invoice } from '@core/models/payment.model';
+import type { ComplaintRequest } from '@core/models/renter.model';
 import { ApiService } from '@core/services/api.service';
 
 /**
  * Every write in the booking journey (FR-BKG, FR-PAY).
  *
- * Deliberately has no `approve` or `reject`: SRS §6 gives that authority to
- * administration alone, and the renter portal must not grow a back door to it.
- * The renter's only state-changing verbs are draft, confirm, pay and complain.
+ * What is left after the journey moved to `RenterBookingsService`: the records
+ * that hang off a booking which already exists — its history, its invoice, its
+ * contract, and the complaint that is the only way to raise a problem with it.
+ * None of these endpoints is shipped yet.
+ *
+ * Deliberately has no `approve` or `reject`, and no `cancel`. Payment confirms
+ * a booking, so there is no approval to grant; and neither party can cancel —
+ * an administrator resolving a complaint is the only path to CANCELLED.
  */
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly api = inject(ApiService);
 
   /**
-   * FR-BKG-02 — the price shown before payment.
+   * FR-BKG-02 — the price the renter is charged.
    *
-   * Quoted by the server even though `calculatePrice` could do the arithmetic
-   * locally: the commission rate, the VAT base and who bears the commission are
-   * all runtime settings (FR-ADM-06), and a client that computes its own total
-   * will silently disagree with the charge the moment one of them changes.
-   * The local helper stays for optimistic display while this call is in flight.
+   * There is no quote endpoint and no need for one: `POST /renter/bookings`
+   * answers with the price it committed to, and the commission is deducted
+   * from the lessor rather than added to the renter, so the total is the daily
+   * rate times the nights and nothing the client has to be told separately.
+   * Creating, confirming and paying live on `RenterBookingsService`.
    */
-  quote(unitId: string, startDate: string, daysCount: number): Observable<PriceBreakdown> {
-    return this.api.get<PriceBreakdown>(API_ENDPOINTS.bookings.quote, {
-      // The details page quotes a price for signed-out visitors too.
-      context: new HttpContext().set(SKIP_AUTH, true),
-      params: { unitId, startDate, daysCount },
-    });
-  }
-
-  /**
-   * Creates the Draft. No dates are held yet — the design is explicit that the
-   * 15-minute hold starts at the identity step, not here.
-   */
-  createDraft(payload: BookingDraftRequest): Observable<Booking> {
-    return this.api.post<Booking, BookingDraftRequest>(API_ENDPOINTS.bookings.base, payload);
-  }
-
-  byId(id: string): Observable<Booking> {
-    return this.api.get<Booking>(API_ENDPOINTS.bookings.byId(id));
-  }
-
-  /**
-   * FR-BKG-03/04 — goods description and the prohibited-items acknowledgement.
-   * Moves the booking to AwaitingPayment and starts the hold.
-   */
-  confirm(id: string, payload: BookingConfirmRequest): Observable<Booking> {
-    return this.api.post<Booking, BookingConfirmRequest>(
-      API_ENDPOINTS.bookings.confirm(id),
-      payload,
-    );
-  }
-
-  /** FR-PAY-01 — hands off to the gateway; the result screen reads the outcome. */
-  createPaymentIntent(bookingId: string, method: PaymentMethod): Observable<PaymentIntent> {
-    return this.api.post<PaymentIntent, { method: PaymentMethod }>(
-      API_ENDPOINTS.payments.createIntent(bookingId),
-      { method },
-    );
-  }
 
   paymentStatus(bookingId: string): Observable<{ status: string; failureReason?: string }> {
     return this.api.get<{ status: string; failureReason?: string }>(
       API_ENDPOINTS.payments.status(bookingId),
     );
-  }
-
-  /** Offered when the window was taken by another renter mid-payment. */
-  alternativePeriods(bookingId: string): Observable<AlternativePeriod[]> {
-    return this.api.get<AlternativePeriod[]>(API_ENDPOINTS.bookings.alternatives(bookingId));
   }
 
   history(id: string): Observable<BookingStatusHistoryEntry[]> {

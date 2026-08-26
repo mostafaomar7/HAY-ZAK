@@ -3,7 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BOOKING_STATUS_DISPLAY } from '@core/constants/status-display';
 import { BookingStatus } from '@core/enums/booking-status.enum';
-import type { Booking } from '@core/models/booking.model';
+import type { RenterBooking } from '@core/models/renter-booking';
 import { renterContactVisible } from '../../services/lessor-requests.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiMoney } from '@shared/components/ui-money/ui-money';
@@ -27,26 +27,27 @@ import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
   styleUrl: './request-card.scss',
 })
 export class RequestCard {
-  readonly booking = input.required<Booking>();
+  readonly booking = input.required<RenterBooking>();
 
   protected readonly status = computed(() => BOOKING_STATUS_DISPLAY[this.booking().status]);
 
   protected readonly isDraft = computed(() => this.booking().status === BookingStatus.Draft);
 
   protected readonly renterName = computed(() =>
-    renterContactVisible(this.booking())
-      ? (this.booking().counterpartyContact?.fullName ?? null)
-      : null,
+    renterContactVisible(this.booking()) ? (this.booking().contact?.fullName ?? null) : null,
   );
 
-  protected readonly coverImage = computed(() => this.booking().unit?.images?.[0]?.url);
+  /** A booking carries no image; the card shows a placeholder. */
+  protected readonly coverImage = computed(() => undefined);
 
-  /** "12 أغسطس – 11 سبتمبر · 30 يومًا" as one isolated numeric run. */
+  /** "12 أغسطس – 11 سبتمبر · 30 ليلة" as one isolated numeric run. */
   protected readonly period = computed(() => {
     const b = this.booking();
     const fmt = new Intl.DateTimeFormat('ar-SA', { day: 'numeric', month: 'long' });
     const from = fmt.format(new Date(b.startDate));
     const to = fmt.format(new Date(b.endDate));
-    return `${from} – ${to} · ${b.daysCount} يوم`;
+    // Nights: the two dates are right there, and "30 يوم" between them is a
+    // disagreement anybody can see.
+    return `${from} – ${to} · ${b.nights} ليلة`;
   });
 }

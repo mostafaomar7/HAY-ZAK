@@ -7,12 +7,11 @@ import {
   input,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { isHoldingDates } from '@core/constants/booking-transitions';
+import { BookingStatus } from '@core/enums/booking-status.enum';
 import { BOOKING_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import type { TranslationKey } from '@core/i18n/translations';
-import type { Booking } from '@core/models/booking.model';
-import { countdown, formatCountdown } from '@core/utils/countdown';
+import type { RenterBooking } from '@core/models/renter-booking';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiMoney } from '@shared/components/ui-money/ui-money';
@@ -38,7 +37,7 @@ import { bookingPrimaryAction, canRaiseComplaint } from '../../services/renter-b
 export class BookingCard {
   protected readonly i18n = inject(LanguageService);
 
-  readonly booking = input.required<Booking>();
+  readonly booking = input.required<RenterBooking>();
   /** The past tab drops the price detail and shows a closing note instead. */
   readonly past = input(false, { transform: booleanAttribute });
   /** Explains how a past booking ended — "أُلغي بطلب المستأجر…". */
@@ -57,17 +56,16 @@ export class BookingCard {
   protected readonly canComplain = computed(() => canRaiseComplaint(this.booking()));
 
   /**
-   * The fifteen-minute hold, counted against the server's `holdExpiresAt`.
+   * No countdown on a card.
    *
-   * On the card as well as on the payment step, because a renter who left the
-   * wizard is exactly the person about to lose the dates, and the list is where
-   * they come back to.
+   * `GET /renter/bookings` does not carry `holdExpiresAt` — only the detail
+   * and the payment screen do — and a card that invented one would be showing
+   * a deadline it had guessed. The row says the booking is waiting to be paid
+   * for and links to the screen that knows how long is left.
    */
-  private readonly holdDeadline = computed(() =>
-    isHoldingDates(this.booking().status) ? (this.booking().holdExpiresAt ?? null) : null,
+  protected readonly awaitingPayment = computed(
+    () => this.booking().status === BookingStatus.AwaitingPayment,
   );
-  protected readonly holdSeconds = countdown(this.holdDeadline);
-  protected readonly holdLabel = computed(() => formatCountdown(this.holdSeconds()));
 
   protected readonly actionLabel = computed(
     () => this.action()?.labelKey as TranslationKey | undefined,

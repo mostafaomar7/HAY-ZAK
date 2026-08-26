@@ -9,10 +9,17 @@ import { UiField } from '@shared/components/ui-field/ui-field';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiProhibitedList } from '@shared/components/ui-prohibited-list/ui-prohibited-list';
 import { BookingSummary } from '../../components/booking-summary/booking-summary';
-import { BookingService } from '../../services/booking.service';
+import { ApiError } from '@core/models/api-error.model';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 import { BookingWizardService } from '../../services/booking-wizard.service';
 
 /** FR-BKG-03 — enough text to be reviewable, capped so it stays a description. */
+/**
+ * The server refuses under roughly ten characters. Twenty is this screen's own
+ * floor and deliberately stricter: the description is read by a human before
+ * money is transferred, and "أثاث" passes a length check while telling that
+ * person nothing.
+ */
 const MIN_DESCRIPTION = 20;
 const MAX_DESCRIPTION = 500;
 
@@ -42,14 +49,15 @@ const MAX_DESCRIPTION = 500;
 })
 export class GoodsStep {
   private readonly fb = inject(FormBuilder);
-  private readonly bookings = inject(BookingService);
+  private readonly bookings = inject(RenterBookingsService);
   private readonly wizard = inject(BookingWizardService);
   private readonly reference = inject(ReferenceDataService);
   private readonly router = inject(Router);
 
   protected readonly i18n = inject(LanguageService);
 
-  readonly bookingId = input.required<string>();
+  /** The unit, not a booking: nothing exists on the server until this submits. */
+  readonly unitId = input.required<string>();
 
   protected readonly draft = this.wizard.draft;
   protected readonly unit = this.wizard.unit;
@@ -59,6 +67,8 @@ export class GoodsStep {
   protected readonly maxLength = MAX_DESCRIPTION;
 
   protected readonly submitting = signal(false);
+  /** The server's own sentence when it refuses — see `fail`. */
+  protected readonly errorText = signal('');
   protected readonly acknowledged = signal(false);
   private readonly prohibited = signal<ReferenceItem[]>([]);
 
@@ -105,25 +115,75 @@ export class GoodsStep {
     this.acknowledged.set((event.target as HTMLInputElement).checked);
   }
 
+  /**
+   * Creates the booking — the one write in the journey before payment.
+   *
+   * The dates, the description and the acknowledgement go together because the
+   * API takes them together, and it answers holding the dates. So this button
+   * is the moment the fifteen minutes start, and the next screen counts down
+   * the deadline the server sent rather than a timer of its own.
+   */
   protected goNext(): void {
     if (!this.canContinue()) {
       this.form.markAllAsTouched();
       return;
     }
 
+    const draft = this.wizard.draft();
+    if (!draft || !this.hasDates()) return;
+
     const description = this.form.getRawValue().goodsDescription ?? '';
     this.wizard.setGoods(description, true);
     this.submitting.set(true);
+    this.errorText.set('');
 
     this.bookings
-      .confirm(this.bookingId(), { goodsDescription: description, prohibitedAck: true })
+      .create({
+        unitId: draft.unitId,
+        startDate: draft.startDate,
+        endDate: draft.endDate,
+        goodsDescription: description,
+        prohibitedAck: true,
+      })
       .subscribe({
-        next: (booking) => {
-          this.wizard.setHold(booking.holdExpiresAt);
+        next: ({ booking, holdExpiresAt }) => {
+          this.wizard.setBookingId(booking.id);
+          this.wizard.setHold(holdExpiresAt ?? undefined);
           this.submitting.set(false);
-          void this.router.navigate(['/booking', this.bookingId(), 'identity']);
+          void this.router.navigate(['/booking', booking.id, 'pay']);
         },
-        error: () => this.submitting.set(false),
+        error: (error: unknown) => {
+          this.submitting.set(false);
+          this.fail(error);
+        },
       });
+  }
+
+  /**
+   * Why the booking was refused, in the visitor's language.
+   *
+   * Every one of these is something they can act on, and the server already
+   * says it in Arabic — including the two that carry the owner's own limits in
+   * `meta`. The important one is `BOOKING_DATES_UNAVAILABLE`: somebody took
+   * the dates between the calendar and this button. That is not a fault, it is
+   * what happens to the best space in the best week, so it sends them back to
+   * the calendar rather than showing an error and leaving them there.
+   */
+  private fail(error: unknown): void {
+    if (!(error instanceof ApiError)) {
+      this.errorText.set(this.i18n.t('booking.createFailed'));
+      return;
+    }
+
+    if (error.code === 'BOOKING_DATES_UNAVAILABLE') {
+      void this.router.navigate(['/booking', 'new', this.unitId()], {
+        queryParams: { taken: 1 },
+      });
+      return;
+    }
+
+    this.errorText.set(
+      error.details?.[0]?.message || error.message || this.i18n.t('booking.createFailed'),
+    );
   }
 }

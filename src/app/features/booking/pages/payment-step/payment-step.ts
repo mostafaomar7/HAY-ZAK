@@ -1,46 +1,44 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { APP } from '@core/constants/app.constants';
-import { PaymentMethod } from '@core/enums/payment.enum';
+import { BookingStatus } from '@core/enums/booking-status.enum';
 import { LanguageService } from '@core/i18n/language.service';
-import type { TranslationKey } from '@core/i18n/translations';
-import type { Booking } from '@core/models/booking.model';
-import { calculatePrice, type PriceBreakdown } from '@core/utils/money.utils';
+import { ApiError } from '@core/models/api-error.model';
+import type { RenterBooking } from '@core/models/renter-booking';
+import { countdown } from '@core/utils/countdown';
 import { UiButton } from '@shared/components/ui-button/ui-button';
+import { UiCountdown } from '@shared/components/ui-countdown/ui-countdown';
+import { UiMoney } from '@shared/components/ui-money/ui-money';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
-import { UiPriceBreakdown } from '@shared/components/ui-price-breakdown/ui-price-breakdown';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
-import { BookingService } from '../../services/booking.service';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 import { BookingWizardService } from '../../services/booking-wizard.service';
 
-interface MethodOption {
-  method: PaymentMethod;
-  labelKey: TranslationKey;
-  hintKey: TranslationKey;
-}
-
 /**
- * Step four — price breakdown and payment (RNT-05, FR-BKG-02, FR-PAY-01).
+ * The last step — hand the browser to the gateway (FR-PAY).
  *
- * The total comes from the server's quote, not from the local helper. The
- * commission rate, who bears it and the VAT base are all administrator settings
- * (FR-ADM-06), so a locally computed figure would silently disagree with the
- * amount actually charged the first time one of them changed. The local figure
- * is used only as an optimistic placeholder while the quote is in flight.
+ * There is no payment-method picker here any more. The API answers with one
+ * `redirectUrl` and the gateway's own hosted page is where the card, the
+ * wallet and mada are chosen; a picker on this screen would be asking a
+ * question whose answer went nowhere.
  *
- * No card fields are collected here. FR-PAY-01 puts the card capture inside the
- * gateway's own hosted flow, which is what keeps this application out of PCI
- * scope — pressing confirm creates a payment intent and hands off.
+ * **The whole browser goes.** Not an iframe and not a fetch: 3-D Secure will
+ * not run inside a frame, and a challenge cannot be carried by XHR. The
+ * `returnUrl` is built from this application's own origin — the API refuses
+ * anything else, because an open return parameter is a phishing tool.
+ *
+ * The countdown is the server's `holdExpiresAt`, re-read on every load. A
+ * fifteen-minute timer started in the browser outlives the hold on a slow
+ * connection, and somebody then pays for dates that are no longer theirs.
  */
 @Component({
   selector: 'app-payment-step',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, UiButton, UiNotice, UiPriceBreakdown, UiSkeleton],
+  imports: [RouterLink, UiButton, UiCountdown, UiMoney, UiNotice, UiSkeleton],
   templateUrl: './payment-step.html',
   styleUrl: './payment-step.scss',
 })
 export class PaymentStep {
-  private readonly bookings = inject(BookingService);
+  private readonly bookings = inject(RenterBookingsService);
   private readonly wizard = inject(BookingWizardService);
   private readonly router = inject(Router);
 
@@ -48,39 +46,28 @@ export class PaymentStep {
 
   readonly bookingId = input.required<string>();
 
-  protected readonly booking = signal<Booking | null>(null);
-  protected readonly quote = signal<PriceBreakdown | null>(null);
+  protected readonly booking = signal<RenterBooking | null>(null);
   protected readonly isLoading = signal(true);
+  protected readonly failed = signal(false);
   protected readonly paying = signal(false);
-  protected readonly method = signal<PaymentMethod>(PaymentMethod.Mada);
+  protected readonly errorText = signal('');
 
-  protected readonly draft = this.wizard.draft;
-  protected readonly unit = this.wizard.unit;
-  protected readonly slaHours = APP.approvalSlaHours;
+  protected readonly holdUntil = signal<string | null>(null);
+  protected readonly holdSeconds = countdown(this.holdUntil);
+  protected readonly holdLapsed = computed(() => !!this.holdUntil() && this.holdSeconds() <= 0);
 
-  protected readonly methods: readonly MethodOption[] = [
-    {
-      method: PaymentMethod.Mada,
-      labelKey: 'booking.methodMada',
-      hintKey: 'booking.methodMadaHint',
-    },
-    {
-      method: PaymentMethod.CreditCard,
-      labelKey: 'booking.methodCard',
-      hintKey: 'booking.methodCardHint',
-    },
-    {
-      method: PaymentMethod.Wallet,
-      labelKey: 'booking.methodWallet',
-      hintKey: 'booking.methodWalletHint',
-    },
-  ];
-
-  /** The server's figure once it arrives; the local one until then. */
-  protected readonly price = computed(
+  /**
+   * Already settled — usually because the visitor came back to this URL after
+   * paying. Offering "ادفع" again would be offering a 409.
+   */
+  protected readonly alreadyPaid = computed(
     () =>
-      this.quote() ??
-      calculatePrice(this.unit()?.dailyPriceHalalas ?? 0, this.draft()?.daysCount ?? 0),
+      this.booking()?.status !== undefined &&
+      this.booking()?.status !== BookingStatus.AwaitingPayment,
+  );
+
+  protected readonly canPay = computed(
+    () => !!this.booking() && !this.alreadyPaid() && !this.holdLapsed() && !this.paying(),
   );
 
   constructor() {
@@ -89,52 +76,63 @@ export class PaymentStep {
 
   protected load(): void {
     this.isLoading.set(true);
+    this.failed.set(false);
 
     this.bookings.byId(this.bookingId()).subscribe({
-      next: (booking) => {
+      next: ({ booking, holdExpiresAt }) => {
         this.booking.set(booking);
-        this.wizard.setHold(booking.holdExpiresAt);
+        // The server's deadline, not a local one. Null once nothing is held.
+        this.holdUntil.set(holdExpiresAt);
+        this.wizard.setHold(holdExpiresAt ?? undefined);
         this.isLoading.set(false);
-
-        this.bookings
-          .quote(booking.unitId, booking.startDate, booking.daysCount)
-          .subscribe({ next: (price) => this.quote.set(price), error: () => undefined });
       },
-      error: () => this.isLoading.set(false),
+      error: () => {
+        this.failed.set(true);
+        this.isLoading.set(false);
+      },
     });
-  }
-
-  protected setMethod(method: PaymentMethod): void {
-    this.method.set(method);
   }
 
   /**
-   * Hands off to the gateway. A hosted checkout returns a URL to send the
-   * browser to; a client-secret integration keeps the renter here and the
-   * gateway's own script takes over. Both end at the result screen.
+   * Starts the payment and leaves.
+   *
+   * Safe to press twice — the API answers with the same charge rather than a
+   * second one — which is what makes "try another card" on the return screen a
+   * retry rather than a second attempt to pay for the same nights.
    */
   protected pay(): void {
-    if (this.paying()) return;
-    this.paying.set(true);
+    if (!this.canPay()) return;
 
-    this.bookings.createPaymentIntent(this.bookingId(), this.method()).subscribe({
-      next: (intent) => {
-        if (intent.redirectUrl) {
-          window.location.assign(intent.redirectUrl);
+    this.paying.set(true);
+    this.errorText.set('');
+
+    this.bookings.pay(this.bookingId()).subscribe({
+      next: (redirectUrl) => {
+        // Deliberately a full navigation. Leaves this application entirely.
+        window.location.assign(redirectUrl);
+      },
+      error: (error: unknown) => {
+        this.paying.set(false);
+
+        if (error instanceof ApiError && error.code === 'BOOKING_HOLD_EXPIRED') {
+          this.holdUntil.set(null);
+          this.load();
           return;
         }
 
-        this.paying.set(false);
-        void this.router.navigate(['/booking', this.bookingId(), 'result'], {
-          queryParams: { status: 'success' },
-        });
-      },
-      error: () => {
-        this.paying.set(false);
-        void this.router.navigate(['/booking', this.bookingId(), 'result'], {
-          queryParams: { status: 'failed' },
-        });
+        this.errorText.set(
+          error instanceof ApiError
+            ? error.details?.[0]?.message || error.message
+            : this.i18n.t('pay.startFailed'),
+        );
       },
     });
+  }
+
+  /** The hold lapsed on screen — the dates are back on the market. */
+  protected startOver(): void {
+    const unitId = this.wizard.draft()?.unitId;
+    this.wizard.clear();
+    void this.router.navigate(unitId ? ['/units', unitId] : ['/units']);
   }
 }

@@ -61,8 +61,7 @@ export class BookingShell {
   protected readonly steps = computed<WizardStep[]>(() => [
     { index: 1, label: this.i18n.t('booking.stepDates') },
     { index: 2, label: this.i18n.t('booking.stepGoods') },
-    { index: 3, label: this.i18n.t('booking.stepIdentity') },
-    { index: 4, label: this.i18n.t('booking.stepPay') },
+    { index: 3, label: this.i18n.t('booking.stepPay') },
   ]);
 
   /** The server's deadline; the countdown recomputes against it every tick. */
@@ -85,8 +84,10 @@ export class BookingShell {
     const bookingId = this.wizard.draft()?.bookingId;
     if (!bookingId) return;
 
-    void this.router.navigate(['/booking', bookingId, 'result'], {
-      queryParams: { status: 'expired' },
+    // Back to the payment screen, which re-reads the booking and says the hold
+    // lapsed from the server's own answer. Announcing it from a local timer
+    // would be this application deciding an outcome it does not own.
+    void this.router.navigate(['/booking', bookingId, 'pay'], {
       replaceUrl: true,
     });
   }

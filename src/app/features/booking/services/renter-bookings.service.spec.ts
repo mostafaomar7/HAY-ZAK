@@ -1,24 +1,32 @@
 import { BookingStatus } from '@core/enums/booking-status.enum';
-import type { Booking } from '@core/models/booking.model';
+import type { RenterBooking } from '@core/models/renter-booking';
 import { canRaiseComplaint, isAddressReleased } from './renter-bookings.service';
 
-function booking(status: BookingStatus): Booking {
+/**
+ * The renter's own view: no commission, no net-to-lessor, and the contact
+ * populated by the server only once the booking is confirmed. The rules below
+ * derive the release from the *status* rather than from `contact`, which is
+ * why this fixture can carry one in every state without breaking them — and
+ * why it should.
+ */
+function booking(status: BookingStatus): RenterBooking {
   return {
     id: 'b',
     referenceNo: 'HZ-1',
-    unitId: 'u',
-    renterId: 'r',
+    status,
+    unit: { id: 'u', title: 'مستودع', addressLine: 'شارع العليا', city: null },
     startDate: '2026-08-12',
     endDate: '2026-09-11',
-    daysCount: 30,
-    dailyPriceSnapshotHalalas: 6000,
-    subtotalHalalas: 180000,
-    commissionHalalas: 9000,
-    vatHalalas: 1350,
-    totalHalalas: 180000,
-    goodsDescription: 'أثاث',
-    prohibitedAck: true,
-    status,
+    nights: 30,
+    price: {
+      dailyPriceHalalas: 6000,
+      subtotalHalalas: 180000,
+      vatHalalas: 0,
+      totalHalalas: 180000,
+    },
+    goodsDescription: 'أثاث منزلي مفكّك وكراتين',
+    contact: { fullName: 'خالد', mobile: '+966500000002' },
+    confirmedAt: null,
     createdAt: '2026-08-12T09:00:00Z',
   };
 }
@@ -57,11 +65,12 @@ describe('renter booking rules', () => {
   /**
    * There is no cancellation on this platform, so there is no
    * `canCancelBooking` to test. "لديّ مشكلة" is what replaced it, and it
-   * belongs on everything except a draft.
+   * belongs on everything except a booking still waiting to be paid for —
+   * which holds nothing yet to complain about.
    */
   describe('canRaiseComplaint', () => {
     for (const status of ALL) {
-      const expected = status !== BookingStatus.Draft;
+      const expected = status !== BookingStatus.AwaitingPayment;
 
       it(`${expected ? 'offers' : 'hides'} the complaint route in ${status}`, () => {
         expect(canRaiseComplaint(booking(status))).toBe(expected);

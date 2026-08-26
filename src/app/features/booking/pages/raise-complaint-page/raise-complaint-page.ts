@@ -11,8 +11,9 @@ import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiErrorNotice } from '@shared/components/ui-error-notice/ui-error-notice';
 import { UiField } from '@shared/components/ui-field/ui-field';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
-import type { Booking } from '@core/models/booking.model';
 import { BookingService } from '../../services/booking.service';
+import type { RenterBooking } from '@core/models/renter-booking';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 
 /**
  * "لديّ مشكلة" — the one route out of a problem with a booking.
@@ -31,7 +32,7 @@ import { BookingService } from '../../services/booking.service';
 @Component({
   selector: 'app-raise-complaint-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [BookingService],
+  providers: [BookingService, RenterBookingsService],
   imports: [ReactiveFormsModule, RouterLink, UiButton, UiErrorNotice, UiField, UiNotice],
   templateUrl: './raise-complaint-page.html',
   styleUrl: './raise-complaint-page.scss',
@@ -42,6 +43,7 @@ export class RaiseComplaintPage {
 
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(BookingService);
+  private readonly renterBookings = inject(RenterBookingsService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
 
@@ -53,7 +55,7 @@ export class RaiseComplaintPage {
    * that silently shows nothing would leave the writer unsure which booking
    * they are reporting.
    */
-  protected readonly booking = signal<Booking | null>(null);
+  protected readonly booking = signal<RenterBooking | null>(null);
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<ApiError | null>(null);
@@ -74,8 +76,8 @@ export class RaiseComplaintPage {
     queueMicrotask(() => {
       // Silent on failure: the form still works without the header, and a
       // renter who came here to report a problem should not meet another one.
-      this.service.byId(this.bookingId()).subscribe({
-        next: (booking) => this.booking.set(booking),
+      this.renterBookings.byId(this.bookingId()).subscribe({
+        next: ({ booking }) => this.booking.set(booking),
         error: () => undefined,
       });
     });

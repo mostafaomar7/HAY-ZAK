@@ -59,7 +59,7 @@
     <div class="fact">
       <dt class="fact__label">{{ i18n.t('booking.duration') }}</dt>
       <dd class="fact__value num">
-        {{ i18n.t('booking.days', { count: draft()?.daysCount ?? 0 }) }}
+        {{ i18n.t('booking.days', { count: draft()?.nights ?? 0 }) }}
       </dd>
     </div>
   </dl>

@@ -1,3 +1,6 @@
+import { BookingStatus } from '../enums/booking-status.enum';
+import type { Booking } from '../models/booking.model';
+import type { WireBooking } from '../models/renter-booking';
 import type { WirePublicUnit } from '../models/public-unit';
 import type { WireAvailabilityBlock, WireUnit, WireUnitImage } from '../models/unit-wire';
 import { clockToMinutes } from '../models/unit-wire';
@@ -178,4 +181,57 @@ function displace(unit: Unit): { latitude: number; longitude: number } {
 
 function round6(value: number): number {
   return Math.round(value * 1e6) / 1e6;
+}
+
+/**
+ * One booking as `/renter/bookings` and `/lessor/bookings` send it.
+ *
+ * `forLessor` decides whether the commission travels. That is the whole
+ * difference between the two endpoints, and putting it behind a flag here
+ * means a renter screen built against the mock cannot read a number the real
+ * API would never have given it.
+ */
+export function toWireBooking(
+  booking: Booking,
+  options: { forLessor?: boolean } = {},
+): WireBooking {
+  const released = [
+    BookingStatus.Confirmed,
+    BookingStatus.Active,
+    BookingStatus.Completed,
+  ].includes(booking.status);
+
+  return {
+    id: booking.id,
+    referenceNo: booking.referenceNo,
+    status: booking.status,
+    unit: {
+      id: booking.unitId,
+      title: booking.unit?.title ?? '',
+      // FR-UNT-11 — released by confirmation and by nothing earlier.
+      addressLine: released ? (booking.unit?.addressLine ?? null) : null,
+      city: booking.unit?.city ?? null,
+    },
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    // The wire's name for a count of nights.
+    daysCount: booking.daysCount,
+    price: {
+      dailyPriceHalalas: booking.dailyPriceSnapshotHalalas,
+      subtotalHalalas: booking.subtotalHalalas,
+      vatHalalas: booking.vatHalalas,
+      totalHalalas: booking.totalHalalas,
+      ...(options.forLessor
+        ? {
+            commissionRateBps: 1500,
+            commissionHalalas: booking.commissionHalalas,
+            netToLessorHalalas: booking.netToLessorHalalas ?? 0,
+          }
+        : {}),
+    },
+    goodsDescription: booking.goodsDescription,
+    contact: released ? (booking.counterpartyContact ?? null) : null,
+    confirmedAt: released ? (booking.approvedAt ?? booking.createdAt) : null,
+    createdAt: booking.createdAt,
+  };
 }

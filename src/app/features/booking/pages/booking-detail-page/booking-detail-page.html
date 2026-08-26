@@ -75,13 +75,13 @@
             <div class="spec">
               <dt class="spec__label">{{ i18n.t('booking.duration') }}</dt>
               <dd class="spec__value num">
-                {{ i18n.t('booking.days', { count: booking()!.daysCount }) }}
+                {{ i18n.t('booking.days', { count: booking()!.nights }) }}
               </dd>
             </div>
             <div class="spec">
               <dt class="spec__label">{{ i18n.t('booking.dailyPriceHalalas') }}</dt>
               <dd class="spec__value num">
-                <span dir="ltr">{{ booking()!.dailyPriceSnapshotHalalas }}</span>
+                <span dir="ltr">{{ booking()!.price.dailyPriceHalalas }}</span>
                 {{ i18n.t('common.currency') }}
               </dd>
             </div>
@@ -89,7 +89,7 @@
 
           <!-- Contact details for the other party appear only once the state
                releases them (SRS §5) — the API omits them until then. -->
-          @if (booking()!.counterpartyContact; as contact) {
+          @if (booking()!.contact; as contact) {
             <p class="identity">
               <span class="identity__label">{{ i18n.t('bookingDetail.identity') }}</span>
               <span class="identity__value">{{ contact.fullName }}</span>
@@ -117,15 +117,10 @@
             <div class="address">
               <span class="address__label">{{ i18n.t('bookingDetail.exactAddress') }}</span>
               <span class="address__value">{{ booking()!.unit!.addressLine }}</span>
-              @if (booking()!.unit?.postalCode) {
-                <span class="address__sub num">
-                  {{ i18n.t('bookingDetail.postalCode') }}
-                  <span dir="ltr">{{ booking()!.unit!.postalCode }}</span>
-                </span>
-              }
-              @if (visitSummary()) {
-                <span class="address__sub num" dir="auto">{{ visitSummary() }}</span>
-              }
+              <!-- No postal code and no visiting hours on a booking: the API
+                   sends the address line and nothing more, and re-fetching the
+                   listing would show today's hours as if they were the agreed
+                   ones. -->
             </div>
             <app-ui-location-map precise [areaLabel]="booking()!.unit?.title ?? ''" />
           } @else {
@@ -140,7 +135,10 @@
           <h2 class="panel__title">{{ i18n.t('bookingDetail.goodsRecorded') }}</h2>
           <p class="prose">{{ booking()!.goodsDescription }}</p>
 
-          @if (booking()!.prohibitedAck) {
+          <!-- Always: the acknowledgement is required to create a booking at
+               all, so a booking that exists was acknowledged. The API does not
+               echo the flag back, and a missing field is not a "no". -->
+          @if (true) {
             <p class="ack">
               <span class="ack__mark" aria-hidden="true">✓</span>
               {{ i18n.t('booking.ackDone') }}

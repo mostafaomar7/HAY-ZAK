@@ -1,22 +1,19 @@
 <article class="card">
-  <app-ui-thumbnail
-    class="card__thumb"
-    [src]="booking().unit?.images?.[0]?.url"
-    [alt]="booking().unit?.title ?? ''"
-  />
+  <!-- No image: a booking's `unit` carries an id, a title, the city and —
+       once confirmed — the address. Fetching the listing to decorate a row
+       would be a request per card. -->
+  <app-ui-thumbnail class="card__thumb" [alt]="booking().unit.title" />
 
   <div class="card__body">
     <div class="card__main">
       <app-ui-badge [tone]="tone()">{{ status() }}</app-ui-badge>
 
-      <h3 class="card__title">{{ booking().unit?.title }}</h3>
+      <h3 class="card__title">{{ booking().unit.title }}</h3>
 
-      <p class="card__place num">
-        {{ i18n.pick(booking().unit?.district) }}
-        @if (booking().unit?.city) {
-          ، {{ i18n.pick(booking().unit?.city) }}
-        }
-      </p>
+      <!-- City only. A booking does not carry the district. -->
+      @if (booking().unit.city; as city) {
+        <p class="card__place">{{ i18n.pick(city) }}</p>
+      }
 
       @if (past() && note()) {
         <p class="card__note">{{ note() }}</p>
@@ -37,7 +34,7 @@
 
     <div class="card__side">
       <p class="card__amount">
-        <app-ui-money strong [halalas]="booking().totalHalalas" />
+        <app-ui-money strong [halalas]="booking().price.totalHalalas" />
       </p>
 
       @if (!past()) {
@@ -45,8 +42,8 @@
         <p class="card__hint num">
           {{
             i18n.t('bookings.dailyAndDays', {
-              price: booking().dailyPriceSnapshotHalalas,
-              days: booking().daysCount,
+              price: booking().price.dailyPriceHalalas,
+              days: booking().nights,
             })
           }}
         </p>
@@ -54,11 +51,10 @@
         <p class="card__hint num" dir="ltr">{{ booking().referenceNo }}</p>
       }
 
-      @if (holdSeconds() > 0) {
-        <p class="card__hold">
-          {{ i18n.t('bookings.holdRemaining') }}
-          <span class="card__holdClock num" dir="ltr">{{ holdLabel() }}</span>
-        </p>
+      <!-- No clock here: the list response carries no holdExpiresAt, and a
+           card that invented one would be showing a guessed deadline. -->
+      @if (awaitingPayment()) {
+        <p class="card__hold">{{ i18n.t('bookings.awaitingPaymentHint') }}</p>
       }
 
       <div class="card__actions">

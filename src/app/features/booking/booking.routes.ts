@@ -13,46 +13,39 @@ import { permissionGuard } from '@core/guards/permission.guard';
  * not the same as being allowed to book: SRS §5 gives `CreateBooking` to the
  * renter alone, and FR-AUTH-12 keeps one account to one role in Phase 1.
  *
- * The result screen sits outside the wizard shell — it is an outcome, not a
- * fifth step, and showing the four-step header above it would suggest there is
- * more to do. It is declared first so its literal `result` segment is matched
- * before the shell's parameterised children are tried.
+ * The outcome screen is **not** here. The gateway sends the browser to
+ * `/bookings/return` on this origin, which is a fixed address the API
+ * validates, so it lives at the top level rather than under this feature's
+ * prefix — see `payment-return.routes.ts`. It is an outcome rather than a
+ * fourth step, and showing the step header above it would suggest there is
+ * more to do.
  */
 export const BOOKING_ROUTES: Routes = [
-  {
-    path: ':bookingId/result',
-    canActivate: [permissionGuard([Permission.CreateBooking])],
-    title: 'نتيجة الدفع',
-    loadComponent: () =>
-      import('./pages/payment-result-page/payment-result-page').then((m) => m.PaymentResultPage),
-  },
-
   {
     path: '',
     canActivate: [permissionGuard([Permission.CreateBooking])],
     loadComponent: () => import('./pages/booking-shell/booking-shell').then((m) => m.BookingShell),
     children: [
       {
-        // `new/:unitId` rather than `:unitId/dates`: the later steps key off the
-        // booking id, and one parameter name meaning two different things would
-        // be a trap for the next person reading this file.
-        path: 'new/:unitId',
-        data: { step: 'dates' },
-        title: 'اختيار التواريخ',
-        loadComponent: () => import('./pages/dates-step/dates-step').then((m) => m.DatesStep),
-      },
-      {
-        path: ':bookingId/goods',
+        // Declared before `new/:unitId` so the longer path is tried first.
+        //
+        // Still keyed by the unit, not by a booking: nothing exists on the
+        // server until this step submits. The create call takes the dates, the
+        // goods and the acknowledgement together and comes back holding the
+        // dates, so there is no id to key off before it.
+        path: 'new/:unitId/goods',
         data: { step: 'goods' },
         title: 'وصف البضاعة',
         loadComponent: () => import('./pages/goods-step/goods-step').then((m) => m.GoodsStep),
       },
       {
-        path: ':bookingId/identity',
-        data: { step: 'identity' },
-        title: 'توثيق الهوية',
-        loadComponent: () =>
-          import('./pages/identity-step/identity-step').then((m) => m.IdentityStep),
+        // `new/:unitId` rather than `:unitId/dates`: the pay step keys off the
+        // booking id, and one parameter name meaning two different things
+        // would be a trap for the next person reading this file.
+        path: 'new/:unitId',
+        data: { step: 'dates' },
+        title: 'اختيار التواريخ',
+        loadComponent: () => import('./pages/dates-step/dates-step').then((m) => m.DatesStep),
       },
       {
         path: ':bookingId/pay',

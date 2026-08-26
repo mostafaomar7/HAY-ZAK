@@ -9,25 +9,25 @@
     </dd>
   </div>
 
-  <div class="price__row">
-    <dt class="price__term">
-      <span class="price__label">{{
-        i18n.t('details.commission', { rate: commissionRate() })
-      }}</span>
-      @if (commissionOnLessor()) {
-        <span class="price__sub">{{ i18n.t('details.commissionFromLessor') }}</span>
-      }
-    </dt>
-    <dd class="price__value">
-      @if (commissionOnLessor()) {
-        <span class="price__dash" [attr.aria-label]="i18n.t('details.commissionFromLessor')">
-          {{ i18n.t('common.notAvailable') }}
-        </span>
-      } @else {
-        <app-ui-money [halalas]="price().commissionHalalas" [showCurrency]="false" />
-      }
-    </dd>
-  </div>
+  <!-- Omitted entirely when the caller has no commission figure. A renter is
+       not sent one, because the commission comes out of the lessor's side and
+       not out of their total; a row saying "عمولة المنصة" on their receipt
+       would be describing somebody else's arithmetic. -->
+  @if (price().commissionHalalas !== undefined) {
+    <div class="price__row">
+      <dt class="price__term">
+        <span class="price__label">{{
+          i18n.t('details.commission', { rate: commissionRate() })
+        }}</span>
+        @if (commissionOnLessor()) {
+          <span class="price__sub">{{ i18n.t('details.commissionFromLessor') }}</span>
+        }
+      </dt>
+      <dd class="price__value">
+        <app-ui-money [halalas]="price().commissionHalalas!" [showCurrency]="false" />
+      </dd>
+    </div>
+  }
 
   @if (price().vatHalalas > 0 && !commissionOnLessor()) {
     <div class="price__row">

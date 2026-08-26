@@ -15,7 +15,7 @@ import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { APP } from '@core/constants/app.constants';
 import { BOOKING_STATUS_DISPLAY } from '@core/constants/status-display';
 import { BookingStatus } from '@core/enums/booking-status.enum';
-import type { Booking } from '@core/models/booking.model';
+import type { RenterBooking } from '@core/models/renter-booking';
 import { ApiService } from '@core/services/api.service';
 import { saveBlob } from '@core/utils/file.utils';
 import {
@@ -67,7 +67,7 @@ export class RequestDetailPage {
   private readonly service = inject(LessorRequestsService);
   private readonly api = inject(ApiService);
 
-  protected readonly booking = signal<Booking | null>(null);
+  protected readonly booking = signal<RenterBooking | null>(null);
   protected readonly failed = signal(false);
   protected readonly isLoading = signal(true);
 
@@ -84,19 +84,24 @@ export class RequestDetailPage {
   /** The contract is generated on approval (FR-BKG-10). */
   protected readonly contractAvailable = this.contactVisible;
 
-  protected readonly coverImage = computed(() => this.booking()?.unit?.images?.[0]?.url);
+  /** A booking carries no image; the panel shows a placeholder. */
+  protected readonly coverImage = computed(() => undefined);
 
   protected readonly dateFormat = APP.dateDisplayFormat;
 
-  protected readonly netToLessorHalalas = computed(() => {
-    const b = this.booking();
-    if (!b) return 0;
-    return b.netToLessorHalalas ?? b.subtotalHalalas - b.commissionHalalas;
-  });
-
-  protected readonly telHref = computed(
-    () => `tel:${this.booking()?.counterpartyContact?.mobile ?? ''}`,
+  /**
+   * The server's figure, never a subtraction of our own.
+   *
+   * It used to fall back to `subtotal - commission`, which is the same
+   * arithmetic the server does until the day it is not — an exception rate for
+   * one lessor, a rounding rule, a fee. `null` when it did not arrive, and the
+   * template says so rather than printing a number this screen invented.
+   */
+  protected readonly netToLessorHalalas = computed(
+    () => this.booking()?.commission?.netToLessorHalalas ?? null,
   );
+
+  protected readonly telHref = computed(() => `tel:${this.booking()?.contact?.mobile ?? ''}`);
 
   /**
    * SRS §6 happy path, marked against the booking's actual state. A terminal

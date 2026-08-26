@@ -1,96 +1,77 @@
 @if (isLoading()) {
   <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+} @else if (failed() || !booking()) {
+  <app-ui-notice tone="danger">{{ i18n.t('pay.loadFailed') }}</app-ui-notice>
+  <button appUiButton variant="primary" type="button" (click)="load()">
+    {{ i18n.t('common.retry') }}
+  </button>
 } @else {
-  <div class="step">
-    <section class="step__main">
-      <fieldset class="panel">
-        <legend class="panel__title">{{ i18n.t('booking.paymentMethod') }}</legend>
+  <section class="pay">
+    <header class="pay__head">
+      <h1 class="pay__title">{{ i18n.t('booking.stepPay') }}</h1>
+      <p class="pay__ref num" dir="ltr">{{ booking()!.referenceNo }}</p>
+    </header>
 
-        <ul class="methods">
-          @for (option of methods; track option.method) {
-            <li>
-              <label class="method" [class.method--on]="method() === option.method">
-                <input
-                  class="method__input sr-only"
-                  type="radio"
-                  name="paymentMethod"
-                  [value]="option.method"
-                  [checked]="method() === option.method"
-                  (change)="setMethod(option.method)"
-                />
-                <span class="method__dot" aria-hidden="true"></span>
-                <span class="method__text">
-                  <span class="method__label">{{ i18n.t(option.labelKey) }}</span>
-                  <span class="method__hint">{{ i18n.t(option.hintKey) }}</span>
-                </span>
-              </label>
-            </li>
-          }
-        </ul>
-      </fieldset>
+    <!-- The server's deadline, re-read on every load. A timer started here
+         outlives the hold on a slow connection, and somebody then pays for
+         dates that stopped being theirs. -->
+    @if (holdUntil() && !holdLapsed()) {
+      <p class="pay__hold">
+        {{ i18n.t('pay.holdLabel') }}
+        <app-ui-countdown [until]="holdUntil()" tone="danger" />
+      </p>
+    }
 
-      <section class="panel">
-        <h2 class="panel__title">{{ i18n.t('booking.summaryBeforeConfirm') }}</h2>
-
-        <dl class="recap">
-          <div class="recap__row">
-            <dt class="recap__label">{{ i18n.t('booking.space') }}</dt>
-            <dd class="recap__value">{{ unit()?.title ?? booking()?.unit?.title }}</dd>
-          </div>
-
-          <div class="recap__row">
-            <dt class="recap__label">{{ i18n.t('booking.period') }}</dt>
-            <dd class="recap__value num">{{ booking()?.startDate }} — {{ booking()?.endDate }}</dd>
-          </div>
-
-          <div class="recap__row">
-            <dt class="recap__label">{{ i18n.t('booking.duration') }}</dt>
-            <dd class="recap__value num">
-              {{ i18n.t('booking.days', { count: booking()?.daysCount ?? 0 }) }}
-            </dd>
-          </div>
-
-          <div class="recap__row">
-            <dt class="recap__label">{{ i18n.t('booking.goodsRecorded') }}</dt>
-            <dd class="recap__value recap__value--prose">{{ booking()?.goodsDescription }}</dd>
-          </div>
-        </dl>
-
-        <p class="ackDone">
-          <span class="ackDone__mark" aria-hidden="true">✓</span>
-          {{ i18n.t('booking.ackDone') }}
-        </p>
-      </section>
-    </section>
-
-    <aside class="step__side">
-      <div class="pay">
-        <h2 class="pay__title">{{ i18n.t('booking.priceBreakdown') }}</h2>
-
-        <app-ui-price-breakdown [price]="price()" [note]="i18n.t('details.allInclusive')" />
-
-        <button
-          appUiButton
-          variant="primary"
-          type="button"
-          fullWidth
-          [disabled]="paying()"
-          (click)="pay()"
-        >
-          {{ i18n.t('booking.confirmPayment') }}
-        </button>
-
-        <app-ui-notice tone="info">{{ i18n.t('booking.payNote') }}</app-ui-notice>
-
-        <a
-          appUiButton
-          variant="ghost"
-          class="pay__back"
-          [routerLink]="['/booking', bookingId(), 'identity']"
-        >
-          {{ i18n.t('booking.backToGoods') }}
-        </a>
+    <dl class="facts">
+      <div class="fact">
+        <dt>{{ i18n.t('bookings.space') }}</dt>
+        <dd>{{ booking()!.unit.title }}</dd>
       </div>
-    </aside>
-  </div>
+      <div class="fact">
+        <dt>{{ i18n.t('bookings.dates') }}</dt>
+        <dd class="num" dir="ltr">{{ booking()!.startDate }} → {{ booking()!.endDate }}</dd>
+      </div>
+      <div class="fact">
+        <!-- Nights, not days: 1 → 8 is seven of them, and the dates are on
+             screen right next to this number. -->
+        <dt>{{ i18n.t('bookings.nightsLabel') }}</dt>
+        <dd class="num">{{ i18n.t('booking.nights', { count: booking()!.nights }) }}</dd>
+      </div>
+      <div class="fact fact--total">
+        <dt>{{ i18n.t('pay.total') }}</dt>
+        <dd><app-ui-money [halalas]="booking()!.price.totalHalalas" strong /></dd>
+      </div>
+    </dl>
+
+    @if (alreadyPaid()) {
+      <app-ui-notice tone="success">{{ i18n.t('pay.alreadyPaid') }}</app-ui-notice>
+      <a appUiButton variant="primary" [routerLink]="['/my-bookings', booking()!.id]">
+        {{ i18n.t('pay.viewBooking') }}
+      </a>
+    } @else if (holdLapsed()) {
+      <app-ui-notice tone="warning">{{ i18n.t('pay.holdLapsedHint') }}</app-ui-notice>
+      <button appUiButton variant="primary" type="button" (click)="startOver()">
+        {{ i18n.t('pay.pickDatesAgain') }}
+      </button>
+    } @else {
+      @if (errorText()) {
+        <app-ui-notice tone="danger">{{ errorText() }}</app-ui-notice>
+      }
+
+      <!-- One button, no method picker: the gateway's own page is where the
+           card or the wallet is chosen, so a choice here would go nowhere. -->
+      <button
+        appUiButton
+        variant="primary"
+        type="button"
+        fullWidth
+        [disabled]="!canPay()"
+        (click)="pay()"
+      >
+        {{ paying() ? i18n.t('pay.opening') : i18n.t('pay.payNow') }}
+      </button>
+
+      <p class="pay__note">{{ i18n.t('pay.leavingNote') }}</p>
+    }
+  </section>
 }

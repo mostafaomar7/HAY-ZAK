@@ -4,9 +4,8 @@ import { APP } from '@core/constants/app.constants';
 import { BOOKING_STATUS_DISPLAY, statusText } from '@core/constants/status-display';
 import { BookingStatus } from '@core/enums/booking-status.enum';
 import { LanguageService } from '@core/i18n/language.service';
-import type { Booking, BookingStatusHistoryEntry } from '@core/models/booking.model';
-import { calculatePrice } from '@core/utils/money.utils';
-import { summariseSchedule } from '@core/utils/schedule.utils';
+import type { BookingStatusHistoryEntry } from '@core/models/booking.model';
+import type { PriceBreakdown } from '@core/utils/money.utils';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -17,6 +16,8 @@ import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import type { StepperStep } from '@shared/components/ui-stepper/ui-stepper';
 import { UiStepper } from '@shared/components/ui-stepper/ui-stepper';
 import { BookingService } from '../../services/booking.service';
+import type { RenterBooking } from '@core/models/renter-booking';
+import { RenterBookingsService } from '../../services/renter-bookings.service';
 import { canRaiseComplaint, isAddressReleased } from '../../services/renter-bookings.service';
 
 /**
@@ -46,6 +47,7 @@ const STAGES: { key: string; reached: BookingStatus }[] = [
 @Component({
   selector: 'app-booking-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RenterBookingsService],
   imports: [
     RouterLink,
     UiBadge,
@@ -62,12 +64,13 @@ const STAGES: { key: string; reached: BookingStatus }[] = [
 })
 export class BookingDetailPage {
   private readonly bookings = inject(BookingService);
+  private readonly renterBookings = inject(RenterBookingsService);
 
   protected readonly i18n = inject(LanguageService);
 
   readonly bookingId = input.required<string>();
 
-  protected readonly booking = signal<Booking | null>(null);
+  protected readonly booking = signal<RenterBooking | null>(null);
   protected readonly history = signal<BookingStatusHistoryEntry[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
@@ -84,11 +87,15 @@ export class BookingDetailPage {
     return booking ? BOOKING_STATUS_DISPLAY[booking.status].tone : 'neutral';
   });
 
-  /** The unit's visiting hours, shown alongside the released address. */
-  protected readonly visitSummary = computed(() => {
-    const windows = this.booking()?.unit?.visitSchedule ?? [];
-    return summariseSchedule(windows, this.i18n.language() === 'en' ? 'en-GB' : 'ar-SA');
-  });
+  /**
+   * No visiting hours here.
+   *
+   * A booking's `unit` carries an id, a title, the city and — once confirmed —
+   * the address. It does not carry the opening times, and this screen will not
+   * fetch the public listing to fill the gap: the lessor may have changed them
+   * since, and a confirmed booking showing today's hours as if they were the
+   * agreed ones is worse than showing none. The details page has them.
+   */
 
   protected readonly addressReleased = computed(() => {
     const booking = this.booking();
@@ -109,17 +116,21 @@ export class BookingDetailPage {
     );
   });
 
-  protected readonly price = computed(() => {
+  /**
+   * What the renter was charged, and nothing else.
+   *
+   * No commission and no net-to-lessor: the API does not send them on a
+   * renter's booking, and the breakdown omits the row rather than printing a
+   * zero for a number that was never theirs to see.
+   */
+  protected readonly price = computed<PriceBreakdown>(() => {
     const booking = this.booking();
-    if (!booking) return calculatePrice(0, 0);
     return {
-      dailyPriceHalalas: booking.dailyPriceSnapshotHalalas,
-      days: booking.daysCount,
-      subtotalHalalas: booking.subtotalHalalas,
-      commissionHalalas: booking.commissionHalalas,
-      vatHalalas: booking.vatHalalas,
-      totalHalalas: booking.totalHalalas,
-      netToLessorHalalas: booking.netToLessorHalalas ?? 0,
+      dailyPriceHalalas: booking?.price.dailyPriceHalalas ?? 0,
+      days: booking?.nights ?? 0,
+      subtotalHalalas: booking?.price.subtotalHalalas ?? 0,
+      vatHalalas: booking?.price.vatHalalas ?? 0,
+      totalHalalas: booking?.price.totalHalalas ?? 0,
     };
   });
 
@@ -161,8 +172,8 @@ export class BookingDetailPage {
     this.isLoading.set(true);
     this.failed.set(false);
 
-    this.bookings.byId(this.bookingId()).subscribe({
-      next: (booking) => {
+    this.renterBookings.byId(this.bookingId()).subscribe({
+      next: ({ booking }) => {
         this.booking.set(booking);
         this.isLoading.set(false);
       },

@@ -171,7 +171,7 @@ describe('renter routing (smoke)', () => {
       const el = fixture.nativeElement as HTMLElement;
 
       expect(el.querySelector('app-dates-step')).not.toBeNull();
-      expect(el.querySelector('app-ui-wizard-steps')).withContext('four steps').not.toBeNull();
+      expect(el.querySelector('app-ui-wizard-steps')).withContext('three steps').not.toBeNull();
       expect(el.querySelector('app-ui-range-calendar')).withContext('calendar').not.toBeNull();
     });
 

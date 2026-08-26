@@ -2,28 +2,35 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { BookingStatus } from '@core/enums/booking-status.enum';
-import type { Booking } from '@core/models/booking.model';
+import type { RenterBooking } from '@core/models/renter-booking';
 import { RequestCard } from './request-card';
 
-function makeBooking(status: BookingStatus, renterName?: string): Booking {
+function makeBooking(status: BookingStatus, renterName?: string): RenterBooking {
   return {
     id: 'bk-1',
     referenceNo: 'HZ-2026-01078',
-    unitId: 'un-1',
-    unit: { id: 'un-1', title: 'قراج مغلق — الملقا', images: [], visitSchedule: [] },
-    renterId: 'r-1',
+    status,
+    unit: {
+      id: 'un-1',
+      title: 'قراج مغلق — الملقا',
+      addressLine: null,
+      city: { id: 'riyadh', nameAr: 'الرياض', nameEn: 'Riyadh' },
+    },
     startDate: '2026-08-12',
     endDate: '2026-09-11',
-    daysCount: 30,
-    dailyPriceSnapshotHalalas: 6000,
-    subtotalHalalas: 180000,
-    commissionHalalas: 18000,
-    vatHalalas: 2700,
-    totalHalalas: 180000,
+    nights: 30,
+    price: {
+      dailyPriceHalalas: 6000,
+      subtotalHalalas: 180000,
+      vatHalalas: 0,
+      totalHalalas: 180000,
+    },
+    // The lessor's half: this is `/lessor/bookings`, which is the only place
+    // these two figures exist.
+    commission: { rateBps: 1000, commissionHalalas: 18000, netToLessorHalalas: 162000 },
     goodsDescription: 'كراتين أثاث منزلي.',
-    prohibitedAck: true,
-    status,
-    counterpartyContact: renterName ? { fullName: renterName, mobile: '0555555555' } : undefined,
+    contact: renterName ? { fullName: renterName, mobile: '0555555555' } : null,
+    confirmedAt: null,
     createdAt: '2026-08-10T09:00:00Z',
   };
 }
@@ -31,7 +38,7 @@ function makeBooking(status: BookingStatus, renterName?: string): Booking {
 describe('RequestCard', () => {
   let fixture: ComponentFixture<RequestCard>;
 
-  function render(booking: Booking) {
+  function render(booking: RenterBooking) {
     fixture = TestBed.createComponent(RequestCard);
     fixture.componentRef.setInput('booking', booking);
     fixture.detectChanges();

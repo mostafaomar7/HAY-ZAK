@@ -38,7 +38,7 @@
           variant="primary"
           type="button"
           fullWidth
-          [disabled]="!canContinue() || submitting()"
+          [disabled]="!canContinue()"
           (click)="canContinue() ? goNext() : notifyMissing()"
         >
           {{ i18n.t('booking.continueToGoods') }}
