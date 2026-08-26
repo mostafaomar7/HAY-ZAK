@@ -473,26 +473,25 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // Both inboxes are served from the same route; the renter fixtures win when a
   // renter session is active, which in development is the seeded one.
   if (/^\/me\/notifications\/[^/]+\/read$/.test(path) && method === 'PUT') {
-    return ok({ read: true, unreadCount: 0 });
+    // One fewer, not zero. A screen that ignored the response and decremented
+    // its own number would look right against a mock that always said zero,
+    // and be wrong against the server on the second notification read.
+    return ok({ read: true, unreadCount: Math.max(0, unreadFixtureCount() - 1) });
   }
   if (path === API_ENDPOINTS.me.markAllNotificationsRead && method === 'PUT') {
-    return ok({ read: 0, unreadCount: 0 });
+    return ok({ read: unreadFixtureCount(), unreadCount: 0 });
   }
   // Rows and the badge in one response, as the server sends them — a mock that
   // answered with a bare array would let the badge be wired to the wrong number
   // and still look right here.
   if (path === API_ENDPOINTS.me.notifications) {
-    const items = [...MOCK_RENTER_NOTIFICATIONS, ...MOCK_NOTIFICATIONS].map((n) => ({
-      id: n.id,
-      type: n.type,
-      title: n.title,
-      body: n.body,
-      reference: n.targetUrl ? referenceFor(n.targetUrl) : null,
-      readAt: n.isRead ? n.createdAt : null,
-      createdAt: n.createdAt,
-    }));
+    const all = notificationRows();
+    // `unreadCount` is of the whole inbox, never of the filtered page — the
+    // bell reads it while showing ten unread rows out of ninety.
+    const unreadCount = all.filter((n) => !n.readAt).length;
+    const unreadOnly = new URLSearchParams(query).get('unreadOnly') === 'true';
 
-    return ok({ items, unreadCount: items.filter((n) => !n.readAt).length });
+    return ok({ items: unreadOnly ? all.filter((n) => !n.readAt) : all, unreadCount });
   }
 
   // ── Units ──────────────────────────────────────────────────────────────
@@ -604,11 +603,36 @@ function filterUnits(query: string) {
  * thirty rows to say the same thing twice.
  */
 function referenceFor(targetUrl: string): { type: string; id: string } | null {
+  const complaint = /\/my-complaints\/([^/]+)/.exec(targetUrl);
+  if (complaint) return { type: 'complaint', id: complaint[1] };
+
+  // Before `/units/`, which would otherwise match `/lessor/units/...` first.
   const unit = /\/units\/([^/]+)/.exec(targetUrl);
   if (unit) return { type: 'unit', id: unit[1] };
 
   const booking = /\/(?:my-bookings|booking|requests)\/([^/]+)/.exec(targetUrl);
-  return booking ? { type: 'booking', id: booking[1] } : null;
+  if (booking) return { type: 'booking', id: booking[1] };
+
+  // A payout has no page of its own; the reference points at the money and the
+  // client decides that means the earnings screen.
+  return targetUrl.includes('earnings') ? { type: 'payout', id: 'pay-1' } : null;
+}
+
+/** The inbox as the wire sends it — rows, not the fixture's own shape. */
+function notificationRows() {
+  return [...MOCK_RENTER_NOTIFICATIONS, ...MOCK_NOTIFICATIONS].map((n) => ({
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    body: n.body,
+    reference: n.targetUrl ? referenceFor(n.targetUrl) : null,
+    readAt: n.isRead ? n.createdAt : null,
+    createdAt: n.createdAt,
+  }));
+}
+
+function unreadFixtureCount(): number {
+  return notificationRows().filter((n) => !n.readAt).length;
 }
 
 /** An unknown id falls back to the detailed fixture, so no route dead-ends. */

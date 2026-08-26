@@ -76,15 +76,30 @@
 
             <div class="dropdown__body">
               @for (item of notifications(); track item.id) {
-                <a
-                  class="notif"
-                  [class.notif--unread]="!item.isRead"
-                  [routerLink]="item.targetUrl ?? '/my-bookings'"
-                  (click)="closeNotifications()"
-                >
-                  <span class="notif__dot" aria-hidden="true"></span>
-                  <span class="notif__title">{{ item.title }}</span>
-                </a>
+                <!-- A link only when the notification is about something. It
+                     used to fall back to /my-bookings, which sent a lessor
+                     whose listing was approved to a screen they do not have. -->
+                @if (item.targetUrl) {
+                  <a
+                    class="notif"
+                    [class.notif--unread]="!item.isRead"
+                    [routerLink]="item.targetUrl"
+                    (click)="openNotification(item)"
+                  >
+                    <span class="notif__dot" aria-hidden="true"></span>
+                    <span class="notif__title">{{ item.title }}</span>
+                  </a>
+                } @else {
+                  <button
+                    type="button"
+                    class="notif"
+                    [class.notif--unread]="!item.isRead"
+                    (click)="openNotification(item)"
+                  >
+                    <span class="notif__dot" aria-hidden="true"></span>
+                    <span class="notif__title">{{ item.title }}</span>
+                  </button>
+                }
               } @empty {
                 <p class="dropdown__empty">{{ i18n.t('topbar.noNotifications') }}</p>
               }

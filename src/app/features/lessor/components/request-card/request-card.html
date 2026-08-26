@@ -15,9 +15,9 @@
   <app-ui-badge [tone]="status().tone" [dashed]="isDraft()">{{ status().ar }}</app-ui-badge>
 
   <div class="req__head">
-    <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="sm" />
+    <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit.title" size="sm" />
     <div class="req__titles">
-      <h3 class="req__title">{{ b.unit?.title }}</h3>
+      <h3 class="req__title">{{ b.unit.title }}</h3>
       @if (isDraft()) {
         <p class="req__meta">لم يستكمل المستأجر الطلب حتى الآن.</p>
       } @else {

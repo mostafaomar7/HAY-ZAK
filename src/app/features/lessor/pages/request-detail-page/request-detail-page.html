@@ -14,9 +14,9 @@
   <section class="detail">
     <div class="detail__main">
       <header class="card card--row">
-        <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit?.title ?? ''" size="md" />
+        <app-ui-thumbnail [src]="coverImage()" [alt]="b.unit.title" size="md" />
         <div class="detail__unit">
-          <h2 class="detail__unitTitle" dir="auto">{{ b.unit?.title }}</h2>
+          <h2 class="detail__unitTitle" dir="auto">{{ b.unit.title }}</h2>
           <!-- City only: a booking carries no district. -->
           <p class="detail__unitMeta">{{ i18n.pick(b.unit.city ?? undefined) }}</p>
           <a class="detail__unitLink" [routerLink]="['/lessor/units', b.unit.id]">عرض المساحة</a>

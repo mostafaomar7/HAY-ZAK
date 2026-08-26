@@ -39,23 +39,28 @@
         <ul class="list">
           @for (item of group.items; track item.id) {
             <li>
-              <a
-                class="item"
-                [class.item--unread]="!item.isRead"
-                [routerLink]="item.targetUrl ?? '/my-bookings'"
-                (click)="open(item)"
-              >
-                <span class="item__body">
-                  <span class="item__titleRow">
-                    <span class="item__title">{{ item.title }}</span>
-                    @if (!item.isRead) {
-                      <span class="item__dot" aria-hidden="true"></span>
-                    }
-                  </span>
-                  <span class="item__text">{{ item.body }}</span>
-                  <span class="item__time num">{{ item.createdAt }}</span>
-                </span>
-              </a>
+              <!-- Not every notification is about something openable, and the
+                   ones that are not used to link to /my-bookings — which sent
+                   a lessor whose listing was approved to a renter's screen. -->
+              @if (item.targetUrl) {
+                <a
+                  class="item"
+                  [class.item--unread]="!item.isRead"
+                  [routerLink]="item.targetUrl"
+                  (click)="open(item)"
+                >
+                  <ng-container *ngTemplateOutlet="body; context: { $implicit: item }" />
+                </a>
+              } @else {
+                <button
+                  type="button"
+                  class="item"
+                  [class.item--unread]="!item.isRead"
+                  (click)="open(item)"
+                >
+                  <ng-container *ngTemplateOutlet="body; context: { $implicit: item }" />
+                </button>
+              }
             </li>
           }
         </ul>
@@ -71,3 +76,16 @@
     />
   }
 </section>
+
+<ng-template #body let-item>
+  <span class="item__body">
+    <span class="item__titleRow">
+      <span class="item__title" dir="auto">{{ item.title }}</span>
+      @if (!item.isRead) {
+        <span class="item__dot" aria-hidden="true"></span>
+      }
+    </span>
+    <span class="item__text" dir="auto">{{ item.body }}</span>
+    <span class="item__time num">{{ item.createdAt }}</span>
+  </span>
+</ng-template>

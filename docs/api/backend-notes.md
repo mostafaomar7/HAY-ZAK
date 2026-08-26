@@ -716,3 +716,59 @@ in a form that can be corrected:
 `close` is a separate call from `resolve`, not a resolution value. "How many
 complaints did we settle" is a question a report will be asked, and closing a
 duplicate settled nothing.
+
+### Notifications are actually sent now
+
+The bell and SMS, both from the same event. **Both writes are `PUT`, not
+`POST`** — a `POST` is a 404, which is worth writing down because it looks
+exactly like an unshipped endpoint.
+
+```
+GET /me/notifications?unreadOnly=true&page=1&pageSize=20
+PUT /me/notifications/:id/read      → { read: true, unreadCount: 2 }
+PUT /me/notifications/read-all      → { read: 5,    unreadCount: 0 }
+```
+
+**`unreadCount` comes back on every call**, including the two writes, so the
+badge is corrected by the same response that did the work. The client keeps a
+local copy only so the number moves the instant somebody opens a notification —
+and every path out of that ends on the server's figure, **including the failing
+one**. A rollback was missing there: the docstring claimed one and the code did
+not have it, so a failed mark-read left the badge holding a number nobody sent
+until the next load. Fixed, with a spec.
+
+`title` and `body` are translated into the account's **stored** locale, not
+`Accept-Language`, so changing the language re-translates the whole history.
+Nothing is cached on this side, and a language change re-reads the list rather
+than re-rendering it — otherwise Arabic titles sit under an English page.
+
+`reference` is what the notification is _about_, and the client builds the URL:
+
+| `type`      | goes to              |
+| ----------- | -------------------- |
+| `booking`   | `/my-bookings/:id`   |
+| `complaint` | `/my-complaints/:id` |
+| `unit`      | `/lessor/units/:id`  |
+| `payout`    | `/lessor/earnings`   |
+
+A unit notification is only ever sent to a lessor — approved, rejected,
+suspended, reinstated — so it goes to the owner's screen and not the public
+listing. A payout has no page of its own; the transfer reference in the body is
+matched up on the earnings screen.
+
+`reference` can be `null`, and an unknown `type` gets **no link** rather than a
+guessed one. Both used to fall back to `/my-bookings`, which sent a lessor whose
+listing had just been approved to a screen they do not have. Those rows are now
+a button that marks the notification read and goes nowhere.
+
+Marking read twice is a 200; the client still skips the request for a row it
+already knows is read, to save the round trip rather than to avoid a failure.
+
+**The duplicate-row bug they fixed while writing the handover:** one event is
+stored twice, once for the bell and once for the SMS, so a channel can fail on
+its own. The bell was returning both. Nothing is de-duplicated on this side —
+a short, SMS-shaped title turning up in the inbox is a server bug to report,
+and hiding it here would make it invisible.
+
+SMS is sent server-side; there is nothing to do for it. In development it only
+prints to the server log.

@@ -79,7 +79,7 @@ export class NotificationsPage {
 
   protected fetch(page = this.page()): void {
     this.failed.set(false);
-    this.inbox.load(page).subscribe({ error: () => this.failed.set(true) });
+    this.inbox.load({ page }).subscribe({ error: () => this.failed.set(true) });
   }
 
   protected onPage(page: number): void {

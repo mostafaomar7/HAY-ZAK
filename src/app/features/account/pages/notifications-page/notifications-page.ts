@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AppNotification } from '@core/models/operations.model';
@@ -25,7 +26,7 @@ interface NotificationGroup {
 @Component({
   selector: 'app-renter-notifications-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, UiButton, UiEmptyState, UiSkeleton, UiPager],
+  imports: [NgTemplateOutlet, RouterLink, UiButton, UiEmptyState, UiSkeleton, UiPager],
   templateUrl: './notifications-page.html',
   styleUrl: './notifications-page.scss',
 })
@@ -71,7 +72,9 @@ export class RenterNotificationsPage {
   }
 
   private load(page = 1): void {
-    this.inbox.load(page).subscribe({ error: () => undefined });
+    // Everything, read and unread: this screen is the history. The bell's
+    // dropdown is the one that narrows to what still needs somebody.
+    this.inbox.load({ page }).subscribe({ error: () => undefined });
   }
 
   protected markAllRead(): void {

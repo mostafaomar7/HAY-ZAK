@@ -9,6 +9,7 @@ import {
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
 import { AuthService } from '@core/services/auth.service';
+import type { AppNotification } from '@core/models/operations.model';
 import { NotificationInboxService } from '@core/services/notification-inbox.service';
 import { ClickOutsideDirective } from '@shared/directives/click-outside.directive';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -57,7 +58,23 @@ export class PublicTopbar {
 
   protected toggleNotifications(): void {
     this.notificationsOpen.update((open) => !open);
-    if (this.notificationsOpen()) this.inbox.load().subscribe({ error: () => undefined });
+    // A short list, and only what is still waiting: the dropdown answers "what
+    // needs me", and the full history is one link away at the bottom of it.
+    if (this.notificationsOpen()) {
+      this.inbox.load({ pageSize: 10, unreadOnly: true }).subscribe({ error: () => undefined });
+    }
+  }
+
+  /**
+   * Opening a notification is the reading of it.
+   *
+   * Marked here rather than on the destination screen, because a notification
+   * with no `reference` goes nowhere and still has to stop counting — and
+   * because the same tap should not have to be made twice.
+   */
+  protected openNotification(item: AppNotification): void {
+    if (!item.isRead) this.inbox.markRead(item.id);
+    this.closeNotifications();
   }
 
   protected closeNotifications(): void {

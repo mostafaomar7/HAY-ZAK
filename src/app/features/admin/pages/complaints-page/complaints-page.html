@@ -306,7 +306,11 @@
           {{ i18n.t('complaints.closeAction') }}
         </button>
       </section>
-
+    }
+    @if (!isSettled()) {
+      <!-- Its own block: a projected slot that is not the only root node of the
+           surrounding control flow is silently not projected, and the resolve
+           button disappears from the panel footer. -->
       <ng-container panelActions>
         <button
           appUiButton
