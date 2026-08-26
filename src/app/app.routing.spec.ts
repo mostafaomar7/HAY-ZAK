@@ -185,15 +185,17 @@ describe('app routing (smoke)', () => {
     expect(el.textContent).toContain('آخر الإشعارات');
   });
 
-  it('renders the saved bank details with the IBAN masked', async () => {
+  it('lists the bank accounts with four digits of each IBAN', async () => {
     const fixture = await open('/lessor/bank-account');
     const el = fixture.nativeElement as HTMLElement;
 
     expect(el.querySelector('app-bank-account-page')).not.toBeNull();
-    expect(el.textContent).toContain('تم حفظ بياناتك البنكية');
-    // NFR-SEC-02 — only the last four characters may ever be shown.
-    expect(el.textContent).toContain('7519');
-    expect(el.textContent).not.toContain('SA0380000000608010167519');
+    expect(el.textContent).toContain('•••• 7519');
+    // The bank the API resolved from the number — nobody picked it.
+    expect(el.textContent).toContain('مصرف الراجحي');
+    // NFR-SEC-02 — four digits are all there are. Not "all that is shown":
+    // the API holds nothing fuller it would release to anybody.
+    expect(el.textContent).not.toContain('SA');
   });
 
   it('renders the profile screen with the deletion panel closed', async () => {

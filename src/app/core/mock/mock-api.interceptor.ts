@@ -4,8 +4,10 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { STORAGE_KEYS } from '../constants/storage-keys';
 import { BookingStatus } from '../enums/booking-status.enum';
 import { PayoutStatus } from '../enums/payment.enum';
+import { VerificationStatus } from '../enums/user-role.enum';
 import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
@@ -99,7 +101,18 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Session ────────────────────────────────────────────────────────────
   // Whoever signed in last stays signed in, so reloading the profile after an
   // administration login does not silently demote the session to a lessor.
-  if (path === API_ENDPOINTS.auth.me) return ok(signedInUser);
+  if (path === API_ENDPOINTS.auth.me) return ok({ user: currentUser() });
+  // `/me` is the same account by another name, and it answers to PATCH too.
+  // `mobile` is dropped rather than applied — the server's mass-assignment
+  // guard, mirrored here so the profile form behaves the same in both.
+  if (path === API_ENDPOINTS.me.profile) {
+    if (method === 'PATCH') {
+      const { mobile: _ignored, ...allowed } = (payload ?? {}) as Record<string, unknown>;
+      signedInUser = { ...currentUser(), ...allowed } as User;
+      return ok({ user: signedInUser });
+    }
+    return ok({ user: currentUser() });
+  }
 
   // ── Reference data ─────────────────────────────────────────────────────
   // The public trio, in the server's shape: `data.items`, and cities carry
@@ -318,9 +331,30 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (path === API_ENDPOINTS.lessor.dashboard) return ok({ dashboard: dashboard() });
 
-  if (path.startsWith(API_ENDPOINTS.lessor.bankAccounts)) {
-    if (method === 'GET') return ok(MOCK_BANK_ACCOUNTS);
-    if (method === 'POST' || method === 'PUT') return ok(MOCK_BANK_ACCOUNTS[0]);
+  // ── The account's own bank details ─────────────────────────────────────
+  if (/^\/me\/bank-accounts\/[^/]+\/default$/.test(path) && method === 'PUT') {
+    return ok({ account: { ...MOCK_BANK_ACCOUNTS[0], isDefault: true } });
+  }
+  if (/^\/me\/bank-accounts\/[^/]+$/.test(path) && method === 'DELETE') return ok(null);
+  if (path === API_ENDPOINTS.me.bankAccounts) {
+    if (method === 'GET') return ok({ items: MOCK_BANK_ACCOUNTS });
+    if (method === 'POST') {
+      const body = (payload ?? {}) as { accountHolderName?: string; iban?: string };
+      // The bank is resolved from the number, exactly as the server does it —
+      // a mock that echoed a `bankName` back would let the screen's whole
+      // confirmation step be wrong without a test noticing.
+      return ok({
+        account: {
+          id: `bank-${(body.iban ?? '').slice(-4)}`,
+          accountHolderName: body.accountHolderName ?? '',
+          bankName: 'مصرف الراجحي',
+          ibanLast4: (body.iban ?? '').replace(/[^0-9]/g, '').slice(-4),
+          verificationStatus: VerificationStatus.Unverified,
+          isDefault: MOCK_BANK_ACCOUNTS.length === 0,
+          createdAt: '2026-08-25T09:00:00Z',
+        },
+      });
+    }
   }
 
   // ── Auth ───────────────────────────────────────────────────────────────
@@ -390,6 +424,12 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Notifications ──────────────────────────────────────────────────────
   // Both inboxes are served from the same route; the renter fixtures win when a
   // renter session is active, which in development is the seeded one.
+  if (/^\/me\/notifications\/[^/]+\/read$/.test(path) && method === 'PUT') {
+    return ok({ read: true, unreadCount: 0 });
+  }
+  if (path === API_ENDPOINTS.me.markAllNotificationsRead && method === 'PUT') {
+    return ok({ read: 0, unreadCount: 0 });
+  }
   // Rows and the badge in one response, as the server sends them — a mock that
   // answered with a bare array would let the badge be wired to the wrong number
   // and still look right here.
@@ -430,6 +470,25 @@ let nafathPolls = 0;
 
 /** Survives for the life of the tab, like a real session would. */
 let signedInUser: User = MOCK_LESSOR;
+
+/**
+ * Whoever the session actually belongs to.
+ *
+ * The real API answers `/me` for the bearer it was sent, so the mock reads the
+ * stored session rather than a variable it only updates on its own login
+ * route. Without this, anything that establishes a session another way — a
+ * seeded one, a test calling `setSession` — gets somebody else's profile back,
+ * which is a difference between the demo and the server that no screen could
+ * have been written against.
+ */
+function currentUser(): User {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.user);
+    return stored ? (JSON.parse(stored) as User) : signedInUser;
+  } catch {
+    return signedInUser;
+  }
+}
 
 /**
  * FR-UNT-11 — the public catalogue never carries the exact address.

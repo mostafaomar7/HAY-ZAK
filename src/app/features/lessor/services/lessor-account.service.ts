@@ -3,7 +3,6 @@ import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { LessorDashboard, LessorEarnings } from '@core/models';
-import type { BankAccountRequest, LessorBankAccount } from '@core/models/user.model';
 import { ApiService } from '@core/services/api.service';
 import { saveBlob } from '@core/utils/file.utils';
 import type { EarningsResponse } from '@core/models/earnings.model';
@@ -59,28 +58,5 @@ export class LessorAccountService {
 
   saveStatement(blob: Blob, fromDate: string, toDate: string): void {
     saveBlob(blob, `hayzak-earnings-${fromDate}-${toDate}.pdf`);
-  }
-
-  bankAccounts(): Observable<LessorBankAccount[]> {
-    return this.api.get<LessorBankAccount[]>(API_ENDPOINTS.lessor.bankAccounts);
-  }
-
-  /**
-   * FR-LSR-02 — IBAN is validated client-side (format + mod-97) before it gets
-   * here, and stored encrypted server-side (NFR-SEC-02). The response only ever
-   * returns it masked.
-   */
-  addBankAccount(payload: BankAccountRequest): Observable<LessorBankAccount> {
-    return this.api.post<LessorBankAccount, BankAccountRequest>(
-      API_ENDPOINTS.lessor.bankAccounts,
-      payload,
-    );
-  }
-
-  updateBankAccount(id: string, payload: BankAccountRequest): Observable<LessorBankAccount> {
-    return this.api.put<LessorBankAccount, BankAccountRequest>(
-      API_ENDPOINTS.lessor.bankAccountById(id),
-      payload,
-    );
   }
 }

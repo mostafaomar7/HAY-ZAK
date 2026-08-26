@@ -63,20 +63,14 @@
             <input id="ac-address" class="input" type="text" formControlName="address" />
           </app-ui-field>
 
-          <app-ui-field
-            [label]="i18n.t('account.mobile')"
-            for="ac-mobile"
-            [control]="profileForm.controls.mobile"
-          >
-            <input
-              id="ac-mobile"
-              class="input num"
-              type="tel"
-              dir="ltr"
-              inputmode="tel"
-              formControlName="mobile"
-            />
-          </app-ui-field>
+          <!-- Shown, not edited. Changing the number needs an OTP to the new
+               one and has its own flow; `PATCH /me` drops the field, so a box
+               here would look like it saved and quietly not. -->
+          <div class="locked">
+            <span class="locked__label">{{ i18n.t('account.mobile') }}</span>
+            <span class="locked__value num" dir="ltr">{{ profile()?.mobile }}</span>
+            <span class="locked__hint">{{ i18n.t('account.mobileLocked') }}</span>
+          </div>
 
           <app-ui-field
             [label]="i18n.t('account.email')"

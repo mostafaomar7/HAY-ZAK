@@ -44,7 +44,9 @@ screen that will call it has somewhere to point.
 auth      11 endpoints — terms, register, verify-mobile, resend-otp, login,
                          refresh, logout, logout-all, forgot/reset-password, me
 public     3 — categories, cities (districts nested), prohibited-items
-me         2 — GET /me, PATCH /me, GET /me/notifications
+me        10 — GET /me, PATCH /me
+               bank-accounts: list, add, make-default, remove
+               notifications: list, read one, read all
 lessor    11 — dashboard, earnings,
                units: list, create, detail, patch, images (post/delete),
                       submit, archive, blocks (post/delete)
@@ -89,6 +91,10 @@ question was answered better than either option put to it.
   *query* parameter is an error; an unknown *body* field is stripped in silence,
   which is the mass-assignment guard and is deliberate — verified by posting
   `{"role":"ADMIN"}` to `POST /lessor/units` and watching it vanish.
+- **Notifications can be marked read.** `PUT /me/notifications/:id/read` and
+  `/read-all` both answer with the fresh `unreadCount`, so the badge is
+  corrected by the same response that did the work — no second request, and no
+  window where the two disagree. This closed an earlier open item.
 - **`hasNextPage` and `hasPrevPage`** are sent. The client reads them and no
   longer derives anything: two rules for one fact is one rule that drifts.
 - **Roles** are now three fields, each with one job:
@@ -128,12 +134,6 @@ them back by taking the first ten characters — deliberately a string operation
 because parsing a UTC midnight and reading its local day is a day out anywhere
 west of Greenwich. Symmetry would be better: send the date back as it was
 accepted.
-
-**4. Nothing can mark a notification read.** `GET /me/notifications` carries
-`readAt` and `unreadCount`, but `/me/notifications/:id/read` and `/read-all`
-both 404, so `readAt` is set by nothing and the badge can never be cleared. The
-client marks read locally and the state is lost on reload, which is at least
-visibly wrong rather than invisibly wrong.
 
 **5. Visiting hours are one window for the whole week.** The API stores
 `visitHoursFrom`/`visitHoursTo` as minutes since midnight; FR-UNT-06 and the
@@ -207,6 +207,29 @@ not shipped, so nothing has agreed to that yet.
   starting on the 10th are both accepted. Overlapping one is
   `UNIT_DATES_UNAVAILABLE`.
 - `verificationStatus` is uppercase on the wire: `VERIFIED`, not `Verified`.
+- A bank account's IBAN comes back as `ibanLast4` and nothing else. There is no
+  endpoint that releases the rest, to anybody, including its owner — so there is
+  no "reveal" control to build and nothing to design a screen around.
+- `POST /me/bank-accounts` takes `accountHolderName` and `iban` only. Spaces and
+  dashes in the IBAN are stripped server-side, and any `bankName` sent is
+  ignored: the bank is read off the number. The response carries the resolved
+  bank, which the screen shows afterwards — a transposed digit usually still
+  passes some other bank's checksum, and the person who typed it is the only one
+  who can tell.
+- Rejected IBANs come back under **five** distinct codes, not the four the note
+  listed: `IBAN_CHECKSUM_FAILED`, `IBAN_NOT_SAUDI`, `IBAN_INVALID_LENGTH`,
+  `IBAN_INVALID_FORMAT` and `IBAN_ALREADY_REGISTERED`. Each `message` is already
+  written in Arabic and is displayed as-is; only the code is branched on.
+- Only the first bank account becomes the default. A second one needs
+  `PUT /me/bank-accounts/:id/default`, and deleting the last is refused with
+  `BANK_ACCOUNT_LAST_ONE`.
+- `PATCH /me` **silently drops `mobile`** — the mass-assignment guard again.
+  Changing the number is a separate flow with an OTP to the new number, so the
+  profile form shows it read-only rather than offering a box that would appear
+  to save and not.
+- `locale` on the user is not a display preference: the same notifications go
+  out by SMS in that language, so the screen must not disagree with the message
+  already on somebody's phone. `PATCH /me { "locale": "en" }` changes both.
 - Payout statuses are `APPROVED PAID FAILED` — three, not five. There is no
   "due" or "on hold" payout: money with no transfer yet lives in
   `/admin/payouts/eligible`, where a row carries `blocked` (`null`, or

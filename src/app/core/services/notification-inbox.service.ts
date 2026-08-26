@@ -18,6 +18,17 @@ interface WireNotification {
   createdAt: string;
 }
 
+/**
+ * What the read endpoints answer with.
+ *
+ * The fresh count comes back with the acknowledgement, so the badge is
+ * corrected by the same response that did the work — no second request, and no
+ * window where the two disagree.
+ */
+interface MarkReadResult {
+  unreadCount: number;
+}
+
 /** `GET /me/notifications` — the rows, the badge and the paging in one. */
 interface WireInbox {
   items: WireNotification[];
@@ -87,26 +98,46 @@ export class NotificationInboxService {
   }
 
   /**
-   * Marks one as read.
+   * Marks one as read, on the server.
    *
-   * **The API has no endpoint for this yet** — `/me/notifications/:id/read` and
-   * `/read-all` both answer 404, so a notification's `readAt` is set by nothing
-   * and the badge cannot be cleared. Raised with the backend.
+   * The row dims immediately rather than after the round trip — opening a
+   * notification is the reading of it, and a badge that lingers while a request
+   * is in flight reads as "it did not work". The count then comes from the
+   * response, which is authoritative and cheap: the endpoint returns the fresh
+   * `unreadCount`, so nothing has to re-fetch to learn it.
    *
-   * Until it exists this is local only: the row dims and the badge drops for
-   * this session, and both come back on reload. That is the honest behaviour —
-   * pretending to persist it would be worse than visibly not persisting it.
+   * A failure rolls the count back. It does not roll the row back: the person
+   * has read it either way, and re-bolding it would be arguing with them.
    */
   markRead(id: string): void {
-    this.items.update((list) =>
-      list.map((n) => (n.id === id ? { ...n, isRead: true, readAt: n.readAt ?? null } : n)),
-    );
+    const alreadyRead = this.items().find((n) => n.id === id)?.isRead;
+    if (alreadyRead) return;
+
+    this.patchRead(id);
     this.unread.update((count) => Math.max(0, count - 1));
+
+    this.api
+      .put<MarkReadResult>(API_ENDPOINTS.me.markNotificationRead(id))
+      .subscribe({ next: (result) => this.unread.set(result.unreadCount), error: () => undefined });
   }
 
   markAllRead(): void {
-    this.items.update((list) => list.map((n) => ({ ...n, isRead: true })));
+    const previous = this.unread();
+    this.items.update((list) =>
+      list.map((n) => ({ ...n, isRead: true, readAt: n.readAt ?? null })),
+    );
     this.unread.set(0);
+
+    this.api.put<MarkReadResult>(API_ENDPOINTS.me.markAllNotificationsRead).subscribe({
+      next: (result) => this.unread.set(result.unreadCount),
+      error: () => this.unread.set(previous),
+    });
+  }
+
+  private patchRead(id: string): void {
+    this.items.update((list) =>
+      list.map((n) => (n.id === id ? { ...n, isRead: true, readAt: n.readAt ?? null } : n)),
+    );
   }
 }
 

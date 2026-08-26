@@ -262,7 +262,14 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
-  private setUser(user: User): void {
+  /**
+   * Replaces the stored user.
+   *
+   * Public because `/me` can change it — a saved profile has to reach the
+   * topbar and the guards, and a session holding a stale name is a session
+   * showing the wrong person.
+   */
+  setUser(user: User): void {
     this.storage.set(STORAGE_KEYS.user, user);
     this.currentUser.set(user);
   }

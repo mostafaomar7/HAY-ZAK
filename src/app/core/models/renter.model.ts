@@ -17,7 +17,6 @@ export interface RenterProfile {
 export interface RenterProfileRequest {
   fullName: string;
   address: string;
-  mobile: string;
   email: string;
 }
 

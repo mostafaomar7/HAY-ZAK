@@ -1,95 +1,159 @@
 <section class="page">
+  <p class="page__intro">{{ i18n.t('bank.intro') }}</p>
+
   @if (isLoading()) {
-    <p class="page__loading" role="status">جارٍ تحميل البيانات البنكية...</p>
-  } @else if (showForm()) {
-    <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <h2 class="card__heading">البيانات البنكية</h2>
-      <p class="card__intro">
-        تُحوَّل مستحقاتك إلى هذا الحساب. يجب أن يكون الحساب باسمك أنت، وإلا تعذّر التحويل.
-      </p>
-
-      <app-ui-field
-        label="اسم صاحب الحساب"
-        for="b-holder"
-        [control]="form.controls.accountHolderName"
-        hint="كما هو مسجّل في البنك."
-      >
-        <input
-          id="b-holder"
-          type="text"
-          formControlName="accountHolderName"
-          [maxlength]="maxNameLength"
-          autocomplete="name"
-        />
-      </app-ui-field>
-
-      <app-ui-field label="اسم البنك" for="b-bank" [control]="form.controls.bankName">
-        <select id="b-bank" formControlName="bankName">
-          <option value="">اختر البنك</option>
-          @for (bank of banks(); track bank.id) {
-            <option [value]="i18n.pick(bank)">{{ i18n.pick(bank) }}</option>
-          }
-        </select>
-      </app-ui-field>
-
-      <app-ui-field
-        label="رقم الآيبان"
-        for="b-iban"
-        [control]="form.controls.iban"
-        [hint]="ibanCount()"
-      >
-        <input
-          id="b-iban"
-          type="text"
-          inputmode="text"
-          formControlName="iban"
-          [placeholder]="ibanPlaceholder"
-          autocomplete="off"
-          spellcheck="false"
-          dir="ltr"
-        />
-      </app-ui-field>
-
-      <p class="card__note">يبدأ بـ SA ويتكوّن من 24 خانة.</p>
-
-      <div class="card__actions">
-        <button appUiButton variant="primary" size="lg" [disabled]="saving()">
-          {{ saving() ? 'جارٍ الحفظ...' : 'احفظ البيانات' }}
-        </button>
-
-        @if (saved()) {
-          <button appUiButton variant="ghost" type="button" (click)="cancel()">إلغاء</button>
-        }
-      </div>
-    </form>
+    <p class="page__loading" role="status">{{ i18n.t('bank.loading') }}</p>
   } @else {
-    @let account = saved()!;
+    <!-- The bank the API read off the number, put in front of the person who
+         typed it. A transposed digit usually still passes some bank's checksum,
+         and they are the only one who can tell. -->
+    @if (justAdded(); as added) {
+      <app-ui-notice tone="warning" [title]="i18n.t('bank.addedTitle')">
+        {{ i18n.t('bank.addedBody', { bank: added.bankName }) }}
+      </app-ui-notice>
+    }
 
-    <div class="card">
-      <h2 class="card__heading">البيانات البنكية</h2>
+    @if (accounts().length) {
+      <h2 class="page__heading">{{ i18n.t('bank.accountsTitle') }}</h2>
 
-      <app-ui-notice tone="info">تم حفظ بياناتك البنكية.</app-ui-notice>
+      <ul class="accounts">
+        @for (account of accounts(); track account.id) {
+          <li class="account" [class.account--default]="account.isDefault">
+            <div class="account__main">
+              <span class="account__bank">{{ account.bankName }}</span>
+              <span class="account__iban num" dir="ltr">{{ maskedIban(account) }}</span>
+              <span class="account__holder">{{ account.accountHolderName }}</span>
+            </div>
 
-      <dl class="facts">
-        <div class="facts__row">
-          <dt>اسم صاحب الحساب</dt>
-          <dd>{{ account.accountHolderName }}</dd>
+            <div class="account__tags">
+              @if (account.isDefault) {
+                <span class="account__default">{{ i18n.t('bank.default') }}</span>
+              }
+              <!-- Informational. Nothing below is disabled because of it. -->
+              <span class="account__badge" [attr.data-tone]="verificationTone(account)">
+                {{ verificationLabel(account) }}
+              </span>
+            </div>
+
+            <div class="account__actions">
+              @if (!account.isDefault) {
+                <button appUiButton variant="ghost" type="button" (click)="confirmDefault(account)">
+                  {{ i18n.t('bank.makeDefault') }}
+                </button>
+              }
+              <button appUiButton variant="ghost" type="button" (click)="confirmRemove(account)">
+                {{ i18n.t('bank.remove') }}
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else if (!showForm()) {
+      <app-ui-notice tone="warning" [title]="i18n.t('bank.emptyTitle')">
+        {{ i18n.t('bank.emptyHint') }}
+      </app-ui-notice>
+    }
+
+    @if (showForm()) {
+      <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <app-ui-field
+          [label]="i18n.t('bank.holder')"
+          for="b-holder"
+          [hint]="i18n.t('bank.holderHint')"
+          [control]="form.controls.accountHolderName"
+        >
+          <input
+            id="b-holder"
+            type="text"
+            formControlName="accountHolderName"
+            [maxlength]="maxNameLength"
+            autocomplete="name"
+          />
+        </app-ui-field>
+
+        <!-- No bank picker: the number says which bank, and the API ignores
+             anything sent alongside it. -->
+        <app-ui-field
+          [label]="i18n.t('bank.iban')"
+          for="b-iban"
+          [hint]="i18n.t('bank.ibanNote')"
+          [control]="form.controls.iban"
+        >
+          <input
+            id="b-iban"
+            type="text"
+            formControlName="iban"
+            dir="ltr"
+            class="num"
+            [placeholder]="ibanPlaceholder"
+            autocomplete="off"
+            inputmode="text"
+          />
+          <span class="form__count num" dir="ltr">{{ ibanCount() }}</span>
+        </app-ui-field>
+
+        <!-- The server's own words: it tells a mistyped digit from a foreign
+             account from a duplicate, and each needs a different fix. -->
+        @if (submitError()) {
+          <app-ui-notice tone="danger">{{ submitError() }}</app-ui-notice>
+        }
+
+        <div class="form__actions">
+          @if (!isEmpty()) {
+            <button appUiButton variant="ghost" type="button" (click)="cancel()">
+              {{ i18n.t('common.cancel') }}
+            </button>
+          }
+          <button appUiButton variant="primary" type="submit" [disabled]="saving()">
+            {{ saving() ? i18n.t('bank.saving') : i18n.t('bank.saveAction') }}
+          </button>
         </div>
-        <div class="facts__row">
-          <dt>البنك</dt>
-          <dd>{{ account.bankName }}</dd>
-        </div>
-        <div class="facts__row">
-          <dt>رقم الآيبان</dt>
-          <!-- NFR-SEC-02 — the API returns only the last four characters, so
-               there is no full value to reveal. -->
-          <dd class="num" dir="ltr">{{ account.ibanMasked }}</dd>
-        </div>
-      </dl>
-
-      <div class="card__actions">
-        <button appUiButton variant="outline" (click)="edit()">تعديل البيانات</button>
-      </div>
-    </div>
+      </form>
+    } @else {
+      <button appUiButton variant="outline" type="button" (click)="startAdding()">
+        {{ i18n.t('bank.addAction') }}
+      </button>
+    }
   }
 </section>
+
+<!-- Where the money goes. Never a one-click change. -->
+@if (dialog() === 'default' && target(); as account) {
+  <app-ui-modal [title]="i18n.t('bank.confirmDefaultTitle')" (closed)="closeDialog()">
+    <p>
+      {{ i18n.t('bank.confirmDefaultBody', { bank: account.bankName, last4: account.ibanLast4 }) }}
+    </p>
+
+    <div class="dialog__actions">
+      <button appUiButton variant="ghost" type="button" (click)="closeDialog()">
+        {{ i18n.t('common.cancel') }}
+      </button>
+      <button
+        appUiButton
+        variant="primary"
+        type="button"
+        [disabled]="saving()"
+        (click)="makeDefault()"
+      >
+        {{ i18n.t('bank.makeDefault') }}
+      </button>
+    </div>
+  </app-ui-modal>
+}
+
+@if (dialog() === 'remove' && target(); as account) {
+  <app-ui-modal [title]="i18n.t('bank.confirmRemoveTitle')" (closed)="closeDialog()">
+    <p>
+      {{ i18n.t('bank.confirmRemoveBody', { bank: account.bankName, last4: account.ibanLast4 }) }}
+    </p>
+
+    <div class="dialog__actions">
+      <button appUiButton variant="ghost" type="button" (click)="closeDialog()">
+        {{ i18n.t('common.cancel') }}
+      </button>
+      <button appUiButton variant="danger" type="button" [disabled]="saving()" (click)="remove()">
+        {{ i18n.t('bank.remove') }}
+      </button>
+    </div>
+  </app-ui-modal>
+}

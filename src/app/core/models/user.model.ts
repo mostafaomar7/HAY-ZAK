@@ -46,7 +46,23 @@ export interface User {
    * than sending them to the one screen that fixes it.
    */
   mobileVerifiedAt?: string | null;
+  /**
+   * Also the language every SMS goes out in, which is why it is on the user and
+   * not a browser preference: a screen that disagreed with the message on
+   * somebody's phone would be the one that is wrong. Change it with `PATCH /me`.
+   */
   locale?: 'ar' | 'en';
+  /** FR-AUTH-03 — the renter's address. */
+  addressLine?: string;
+  /**
+   * Nested on `GET /me`, and only ever four digits of the number
+   * (NFR-SEC-02) — there is no endpoint that releases the rest.
+   */
+  identity?: {
+    verificationStatus: VerificationStatus;
+    idType: IdType;
+    idNumberLast4: string;
+  };
   emailVerifiedAt?: string;
   avatarUrl?: string;
   createdAt: string;
@@ -65,16 +81,41 @@ export interface UserIdentity {
 export interface LessorBankAccount {
   id: string;
   accountHolderName: string;
+  /**
+   * Resolved by the API from the IBAN, never chosen. It is the cheapest
+   * confirmation the screen has: somebody who mistyped a digit sees a bank they
+   * do not recognise and catches their own mistake.
+   */
   bankName: string;
-  /** Masked by the API (NFR-SEC-02). */
-  ibanMasked: string;
+  /**
+   * The last four digits, and there is no way to get the rest.
+   *
+   * Not "masked" — the API does not hold a fuller value it is willing to
+   * release later, to anybody, including the owner (NFR-SEC-02). Render it as
+   * `•••• 7519`.
+   */
+  ibanLast4: string;
+  /**
+   * Whether an administrator has checked it.
+   *
+   * **Does not gate anything.** `UNVERIFIED` means "not reviewed yet", not
+   * "rejected", and disabling a control on it would stop a lessor from working
+   * while they wait for somebody else.
+   */
   verificationStatus: VerificationStatus;
+  /** Only the first account becomes this on its own — see `makeDefault`. */
   isDefault: boolean;
+  createdAt?: string;
 }
 
+/** No `bankName`: the API reads the bank off the IBAN and ignores one sent. */
 export interface BankAccountRequest {
   accountHolderName: string;
-  bankName: string;
+  /**
+   * Spaces and dashes are fine. `SA03 8000 0000 6080 1016 7519` is the form a
+   * bank prints and a phone keyboard produces, and the server strips them —
+   * so nothing here may reject the format the user was given.
+   */
   iban: string;
 }
 

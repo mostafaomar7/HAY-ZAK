@@ -84,8 +84,6 @@ export const API_ENDPOINTS = {
     bookingRequests: '/lessor/booking-requests',
     earningsTable: '/lessor/earnings/rows',
     earningsStatement: '/lessor/earnings/statement',
-    bankAccounts: '/lessor/bank-accounts',
-    bankAccountById: (id: string) => `/lessor/bank-accounts/${id}`,
     requestUnitSuspension: (id: string) => `/lessor/units/${id}/suspension-request`,
   },
 
@@ -247,7 +245,23 @@ export const API_ENDPOINTS = {
    */
   me: {
     profile: '/me',
+    /**
+     * FR-LSR-02. Several per account, and the API resolves the bank from the
+     * IBAN — there is no bank to choose and any `bankName` sent is ignored.
+     *
+     * The full number is never returned, not even to its owner: `ibanLast4`
+     * only, so there is no screen that could display it and no endpoint that
+     * would give it up.
+     */
+    bankAccounts: '/me/bank-accounts',
+    bankAccountById: (id: string) => `/me/bank-accounts/${id}`,
+    /** Where the money goes. Worth a confirmation before it is called. */
+    makeBankAccountDefault: (id: string) => `/me/bank-accounts/${id}/default`,
+
     notifications: '/me/notifications',
+    /** Both answer with the fresh `unreadCount`, so the badge needs no refetch. */
+    markNotificationRead: (id: string) => `/me/notifications/${id}/read`,
+    markAllNotificationsRead: '/me/notifications/read-all',
   },
 
   /** FR-NTF — not shipped; see `me.notifications` for what exists. */

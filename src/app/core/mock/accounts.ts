@@ -1,4 +1,10 @@
-import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
+import {
+  AccountStatus,
+  AdminRole,
+  IdType,
+  UserRole,
+  VerificationStatus,
+} from '../enums/user-role.enum';
 import type { User } from '../models/user.model';
 import { MOCK_ADMIN_USER, SEEDED_ADMIN_PERMISSIONS } from './admin.fixtures';
 import { MOCK_LESSOR } from './lessor.fixtures';
@@ -26,6 +32,14 @@ export const MOCK_RENTER: User = {
   email: 'f.aldosari@example.com',
   role: UserRole.Renter,
   status: AccountStatus.Active,
+  addressLine: 'الرياض — حي النرجس',
+  // `/me` nests it, and sends four digits and no more — the same four the
+  // renter's account screen draws its mask from.
+  identity: {
+    verificationStatus: VerificationStatus.Verified,
+    idType: IdType.NationalId,
+    idNumberLast4: '6421',
+  },
   mobileVerifiedAt: '2026-07-24T09:00:00Z',
   createdAt: '2026-07-24T09:00:00Z',
 };

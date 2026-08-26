@@ -21,7 +21,6 @@ import { UiPasswordStrength } from '@shared/components/ui-password-strength/ui-p
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { UiToggle } from '@shared/components/ui-toggle/ui-toggle';
 import { matchFields, strongPassword } from '@shared/validators/custom.validators';
-import { saudiMobile } from '@shared/validators/saudi.validators';
 import { RenterAccountService } from '../../services/renter-account.service';
 
 const PREFERENCE_LABELS: Record<
@@ -81,10 +80,17 @@ export class AccountPage {
   protected readonly deleteOpen = signal(false);
   protected readonly deleteConfirmation = signal('');
 
+  /**
+   * No mobile control.
+   *
+   * Changing the number is a security event with its own flow — an OTP to the
+   * new number — and `PATCH /me` strips the field rather than refusing it. An
+   * editable box here would appear to save and silently not, which is the worst
+   * of the three possible behaviours.
+   */
   protected readonly profileForm = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     address: ['', [Validators.required]],
-    mobile: ['', [Validators.required, saudiMobile]],
     email: ['', [Validators.required, Validators.email]],
   });
 
@@ -159,7 +165,6 @@ export class AccountPage {
       .updateProfile({
         fullName: value.fullName ?? '',
         address: value.address ?? '',
-        mobile: value.mobile ?? '',
         email: value.email ?? '',
       })
       .subscribe({

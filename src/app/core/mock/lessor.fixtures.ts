@@ -401,7 +401,7 @@ export const MOCK_BANK_ACCOUNTS: LessorBankAccount[] = [
     id: 'ba-1',
     accountHolderName: 'سعود بن ناصر العنزي',
     bankName: 'مصرف الراجحي',
-    ibanMasked: 'SA•••• •••• 7519',
+    ibanLast4: '7519',
     verificationStatus: VerificationStatus.Verified,
     isDefault: true,
   },

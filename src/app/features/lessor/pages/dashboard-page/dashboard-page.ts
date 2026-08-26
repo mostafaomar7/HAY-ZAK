@@ -6,6 +6,7 @@ import { UnitStatus } from '@core/enums/unit-status.enum';
 import { RELEASE_RULE_TEXT, statusText } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import { AuthService } from '@core/services/auth.service';
+import { AccountService } from '@core/services/account.service';
 import { NotificationInboxService } from '@core/services/notification-inbox.service';
 import { LessorAccountService } from '../../services/lessor-account.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -33,6 +34,7 @@ export class DashboardPage {
   private readonly account = inject(LessorAccountService);
   private readonly auth = inject(AuthService);
   private readonly inbox = inject(NotificationInboxService);
+  private readonly accountApi = inject(AccountService);
 
   protected readonly i18n = inject(LanguageService);
 
@@ -121,7 +123,7 @@ export class DashboardPage {
 
     // A missing bank account is an expected state, not an error, so its failure
     // must not blank the dashboard.
-    this.account.bankAccounts().subscribe({
+    this.accountApi.bankAccounts().subscribe({
       next: (accounts) => this.hasBankAccount.set(accounts.length > 0),
       error: () => this.hasBankAccount.set(false),
     });

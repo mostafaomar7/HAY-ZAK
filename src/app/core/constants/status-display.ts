@@ -5,7 +5,7 @@ import { PayoutStatus } from '../enums/payment.enum';
 import type { EarningsBucket } from '../models/earnings.model';
 import type { PayoutBlockedReason } from '../models/payment.model';
 import { UnitStatus } from '../enums/unit-status.enum';
-import { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
+import { AccountStatus, AdminRole, UserRole, VerificationStatus } from '../enums/user-role.enum';
 
 /**
  * Semantic weight of a status, not a colour. Components map a tone to whatever
@@ -92,6 +92,24 @@ export const PAYOUT_BLOCKED_DISPLAY: Readonly<Record<PayoutBlockedReason, Status
     en: 'The lessor has no bank account',
     tone: 'warning',
   },
+};
+
+/**
+ * Whether an administrator has checked a bank account or an identity.
+ *
+ * Informational, and deliberately so: `UNVERIFIED` means "not looked at yet",
+ * not "refused", and gating a control on it would stop somebody working while
+ * they wait on a queue they cannot see.
+ */
+export const ACCOUNT_VERIFICATION_DISPLAY: Readonly<Record<VerificationStatus, StatusDisplay>> = {
+  [VerificationStatus.Unverified]: {
+    ar: 'بانتظار المراجعة',
+    en: 'Awaiting review',
+    tone: 'neutral',
+  },
+  [VerificationStatus.Pending]: { ar: 'قيد المراجعة', en: 'Under review', tone: 'info' },
+  [VerificationStatus.Verified]: { ar: 'موثّق', en: 'Verified', tone: 'success' },
+  [VerificationStatus.Failed]: { ar: 'تعذّر التوثيق', en: 'Could not verify', tone: 'danger' },
 };
 
 /** Where one booking's money sits, on the dues table (LSR-07). */
