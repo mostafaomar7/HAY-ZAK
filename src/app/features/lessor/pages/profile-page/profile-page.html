@@ -93,6 +93,23 @@
     </form>
   </section>
 
+  <!-- ── Bank details ─────────────────────────────────────────────────── -->
+  <!-- The screen's only permanent way in. It used to be reachable solely from
+       two conditional notices — the dashboard's "you have no bank account" and
+       the earnings hold — so the moment a lessor added one, the screen that
+       manages them disappeared. With several accounts, a default and deletion
+       behind it, that is a screen nobody could reach to use. -->
+  <section class="card">
+    <h3 class="card__heading">البيانات البنكية</h3>
+    <p class="card__note">الحساب الذي تُحوَّل إليه مستحقاتك.</p>
+
+    <div class="card__actions">
+      <a appUiButton variant="outline" routerLink="/lessor/bank-account">
+        إدارة الحسابات البنكية
+      </a>
+    </div>
+  </section>
+
   <!-- ── Notification preferences ─────────────────────────────────────── -->
   <section class="card">
     <h3 class="card__heading">تفضيلات الإشعارات</h3>
