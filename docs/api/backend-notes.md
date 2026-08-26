@@ -104,7 +104,7 @@ question was answered better than either option put to it.
 
 - **Lists** nest rows and counts together inside `data`. No `meta` key.
 - **`limit` is now a 422**, naming the parameters it will accept. An unknown
-  *query* parameter is an error; an unknown *body* field is stripped in silence,
+  _query_ parameter is an error; an unknown _body_ field is stripped in silence,
   which is the mass-assignment guard and is deliberate — verified by posting
   `{"role":"ADMIN"}` to `POST /lessor/units` and watching it vanish.
 - **Notifications can be marked read.** `PUT /me/notifications/:id/read` and
@@ -268,38 +268,63 @@ administrator's published version takes over with no change on this side.
 read their profile and their notifications — and has no "حجوزاتي" and no
 account screen.
 
-**17. `returnUrl` rejects the domain your own note used.** `POST
-/renter/bookings/:id/pay` with `https://app.hayzak.sa/bookings/return` — the
-example in the handover — answers 422 «رابط العودة لازم يكون على نطاق
-المنصة». Only `localhost:4200` and `192.168.1.12:4200` are accepted today, so
-the allow-list is the dev origins and nothing else. The client sends
-`window.location.origin + '/bookings/return'`, which is the right thing anyway
-and works in both; but the production origin will need adding before it can.
+**17. `returnUrl` — settled, and the fault was ours.** ~~Rejects the domain
+your own note used.~~ The allow-list is the `WEB_URL`/`APP_URL` hosts plus any
+local origin outside production, and `https://app.hayzak.sa` is simply not one
+of them in a development configuration. The 422 now names the host it wants
+(«رابط العودة لازم يكون على نطاق المنصة (localhost:3000).»), and
+`window.location.origin + '/bookings/return'` is accepted from
+`192.168.1.12:4200` — verified 2026-08-26.
 
-**18. `redirectUrl` is built from the server's own idea of its host.** It comes
-back as `http://localhost:4000/api/v1/webhooks/payments/fake/checkout/…` even
-when the request arrived on `192.168.1.12:4000`. A browser on any other machine
-follows that to nothing. Harmless with a real gateway, whose URL is absolute
-and external — but for the fake provider it means the flow can only be walked
-from the server's own machine.
+**One thing to carry to deployment:** `WEB_URL` must be the real production
+origin before launch. Left on a development value, _every_ payment is refused
+with this 422 — the flow does not degrade, it stops.
 
-**19. `CANNOT_BOOK_OWN_UNIT` was not reachable.** A lessor posting to
-`/renter/bookings` is stopped by the role guard first — 403 `FORBIDDEN`, not
-409. So the documented code needs an account that is both, or it is unreachable
-and the "hide احجز on your own space" advice is the whole mitigation. The
-client hides it either way.
+**18. `redirectUrl` — fixed.** ~~Built from the server's own idea of its
+host.~~ It is now built from the address the request actually arrived on:
+posting to `192.168.1.12:4000` answers
+`http://192.168.1.12:4000/api/v1/webhooks/payments/fake/checkout/…`, so the
+fake gateway can be walked from any machine on the network. A forged `Host:
+evil.example.com` falls back to the configured `APP_URL` rather than being
+reflected. Verified 2026-08-26.
 
-**20. `goodsDescription` has an undocumented minimum.** Between 7 and 10
-characters; «أثاث م» is refused, «أثاث منزلي» accepted, with a good message
-(«اكتب وصفاً أوضح للبضاعة — ده اللي بيتراجع قبل تحويل المبلغ»). Worth stating
-the number. The client's own floor is 20, deliberately stricter: a human reads
-this before money moves.
+Treat `redirectUrl` as **opaque and absolute** — never reassemble it from
+parts. With a real gateway it is Tap's own page; with the fake provider it is
+ours; `window.location.assign()` handles both with one line.
 
-Worth saying plainly, because it cost an hour: the specific booking codes only
-surface once the *field* validation passes. A create with a short
-`goodsDescription` and dates in the past answers `VALIDATION_ERROR`, not
-`BOOKING_DATES_IN_PAST` — which reads as "the codes are not implemented" until
-you send a longer description. They are all implemented.
+**19. `CANNOT_BOOK_OWN_UNIT` is unreachable, and stays in the server on
+purpose.** A lessor posting to `/renter/bookings` is stopped by the role guard
+first — 403 `FORBIDDEN`, not 409 — because a user has exactly one role today.
+The backend is keeping the check anyway: if roles stop being exclusive (someone
+who lets a space and also has one to fill), its absence would let an owner
+block their own dates off-market for free and cycle money through the
+platform's own commission. Nothing to build on this side, and no UI for a code
+that cannot arrive — **hiding «احجز» on your own space remains the only real
+guard**, and the client does.
+
+**20. `goodsDescription` minimum is 10 characters** after trimming — 9 is a
+422, 10 is a 201. Now documented on their side. The client's own floor is 20,
+deliberately stricter: a human reads this before money moves.
+
+Worth keeping in mind, because it cost an hour and is by design rather than a
+bug: **a request must be well-formed before the rules about its meaning
+apply.** A create with a short `goodsDescription` _and_ dates in the past
+answers `VALIDATION_ERROR`, not `BOOKING_DATES_IN_PAST`. If every fixture
+carries the same malformed field, every booking code looks unimplemented. They
+are all implemented and all reachable — fix the fixture and they appear.
+
+**21. There is no invoice PDF.** `GET /renter/bookings/:id/invoice` with
+`Accept: application/pdf` answers the same JSON, `content-type:
+application/json`. The client no longer offers "تحميل" — a button that saved
+JSON under a `.pdf` name is worse than its absence — and renders the document
+itself, printing through the browser. FR-PAY-09 wants a durable artefact, so
+this is still owed.
+
+**22. `qrCode` is `null` and `vatRateBps` is `0`.** Neither is wrong today: the
+platform is not charging VAT on rent, and the ZATCA QR is not generated yet.
+The client prints "يُضاف رمز الاستجابة السريعة عند اعتماد الفاتورة" rather than
+an empty square, and takes the rate off the invoice rather than off
+configuration, so a re-opened invoice states the rate it was issued under.
 
 ## Shapes worth knowing
 
@@ -380,7 +405,7 @@ you send a longer description. They are all implemented.
 - `GET /public/units` returns results with **no parameters at all**, which is
   what lets the opening screen show something before anybody chooses anything.
 - **`location` is not a location.** The point is displaced from the true one on
-  purpose, the space is somewhere *inside* `radiusMeters` rather than at the
+  purpose, the space is somewhere _inside_ `radiusMeters` rather than at the
   centre, and there is no parameter anywhere that returns the real point — it is
   released after a confirmed booking (FR-UNT-11). So it is drawn as a circle,
   everywhere, and the client renames the field to `area` on the way in so that
@@ -396,7 +421,7 @@ you send a longer description. They are all implemented.
 - `distanceMeters` is `null` without `lat`/`lng`, and **rounded to the nearest
   100 m** when present. Shown with a `~`.
 - `visitHours` is `{ fromMinutes, toMinutes }` — minutes since midnight, Riyadh,
-  a window repeated *daily*. Not an instant: formatted by arithmetic, never
+  a window repeated _daily_. Not an instant: formatted by arithmetic, never
   through a date library.
 - **Five** combinations answer 422 rather than failing quietly, each a real
   mistake worth surfacing: `sort=nearest` with no point, `radiusKm` with no
@@ -422,7 +447,7 @@ you send a longer description. They are all implemented.
 `GET /public/units/:id/availability?from=&to=` → `{ unitId, from, to, minDays,
 maxDays, blocked: [{ startDate, endDate }] }`.
 
-- **Half-open, like every other range here.** `endDate` is the first *free* day
+- **Half-open, like every other range here.** `endDate` is the first _free_ day
   again. Greying it out as well loses one bookable day per booking, forever,
   and nobody would ever report it. `occupiedDays()` stops before the end, which
   is why this was already right.
@@ -445,7 +470,7 @@ maxDays, blocked: [{ startDate, endDate }] }`.
 
 Verified rather than taken on trust: two adjacent blocks posted as `2026-10-05
 → 2026-10-08` and `2026-10-08 → 2026-10-11` came back from the public route as
-a single `2026-10-05 → 2026-10-11`. That is the merge *and* the half-open rule
+a single `2026-10-05 → 2026-10-11`. That is the merge _and_ the half-open rule
 in one answer — the 8th being both an end and a start is what lets them join.
 Both test blocks were deleted afterwards.
 
@@ -457,8 +482,7 @@ the greyed-out path only exists in the fixtures and in the one probe above.
 
 ### Similar spaces
 
-`GET /public/units/:id/similar?limit=` (1–12, default 6 — `0` and `13` are both
-422) → `{ items }`, the
+`GET /public/units/:id/similar?limit=` (1–12, default 6 — `0` and `13` are both 422) → `{ items }`, the
 same card shape as a search result, ordered same-city → same-district →
 nearest → closest in price. Never the unit itself, never anything unpublished.
 
@@ -479,7 +503,7 @@ Verified end to end against the fake provider, including a declined card.
   `/bookings/*`. A lessor asking for the renter list gets 403, not an empty
   page, and the same the other way.
 - **One create.** `POST /renter/bookings { unitId, startDate, endDate,
-  goodsDescription, prohibitedAck }` → `201 { booking, holdExpiresAt }`, and
+goodsDescription, prohibitedAck }` → `201 { booking, holdExpiresAt }`, and
   the dates are already held. There is no draft, no separate confirm, and no
   quote endpoint — the answer carries the price it committed to.
 - `holdExpiresAt` sits **beside** `booking`, not inside it, on create and on
@@ -520,3 +544,44 @@ Verified end to end against the fake provider, including a declined card.
   `meta.maxDays` alongside `meta.requested`. `_IN_PAST` carries none.
 - `prohibitedAck: false` is a field error on `prohibitedAck`, not a booking
   code.
+- On a booking that has already `EXPIRED`, `holdExpiresAt` is **absent** rather
+  than `null`. The adapter coerces it, because `undefined` reaching a countdown
+  reads as "no deadline" in one place and as a deadline of `NaN` in another.
+
+### The tax invoice
+
+`GET /renter/bookings/:id/invoice` — 404 `INVOICE_NOT_FOUND` until the booking
+is `CONFIRMED`, which is the screen's "not issued yet" state and not a failure
+to report or retry.
+
+```
+{ invoice: {
+    id, invoiceNo: "INV-2026-000041", issuedAt,   // an instant, not a plain date
+    taxableHalalas, vatHalalas, totalHalalas, vatRateBps,
+    qrCode: null,
+    booking: { id, referenceNo, startDate, endDate, daysCount, unit: { id, title } },
+} }
+```
+
+Three things to hold on to. It is **wrapped** in `invoice`. It counts nights
+under the wire's word for days, exactly as a booking does. And it carries
+enough of the booking to render without a second call — the daily rate is the
+only figure it omits, so the client reads that from the booking and treats that
+call's failure as costing a sub-line rather than the document.
+
+The money on the page comes from the invoice, not from the booking. They agree
+today; on the day they do not, the issued document is the one that is true.
+
+The renter's name comes from the session. Not from `booking.contact` — on a
+renter's booking that is the _counterparty_, so reading it there printed the
+owner's name in the field labelled "المستأجر", on a document whose whole point
+is that it does not identify them (SRS §5).
+
+### The lifecycle runs on its own now
+
+`CONFIRMED → ACTIVE → COMPLETED` advances without anybody pressing anything, so
+no screen may assume a paid booking stays `CONFIRMED`. Nothing needed changing
+here: `BookingStatus` has carried all seven states since the enum was written,
+`TERMINAL_BOOKING_STATUSES` puts `COMPLETED`, `CANCELLED` and `EXPIRED` in
+"السابقة", and `bookingPrimaryAction` offers the invoice from `CONFIRMED`
+onward — which is right, because payment is what issues it.

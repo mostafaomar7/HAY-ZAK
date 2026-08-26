@@ -182,6 +182,15 @@ export const API_ENDPOINTS = {
      * comes back rather than a second one.
      */
     pay: (id: string) => `/renter/bookings/${id}/pay`,
+    /**
+     * The ZATCA tax invoice, once the booking is CONFIRMED.
+     *
+     * A 404 `INVOICE_NOT_FOUND` before payment — that is the screen's "not
+     * issued yet" state, not a failure. JSON only: asking for
+     * `Accept: application/pdf` returns the same object, so there is nothing to
+     * download.
+     */
+    invoice: (id: string) => `/renter/bookings/${id}/invoice`,
     /** Read-only. The lessor's own bookings, with the commission on them. */
     forLessor: '/lessor/bookings',
     forLessorById: (id: string) => `/lessor/bookings/${id}`,
@@ -194,7 +203,6 @@ export const API_ENDPOINTS = {
     complaints: (id: string) => `/bookings/${id}/complaints`,
     history: (id: string) => `/bookings/${id}/history`,
     contract: (id: string) => `/bookings/${id}/contract`,
-    invoice: (id: string) => `/bookings/${id}/invoice`,
   },
 
   /** FR-PAY */

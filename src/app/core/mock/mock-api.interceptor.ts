@@ -226,7 +226,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (/^\/bookings\/[^/]+\/complaints$/.test(path) && method === 'POST') return ok(null);
   if (/^\/bookings\/[^/]+\/history$/.test(path)) return ok(MOCK_BOOKING_HISTORY);
-  if (/^\/bookings\/[^/]+\/invoice$/.test(path)) return ok(MOCK_INVOICE);
+  if (/^\/renter\/bookings\/[^/]+\/invoice$/.test(path)) return ok({ invoice: MOCK_INVOICE });
 
   // ── Admin panel (FR-ADM, FR-RPT) ───────────────────────────────────────
   // A decision verb returns the row it acted on rather than a bare 204: the

@@ -6,7 +6,7 @@ import { VerificationStatus } from '../enums/user-role.enum';
 import type { Booking, BookingStatusHistoryEntry } from '../models/booking.model';
 import type { IdentityVerification, NafathSession } from '../models/identity.model';
 import type { AppNotification } from '../models/operations.model';
-import type { Invoice } from '../models/payment.model';
+import type { WireTaxInvoice } from '../models/tax-invoice';
 import type {
   AlternativePeriod,
   NotificationPreference,
@@ -457,16 +457,30 @@ export const MOCK_BOOKING_HISTORY: BookingStatusHistoryEntry[] = [
   },
 ];
 
-export const MOCK_INVOICE: Invoice = {
+/**
+ * The wire shape, not the domain one — the interceptor stands in for the
+ * server, so it has to send `daysCount` and the nested booking exactly as
+ * `/renter/bookings/:id/invoice` does, or the adapter is never exercised.
+ */
+export const MOCK_INVOICE: WireTaxInvoice = {
   id: 'inv-1',
-  bookingId: 'rb-1',
   invoiceNo: 'INV-2026-04871',
+  issuedAt: '2026-08-12T09:20:00.000Z',
   taxableHalalas: 180000,
-  vatHalalas: 1350,
-  total: 1800,
-  qrCode: 'zatca-qr-placeholder',
-  pdfUrl: '/files/invoices/INV-2026-04871.pdf',
-  issuedAt: '2026-08-12',
+  vatHalalas: 0,
+  totalHalalas: 180000,
+  // Zero on the running server too — the platform is not charging VAT on rent.
+  vatRateBps: 0,
+  // Null as the server sends it; the QR is not generated yet.
+  qrCode: null,
+  booking: {
+    id: 'rb-1',
+    referenceNo: 'HZ-2026-000481',
+    startDate: '2026-08-12',
+    endDate: '2026-09-11',
+    daysCount: 30,
+    unit: { id: 'u-1', title: 'مستودع مكيّف في حي العليا' },
+  },
 };
 
 export const MOCK_ALTERNATIVES: AlternativePeriod[] = [

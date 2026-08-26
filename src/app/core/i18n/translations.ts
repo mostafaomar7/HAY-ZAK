@@ -706,7 +706,6 @@ const ar = {
   'invoice.title': 'الفاتورة',
   'invoice.meta': 'رقم الفاتورة {no} · تاريخ الإصدار {date}',
   'invoice.view': 'عرض',
-  'invoice.download': 'تحميل',
   'invoice.print': 'طباعة',
   'invoice.preview': 'معاينة المستند',
   'invoice.taxInvoice': 'فاتورة ضريبية',
@@ -720,6 +719,7 @@ const ar = {
   'invoice.totalPaid': 'الإجمالي المدفوع',
   'invoice.linkedBooking': 'الحجز المرتبط',
   'invoice.qrHint': 'رمز الاستجابة السريعة للفاتورة الضريبية',
+  'invoice.qrPending': 'يُضاف رمز الاستجابة السريعة عند اعتماد الفاتورة لدى هيئة الزكاة والضريبة.',
   'invoice.notReady': 'الفاتورة غير متاحة بعد',
   'invoice.notReadyHint': 'تصدر الفاتورة الضريبية بعد استلام الدفع.',
 
@@ -2096,7 +2096,6 @@ const en: Partial<Record<TranslationKey, string>> = {
   'invoice.title': 'Invoice',
   'invoice.meta': 'Invoice {no} · issued {date}',
   'invoice.view': 'View',
-  'invoice.download': 'Download',
   'invoice.print': 'Print',
   'invoice.preview': 'Document preview',
   'invoice.taxInvoice': 'Tax invoice',
@@ -2110,6 +2109,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'invoice.totalPaid': 'Total paid',
   'invoice.linkedBooking': 'Linked booking',
   'invoice.qrHint': 'QR code for the tax invoice',
+  'invoice.qrPending': 'The QR code is added once the invoice is registered with ZATCA.',
   'invoice.notReady': 'The invoice is not available yet',
   'invoice.notReadyHint': 'A tax invoice is issued once payment is received.',
 

@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { BookingStatusHistoryEntry } from '@core/models/booking.model';
-import type { Invoice } from '@core/models/payment.model';
 import type { ComplaintRequest } from '@core/models/renter.model';
 import { ApiService } from '@core/services/api.service';
 
@@ -10,9 +9,10 @@ import { ApiService } from '@core/services/api.service';
  * Every write in the booking journey (FR-BKG, FR-PAY).
  *
  * What is left after the journey moved to `RenterBookingsService`: the records
- * that hang off a booking which already exists — its history, its invoice, its
- * contract, and the complaint that is the only way to raise a problem with it.
- * None of these endpoints is shipped yet.
+ * that hang off a booking which already exists — its history, its contract, and
+ * the complaint that is the only way to raise a problem with it. None of these
+ * endpoints is shipped yet. The invoice went across with the journey, because
+ * it is served from `/renter/bookings/:id/invoice` and is the renter's.
  *
  * Deliberately has no `approve` or `reject`, and no `cancel`. Payment confirms
  * a booking, so there is no approval to grant; and neither party can cancel —
@@ -40,16 +40,6 @@ export class BookingService {
 
   history(id: string): Observable<BookingStatusHistoryEntry[]> {
     return this.api.get<BookingStatusHistoryEntry[]>(API_ENDPOINTS.bookings.history(id));
-  }
-
-  invoice(id: string): Observable<Invoice> {
-    return this.api.get<Invoice>(API_ENDPOINTS.bookings.invoice(id));
-  }
-
-  downloadInvoice(id: string): Observable<Blob> {
-    return this.api.download(API_ENDPOINTS.bookings.invoice(id), {
-      headers: { Accept: 'application/pdf' },
-    });
   }
 
   /**

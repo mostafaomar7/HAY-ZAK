@@ -51,19 +51,12 @@ export interface Commission {
   netToLessorHalalas: number;
 }
 
-/** ERD-4 `invoices` — FR-PAY-09, ZATCA compliant. */
-export interface Invoice {
-  id: string;
-  bookingId: string;
-  invoiceNo: string;
-  taxableHalalas: number;
-  vatHalalas: number;
-  total: number;
-  /** ZATCA QR payload. */
-  qrCode: string;
-  pdfUrl: string;
-  issuedAt: string;
-}
+/*
+ * ERD-4 `invoices` — FR-PAY-09 — is `TaxInvoice` in `tax-invoice.ts`, beside
+ * its adapter: the endpoint nests the booking inside the invoice and counts
+ * nights as `daysCount`. The interface that used to be here was drawn from the
+ * ERD and had a `pdfUrl` and a `total` the server sends neither of.
+ */
 
 /** ERD-4 `payouts` / `payout_items` — UC-04. */
 export interface Payout {

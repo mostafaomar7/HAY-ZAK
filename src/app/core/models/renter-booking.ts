@@ -187,7 +187,14 @@ export function bookingFromWire(wire: WireBooking): RenterBooking {
 }
 
 export function bookingWithHoldFromWire(wire: WireBookingWithHold): BookingWithHold {
-  return { booking: bookingFromWire(wire.booking), holdExpiresAt: wire.holdExpiresAt };
+  return {
+    booking: bookingFromWire(wire.booking),
+    // `?? null` rather than passed through: on a booking that has already
+    // EXPIRED the server omits the field entirely, and `undefined` reaching a
+    // countdown reads as "no deadline set" in some places and as a deadline of
+    // NaN in others.
+    holdExpiresAt: wire.holdExpiresAt ?? null,
+  };
 }
 
 /**

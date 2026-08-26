@@ -140,6 +140,57 @@ describe('RenterBookingsService', () => {
     expect(body.returnUrl.endsWith('/bookings/return')).toBeTrue();
   });
 
+  it('unwraps the invoice and reads its daysCount as nights', () => {
+    let invoice: { invoiceNo: string; booking: { nights: number } } | undefined;
+    service.invoice('b-1').subscribe((result) => (invoice = result));
+
+    const request = http.expectOne((r) => r.url.endsWith('/renter/bookings/b-1/invoice'));
+    request.flush({
+      success: true,
+      data: {
+        invoice: {
+          id: 'inv-1',
+          invoiceNo: 'INV-2026-000041',
+          issuedAt: '2026-08-26T11:02:05.674Z',
+          taxableHalalas: 30000,
+          vatHalalas: 0,
+          totalHalalas: 30000,
+          vatRateBps: 0,
+          qrCode: null,
+          booking: {
+            id: 'b-1',
+            referenceNo: 'HZ-2026-08-0307',
+            startDate: '2028-03-01',
+            endDate: '2028-03-05',
+            daysCount: 4,
+            unit: { id: 'u-1', title: 'مستودع' },
+          },
+        },
+      },
+    });
+
+    // The endpoint wraps it, and counts nights under the wire's name for days —
+    // both of which the page would otherwise read straight off the response.
+    expect(invoice?.invoiceNo).toBe('INV-2026-000041');
+    expect(invoice?.booking.nights).toBe(4);
+  });
+
+  it('leaves the 404 before payment as an error for the page to read', () => {
+    let status: number | undefined;
+    service.invoice('b-1').subscribe({ error: (e: { status?: number }) => (status = e.status) });
+
+    http
+      .expectOne((r) => r.url.endsWith('/renter/bookings/b-1/invoice'))
+      .flush(
+        { success: false, error: { code: 'INVOICE_NOT_FOUND', message: '' } },
+        { status: 404, statusText: 'Not Found' },
+      );
+
+    // Nothing is invoiced until it is paid for. The page shows "لم تصدر بعد"
+    // rather than an error, but it has to be told, not handed an empty invoice.
+    expect(status).toBe(404);
+  });
+
   it('sends the whole booking in one call', () => {
     service
       .create({

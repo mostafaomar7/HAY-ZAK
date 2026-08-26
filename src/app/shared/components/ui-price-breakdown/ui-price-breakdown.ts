@@ -39,6 +39,15 @@ export class UiPriceBreakdown {
   readonly totalLabel = input<string>();
   readonly note = input<string>();
   readonly compact = input(false, { transform: booleanAttribute });
+  /**
+   * The VAT rate this particular document was issued under, in basis points.
+   *
+   * An invoice passes its own; everywhere else the configured default is right,
+   * because the figures on those screens are being quoted now. A tax invoice
+   * re-opened next year has to state the rate that was applied to it, and
+   * reading the administrator's current setting would silently restate it.
+   */
+  readonly vatRateBps = input<number>();
 
   /**
    * Read from configuration, not written into the copy: the rate is an
@@ -48,7 +57,9 @@ export class UiPriceBreakdown {
   protected readonly commissionRate = computed(() =>
     formatRate(FINANCIAL_DEFAULTS.commissionRateBps),
   );
-  protected readonly vatRate = computed(() => formatRate(FINANCIAL_DEFAULTS.vatRateBps));
+  protected readonly vatRate = computed(() =>
+    formatRate(this.vatRateBps() ?? FINANCIAL_DEFAULTS.vatRateBps),
+  );
 
   /** True when the renter bears none of it — the line shows a dash. */
   protected readonly commissionOnLessor = computed(

@@ -13,6 +13,8 @@ import type {
   WirePaymentSession,
 } from '@core/models/renter-booking';
 import { bookingFromWire, bookingWithHoldFromWire } from '@core/models/renter-booking';
+import type { TaxInvoice, WireTaxInvoiceResponse } from '@core/models/tax-invoice';
+import { taxInvoiceFromWire } from '@core/models/tax-invoice';
 import { ApiService } from '@core/services/api.service';
 
 /** The two tabs on "حجوزاتي" (RNT-01). */
@@ -74,6 +76,23 @@ export class RenterBookingsService {
     return this.api
       .get<WireBookingWithHold>(API_ENDPOINTS.bookings.byId(id))
       .pipe(map(bookingWithHoldFromWire));
+  }
+
+  /**
+   * The tax invoice, which exists from CONFIRMED onward.
+   *
+   * A 404 before payment is the answer, not a fault: nothing has been paid, so
+   * nothing has been invoiced. The caller shows "لم تصدر بعد" rather than an
+   * error, and does not retry.
+   *
+   * There is no PDF to fetch beside this — the server returns the same JSON
+   * whatever `Accept` asks for — so the page renders the document itself and
+   * prints through the browser.
+   */
+  invoice(id: string): Observable<TaxInvoice> {
+    return this.api
+      .get<WireTaxInvoiceResponse>(API_ENDPOINTS.bookings.invoice(id))
+      .pipe(map((response) => taxInvoiceFromWire(response.invoice)));
   }
 
   /**
