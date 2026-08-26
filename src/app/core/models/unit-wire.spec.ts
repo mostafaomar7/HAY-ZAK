@@ -1,9 +1,9 @@
-import { UnitStatus } from '../enums/unit-status.enum';
+import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { WireUnit } from './unit-wire';
 import {
   clockToMinutes,
   minutesToClock,
-  plainFromWire,
+  blockFromWire,
   scheduleFromWire,
   scheduleToWire,
   unitFromWire,
@@ -38,17 +38,24 @@ function wire(overrides: Partial<WireUnit> = {}): WireUnit {
 describe('unit wire conversion', () => {
   describe('dates', () => {
     /**
-     * The whole reason this is a string operation. The server returns a
-     * calendar date written as a UTC instant, and reading it back through
-     * `new Date()` gives the previous day anywhere west of Greenwich — a bug
-     * that passes every test run in Riyadh and fails in production abroad.
+     * The server sends plain `YYYY-MM-DD` and refuses an instant on the way in,
+     * so the block's dates are carried through untouched. They used to arrive
+     * as UTC instants and were sliced back to a date here, because reading one
+     * through `new Date()` gives the previous day anywhere west of Greenwich —
+     * a bug that passes every test run in Riyadh and fails in production
+     * abroad. This asserts nothing reintroduces a conversion.
      */
-    it('takes the date the server wrote, not the browser local one', () => {
-      expect(plainFromWire('2027-03-01T00:00:00.000Z')).toBe('2027-03-01');
-    });
+    it('carries the block dates through exactly as sent', () => {
+      const block = blockFromWire({
+        id: 'blk-1',
+        startDate: '2027-03-01',
+        endDate: '2027-03-05',
+        reason: AvailabilityBlockReason.ManualBlock,
+        note: null,
+      });
 
-    it('leaves a plain date alone', () => {
-      expect(plainFromWire('2027-03-01')).toBe('2027-03-01');
+      expect(block.startDate).toBe('2027-03-01');
+      expect(block.endDate).toBe('2027-03-05');
     });
   });
 

@@ -145,7 +145,13 @@ describe('UnitsPage', () => {
     expect(el.textContent).toContain('لا توجد مساحات مطابقة');
   });
 
-  it('filters the loaded page by title without issuing a request', () => {
+  /**
+   * The search is the server's. It used to filter the loaded page in the
+   * browser, which searched the twelve rows on screen and none of the other
+   * hundred and sixty-two this account has — while the pager went on counting
+   * all of them.
+   */
+  it('sends the search term to the server and shows what comes back', () => {
     flushUnits([
       makeUnit('un-1', 'مستودع مكيّف — النرجس', UnitStatus.Published),
       makeUnit('un-2', 'غرفة تخزين — الياسمين', UnitStatus.Published),
@@ -154,9 +160,40 @@ describe('UnitsPage', () => {
     fixture.componentInstance['onSearch']('الياسمين');
     fixture.detectChanges();
 
+    const request = http.expectOne((r) => r.url === unitsUrl);
+    expect(request.request.params.get('search')).toBe('الياسمين');
+    request.flush(page([makeUnit('un-2', 'غرفة تخزين — الياسمين', UnitStatus.Published)]));
+    fixture.detectChanges();
+
     expect(el.querySelectorAll('app-unit-card').length).toBe(1);
     expect(el.textContent).toContain('غرفة تخزين — الياسمين');
-    // No second call — searching must not cost a round trip.
+  });
+
+  it('goes back to the first page when the term changes', () => {
+    flushUnits([makeUnit('un-1', 'أ', UnitStatus.Published)]);
+
+    fixture.componentInstance['onPage'](3);
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === unitsUrl).flush(page([]));
+
+    fixture.componentInstance['onSearch']('مستودع');
+    fixture.detectChanges();
+
+    // Page three of "مستودع" is not page three of everything, and staying
+    // there lands the lessor on an empty grid they did not ask for.
+    const request = http.expectOne((r) => r.url === unitsUrl);
+    expect(request.request.params.get('page')).toBe('1');
+    request.flush(page([]));
+  });
+
+  it('does not refetch when the debounced term has not changed', () => {
+    flushUnits([makeUnit('un-1', 'أ', UnitStatus.Published)]);
+
+    fixture.componentInstance['onSearch']('');
+    fixture.detectChanges();
+
+    // The field re-emits an unchanged term on blur and on a cleared trailing
+    // space; each one costing a round trip is how a search box gets slow.
     http.expectNone((r) => r.url === unitsUrl);
   });
 });

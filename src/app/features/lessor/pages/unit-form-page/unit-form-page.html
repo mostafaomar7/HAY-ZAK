@@ -221,68 +221,33 @@
           />
         </app-ui-field>
 
-        <!-- FR-UNT-06 — one row per group of days that share an opening window. -->
+        <!-- FR-UNT-06. One window for the whole week, because that is all the
+             API stores. The table of per-day rows that used to be here read
+             back as "all week" whatever was entered — the days were never
+             saved — so the legend now says what actually happens. -->
         <fieldset class="hours">
-          <legend class="hours__legend">أوقات الزيارة المسموحة</legend>
+          <legend class="hours__legend">مواعيد الزيارة (يوميًا)</legend>
           <p class="hours__hint">
-            حدّد الأيام ووقت الفتح والإغلاق. يمكن إضافة أكثر من فترة لو اختلفت الأيام.
+            وقت الفتح والإغلاق المتاح للمستأجر لمعاينة المساحة، ويسري على كل أيام الأسبوع.
           </p>
 
-          <div class="hours__rows" formArrayName="visitSchedule">
-            @for (row of schedule.controls; track $index; let i = $index) {
-              <div class="row" [formGroupName]="i" [class.row--invalid]="windowInvalid(i)">
-                <div class="row__days" role="group" aria-label="أيام الفترة">
-                  @for (weekday of weekdays; track weekday.day) {
-                    <button
-                      type="button"
-                      class="day"
-                      [class.day--on]="isDayOn(i, weekday.day)"
-                      [attr.aria-pressed]="isDayOn(i, weekday.day)"
-                      (click)="toggleDay(i, weekday.day)"
-                    >
-                      {{ weekday.label }}
-                    </button>
-                  }
-                </div>
+          <div class="row" formGroupName="visitHours" [class.row--invalid]="windowInvalid()">
+            <div class="row__times">
+              <label class="time">
+                <span class="time__label">من</span>
+                <input class="time__input" type="time" formControlName="from" />
+              </label>
 
-                <div class="row__times">
-                  <label class="time">
-                    <span class="time__label">من</span>
-                    <input class="time__input" type="time" formControlName="from" />
-                  </label>
+              <label class="time">
+                <span class="time__label">إلى</span>
+                <input class="time__input" type="time" formControlName="to" />
+              </label>
+            </div>
 
-                  <label class="time">
-                    <span class="time__label">إلى</span>
-                    <input class="time__input" type="time" formControlName="to" />
-                  </label>
-
-                  @if (schedule.length > 1) {
-                    <button
-                      type="button"
-                      class="row__remove"
-                      aria-label="حذف هذه الفترة"
-                      (click)="removeWindow(i)"
-                    >
-                      <span aria-hidden="true">✕</span>
-                    </button>
-                  }
-                </div>
-
-                @if (windowInvalid(i)) {
-                  <p class="row__error" role="alert">
-                    اختر يومًا واحدًا على الأقل، ووقت إغلاق بعد وقت الفتح.
-                  </p>
-                }
-              </div>
+            @if (windowInvalid()) {
+              <p class="row__error" role="alert">اختر وقت إغلاق بعد وقت الفتح.</p>
             }
           </div>
-
-          <button type="button" class="hours__add" (click)="addWindow()">إضافة فترة أخرى</button>
-
-          @if (uncovered().length) {
-            <!-- A note, not an error: a space that closes on Friday is a valid answer. -->
-            <p class="hours__uncovered">لا توجد أوقات زيارة في: {{ uncovered().join('، ') }}</p>
-          }
         </fieldset>
       </section>
     }

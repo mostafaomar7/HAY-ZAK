@@ -8,19 +8,20 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import type { AbstractControl, ValidationErrors, FormArray, FormGroup } from '@angular/forms';
+import type { AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { type Observable, of } from 'rxjs';
 import { finalize, map, switchMap, tap } from 'rxjs/operators';
 import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
-import type { ReferenceItem, UnitRequest, VisitWindow, Weekday } from '@core/models/unit.model';
+import type { ReferenceItem, UnitRequest, VisitWindow } from '@core/models/unit.model';
+import { dailySchedule } from '@core/models/unit-wire';
 import { NotificationService } from '@core/services/notification.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
 import { markFormTouched } from '@core/utils/form.utils';
 import { halalasToSar, sarToHalalas } from '@core/utils/money.utils';
-import { isValidWindow, uncoveredDays, weekdayName } from '@core/utils/schedule.utils';
+import { isValidWindow } from '@core/utils/schedule.utils';
 import { controlChanges } from '@core/utils/form-signals';
 import { LessorUnitsService } from '../../services/lessor-units.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -38,28 +39,19 @@ interface PendingImage {
   previewUrl: string;
 }
 
-/** One editable row of the visiting-hours table. */
-type VisitWindowGroup = FormGroup<{
-  days: FormControl<Weekday[]>;
-  from: FormControl<string>;
-  to: FormControl<string>;
-}>;
-
-function readWindow(group: VisitWindowGroup): VisitWindow {
-  const value = group.getRawValue();
-  return { days: value.days, from: value.from, to: value.to };
-}
+/** The one visiting window the API can store. */
+type VisitHoursGroup = FormGroup<{ from: FormControl<string>; to: FormControl<string> }>;
 
 /**
- * FR-UNT-06 — a published unit needs at least one usable window.
+ * FR-UNT-06 — one window, and it has to close after it opens.
  *
- * On the array rather than on each row: a half-typed row the lessor is still
- * working on should not paint the section red, but a schedule with nothing
- * usable in it cannot pass the step.
+ * On the group rather than on each control: "من" alone is not wrong, it is
+ * unfinished, and painting the section red while the lessor is still typing
+ * the second half helps nobody.
  */
-function scheduleValidator(control: AbstractControl): ValidationErrors | null {
-  const rows = (control as FormArray<VisitWindowGroup>).controls.map(readWindow);
-  return rows.some(isValidWindow) ? null : { visitSchedule: true };
+function visitHoursValidator(control: AbstractControl): ValidationErrors | null {
+  const { from, to } = (control as VisitHoursGroup).getRawValue();
+  return isValidWindow({ days: [], from, to }) ? null : { visitHours: true };
 }
 
 /**
@@ -166,33 +158,31 @@ export class UnitFormPage {
     longitude: [null as number | null, Validators.required],
     addressLine: ['', Validators.required],
     postalCode: [''],
-    visitSchedule: this.fb.array<VisitWindowGroup>([], scheduleValidator),
+    /**
+     * One window covering every day — deliberately, because that is all the
+     * API stores. It used to be a table of rows with day toggles, which read
+     * back as "all week" whatever was entered: the days were never saved. A
+     * simpler form that is true beats a richer one that promises storage there
+     * is none of. Raised with the backend; the client is waiting on a ruling.
+     */
+    visitHours: this.fb.nonNullable.group(
+      { from: '09:00', to: '21:00' },
+      { validators: visitHoursValidator },
+    ),
   });
 
   /** Which controls each step owns, so "next" validates only what is on screen. */
   private static readonly STEP_FIELDS: Record<number, readonly string[]> = {
     1: ['categoryId', 'title', 'description', 'areaSqm', 'dailyPriceSar', 'minDays', 'maxDays'],
-    2: ['cityId', 'districtId', 'latitude', 'longitude', 'addressLine', 'visitSchedule'],
+    2: ['cityId', 'districtId', 'latitude', 'longitude', 'addressLine', 'visitHours'],
     3: [],
   };
 
   protected readonly isEdit = computed(() => !!this.id());
 
-  /** The seven day toggles, named by Intl rather than by a hard-coded table. */
-  protected readonly weekdays = ([0, 1, 2, 3, 4, 5, 6] as Weekday[]).map((day) => ({
-    day,
-    label: weekdayName(day, 'ar-SA'),
-  }));
-
-  protected get schedule(): FormArray<VisitWindowGroup> {
-    return this.form.controls.visitSchedule;
+  protected get visitHours(): VisitHoursGroup {
+    return this.form.controls.visitHours;
   }
-
-  /**
-   * Days no window covers. Shown as a note rather than an error: a space that
-   * genuinely closes on Friday is a valid answer, not a mistake.
-   */
-  protected readonly uncovered = signal<string[]>([]);
 
   protected readonly categoryOptions = computed<ChoiceOption[]>(() =>
     this.categories().map((c) => ({ value: c.id, label: this.i18n.pick(c) })),
@@ -456,58 +446,21 @@ export class UnitFormPage {
    */
   // ── Visiting hours (FR-UNT-06) ─────────────────────────────────────────
 
-  protected addWindow(): void {
-    this.schedule.push(this.buildWindow());
-    this.refreshUncovered();
-  }
-
-  protected removeWindow(index: number): void {
-    this.schedule.removeAt(index);
-    this.refreshUncovered();
-  }
-
-  protected toggleDay(index: number, day: Weekday): void {
-    const control = this.schedule.at(index).controls.days;
-    const days = control.value ?? [];
-
-    control.setValue(days.includes(day) ? days.filter((d) => d !== day) : [...days, day]);
-    control.markAsDirty();
-    this.refreshUncovered();
-  }
-
-  protected isDayOn(index: number, day: Weekday): boolean {
-    return (this.schedule.at(index).controls.days.value ?? []).includes(day);
-  }
-
-  /** Reports a window the lessor has started but not finished. */
-  protected windowInvalid(index: number): boolean {
-    const group = this.schedule.at(index);
-    return group.touched && !isValidWindow(readWindow(group));
-  }
-
-  private buildWindow(window?: VisitWindow): VisitWindowGroup {
-    return this.fb.group({
-      days: this.fb.control<Weekday[]>(window?.days ?? []),
-      from: this.fb.control(window?.from ?? '09:00'),
-      to: this.fb.control(window?.to ?? '21:00'),
-    }) as VisitWindowGroup;
+  /** Started but not finished — reported once the lessor has left the field. */
+  protected windowInvalid(): boolean {
+    return this.visitHours.touched && this.visitHours.invalid;
   }
 
   private setSchedule(windows: readonly VisitWindow[]): void {
-    this.schedule.clear();
-    // A unit with no schedule yet still gets one empty row, so the editor is
-    // never an unexplained blank space with only an "add" button.
-    const rows = windows.length ? windows : [undefined];
-    rows.forEach((window) => this.schedule.push(this.buildWindow(window)));
-    this.refreshUncovered();
+    // A unit saved before this section existed has no window; the defaults
+    // already in the group are a better starting point than two empty inputs.
+    const window = windows[0];
+    if (window) this.visitHours.setValue({ from: window.from, to: window.to });
   }
 
   private readSchedule(): VisitWindow[] {
-    return this.schedule.controls.map(readWindow).filter(isValidWindow);
-  }
-
-  private refreshUncovered(): void {
-    this.uncovered.set(uncoveredDays(this.readSchedule()).map((day) => weekdayName(day, 'ar-SA')));
+    const { from, to } = this.visitHours.getRawValue();
+    return this.visitHours.valid ? dailySchedule(from, to) : [];
   }
 
   private rejectFile(file: File): string | null {

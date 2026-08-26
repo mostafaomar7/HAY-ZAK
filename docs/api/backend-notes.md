@@ -131,44 +131,71 @@ the nav and the routes have one vocabulary.
 
 ## Open with the backend
 
-**1. Two console screens have no permission.** The reference lists and the audit
-trail are not covered by any of the nine, so both ride on `settings:manage` and
-are system-administrator only — narrower than SRS §5, which gives reference data
-to an operations supervisor. Under-granting is the safe direction to be wrong
-in, and the routing spec asserts the narrowing so it stays deliberate. Needs
-either `reference:manage` and `audit:view`, or a ruling that `settings:manage`
-is the right home.
+**1 & 2. The permissions are thirteen now — settled.** ~~Two console screens
+have no permission~~ / ~~the finance officer cannot configure commission~~. The
+vocabulary read off the running server on 2026-08-26:
 
-**2. The finance officer cannot configure commission.** `settings:manage` is
-system-administrator only on the server; SRS §5 gives financial configuration to
-the finance officer. One of the two is wrong.
+| Permission           | Held by                       |
+| -------------------- | ----------------------------- |
+| `settings:financial` | `SYSTEM_ADMIN` + `FINANCE`    |
+| `reference:manage`   | `SYSTEM_ADMIN` + `OPERATIONS` |
+| `audit:view`         | `SYSTEM_ADMIN`                |
+| `admins:manage`      | `SYSTEM_ADMIN`                |
 
-**3. Dates go in plain and come back as instants.** `POST /lessor/units/:id/blocks`
-refuses `2027-06-01T00:00:00.000Z` with "التاريخ يجب أن يكون بصيغة YYYY-MM-DD",
-then answers with `"startDate": "2027-05-01T00:00:00.000Z"`. The client narrows
-them back by taking the first ten characters — deliberately a string operation,
-because parsing a UTC midnight and reading its local day is a day out anywhere
-west of Greenwich. Symmetry would be better: send the date back as it was
-accepted.
+So the matrix is SRS §5's again: the operations supervisor holds the reference
+lists, and the finance officer holds the commission and the VAT rate.
+`settings:manage` stays with the system administrator and now means what is
+left — integration keys and system limits — so **it no longer opens the
+financial screen**, and guarding that screen on it would lock out the one
+officer whose screen it is. `admins:manage` has no screen yet; it is in the
+enum because that enum is the wire's whole vocabulary, and a permission the
+client has never heard of is one `WIRE_PERMISSIONS` would silently drop.
 
-**5. Visiting hours are one window for the whole week.** The API stores
-`visitHoursFrom`/`visitHoursTo` as minutes since midnight; FR-UNT-06 and the
-design have a row per group of days. `unit-wire.ts` reduces a schedule to the
-widest window on the way out and expands it back as "every day" on the way in.
-A lessor who enters "Sunday to Thursday, 09:00–17:00" reads it back as "all
-week" — the days were never stored. Needs either a repeating structure on the
-wire, or a decision to drop the per-day table from the form.
+`audit:view` being the system administrator's alone is right and worth saying
+why: the audit trail records what every administrator did, including whoever is
+reading it.
 
-**6. No `isFullyBooked` on a unit.** FR-MKT-10 wants a "محجوزة بالكامل" badge on
-a search result. It cannot be derived client-side without fetching the
-availability of every card on the page, so the flag is optional in the model and
-the badge simply never appears against the real server.
+**3. Dates — fixed, and symmetrical.** ~~Go in plain and come back as
+instants.~~ `POST /lessor/units/:id/blocks { "startDate": "2027-07-01" }` now
+answers `"startDate": "2027-07-01"`, on `unit_availability` and on bookings, and
+an instant on the way in is still a 422. Verified 2026-08-26.
 
-**7. `/lessor/units` takes no search term.** It accepts `status`, `page` and
-`pageSize` and answers 422 for anything else. With fifty-one spaces across five
-pages the lessor's search box therefore filters the twelve on screen and not the
-other thirty-nine. The screen says nothing about that, because the honest fix is
-a `search` parameter, not a caption explaining a limitation.
+The client's ten-character slice is **gone** rather than kept as a guard: a
+coercion that silently accepts the wrong shape is how a broken contract stays
+invisible. `unit-wire.spec.ts` asserts the block dates are carried through
+untouched, so nothing reintroduces a conversion.
+
+**5. Visiting hours — the form now says what is stored. Awaiting the client's
+ruling.** The API holds `visitHoursFrom`/`visitHoursTo` as minutes since
+midnight: one window, no days. FR-UNT-06 and the design have a row per group of
+days, and the editor used to offer exactly that — day toggles, several rows, an
+"add another period" button — all of which read back as "all week" whatever was
+entered, because the days were never saved.
+
+The editor is now a single window labelled **"مواعيد الزيارة (يوميًا)"**. A
+simpler form that is true beats a richer one that promises storage there is
+none of. If the client rules that per-day windows are required, this needs a
+repeating structure on the wire and the table comes back; until then the form
+does not lie to the lessor.
+
+**6. `isFullyBooked` — shipped.** On every card in `/public/units`, always a
+boolean, never absent. It means "no free day in the next thirty". Already
+non-optional in the client's model, so nothing needed changing; the badge
+appears now. Note it is always `false` when `startDate`/`endDate` are sent,
+which is correct — a booked unit is not in those results at all.
+
+**7. `/lessor/units?search=` — shipped, and wired.** It matches the title and
+the short description across every page, combines with `status`/`page`/
+`pageSize`, and answers 422 above 120 characters (`query.search`, «نص البحث
+طويل جدًا»).
+
+The lessor's box used to filter the loaded page in the browser — twelve rows
+searched out of the 174 this account has, while the pager went on counting all
+of them. The term now goes to the server, a changed term resets to page one,
+and the input carries `maxlength=120` so the ceiling cannot be typed past:
+truncating on the way out would search for something other than what is on
+screen, and holding the request back would show every row and look like the
+search did nothing.
 
 **8. `/lessor/earnings/rows` is not shipped.** The dues table (LSR-07) shows a
 row per booking with its commission and its transfer. `/lessor/earnings` gives
@@ -183,10 +210,9 @@ does not exist until an operator approves one. Reusing it meant a booking could
 read "APPROVED" before any payout covered it. Provisional until the rows
 endpoint lands and says otherwise.
 
-**10. The users list filter needs a decision.** The console filters by
-مستأجر/مؤجر and by the three kinds of administrator in one control. The client
-sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
-not shipped, so nothing has agreed to that yet.
+**10. The users list filter — agreed.** Two separate parameters, `role` and
+`adminRole`, which is what the client already sends. `/admin/users` itself is
+in the next batch.
 
 **11. `q` works. The zeros were my probe, not the server.** Closed.
 
@@ -261,12 +287,18 @@ Since then the seven documents ship in the bundle
 falling back to them. So the pages read today, and the day this module lands an
 administrator's published version takes over with no change on this side.
 
-**16. The renter's own area is not shipped either.** Signed in as
-`0500000001` (RENTER): `/me` and `/me/notifications` answer 200,
-`/me/bank-accounts` correctly 403s a renter, and `/bookings/mine`,
-`/bookings` and every `/account/*` route answer 404. So a renter can sign in,
-read their profile and their notifications — and has no "حجوزاتي" and no
-account screen.
+**16. The renter's own area — mostly shipped now.** ~~Not shipped either.~~
+`/renter/bookings` and its detail, payment, and invoice all answer, and are
+wired; "حجوزاتي" works. What is still 404 is the `/account/*` family, which
+duplicates `/me/*` — that needs a ruling on which name wins before either side
+builds more on it.
+
+**A standing correction to how this file reads.** A route answering **401 is
+not a route that is missing.** Several items above were written from probes run
+without a token and said "not shipped" about paths that were only asking to be
+signed in. The server has ~62 routes; `api-endpoints.ts` names about half.
+Before writing "not shipped" here again: send a token, and quote the status
+code.
 
 **17. `returnUrl` — settled, and the fault was ours.** ~~Rejects the domain
 your own note used.~~ The allow-list is the `WEB_URL`/`APP_URL` hosts plus any

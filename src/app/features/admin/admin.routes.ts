@@ -90,7 +90,8 @@ export const ADMIN_ROUTES: Routes = [
         path: 'financial-settings',
         title: 'الإعدادات المالية',
         data: { titleKey: 'adminNav.financialSettings' },
-        canActivate: [permissionGuard([Permission.ManageSettings])],
+        // The finance officer's screen, and they do not hold `settings:manage`.
+        canActivate: [permissionGuard([Permission.SetFinancialSettings])],
         loadComponent: () =>
           import('./pages/financial-settings-page/financial-settings-page').then(
             (m) => m.AdminFinancialSettingsPage,
@@ -108,7 +109,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'reference-lists',
         title: 'القوائم المرجعية',
         data: { titleKey: 'adminNav.referenceLists' },
-        canActivate: [permissionGuard([Permission.ManageSettings])],
+        canActivate: [permissionGuard([Permission.ManageReferenceData])],
         loadComponent: () =>
           import('./pages/reference-lists-page/reference-lists-page').then(
             (m) => m.AdminReferenceListsPage,
@@ -133,7 +134,7 @@ export const ADMIN_ROUTES: Routes = [
         path: 'audit',
         title: 'سجل التدقيق',
         data: { titleKey: 'adminNav.audit' },
-        canActivate: [permissionGuard([Permission.ManageSettings])],
+        canActivate: [permissionGuard([Permission.ViewAuditLog])],
         loadComponent: () => import('./pages/audit-page/audit-page').then((m) => m.AdminAuditPage),
       },
       {

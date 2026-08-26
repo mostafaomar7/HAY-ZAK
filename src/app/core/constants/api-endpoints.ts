@@ -339,14 +339,6 @@ export const API_ENDPOINTS = {
     markAllNotificationsRead: '/me/notifications/read-all',
   },
 
-  /** FR-NTF — not shipped; see `me.notifications` for what exists. */
-  notifications: {
-    base: '/notifications',
-    markRead: (id: string) => `/notifications/${id}/read`,
-    markAllRead: '/notifications/read-all',
-    unreadCount: '/notifications/unread-count',
-  },
-
   /**
    * FR-CMS — **not shipped**, every route answers 404.
    *

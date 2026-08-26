@@ -15,6 +15,7 @@ import { APP } from '@core/constants/app.constants';
       class="search"
       [attr.placeholder]="placeholder()"
       [attr.aria-label]="placeholder()"
+      [attr.maxlength]="maxLength()"
       [value]="value()"
       (input)="onInput($event)"
     />
@@ -24,6 +25,15 @@ import { APP } from '@core/constants/app.constants';
 export class UiSearchField {
   readonly placeholder = input('البحث');
   readonly initialValue = input('');
+  /**
+   * A ceiling the server has, expressed where the typing happens.
+   *
+   * `/lessor/units` answers 422 above 120 characters. Capping the input is the
+   * only handling that is not a lie: truncating on the way out would search for
+   * something other than what is on screen, and holding the request back would
+   * show every row and look like the search did nothing.
+   */
+  readonly maxLength = input<number>();
 
   readonly searchChange = output<string>();
 

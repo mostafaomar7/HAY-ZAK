@@ -141,6 +141,17 @@ describe('admin console routing (smoke)', () => {
       expect(router.url).toBe('/admin/transfers');
     });
 
+    /**
+     * The commission and the VAT rate are this officer's to set (SRS §5), and
+     * the screen was guarded on `settings:manage` — which they do not hold and
+     * are not meant to, because it also covers integration keys and system
+     * limits. `settings:financial` is the one that exists for this.
+     */
+    it('reaches the financial settings SRS §5 gives it', async () => {
+      await open('/admin/financial-settings');
+      expect(router.url).toBe('/admin/financial-settings');
+    });
+
     it('is refused the user administration screen', async () => {
       await open('/admin/users');
       expect(router.url)
@@ -195,13 +206,21 @@ describe('admin console routing (smoke)', () => {
     });
 
     /**
-     * Reference lists and the audit trail have no permission of their own on
-     * the wire, so they ride on `settings:manage` and are system-administrator
-     * only — narrower than SRS §5, which grants reference data to operations.
-     * Raised with the backend; asserted so the narrowing is deliberate.
+     * These two used to ride on `settings:manage`, which made them
+     * system-administrator only — narrower than SRS §5. The wire now has
+     * `reference:manage` and `audit:view`, so the matrix is the SRS's again.
      */
-    it('is refused the reference lists it holds under SRS §5', async () => {
+    it('reaches the reference lists SRS §5 gives it', async () => {
       await open('/admin/reference-lists');
+      expect(router.url).toBe('/admin/reference-lists');
+    });
+
+    /**
+     * The audit trail records what every administrator did, including whoever
+     * is reading it. `audit:view` is the system administrator's alone.
+     */
+    it('is refused the audit trail', async () => {
+      await open('/admin/audit');
       expect(router.url).toBe('/forbidden');
     });
   });

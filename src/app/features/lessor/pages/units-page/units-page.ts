@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { UnitStatus } from '@core/enums/unit-status.enum';
 import { UNIT_STATUS_DISPLAY } from '@core/constants/status-display';
 import { NotificationService } from '@core/services/notification.service';
-import { LessorUnitsService } from '../../services/lessor-units.service';
+import { LessorUnitsService, UNIT_SEARCH_MAX_LENGTH } from '../../services/lessor-units.service';
 import { UnitCard } from '../../components/unit-card/unit-card';
 import type { FilterChip } from '@shared/components/ui-filter-chips/ui-filter-chips';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -56,20 +56,17 @@ export class UnitsPage {
   ];
 
   /**
-   * Search filters the page that is loaded, in memory.
+   * Whatever the last request came back with.
    *
-   * Not a choice: `/lessor/units` accepts `status`, `page` and `pageSize` and
-   * answers 422 for anything else, so there is nowhere to send a search term.
-   * With fifty-one spaces across five pages that means typing searches the
-   * twelve on screen and not the other thirty-nine — a real limitation, logged
-   * in `docs/api/backend-notes.md` rather than papered over here.
+   * The search is the server's now — `/lessor/units?search=` matches the title
+   * and the short description across every page. It used to filter the loaded
+   * page here, which searched the twelve rows on screen and not the other
+   * hundred and sixty-two, and the pager went on counting all of them.
    */
-  protected readonly visibleUnits = computed(() => {
-    const term = this.query().toLocaleLowerCase('ar');
-    const units = this.service.units();
-    if (!term) return units;
-    return units.filter((u) => u.title.toLocaleLowerCase('ar').includes(term));
-  });
+  protected readonly visibleUnits = this.service.units;
+
+  /** The server's ceiling, so it cannot be typed past. */
+  protected readonly searchMaxLength = UNIT_SEARCH_MAX_LENGTH;
 
   protected readonly isFiltered = computed(() => !!this.query() || this.filter() !== 'all');
 
@@ -94,7 +91,12 @@ export class UnitsPage {
   }
 
   protected onSearch(term: string): void {
+    if (term === this.query()) return;
     this.query.set(term);
+    // Page four of "مستودع" is not page four of everything, and staying there
+    // lands the lessor on an empty grid.
+    this.page.set(1);
+    this.fetch();
   }
 
   protected clearFilters(): void {
@@ -116,6 +118,8 @@ export class UnitsPage {
   protected fetch(): void {
     this.failed.set(false);
     const status = this.filter() === 'all' ? undefined : (this.filter() as UnitStatus);
-    this.service.load(status, this.page()).subscribe({ error: () => this.failed.set(true) });
+    this.service
+      .load(status, this.page(), this.query())
+      .subscribe({ error: () => this.failed.set(true) });
   }
 }

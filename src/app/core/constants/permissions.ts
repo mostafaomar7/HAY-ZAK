@@ -26,17 +26,33 @@ export enum Permission {
   ExecutePayouts = 'payouts:approve',
   IssueRefunds = 'refunds:issue',
   /**
-   * Platform configuration: commission, payout schedule, the reference lists
-   * and the audit trail.
+   * Platform configuration that is not money: integration keys and system
+   * limits. System-administrator only.
    *
-   * The last two have no permission of their own on the wire, so they ride on
-   * this one and are therefore system-administrator only — narrower than the
-   * SRS matrix, which grants reference data to an operations supervisor. Raised
-   * with the backend; under-granting is the safe direction to be wrong in.
+   * The commission and the VAT rate are **not** here — they moved to
+   * `SetFinancialSettings`, which the finance officer holds. Guarding the
+   * financial screen on this one locks that officer out of their own settings.
    */
   ManageSettings = 'settings:manage',
+  /** Commission and VAT. `SYSTEM_ADMIN` + `FINANCE` (SRS §5). */
+  SetFinancialSettings = 'settings:financial',
+  /** The reference lists. `SYSTEM_ADMIN` + `OPERATIONS`. */
+  ManageReferenceData = 'reference:manage',
+  /**
+   * The audit trail. `SYSTEM_ADMIN` alone, and deliberately so: it records what
+   * every administrator did, including whoever is reading it.
+   */
+  ViewAuditLog = 'audit:view',
   ViewReports = 'reports:view',
   ManageCms = 'cms:manage',
+  /**
+   * Creating and suspending administrator accounts. `SYSTEM_ADMIN` alone.
+   *
+   * No screen claims it yet — it is here because this enum is the wire's whole
+   * vocabulary, and a value the server issues that the client has never heard
+   * of is exactly what `WIRE_PERMISSIONS` would silently drop.
+   */
+  ManageAdmins = 'admins:manage',
 
   // ── Implied by the role. Never appear on the wire.
   BrowseMarketplace = 'client:marketplace.browse',

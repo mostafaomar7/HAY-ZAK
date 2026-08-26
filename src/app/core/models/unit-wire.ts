@@ -1,6 +1,5 @@
 import { environment } from '../../../environments/environment';
 import type { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
-import type { PlainDate } from '../utils/date.utils';
 import type {
   GeoPoint,
   ReferenceItem,
@@ -112,18 +111,12 @@ export interface WireUnitRequest {
 const EVERY_DAY: Weekday[] = [0, 1, 2, 3, 4, 5, 6];
 
 // ── Dates ────────────────────────────────────────────────────────────────────
-
-/**
- * The date part of whatever the server sent.
- *
- * Deliberately a string operation. The value is a calendar date the server
- * wrote as an instant, so the only correct reading is the one it wrote — a
- * timezone conversion here would move a block a day in either direction
- * depending on where the browser is.
- */
-export function plainFromWire(value: string): PlainDate {
-  return value.slice(0, 10);
-}
+//
+// Availability and bookings send plain `YYYY-MM-DD` in both directions now, and
+// an instant on the way in is a 422 — so there is nothing left to convert. A
+// `plainFromWire` used to take the date part of an instant here; it is gone
+// rather than kept as a defensive slice, because a coercion that silently
+// accepts the wrong shape is how a broken contract stays invisible.
 
 // ── Visiting hours ───────────────────────────────────────────────────────────
 
@@ -148,7 +141,19 @@ export function clockToMinutes(clock: string): number {
  */
 export function scheduleFromWire(from: number | null, to: number | null): VisitWindow[] {
   if (from === null || to === null) return [];
-  return [{ days: [...EVERY_DAY], from: minutesToClock(from), to: minutesToClock(to) }];
+  return dailySchedule(minutesToClock(from), minutesToClock(to));
+}
+
+/**
+ * One window, every day — the only schedule the API can hold.
+ *
+ * The editor builds its answer through here rather than assembling a
+ * `VisitWindow` itself, so the one place that knows the storage is lossy is
+ * also the one place that decides what the days are.
+ */
+export function dailySchedule(from: string, to: string): VisitWindow[] {
+  if (!from || !to) return [];
+  return [{ days: [...EVERY_DAY], from, to }];
 }
 
 /**
@@ -210,8 +215,8 @@ export function imageFromWire(image: WireUnitImage): UnitImage {
 export function blockFromWire(block: WireAvailabilityBlock): UnitAvailabilityBlock {
   return {
     id: block.id,
-    startDate: plainFromWire(block.startDate),
-    endDate: plainFromWire(block.endDate),
+    startDate: block.startDate,
+    endDate: block.endDate,
     reason: block.reason,
     note: block.note ?? null,
     bookingId: block.bookingId ?? undefined,

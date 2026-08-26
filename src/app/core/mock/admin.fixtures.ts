@@ -65,18 +65,23 @@ export const SEEDED_ADMIN_PERMISSIONS: Readonly<Record<AdminRole, readonly strin
     'payouts:approve',
     'refunds:issue',
     'settings:manage',
+    'settings:financial',
+    'reference:manage',
+    'audit:view',
     'reports:view',
     'cms:manage',
+    'admins:manage',
   ],
   [AdminRole.Operations]: [
     'units:review',
     'users:manage',
     'bookings:manage',
     'complaints:manage',
+    'reference:manage',
     'reports:view',
     'cms:manage',
   ],
-  [AdminRole.Finance]: ['payouts:approve', 'refunds:issue', 'reports:view'],
+  [AdminRole.Finance]: ['payouts:approve', 'refunds:issue', 'settings:financial', 'reports:view'],
 };
 
 export const MOCK_ADMIN_USER: User = {

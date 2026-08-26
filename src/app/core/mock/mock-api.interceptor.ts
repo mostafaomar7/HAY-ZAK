@@ -565,8 +565,18 @@ function filterMarket(query: string) {
 }
 
 function filterUnits(query: string) {
-  const status = new URLSearchParams(query).get('status');
-  return status ? MOCK_UNITS.filter((u) => u.status === status) : MOCK_UNITS;
+  const params = new URLSearchParams(query);
+  const status = params.get('status');
+  // The server matches the title and the short description, and combines this
+  // with `status`. Doing it here too keeps the mock from making a search that
+  // is broken against the real API look like it works.
+  const search = params.get('search')?.trim().toLocaleLowerCase('ar');
+
+  return MOCK_UNITS.filter(
+    (unit) =>
+      (!status || unit.status === status) &&
+      (!search || `${unit.title} ${unit.description}`.toLocaleLowerCase('ar').includes(search)),
+  );
 }
 
 /**

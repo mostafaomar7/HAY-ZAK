@@ -70,12 +70,21 @@ export class LessorUnitsService {
    * `pageSize`, never `limit` — the server answers 422 for the latter, which is
    * the right answer: a page size that is quietly ignored looks like it worked
    * while returning twelve rows where two were asked for.
+   *
+   * `search` goes to the server too, and matches the title and the short
+   * description across every page. It used to filter the loaded page in the
+   * browser, which searched the twelve rows on screen and none of the other
+   * hundred and sixty-two.
    */
-  load(status?: UnitStatus, page = 1): Observable<PaginatedResponse<Unit>> {
+  load(status?: UnitStatus, page = 1, search?: string): Observable<PaginatedResponse<Unit>> {
     this.loading.set(true);
+    const term = search?.trim();
+
     return this.api
       .list<WireUnit>(API_ENDPOINTS.lessor.units, {
-        params: { status, page, pageSize: APP.pageSize },
+        // Omitted rather than sent empty: `search=` is a filter that matches
+        // nothing in some readings and everything in others.
+        params: { status, page, pageSize: APP.pageSize, search: term || undefined },
       })
       .pipe(
         map((response) => ({ ...response, items: response.items.map(unitFromWire) })),
@@ -236,3 +245,6 @@ export function isUnitPriceLocked(unit: Unit): boolean {
 export function isUnitVisiblePublicly(unit: Unit): boolean {
   return PUBLIC_UNIT_STATUSES.includes(unit.status);
 }
+
+/** `/lessor/units` answers 422 for a longer term. Bound to the input's maxlength. */
+export const UNIT_SEARCH_MAX_LENGTH = 120;

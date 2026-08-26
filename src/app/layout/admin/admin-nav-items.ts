@@ -71,7 +71,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/financial-settings',
         labelKey: 'adminNav.financialSettings',
-        permission: Permission.ManageSettings,
+        permission: Permission.SetFinancialSettings,
       },
     ],
   },
@@ -82,7 +82,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         route: '/admin/reference-lists',
         labelKey: 'adminNav.referenceLists',
-        permission: Permission.ManageSettings,
+        permission: Permission.ManageReferenceData,
       },
       {
         route: '/admin/content',
@@ -94,7 +94,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         labelKey: 'adminNav.terms',
         permission: Permission.ManageCms,
       },
-      { route: '/admin/audit', labelKey: 'adminNav.audit', permission: Permission.ManageSettings },
+      { route: '/admin/audit', labelKey: 'adminNav.audit', permission: Permission.ViewAuditLog },
       {
         route: '/admin/library',
         labelKey: 'adminNav.library',

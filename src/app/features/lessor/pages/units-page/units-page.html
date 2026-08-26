@@ -2,7 +2,8 @@
   <div class="page__toolbar">
     <app-ui-search-field
       class="page__search"
-      placeholder="البحث باسم المساحة"
+      placeholder="البحث باسم المساحة أو وصفها"
+      [maxLength]="searchMaxLength"
       [initialValue]="query()"
       (searchChange)="onSearch($event)"
     />
