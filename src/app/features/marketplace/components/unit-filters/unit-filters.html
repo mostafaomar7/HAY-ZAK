@@ -6,23 +6,24 @@
     </button>
   </header>
 
-  <!-- Hidden without a shared location: the API ignores a radius with no
-       point, so a slider here would move and change nothing. -->
-  @if (hasLocation()) {
-    <app-ui-range-slider
-      inputId="f-distance"
-      [label]="i18n.t('results.distance')"
-      [valueLabel]="i18n.t('results.upToKm', { count: filters().radiusKm })"
-      [minLabel]="'1 ' + i18n.t('results.km')"
-      [maxLabel]="'25 ' + i18n.t('results.km')"
-      [min]="1"
-      [max]="25"
-      [value]="filters().radiusKm"
-      (valueChange)="setRadius($event)"
-    />
-
-    <hr class="filters__rule" />
+  <!-- 0.5–200 km is the server's range. Moving this without a shared location
+       asks for one rather than sending a radius the API now refuses. -->
+  <app-ui-range-slider
+    inputId="f-distance"
+    [label]="i18n.t('results.distance')"
+    [valueLabel]="i18n.t('results.upToKm', { count: filters().radiusKm })"
+    [minLabel]="'1 ' + i18n.t('results.km')"
+    [maxLabel]="'200 ' + i18n.t('results.km')"
+    [min]="1"
+    [max]="200"
+    [value]="filters().radiusKm"
+    (valueChange)="setRadius($event)"
+  />
+  @if (!hasLocation()) {
+    <p class="group__hint">{{ i18n.t('results.radiusNeedsLocation') }}</p>
   }
+
+  <hr class="filters__rule" />
 
   <div class="group">
     <h3 class="group__title">{{ i18n.t('results.priceRange') }}</h3>

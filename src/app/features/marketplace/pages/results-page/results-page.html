@@ -8,6 +8,7 @@
         [districts]="districtFacets()"
         [hasLocation]="!!point()"
         (filtersChange)="onFilters($event)"
+        (locationNeeded)="useMyLocation()"
         (cleared)="clearFilters()"
       />
     </aside>
@@ -226,6 +227,7 @@
           [districts]="districtFacets()"
           [hasLocation]="!!point()"
           [resultCount]="total()"
+          (locationNeeded)="useMyLocation()"
           (filtersChange)="onFilters($event)"
           (cleared)="clearFilters()"
           (applied)="applySheet()"

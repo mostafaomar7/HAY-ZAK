@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
-import type { PublicUnit } from '@core/models/public-unit';
+import type { PublicUnit, PublicUnitSummary } from '@core/models/public-unit';
 import type { ReferenceItem } from '@core/models/unit.model';
 import { AuthService } from '@core/services/auth.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
@@ -16,10 +16,14 @@ import { UiLocationMap } from '@shared/components/ui-location-map/ui-location-ma
 import { UiModal } from '@shared/components/ui-modal/ui-modal';
 import { UiPriceBreakdown } from '@shared/components/ui-price-breakdown/ui-price-breakdown';
 import { UiProhibitedList } from '@shared/components/ui-prohibited-list/ui-prohibited-list';
-import { UiRangeCalendar } from '@shared/components/ui-range-calendar/ui-range-calendar';
+import {
+  UiRangeCalendar,
+  expandBlockedDates,
+} from '@shared/components/ui-range-calendar/ui-range-calendar';
 import type { DateRange } from '@shared/components/ui-range-calendar/ui-range-calendar';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
+import { UnitResultCard } from '../../components/unit-result-card/unit-result-card';
 import { MarketplaceService } from '../../services/marketplace.service';
 
 /**
@@ -36,12 +40,12 @@ import { MarketplaceService } from '../../services/marketplace.service';
  * first moment an account is needed, and it opens a dialog rather than throwing
  * the visitor at a login screen and losing the dates they picked.
  *
- * Two sections the design has and this page does not: the taken dates greyed
- * out on the calendar, and the "مساحات مشابهة" rail. Both need endpoints the
- * server does not serve yet — see `docs/api/backend-notes.md`. Showing an empty
- * calendar is the safe failure: the booking step re-checks the window and the
- * server is the one that refuses, so the worst case is a date rejected a step
- * later rather than a booking taken over one that exists.
+ * The calendar greys out what `/public/units/:id/availability` reports, and
+ * that is a courtesy rather than the rule: a clashing booking is refused at
+ * creation by a database constraint either way. What this changes is whether
+ * the date was ever offered. If the call fails the calendar simply offers
+ * everything, and the refusal moves one step later — which is the safe way for
+ * it to fail.
  */
 @Component({
   selector: 'app-unit-details-page',
@@ -59,6 +63,7 @@ import { MarketplaceService } from '../../services/marketplace.service';
     UiRangeCalendar,
     UiSkeleton,
     UiThumbnail,
+    UnitResultCard,
   ],
   templateUrl: './unit-details-page.html',
   styleUrl: './unit-details-page.scss',
@@ -76,6 +81,16 @@ export class UnitDetailsPage {
 
   protected readonly unit = signal<PublicUnit | null>(null);
   protected readonly prohibited = signal<ReferenceItem[]>([]);
+  protected readonly similar = signal<PublicUnitSummary[]>([]);
+  protected readonly blockedDates = signal<string[]>([]);
+  /**
+   * The first day the availability call said nothing about.
+   *
+   * Its window has a ceiling, so days past it were never answered — they are
+   * unknown, not free. The calendar stops there rather than presenting a year
+   * of green it has no grounds for.
+   */
+  protected readonly unknownFrom = signal('');
 
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
@@ -89,6 +104,7 @@ export class UnitDetailsPage {
   private readonly range = signal<DateRange | null>(null);
 
   protected readonly minDays = computed(() => this.unit()?.minDays ?? 1);
+  /** `null` from the API means no upper bound, which the calendar spells 365. */
   protected readonly maxDays = computed(() => this.unit()?.maxDays ?? 365);
 
   /** Defaults to the shortest stay the owner allows, so a price is on screen at once. */
@@ -139,6 +155,21 @@ export class UnitDetailsPage {
     this.prohibited().map((item) => this.i18n.pick(item)),
   );
 
+  /**
+   * "المزيد مثل هذه" — the search, filtered the way the rail was built.
+   *
+   * The rail has no second page on purpose: page two of "similar" is the
+   * catalogue filtered by category, and that screen already exists. This is the
+   * link to it rather than a paging control that would duplicate it.
+   */
+  protected readonly similarQuery = computed(() => {
+    const unit = this.unit();
+    return {
+      categoryId: unit?.category?.id ?? null,
+      cityId: unit?.city?.id ?? null,
+    };
+  });
+
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
@@ -160,6 +191,27 @@ export class UnitDetailsPage {
   protected load(): void {
     this.isLoading.set(true);
     this.failed.set(false);
+
+    // The taken days. A failure leaves the calendar open rather than closed:
+    // the server refuses a clash at creation regardless, and a calendar that
+    // greyed out everything on a network hiccup would block a real booking.
+    this.marketplace.availability(this.id()).subscribe({
+      next: (availability) => {
+        this.blockedDates.set(expandBlockedDates(availability.blocked));
+        this.unknownFrom.set(availability.unknownFrom);
+      },
+      error: () => {
+        this.blockedDates.set([]);
+        this.unknownFrom.set('');
+      },
+    });
+
+    // Ordered by the server — same category, then same city, district,
+    // proximity, price. The rail hides itself if the call fails.
+    this.marketplace.similar(this.id()).subscribe({
+      next: (units) => this.similar.set(units),
+      error: () => this.similar.set([]),
+    });
 
     this.marketplace.byId(this.id()).subscribe({
       next: (unit) => {

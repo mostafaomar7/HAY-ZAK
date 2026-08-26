@@ -106,6 +106,38 @@ describe('MarketplaceService', () => {
     expect(sent().has('q')).toBeFalse();
   });
 
+  /**
+   * An Arabic term must reach the wire encoded exactly once.
+   *
+   * Percent-encoding an already-encoded string is the classic way a search box
+   * comes back empty for every Arabic word while every Latin one behaves — the
+   * server receives `%25D9%2585…`, matches nothing, and answers 200 with zero
+   * results, which looks like a broken search rather than a broken client.
+   *
+   * `HttpParams` encodes; nothing in this codebase calls encodeURIComponent.
+   * That is a property worth pinning rather than re-deducing, because the
+   * failure it prevents is silent on both sides.
+   */
+  it('sends an Arabic term encoded exactly once', () => {
+    service.search({ q: 'مستودع' }).subscribe();
+
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/public/units'));
+    const serialised = request.request.params.toString();
+    request.flush({
+      success: true,
+      data: {
+        items: [],
+        pagination: { page: 1, pageSize: 12, total: 0, totalPages: 0, hasNextPage: false },
+      },
+    });
+
+    // Angular leaves Arabic characters literal in the serialised params and
+    // the browser encodes them once on the way out; either is fine. A `%25`
+    // is not — that is a percent sign that was itself encoded.
+    expect(serialised).not.toContain('%25');
+    expect(decodeURIComponent(serialised)).toContain('q=مستودع');
+  });
+
   it('reads the wire shape into the domain, renaming location to area', () => {
     let received: { area: { radiusMeters: number }; coverUrl: string | null } | undefined;
     service.search({}).subscribe((page) => (received = page.items[0] as never));

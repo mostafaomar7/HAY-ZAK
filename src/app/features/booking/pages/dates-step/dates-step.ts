@@ -2,8 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
-import type { PublicUnit, WirePublicUnitDetail } from '@core/models/public-unit';
-import { publicUnitFromWire } from '@core/models/public-unit';
+import type {
+  PublicUnit,
+  WirePublicUnitDetail,
+  WireUnitAvailability,
+} from '@core/models/public-unit';
+import { availabilityFromWire, publicUnitFromWire } from '@core/models/public-unit';
 import { ApiService } from '@core/services/api.service';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { NotificationService } from '@core/services/notification.service';
@@ -110,15 +114,17 @@ export class DatesStep {
       },
     });
 
-    // Not shipped: the calendar shows every date as free until it is. The
-    // server re-checks the window when the draft is created, so a taken date
-    // is refused a step later rather than double-booked here.
+    // The taken days, through the same adapter the details page uses — the
+    // response is an object with a `blocked` array, not a bare array, and
+    // reading it as one is how this step started throwing when the endpoint
+    // shipped. Half-open ranges: the expansion stops before `endDate`.
     this.api
-      .get<{ startDate: string; endDate: string }[]>(
-        API_ENDPOINTS.marketplace.unitAvailability(this.unitId()),
-      )
+      .get<WireUnitAvailability>(API_ENDPOINTS.marketplace.unitAvailability(this.unitId()))
       .subscribe({
-        next: (blocks) => this.blockedDates.set(expandBlockedDates(blocks)),
+        next: (payload) =>
+          this.blockedDates.set(expandBlockedDates(availabilityFromWire(payload).blocked)),
+        // Open rather than closed: the server refuses a clash at creation
+        // regardless, and greying everything out on a hiccup blocks a real one.
         error: () => this.blockedDates.set([]),
       });
   }

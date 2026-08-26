@@ -10,10 +10,17 @@ import type {
   PublicUnit,
   PublicUnitQuery,
   PublicUnitSummary,
+  UnitAvailability,
   WirePublicUnit,
   WirePublicUnitDetail,
+  WireSimilarUnits,
+  WireUnitAvailability,
 } from '@core/models/public-unit';
-import { publicUnitFromWire, publicUnitSummaryFromWire } from '@core/models/public-unit';
+import {
+  availabilityFromWire,
+  publicUnitFromWire,
+  publicUnitSummaryFromWire,
+} from '@core/models/public-unit';
 import { ApiService } from '@core/services/api.service';
 
 /**
@@ -72,6 +79,31 @@ export class MarketplaceService {
     return this.api
       .get<WirePublicUnitDetail>(API_ENDPOINTS.public.unitById(id), { context: this.context })
       .pipe(map((payload) => publicUnitFromWire(payload.unit)));
+  }
+
+  /**
+   * FR-UNT-08 — the days the calendar must not offer.
+   *
+   * No `from`/`to` sent: the server's own window is ninety days from today,
+   * which is longer than the calendar shows, and asking for a range means
+   * having an opinion about one. `unknownFrom` in the answer is what bounds it.
+   */
+  availability(id: string): Observable<UnitAvailability> {
+    return this.api
+      .get<WireUnitAvailability>(API_ENDPOINTS.marketplace.unitAvailability(id), {
+        context: this.context,
+      })
+      .pipe(map(availabilityFromWire));
+  }
+
+  /** The rail at the foot of the details page. Ordered by the server. */
+  similar(id: string, limit = 6): Observable<PublicUnitSummary[]> {
+    return this.api
+      .get<WireSimilarUnits>(API_ENDPOINTS.marketplace.similarUnits(id), {
+        context: this.context,
+        params: { limit },
+      })
+      .pipe(map((payload) => payload.items.map(publicUnitSummaryFromWire)));
   }
 
   private fetch(

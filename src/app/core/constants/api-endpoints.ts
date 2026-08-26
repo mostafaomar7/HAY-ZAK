@@ -123,16 +123,33 @@ export const API_ENDPOINTS = {
   },
 
   /**
-   * FR-MKT — what the catalogue still owes the renter journey.
+   * FR-MKT — the rest of the public catalogue, and shipped.
    *
-   * Search and the details page moved to `public.units`, which is what the
-   * server actually serves; `/marketplace/units` answers 404. The two below
-   * are not shipped either, and the details page does without them: the
-   * calendar cannot grey out taken dates and there is no "مساحات مشابهة" rail
-   * until they exist. Both gaps are logged in `docs/api/backend-notes.md`.
+   * Search and the details page live under `public.units`; these two hang off
+   * a unit. `/marketplace/units` never existed and answers 404 — nothing
+   * should point at it.
    */
   marketplace: {
+    /**
+     * FR-UNT-08 — the taken days, `?from=&to=` (plain dates, both optional).
+     *
+     * Half-open ranges, already merged, and no `reason` on any of them. The
+     * `to` that comes back is the server's own — it has a 365-day ceiling — so
+     * anything past it was never answered and must not be drawn as free.
+     *
+     * Not a substitute for the server's check: a clashing booking is still
+     * refused at creation by a database constraint. This only decides whether
+     * the date was offered.
+     */
     unitAvailability: (id: string) => `/public/units/${id}/availability`,
+    /**
+     * The "مساحات مشابهة" rail, `?limit=` (1–12, default 6).
+     *
+     * `distanceMeters` is always null here, deliberately: both units sit behind
+     * approximate circles, and a distance between two of them is a second
+     * independent measurement of the same geometry. Enough pairs and the real
+     * coordinates fall out. It orders the rail; it is never shown.
+     */
     similarUnits: (id: string) => `/public/units/${id}/similar`,
   },
 

@@ -35,7 +35,7 @@ export interface ResultFilters {
   maxArea: number | null;
   startDate: string;
   endDate: string;
-  /** Only sent, and only shown, once the visitor has shared a location. */
+  /** Shown always; only *sent* once the visitor has shared a point (0.5–200). */
   radiusKm: number;
 }
 
@@ -55,6 +55,8 @@ export const DEFAULT_FILTERS: ResultFilters = {
   maxArea: null,
   startDate: '',
   endDate: '',
+  // The server's own default when a point arrives without a radius, so the
+  // slider starts where an unfiltered search already is.
   radiusKm: 25,
 };
 
@@ -83,9 +85,11 @@ export class UnitFilters {
   /**
    * Whether the visitor has shared a location.
    *
-   * The radius is hidden without one rather than disabled-and-explained: the
-   * API ignores `radiusKm` with no point, so a slider that appeared to work
-   * and changed nothing would be worse than one that is not there.
+   * The slider shows either way and moving it without one asks for the
+   * location instead. It used to be hidden, because the API accepted a radius
+   * with no point and silently ignored it — a control that appeared to work
+   * and changed nothing. It answers 422 now, so the honest move is to show the
+   * control and get it what it needs.
    */
   readonly hasLocation = input(false, { transform: booleanAttribute });
   /** Shown on the sheet's apply button. */
@@ -96,9 +100,12 @@ export class UnitFilters {
   readonly filtersChange = output<ResultFilters>();
   readonly cleared = output<void>();
   readonly applied = output<void>();
+  /** Raised when the radius is moved with no point to measure from. */
+  readonly locationNeeded = output<void>();
 
   protected setRadius(radiusKm: number): void {
     this.emit({ radiusKm });
+    if (!this.hasLocation()) this.locationNeeded.emit();
   }
 
   protected setNumber(

@@ -431,6 +431,7 @@ const ar = {
   'results.locationAsking': 'جارٍ تحديد موقعك…',
   'results.locationRefused': 'تعذّر تحديد موقعك، والبحث يعمل بدونه',
   'results.nearestNeedsLocation': 'الترتيب بالأقرب يحتاج موقعك',
+  'results.radiusNeedsLocation': 'نطاق البحث يحتاج موقعك — اضغط «استخدم موقعي».',
 
   // ── Unit details (PUB-04) ──────────────────────────────────────────────
   'details.breadcrumbHome': 'الرئيسية',
@@ -447,6 +448,9 @@ const ar = {
   'details.description': 'وصف المساحة',
   'details.visitHours': 'أوقات الزيارة المسموحة',
   'details.visitDaily': 'يوميًا',
+  'details.similar': 'مساحات مشابهة',
+  'details.moreLikeThis': 'المزيد مثل هذه',
+  'details.calendarKnownTo': 'التوافر معروض حتى {date}. اسأل عن المدد الأبعد بعد الحجز.',
   'details.visitHoursNone': 'لم يحدّد صاحب المساحة أوقات زيارة بعد.',
   'details.visitHoursNote': 'الدخول يكون بالتنسيق المسبق مع صاحب المساحة داخل هذه الأوقات فقط',
   'details.location': 'الموقع التقريبي',
@@ -1788,6 +1792,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'results.locationAsking': 'Finding your location…',
   'results.locationRefused': 'Could not get your location; search works without it',
   'results.nearestNeedsLocation': 'Sorting by nearest needs your location',
+  'results.radiusNeedsLocation': 'A search radius needs your location — press "Use my location".',
 
   'details.breadcrumbHome': 'Home',
   'details.breadcrumbResults': 'Search results',
@@ -1803,6 +1808,10 @@ const en: Partial<Record<TranslationKey, string>> = {
   'details.description': 'About this space',
   'details.visitHours': 'Visiting hours',
   'details.visitDaily': 'Every day',
+  'details.similar': 'Similar spaces',
+  'details.moreLikeThis': 'More like this',
+  'details.calendarKnownTo':
+    'Availability is shown up to {date}. Ask about longer stays after booking.',
   'details.visitHoursNone': 'The owner has not set visiting hours yet.',
   'details.visitHoursNote':
     'Access is arranged in advance with the owner, within these hours only.',

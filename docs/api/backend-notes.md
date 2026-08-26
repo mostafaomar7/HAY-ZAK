@@ -188,20 +188,30 @@ endpoint lands and says otherwise.
 sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
 not shipped, so nothing has agreed to that yet.
 
-**11. `q` matches nothing.** `GET /public/units?q=…` accepts the parameter,
-validates its length and then returns `total: 0` for every term tried —
-including the exact title of a seeded unit, a single word from it, a word from
-its description, its city name, and the same in English. Every other filter on
-the endpoint works. Twelve terms, all zero; the search box is wired and shipped
-because the parameter is real, but it currently returns an empty page for
-anything typed into it.
+**11. `q` — unresolved, and the disagreement is worth stating precisely.**
+Twelve terms all returned `total: 0` here, including a unit's exact title. The
+backend re-ran the same query on the same server and got 25, and diagnosed
+double-encoding: `%25D9%2585…` produces exactly zero, and every Latin term I
+tried genuinely has no matches, so "Latin works, Arabic does not" was a
+reasonable read of the table.
 
-**12. Two catalogue routes the details page needs are missing.**
-`/public/units/:id/availability` and `/public/units/:id/similar` both 404. So
-the booking calendar cannot grey out taken dates — it shows every day as free
-and lets the server refuse at the draft step — and the "مساحات مشابهة" rail is
-not rendered. The calendar one matters more: it turns a date clash into a
-rejection one step later rather than a choice the visitor never had.
+Three things now stand against that on this side. Nothing in the client calls
+`encodeURIComponent` — `HttpParams` encodes once and a spec pins it. The probes
+were curl, not the application, and the one run with `--data-urlencode` from a
+file built `q=%d9%85%d8%b3…`, which is a single correct encoding. And the same
+full query returned 25 with `q` removed and 0 with it present, on the same
+connection.
+
+Unfinished: the server went unreachable (100% packet loss to `192.168.1.12`)
+before the file-based probe could complete, so the decisive run — byte-exact
+single-encoded Arabic, with the effective URL captured — has not happened. Do
+that first when it is back, and send the Request URL rather than the term.
+
+**12. The catalogue's two extra routes are shipped.** `GET
+/public/units/:id/availability?from=&to=` and `GET
+/public/units/:id/similar?limit=` both answer now, and both are wired. See
+"The public catalogue" below for the three things about availability that are
+easy to get wrong quietly.
 
 **13. Repeated `categoryId` is a 422.** The filter panel was built to tick
 several categories at once. `categoryId` is a single string and repeating it is
@@ -217,8 +227,12 @@ edits them without a release), so there is nothing sensible to hard-code.
 
 The page used to answer this with "الصفحة غير متاحة — قد تكون أُزيلت أو تغيّر
 رابطها", which denies a link the application itself had just drawn. It now
-separates a slug it has never heard of from a fetch that failed, and offers a
-retry for the second.
+separates a slug it has never heard of from a fetch that failed.
+
+Since then the seven documents ship in the bundle
+(`core/constants/static-pages.ts`) and `ContentService` asks the server first,
+falling back to them. So the pages read today, and the day this module lands an
+administrator's published version takes over with no change on this side.
 
 **15. The renter's own area is not shipped either.** Signed in as
 `0500000001` (RENTER): `/me` and `/me/notifications` answer 200,
@@ -334,6 +348,50 @@ account screen.
   archived and "never existed" are indistinguishable, so a caller cannot probe
   what lessors are working on. A malformed id is a 422 on `params.unitId`.
 - `pageSize` maxes at 50; `radiusKm` has a floor of 0.5 and defaults to 25.
-- `radiusKm` **without** `lat`/`lng` is accepted and ignored, so the radius
-  slider is hidden until a location is shared rather than shown doing nothing.
-- The detail wraps its payload: `{ unit: … }`.
+- `radiusKm` **without** `lat`/`lng` is a 422 now — it used to be accepted and
+  ignored. That is the better behaviour and the slider is visible again:
+  moving it without a point asks for the location instead of hiding.
+  The range is 0.5–200 km, defaulting to 25 when a point arrives without one.
+- The detail wraps its payload: `{ unit: … }`; `/similar` wraps its own in
+  `{ items: [ … ] }`.
+
+### Availability — three ways to get it wrong quietly
+
+`GET /public/units/:id/availability?from=&to=` → `{ unitId, from, to, minDays,
+maxDays, blocked: [{ startDate, endDate }] }`.
+
+- **Half-open, like every other range here.** `endDate` is the first *free* day
+  again. Greying it out as well loses one bookable day per booking, forever,
+  and nobody would ever report it. `occupiedDays()` stops before the end, which
+  is why this was already right.
+- **`to` is the server's answer, not the question.** It has a default of 90 days
+  and a ceiling of 365, so days beyond it were never described — unknown, not
+  free. The client keeps it as `unknownFrom` and says on screen how far the
+  calendar is speaking for.
+- **Adjacent ranges arrive merged, and must stay merged.** Three consecutive
+  bookings come back as one range. Splitting them lets "does the selection
+  overlap a row?" pass a selection that sits across the seam.
+- No `reason`, deliberately: a taken day is a confirmed booking, a lessor's own
+  block, or somebody part-way through paying, and the calendar needs the same
+  bit from all three. The distinction would hand a lessor's occupancy to their
+  competitors, and "somebody is paying right now" invites a race.
+- `maxDays` may be `null` — no upper bound on a stay. `minDays` is always a
+  number.
+- None of this replaces the server's check. A clashing booking is still refused
+  at creation by a database constraint; what changed is whether the date was
+  ever offered.
+
+### Similar spaces
+
+`GET /public/units/:id/similar?limit=` (1–12, default 6) → `{ items }`, the
+same card shape as a search result, ordered same-city → same-district →
+nearest → closest in price. Never the unit itself, never anything unpublished.
+
+`distanceMeters` is always `null` here and that is deliberate: both units sit
+behind approximate circles, so a distance between two of them is a second
+independent measurement of the same geometry. Enough pairs, anchored by one
+search from a point you control, and the real coordinates fall out. It orders
+the rail and is never displayed.
+
+No paging, by design — "page 2 of similar" is the catalogue filtered by
+category, and that route already exists. The rail links to it instead.

@@ -196,15 +196,25 @@
               {{ i18n.t('details.seeSimilar') }}
             </a>
           } @else {
+            <!-- Half-open ranges: `endDate` is the first free day again, so
+                 the expansion stops before it. Greying it out too would lose a
+                 bookable day per booking, silently. -->
             <app-ui-range-calendar
               [startDate]="defaultRange().start"
               [endDate]="defaultRange().end"
               [minDays]="minDays()"
               [maxDays]="maxDays()"
+              [blockedDates]="blockedDates()"
               [today]="today"
               compact
               (rangeChange)="setRange($event)"
             />
+
+            @if (unknownFrom()) {
+              <p class="booking__note num">
+                {{ i18n.t('details.calendarKnownTo', { date: unknownFrom() }) }}
+              </p>
+            }
 
             <hr class="booking__rule" />
 
@@ -225,6 +235,25 @@
         </div>
       </aside>
     </div>
+    @if (similar().length > 0) {
+      <!-- Ordered by the server: same category, then city, district, proximity,
+           price. No paging by design — "page 2 of similar" is the search
+           results filtered by category, and that route already exists. -->
+      <section class="similar">
+        <div class="similar__head">
+          <h2 class="similar__title">{{ i18n.t('details.similar') }}</h2>
+          <a class="similar__all" [routerLink]="['/units']" [queryParams]="similarQuery()">
+            {{ i18n.t('details.moreLikeThis') }}
+          </a>
+        </div>
+
+        <div class="similar__grid">
+          @for (item of similar(); track item.id) {
+            <app-unit-result-card layout="tile" [unit]="item" />
+          }
+        </div>
+      </section>
+    }
   </article>
 
   <!-- Design rule 1: the account is asked for here, not at the door. -->

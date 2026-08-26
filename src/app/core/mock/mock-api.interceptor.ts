@@ -11,6 +11,7 @@ import { VerificationStatus } from '../enums/user-role.enum';
 import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
+import { addDaysPlain as addPlainDays, todayPlain } from '../utils/date.utils';
 import { toWireBlock, toWirePublicUnit, toWireUnit } from './wire';
 import {
   MOCK_ADMIN_KPIS,
@@ -136,7 +137,31 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return paginate(filterMarket(query).map((unit) => toWirePublicUnit(unit)));
   }
   if (/^\/public\/units\/[^/]+\/availability$/.test(path)) {
-    return ok(MOCK_MARKET_AVAILABILITY);
+    const id = path.split('/')[3];
+    const unit = MOCK_MARKET_UNITS.find((u) => u.id === id) ?? MOCK_MARKET_UNITS[0];
+    const to = addPlainDays(todayPlain(), 90);
+    return ok({
+      unitId: unit.id,
+      from: todayPlain(),
+      to,
+      minDays: unit.minDays ?? 1,
+      maxDays: unit.maxDays ?? null,
+      // Half-open and merged, as the server sends them. Plain dates, so the
+      // adapter is exercised on the shape it will really meet.
+      blocked: MOCK_MARKET_AVAILABILITY.map((block) => ({
+        startDate: block.startDate,
+        endDate: block.endDate,
+      })),
+    });
+  }
+  if (/^\/public\/units\/[^/]+\/similar$/.test(path)) {
+    const id = path.split('/')[3];
+    const limit = Number(new URLSearchParams(query).get('limit') ?? 6);
+    return ok({
+      items: MOCK_MARKET_UNITS.filter((u) => u.id !== id)
+        .slice(0, Math.min(12, Math.max(1, limit)))
+        .map((unit) => toWirePublicUnit(unit)),
+    });
   }
   if (/^\/public\/units\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];
