@@ -5,30 +5,79 @@
       <app-unit-filters
         [filters]="filters()"
         [categories]="categoryFacets()"
+        [districts]="districtFacets()"
+        [hasLocation]="!!point()"
         (filtersChange)="onFilters($event)"
         (cleared)="clearFilters()"
       />
     </aside>
 
     <div class="results__main">
+      <form class="find" (submit)="submitSearch($event)">
+        <label class="find__field">
+          <span class="sr-only">{{ i18n.t('results.searchLabel') }}</span>
+          <input
+            class="find__input"
+            type="search"
+            dir="auto"
+            [value]="q()"
+            [placeholder]="i18n.t('results.searchPlaceholder')"
+            (input)="setSearch($event)"
+          />
+        </label>
+        <button appUiButton variant="primary" type="submit">
+          {{ i18n.t('results.searchAction') }}
+        </button>
+
+        <!-- Asked for where it buys something, not on arrival. Until it is
+             granted there is no "الأقرب" and no radius. -->
+        @switch (locationState()) {
+          @case ('on') {
+            <button type="button" class="find__loc find__loc--on" (click)="forgetMyLocation()">
+              {{ i18n.t('results.locationOn') }}
+            </button>
+          }
+          @case ('asking') {
+            <span class="find__loc" aria-live="polite">{{ i18n.t('results.locationAsking') }}</span>
+          }
+          @case ('refused') {
+            <span class="find__loc" aria-live="polite">{{
+              i18n.t('results.locationRefused')
+            }}</span>
+          }
+          @default {
+            <button type="button" class="find__loc" (click)="useMyLocation()">
+              {{ i18n.t('results.useMyLocation') }}
+            </button>
+          }
+        }
+      </form>
+
       <header class="toolbar">
         <div class="toolbar__count">
           <h1 class="toolbar__title">{{ heading() }}</h1>
           <p class="toolbar__meta">
-            @if (filters().availableFrom && filters().availableTo) {
+            @if (filters().startDate && filters().endDate) {
               <span class="num">
                 {{
                   i18n.t('results.availableBetween', {
-                    from: filters().availableFrom,
-                    to: filters().availableTo,
+                    from: filters().startDate,
+                    to: filters().endDate,
                   })
                 }}
               </span>
               <span aria-hidden="true">·</span>
             }
-            <span class="num">{{
-              i18n.t('results.withinKm', { count: filters().maxDistanceKm })
-            }}</span>
+            <!-- Only claimed with a point behind it: without one the API
+                 ignores the radius, and the line would be describing a filter
+                 that is not being applied. -->
+            @if (point()) {
+              <span class="num">{{
+                i18n.t('results.withinKm', { count: filters().radiusKm })
+              }}</span>
+            } @else {
+              <span>{{ i18n.t('results.anywhere') }}</span>
+            }
           </p>
         </div>
 
@@ -41,6 +90,11 @@
                 class="sort"
                 [class.sort--on]="sort() === option.value"
                 [attr.aria-pressed]="sort() === option.value"
+                [attr.title]="
+                  option.value === 'nearest' && !point()
+                    ? i18n.t('results.nearestNeedsLocation')
+                    : null
+                "
                 (click)="setSort(option.value)"
               >
                 {{ i18n.t(option.labelKey) }}
@@ -83,9 +137,11 @@
           }
         </button>
         <span class="chips__item">{{ i18n.t(sortLabel()) }}</span>
-        <span class="chips__item num">{{
-          i18n.t('results.upToKm', { count: filters().maxDistanceKm })
-        }}</span>
+        @if (point()) {
+          <span class="chips__item num">{{
+            i18n.t('results.upToKm', { count: filters().radiusKm })
+          }}</span>
+        }
       </div>
 
       @if (mapOpen() && units().length > 0) {
@@ -105,7 +161,7 @@
           <app-ui-empty-state
             tone="error"
             [title]="i18n.t('results.error')"
-            [hint]="i18n.t('results.errorHint')"
+            [hint]="errorText() || i18n.t('results.errorHint')"
           >
             <button appUiButton variant="primary" (click)="fetch()">
               {{ i18n.t('common.retry') }}
@@ -167,6 +223,8 @@
           asSheet
           [filters]="filters()"
           [categories]="categoryFacets()"
+          [districts]="districtFacets()"
+          [hasLocation]="!!point()"
           [resultCount]="total()"
           (filtersChange)="onFilters($event)"
           (cleared)="clearFilters()"

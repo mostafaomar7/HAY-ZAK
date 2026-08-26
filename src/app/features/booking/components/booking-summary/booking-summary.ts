@@ -7,8 +7,7 @@ import {
   input,
 } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
-import type { Unit } from '@core/models/unit.model';
-import { indicativeMonthlyPrice } from '@core/utils/money.utils';
+import type { PublicUnit } from '@core/models/public-unit';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
 import type { BookingDraft } from '../../services/booking-wizard.service';
@@ -32,15 +31,13 @@ import type { BookingDraft } from '../../services/booking-wizard.service';
 export class BookingSummary {
   protected readonly i18n = inject(LanguageService);
 
-  readonly unit = input.required<Unit | null>();
+  readonly unit = input.required<PublicUnit | null>();
   readonly draft = input.required<BookingDraft | null>();
   /** Hides the price block where a full breakdown is already on screen. */
   readonly showPrice = input(true, { transform: booleanAttribute });
   readonly showHijri = input(true, { transform: booleanAttribute });
 
-  protected readonly monthly = computed(() =>
-    Math.round(indicativeMonthlyPrice(this.unit()?.dailyPriceHalalas ?? 0)),
-  );
+  protected readonly monthly = computed(() => this.unit()?.indicativeMonthlyHalalas ?? 0);
 
   protected readonly periodTotal = computed(
     () => (this.unit()?.dailyPriceHalalas ?? 0) * (this.draft()?.daysCount ?? 0),
@@ -49,7 +46,9 @@ export class BookingSummary {
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
-    return [this.i18n.pick(unit.district), this.i18n.pick(unit.city)].filter(Boolean).join('، ');
+    return [this.i18n.pick(unit.district ?? undefined), this.i18n.pick(unit.city ?? undefined)]
+      .filter(Boolean)
+      .join('، ');
   });
 
   protected startLabel = computed(() => this.gregorian(this.draft()?.startDate));

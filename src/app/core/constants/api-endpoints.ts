@@ -39,11 +39,28 @@ export const API_ENDPOINTS = {
     nafathStatus: (requestId: string) => `/auth/identity/nafath/${requestId}`,
   },
 
-  /** Open reference data — no token, and both language columns on every row. */
+  /**
+   * Open reference data and the public catalogue — FR-MKT-02.
+   *
+   * No token on any of these, and no bearer even when one is to hand: a guest
+   * and a signed-in visitor must get the same answer, so `SKIP_AUTH` is not an
+   * optimisation here but part of the contract.
+   *
+   * `/public/cities` nests each city's districts, which is why there is no
+   * districts route to call.
+   */
   public: {
     categories: '/public/categories',
     cities: '/public/cities',
     prohibitedItems: '/public/prohibited-items',
+    /** Search and filter. Every parameter is optional; a bare call lists. */
+    units: '/public/units',
+    /**
+     * One space in full. Anything not published — draft, rejected, archived,
+     * or an id that never existed — answers the same 404, so a caller cannot
+     * tell them apart. Do not try to; that indistinguishability is deliberate.
+     */
+    unitById: (id: string) => `/public/units/${id}`,
   },
 
   /** The renter's own account — FR-AUTH, FR-NTF. */
@@ -99,13 +116,18 @@ export const API_ENDPOINTS = {
     requestSuspension: (id: string) => `/units/${id}/suspension-request`,
   },
 
-  /** FR-MKT — public, no authentication (FR-MKT-02) */
+  /**
+   * FR-MKT — what the catalogue still owes the renter journey.
+   *
+   * Search and the details page moved to `public.units`, which is what the
+   * server actually serves; `/marketplace/units` answers 404. The two below
+   * are not shipped either, and the details page does without them: the
+   * calendar cannot grey out taken dates and there is no "مساحات مشابهة" rail
+   * until they exist. Both gaps are logged in `docs/api/backend-notes.md`.
+   */
   marketplace: {
-    search: '/marketplace/units',
-    unitById: (id: string) => `/marketplace/units/${id}`,
-    unitAvailability: (id: string) => `/marketplace/units/${id}/availability`,
-    /** The "مساحات مشابهة" rail at the foot of the details page. */
-    similarUnits: (id: string) => `/marketplace/units/${id}/similar`,
+    unitAvailability: (id: string) => `/public/units/${id}/availability`,
+    similarUnits: (id: string) => `/public/units/${id}/similar`,
   },
 
   /** FR-BKG */

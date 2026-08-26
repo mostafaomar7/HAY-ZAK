@@ -68,26 +68,50 @@ describe('HomePage (renter landing)', () => {
     expect(el.querySelector('input[type="password"]')).toBeNull();
   });
 
-  it('carries the chosen filters into the results query string', async () => {
+  /**
+   * The hero asks for a start and a length; `/public/units` takes two dates and
+   * refuses one end of a range on its own. So the far end is worked out here,
+   * and `days` — which the endpoint does not know and would answer 422 to —
+   * never reaches the query string.
+   */
+  it('carries the chosen filters into the results query string as a date range', () => {
     const navigate = spyOn(router, 'navigate').and.resolveTo(true);
 
     fixture.componentInstance['form'].patchValue({
       cityId: 'riyadh',
       categoryId: 'warehouse',
+      startDate: '2026-09-01',
       days: 14,
     });
     fixture.componentInstance['search']();
 
-    expect(navigate).toHaveBeenCalledWith(
-      ['/units'],
-      jasmine.objectContaining({
-        queryParams: jasmine.objectContaining({
-          cityId: 'riyadh',
-          categoryId: 'warehouse',
-          days: 14,
-        }),
-      }),
-    );
+    const [path, extras] = navigate.calls.mostRecent().args as [
+      string[],
+      { queryParams: Record<string, unknown> },
+    ];
+
+    expect(path).toEqual(['/units']);
+    expect(extras.queryParams['cityId']).toBe('riyadh');
+    expect(extras.queryParams['categoryId']).toBe('warehouse');
+    expect(extras.queryParams['startDate']).toBe('2026-09-01');
+    // Half-open: the end is the first day the space is free again.
+    expect(extras.queryParams['endDate']).toBe('2026-09-15');
+    expect(extras.queryParams['days']).toBeUndefined();
+  });
+
+  it('sends neither end of the range when no start date was picked', () => {
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+
+    fixture.componentInstance['form'].patchValue({ cityId: 'riyadh', days: 14 });
+    fixture.componentInstance['search']();
+
+    const [, extras] = navigate.calls.mostRecent().args as [
+      string[],
+      { queryParams: Record<string, unknown> },
+    ];
+
+    expect(extras.queryParams['startDate']).toBeNull();
+    expect(extras.queryParams['endDate']).toBeNull();
   });
 
   it('offers both calendars and shows a Hijri reading of the chosen date', () => {

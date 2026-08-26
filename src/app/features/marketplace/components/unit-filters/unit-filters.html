@@ -6,19 +6,23 @@
     </button>
   </header>
 
-  <app-ui-range-slider
-    inputId="f-distance"
-    [label]="i18n.t('results.distance')"
-    [valueLabel]="i18n.t('results.upToKm', { count: filters().maxDistanceKm })"
-    [minLabel]="'1 ' + i18n.t('results.km')"
-    [maxLabel]="'25 ' + i18n.t('results.km')"
-    [min]="1"
-    [max]="25"
-    [value]="filters().maxDistanceKm"
-    (valueChange)="setDistance($event)"
-  />
+  <!-- Hidden without a shared location: the API ignores a radius with no
+       point, so a slider here would move and change nothing. -->
+  @if (hasLocation()) {
+    <app-ui-range-slider
+      inputId="f-distance"
+      [label]="i18n.t('results.distance')"
+      [valueLabel]="i18n.t('results.upToKm', { count: filters().radiusKm })"
+      [minLabel]="'1 ' + i18n.t('results.km')"
+      [maxLabel]="'25 ' + i18n.t('results.km')"
+      [min]="1"
+      [max]="25"
+      [value]="filters().radiusKm"
+      (valueChange)="setRadius($event)"
+    />
 
-  <hr class="filters__rule" />
+    <hr class="filters__rule" />
+  }
 
   <div class="group">
     <h3 class="group__title">{{ i18n.t('results.priceRange') }}</h3>
@@ -99,15 +103,17 @@
   <fieldset class="group">
     <legend class="group__title">{{ i18n.t('results.category') }}</legend>
 
+    <!-- One at a time: the API takes a single categoryId and 422s a repeat. -->
     <ul class="cats">
       @for (category of categories(); track category.id) {
         <li>
           <label class="cat" [class.cat--on]="isPicked(category.id)">
             <input
               class="cat__input sr-only"
-              type="checkbox"
+              type="radio"
+              name="f-category"
               [checked]="isPicked(category.id)"
-              (change)="toggleCategory(category.id)"
+              (click)="pickCategory(category.id)"
             />
             <span class="cat__box" aria-hidden="true">
               @if (isPicked(category.id)) {
@@ -115,14 +121,32 @@
               }
             </span>
             <span class="cat__name">{{ category.label }}</span>
-            @if (category.count !== undefined) {
-              <span class="cat__count num" dir="ltr">{{ category.count }}</span>
-            }
           </label>
         </li>
       }
     </ul>
   </fieldset>
+
+  @if (districts().length) {
+    <hr class="filters__rule" />
+
+    <div class="group">
+      <label class="group__title" for="f-district">{{ i18n.t('results.district') }}</label>
+      <select
+        id="f-district"
+        class="select"
+        [value]="filters().districtId"
+        (change)="pickDistrict($event)"
+      >
+        <option value="">{{ i18n.t('results.anyDistrict') }}</option>
+        @for (district of districts(); track district.id) {
+          <option [value]="district.id" [selected]="district.id === filters().districtId">
+            {{ district.label }}
+          </option>
+        }
+      </select>
+    </div>
+  }
 
   <hr class="filters__rule" />
 
@@ -131,8 +155,8 @@
 
     <app-ui-range-calendar
       compact
-      [startDate]="filters().availableFrom"
-      [endDate]="filters().availableTo"
+      [startDate]="filters().startDate"
+      [endDate]="filters().endDate"
       (rangeChange)="setRange($event)"
     />
 

@@ -68,7 +68,7 @@
       <div class="content">
         <header class="head">
           <p class="head__badges">
-            <app-ui-badge tone="info">{{ i18n.pick(unit()!.category) }}</app-ui-badge>
+            <app-ui-badge tone="info">{{ i18n.pick(unit()!.category ?? undefined) }}</app-ui-badge>
             @if (isBooked()) {
               <app-ui-badge tone="neutral">{{ i18n.t('details.booked') }}</app-ui-badge>
             } @else {
@@ -80,11 +80,10 @@
 
           <p class="head__meta">
             <span>{{ place() }}</span>
-            @if (unit()!.distanceKm !== undefined) {
+            @if (distance(); as away) {
               <span class="head__dot" aria-hidden="true"></span>
-              <span class="num">{{
-                i18n.t('details.distanceFrom', { km: unit()!.distanceKm ?? 0 })
-              }}</span>
+              <!-- "~": the server rounds this to the nearest 100 m. -->
+              <span class="num" dir="ltr">~{{ away.value }} {{ away.unit }}</span>
             }
             <span class="head__dot" aria-hidden="true"></span>
             <span class="num">{{ i18n.t('details.areaApprox', { area: unit()!.areaSqm }) }}</span>
@@ -94,7 +93,7 @@
         <dl class="specs">
           <div class="spec">
             <dt class="spec__label">{{ i18n.t('details.specCategory') }}</dt>
-            <dd class="spec__value">{{ i18n.pick(unit()!.category) }}</dd>
+            <dd class="spec__value">{{ i18n.pick(unit()!.category ?? undefined) }}</dd>
           </div>
           <div class="spec">
             <dt class="spec__label">{{ i18n.t('details.specArea') }}</dt>
@@ -102,12 +101,15 @@
               <span dir="ltr">{{ unit()!.areaSqm }}</span> {{ i18n.t('common.sqm') }}
             </dd>
           </div>
-          @if (unit()!.floor) {
-            <div class="spec">
-              <dt class="spec__label">{{ i18n.t('details.specFloor') }}</dt>
-              <dd class="spec__value">{{ unit()!.floor }}</dd>
-            </div>
-          }
+          <div class="spec">
+            <dt class="spec__label">{{ i18n.t('details.specMonthly') }}</dt>
+            <!-- Indicative and labelled so: nothing is let by the month, and
+                 nobody is charged this. It exists to be compared against. -->
+            <dd class="spec__value num">
+              <span dir="ltr">≈ {{ unit()!.indicativeMonthlyHalalas }}</span>
+              {{ i18n.t('results.monthlyApprox') }}
+            </dd>
+          </div>
           <div class="spec">
             <dt class="spec__label">{{ i18n.t('details.specMinDays') }}</dt>
             <dd class="spec__value num">{{ i18n.t('booking.days', { count: minDays() }) }}</dd>
@@ -125,24 +127,33 @@
 
         <section class="block">
           <h2 class="block__title">{{ i18n.t('details.visitHours') }}</h2>
-          @if (visitWindows().length) {
+          <!-- One window, repeated daily — the API stores a single opening
+               time per unit, not a per-day table. -->
+          @if (visitTime()) {
             <ul class="hours">
-              @for (window of visitWindows(); track window.days) {
-                <li class="hours__row">
-                  <span class="hours__days">{{ window.days }}</span>
-                  <!-- LTR: a time range inside an Arabic run comes out reversed. -->
-                  <span class="hours__time num" dir="ltr">{{ window.time }}</span>
-                </li>
-              }
+              <li class="hours__row">
+                <span class="hours__days">{{ i18n.t('details.visitDaily') }}</span>
+                <!-- LTR: a time range inside an Arabic run comes out reversed. -->
+                <span class="hours__time num" dir="ltr">{{ visitTime() }}</span>
+              </li>
             </ul>
+          } @else {
+            <p class="block__note">{{ i18n.t('details.visitHoursNone') }}</p>
           }
           <p class="block__note">{{ i18n.t('details.visitHoursNote') }}</p>
         </section>
 
         <section class="block">
           <h2 class="block__title">{{ i18n.t('details.location') }}</h2>
-          <!-- FR-UNT-11: never `precise` here — approval releases the address. -->
-          <app-ui-location-map [point]="unit()!.location" [areaLabel]="place()" />
+          <!-- FR-UNT-11: never `precise` here — approval releases the address.
+               The point is displaced on purpose and the space sits somewhere
+               inside the circle, so the radius comes from the server rather
+               than from a constant that might disagree with it. -->
+          <app-ui-location-map
+            [point]="{ latitude: unit()!.area.latitude, longitude: unit()!.area.longitude }"
+            [radiusMeters]="unit()!.area.radiusMeters"
+            [areaLabel]="place()"
+          />
         </section>
 
         <section class="block">
@@ -190,7 +201,6 @@
               [endDate]="defaultRange().end"
               [minDays]="minDays()"
               [maxDays]="maxDays()"
-              [blockedDates]="blockedDates()"
               [today]="today"
               compact
               (rangeChange)="setRange($event)"
@@ -215,23 +225,6 @@
         </div>
       </aside>
     </div>
-
-    @if (similar().length > 0) {
-      <section class="similar">
-        <div class="similar__head">
-          <h2 class="similar__title">{{ i18n.t('details.similar') }}</h2>
-          <a class="similar__all" routerLink="/units">
-            {{ i18n.t('details.allInCity', { city: i18n.pick(unit()!.city) }) }}
-          </a>
-        </div>
-
-        <div class="similar__grid">
-          @for (item of similar(); track item.id) {
-            <app-unit-result-card layout="tile" [unit]="item" />
-          }
-        </div>
-      </section>
-    }
   </article>
 
   <!-- Design rule 1: the account is asked for here, not at the door. -->

@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
-import type { ReferenceItem, Unit } from '@core/models/unit.model';
+import type { PublicUnitSummary } from '@core/models/public-unit';
+import type { ReferenceItem } from '@core/models/unit.model';
 import { ReferenceDataService } from '@core/services/reference-data.service';
-import { todayPlain } from '@core/utils/date.utils';
+import { todayPlain, toPlainDate } from '@core/utils/date.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import type { IconName } from '@shared/components/ui-icon/ui-icon';
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
@@ -60,7 +61,7 @@ export class HomePage {
 
   protected readonly cities = signal<ReferenceItem[]>([]);
   protected readonly categories = signal<ReferenceItem[]>([]);
-  protected readonly latest = signal<Unit[]>([]);
+  protected readonly latest = signal<PublicUnitSummary[]>([]);
   protected readonly calendar = signal<Calendar>('gregorian');
 
   protected readonly minDate = todayPlain();
@@ -141,7 +142,7 @@ export class HomePage {
     // "أحدث المساحات" — four newest, and the section hides itself if the call
     // fails. A landing page that renders an error box above the fold reads as a
     // broken site; the rest of it is still perfectly usable.
-    this.marketplace.search({ sortBy: 'newest', pageSize: 4 }).subscribe({
+    this.marketplace.search({ sort: 'newest', pageSize: 4 }).subscribe({
       next: (page) => this.latest.set(page.items.slice(0, 4)),
       error: () => this.latest.set([]),
     });
@@ -166,12 +167,18 @@ export class HomePage {
   protected search(): void {
     const { cityId, categoryId, startDate, days } = this.form.getRawValue();
 
+    // A date window is both ends or neither: one end of a range excludes
+    // nothing, and the API refuses a half of one outright. The hero asks for a
+    // start and a length, so the far end is worked out here rather than left
+    // for the results page to guess at.
+    const endDate = startDate ? addDays(startDate, Math.max(1, days ?? 1)) : null;
+
     void this.router.navigate(['/units'], {
       queryParams: {
         cityId: cityId || null,
         categoryId: categoryId || null,
-        availableFrom: startDate || null,
-        days: days ?? null,
+        startDate: startDate || null,
+        endDate,
       },
     });
   }
@@ -189,3 +196,13 @@ const CATEGORY_ICONS: Readonly<Record<string, IconName>> = {
   garage: 'garage',
   open_space: 'open-space',
 };
+
+/**
+ * `YYYY-MM-DD` plus a number of days, half-open — the end is the first day the
+ * space is free again.
+ */
+function addDays(plain: string, days: number): string {
+  const date = new Date(`${plain}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return toPlainDate(date);
+}

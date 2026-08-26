@@ -1,3 +1,4 @@
+import type { WirePublicUnit } from '../models/public-unit';
 import type { WireAvailabilityBlock, WireUnit, WireUnitImage } from '../models/unit-wire';
 import { clockToMinutes } from '../models/unit-wire';
 import type { Unit, UnitAvailabilityBlock } from '../models/unit.model';
@@ -90,4 +91,91 @@ export function toWireUnit(
     location: unit.location,
     availability: (options.availability ?? []).map(toWireBlock),
   };
+}
+
+/**
+ * One unit as `/public/units` sends it.
+ *
+ * A different projection from `toWireUnit`, not a subset of it: the public
+ * catalogue withholds the owner, the status and the real location, and adds
+ * two fields the lessor's view has no room for — the radius of the circle the
+ * space sits inside, and a monthly figure the server computes and stores
+ * nowhere. Deriving this from the lessor shape would have meant the mock
+ * quietly serving an owner name that the real endpoint never returns.
+ *
+ * The point is displaced here as well. The fixtures hold true coordinates, and
+ * a mock that handed them over unchanged would let a pin be drawn against it
+ * successfully and then be wrong in production, which is the exact failure the
+ * circle exists to prevent.
+ */
+export function toWirePublicUnit(unit: Unit, options: { detail?: boolean } = {}): WirePublicUnit {
+  const window = unit.visitSchedule[0];
+  const radiusMeters = 300;
+
+  const base: WirePublicUnit = {
+    id: unit.id,
+    title: unit.title,
+    areaSqm: unit.areaSqm,
+    dailyPriceHalalas: unit.dailyPriceHalalas,
+    indicativeMonthlyHalalas: unit.dailyPriceHalalas * 30,
+    minDays: unit.minDays ?? null,
+    maxDays: unit.maxDays ?? null,
+    category: unit.category ?? null,
+    city: unit.city ?? null,
+    district: unit.district ?? null,
+    coverUrl: unit.coverUrl ?? unit.images[0]?.url ?? null,
+    location: { ...displace(unit), radiusMeters, isApproximate: true },
+    // Null unless the query carried a point, exactly as the server answers.
+    distanceMeters: null,
+    isFullyBooked: unit.isFullyBooked ?? false,
+    publishedAt: unit.publishedAt ?? unit.createdAt,
+  };
+
+  if (!options.detail) return base;
+
+  return {
+    ...base,
+    description: unit.description,
+    visitHours: window
+      ? { fromMinutes: clockToMinutes(window.from), toMinutes: clockToMinutes(window.to) }
+      : null,
+    images: unit.images.map((image) => ({
+      id: image.id,
+      url: image.url,
+      width: null,
+      height: null,
+      sortOrder: image.sortOrder,
+    })),
+  };
+}
+
+/**
+ * Moves the point off the real one, the same way every time for a given unit.
+ *
+ * Stable per id because the server's is: a circle that jumped between the list
+ * and the details page would look like a bug in the map rather than the
+ * deliberate imprecision it is.
+ */
+function displace(unit: Unit): { latitude: number; longitude: number } {
+  let hash = 0;
+  for (const char of unit.id) hash = (hash * 31 + char.charCodeAt(0)) % 100_000;
+
+  // Up to ~180 m, which is what a 300 m circle allows without the space
+  // falling outside it.
+  const angle = (hash / 100_000) * Math.PI * 2;
+  const metres = 60 + (hash % 120);
+  const perDegree = 111_320;
+
+  return {
+    latitude: round6(unit.location.latitude + (Math.sin(angle) * metres) / perDegree),
+    longitude: round6(
+      unit.location.longitude +
+        (Math.cos(angle) * metres) /
+          (perDegree * Math.cos((unit.location.latitude * Math.PI) / 180)),
+    ),
+  };
+}
+
+function round6(value: number): number {
+  return Math.round(value * 1e6) / 1e6;
 }

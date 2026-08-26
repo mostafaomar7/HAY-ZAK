@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
-import type { Unit } from '@core/models/unit.model';
+import type { PublicUnit } from '@core/models/public-unit';
 import { StorageService } from '@core/services/storage.service';
 import { nightsBetween } from '@core/utils/date.utils';
 
@@ -45,7 +45,7 @@ export class BookingWizardService {
   private readonly state = signal<BookingDraft | null>(
     this.storage.get<BookingDraft>(STORAGE_KEYS.bookingDraft, true),
   );
-  private readonly unitRecord = signal<Unit | null>(null);
+  private readonly unitRecord = signal<PublicUnit | null>(null);
 
   readonly draft = this.state.asReadonly();
   readonly unit = this.unitRecord.asReadonly();
@@ -70,7 +70,15 @@ export class BookingWizardService {
    */
   readonly holdExpiresAt = computed(() => this.state()?.holdExpiresAt ?? null);
 
-  setUnit(unit: Unit): void {
+  /**
+   * The catalogue's projection, not the lessor's.
+   *
+   * A renter never sees a `Unit` — the space arrives from `/public/units/:id`
+   * with no owner, no status and an approximate area rather than a location.
+   * Holding the public shape here means the wizard cannot accidentally read a
+   * field the API withheld and render a blank where a value looked certain.
+   */
+  setUnit(unit: PublicUnit): void {
     this.unitRecord.set(unit);
   }
 

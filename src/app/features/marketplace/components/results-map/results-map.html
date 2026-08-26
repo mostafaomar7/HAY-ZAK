@@ -6,27 +6,26 @@
   @if (cityLabel()) {
     <div class="map__badge">
       <span class="map__city">{{ cityLabel() }}</span>
-      <span class="map__hint">{{ i18n.t('results.mapPinHint') }}</span>
+      <span class="map__hint">{{ i18n.t('results.mapAreaHint') }}</span>
     </div>
   }
 
-  @for (pin of pins(); track pin.id) {
+  <!-- One disc per result: the area the API vouches for, not a position. -->
+  @for (disc of discs(); track disc.id) {
     <button
       type="button"
-      class="pin"
-      [class.pin--active]="pin.id === activeId()"
-      [style.top]="pin.top"
-      [style.inset-inline-end]="pin.end"
-      [attr.aria-label]="pin.title"
-      (mouseenter)="hovered.emit(pin.id)"
-      (focus)="hovered.emit(pin.id)"
+      class="disc"
+      [class.disc--active]="disc.id === activeId()"
+      [style.top]="disc.top"
+      [style.inset-inline-end]="disc.end"
+      [style.width]="disc.size"
+      [attr.aria-label]="disc.title"
+      (mouseenter)="hovered.emit(disc.id)"
+      (focus)="hovered.emit(disc.id)"
       (blur)="hovered.emit(null)"
     >
-      <span class="pin__bubble">
-        <span class="pin__price num" dir="ltr">{{ pin.price }}</span>
-        <span class="pin__currency">{{ i18n.t('common.currency') }}</span>
-      </span>
-      <span class="pin__stem" aria-hidden="true"></span>
+      <span class="disc__price num" dir="ltr">{{ disc.price }}</span>
+      <span class="disc__currency">{{ i18n.t('common.currency') }}</span>
     </button>
   }
 

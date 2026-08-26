@@ -208,3 +208,22 @@
     background: var(--color-primary-hover);
   }
 }
+
+// The district picker. A native select rather than another list of radios:
+// a city can carry a dozen districts, and the rail has no room for a dozen
+// rows next to everything else in it.
+.select {
+  width: 100%;
+  padding: a.$space-10 a.$space-12;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: a.$fs-sm;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}

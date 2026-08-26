@@ -24,7 +24,7 @@
         @if (precise()) {
           {{ i18n.t('bookingDetail.addressReleased') }}
         } @else {
-          {{ i18n.t('details.locationNote', { metres: radiusMetres }) }}
+          {{ i18n.t('details.locationNote', { metres: radiusMetres() }) }}
           <strong>{{ i18n.t('details.locationNoteStrong') }}</strong
           >.
         }

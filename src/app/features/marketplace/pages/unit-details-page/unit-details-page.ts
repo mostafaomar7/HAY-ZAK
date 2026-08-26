@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
-import type { ReferenceItem, Unit } from '@core/models/unit.model';
+import type { PublicUnit } from '@core/models/public-unit';
+import type { ReferenceItem } from '@core/models/unit.model';
 import { AuthService } from '@core/services/auth.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
 import { toPlainDate, todayPlain } from '@core/utils/date.utils';
 import { calculatePrice } from '@core/utils/money.utils';
-import { formatTimeRange, formatWeekdays } from '@core/utils/schedule.utils';
+import { formatTimeRange } from '@core/utils/schedule.utils';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -15,14 +16,10 @@ import { UiLocationMap } from '@shared/components/ui-location-map/ui-location-ma
 import { UiModal } from '@shared/components/ui-modal/ui-modal';
 import { UiPriceBreakdown } from '@shared/components/ui-price-breakdown/ui-price-breakdown';
 import { UiProhibitedList } from '@shared/components/ui-prohibited-list/ui-prohibited-list';
-import {
-  UiRangeCalendar,
-  expandBlockedDates,
-} from '@shared/components/ui-range-calendar/ui-range-calendar';
+import { UiRangeCalendar } from '@shared/components/ui-range-calendar/ui-range-calendar';
 import type { DateRange } from '@shared/components/ui-range-calendar/ui-range-calendar';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { UiThumbnail } from '@shared/components/ui-thumbnail/ui-thumbnail';
-import { UnitResultCard } from '../../components/unit-result-card/unit-result-card';
 import { MarketplaceService } from '../../services/marketplace.service';
 
 /**
@@ -31,12 +28,20 @@ import { MarketplaceService } from '../../services/marketplace.service';
  * Design rule 5 gives this page exactly one primary action — "احجز الآن" — and
  * no way to contact the owner. That is not a layout preference: SRS §5 keeps the
  * two parties' contact details sealed until administration approves a booking,
- * so a message control here would be a hole in that rule. There is deliberately
- * no phone number, no chat and no enquiry form on this page.
+ * so a message control here would be a hole in that rule. The API holds up its
+ * end — `GET /public/units/:id` returns no phone, no email and no owner name,
+ * and there is no parameter that would produce them.
  *
  * Design rule 1 means a guest can read all of this. Pressing "احجز الآن" is the
  * first moment an account is needed, and it opens a dialog rather than throwing
  * the visitor at a login screen and losing the dates they picked.
+ *
+ * Two sections the design has and this page does not: the taken dates greyed
+ * out on the calendar, and the "مساحات مشابهة" rail. Both need endpoints the
+ * server does not serve yet — see `docs/api/backend-notes.md`. Showing an empty
+ * calendar is the safe failure: the booking step re-checks the window and the
+ * server is the one that refuses, so the worst case is a date rejected a step
+ * later rather than a booking taken over one that exists.
  */
 @Component({
   selector: 'app-unit-details-page',
@@ -54,7 +59,6 @@ import { MarketplaceService } from '../../services/marketplace.service';
     UiRangeCalendar,
     UiSkeleton,
     UiThumbnail,
-    UnitResultCard,
   ],
   templateUrl: './unit-details-page.html',
   styleUrl: './unit-details-page.scss',
@@ -70,10 +74,8 @@ export class UnitDetailsPage {
   /** Bound from the `:id` route parameter. */
   readonly id = input.required<string>();
 
-  protected readonly unit = signal<Unit | null>(null);
-  protected readonly similar = signal<Unit[]>([]);
+  protected readonly unit = signal<PublicUnit | null>(null);
   protected readonly prohibited = signal<ReferenceItem[]>([]);
-  protected readonly blockedDates = signal<string[]>([]);
 
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
@@ -112,13 +114,25 @@ export class UnitDetailsPage {
 
   protected readonly photos = computed(() => this.unit()?.images ?? []);
 
-  /** FR-UNT-06 — one card per group of days that share an opening window. */
-  protected readonly visitWindows = computed(() => {
-    const locale = this.i18n.language() === 'en' ? 'en-GB' : 'ar-SA';
-    return (this.unit()?.visitSchedule ?? []).map((window) => ({
-      days: formatWeekdays(window.days, locale),
-      time: formatTimeRange(window.from, window.to),
-    }));
+  /**
+   * FR-UNT-06 — one window, the same every day.
+   *
+   * The API keeps a single opening time per unit rather than a per-day table,
+   * so this is a line of text and not a schedule. Stated as "يوميًا" rather
+   * than a list of seven days, which would imply the lessor chose them.
+   */
+  protected readonly visitTime = computed(() => {
+    const window = this.unit()?.visitWindow;
+    return window ? formatTimeRange(window.from, window.to) : '';
+  });
+
+  /** "~١٫٧ كم" — rounded by the server to the nearest 100 m. See the card. */
+  protected readonly distance = computed(() => {
+    const metres = this.unit()?.distanceMeters ?? null;
+    if (metres === null) return null;
+    return metres < 1000
+      ? { value: String(metres), unit: this.i18n.t('common.metres') }
+      : { value: (metres / 1000).toFixed(1), unit: this.i18n.t('results.km') };
   });
 
   protected readonly prohibitedLabels = computed(() =>
@@ -128,7 +142,9 @@ export class UnitDetailsPage {
   protected readonly place = computed(() => {
     const unit = this.unit();
     if (!unit) return '';
-    return [this.i18n.pick(unit.district), this.i18n.pick(unit.city)].filter(Boolean).join('، ');
+    return [this.i18n.pick(unit.district ?? undefined), this.i18n.pick(unit.city ?? undefined)]
+      .filter(Boolean)
+      .join('، ');
   });
 
   constructor() {
@@ -150,20 +166,13 @@ export class UnitDetailsPage {
         this.unit.set(unit);
         this.isLoading.set(false);
       },
+      // Draft, rejected, archived and "never existed" all answer the same 404,
+      // deliberately — so this page can only ever say "not found", and must not
+      // try to guess which of them it was.
       error: () => {
         this.failed.set(true);
         this.isLoading.set(false);
       },
-    });
-
-    this.marketplace.availability(this.id()).subscribe({
-      next: (blocks) => this.blockedDates.set(expandBlockedDates(blocks)),
-      error: () => this.blockedDates.set([]),
-    });
-
-    this.marketplace.similar(this.id()).subscribe({
-      next: (units) => this.similar.set(units),
-      error: () => this.similar.set([]),
     });
   }
 

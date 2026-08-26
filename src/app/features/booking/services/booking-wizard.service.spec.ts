@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
-import type { Unit } from '@core/models/unit.model';
-import { UnitStatus } from '@core/enums/unit-status.enum';
+import type { PublicUnit } from '@core/models/public-unit';
 import { BookingWizardService } from './booking-wizard.service';
 
+// The catalogue's projection — what a renter is actually handed. It has no
+// status and no owner, so neither can be asserted on here.
 const UNIT = {
   id: 'u-1',
   dailyPriceHalalas: 7500,
-  status: UnitStatus.Published,
-} as Unit;
+} as PublicUnit;
 
 describe('BookingWizardService', () => {
   let wizard: BookingWizardService;

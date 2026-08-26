@@ -85,71 +85,56 @@
   color: rgb(45 45 45 / 60%);
 }
 
-// ── Pins ─────────────────────────────────────────────────────────────────
-.pin {
+// ── Discs ────────────────────────────────────────────────────────────────
+// A circle, never a pin. The point behind it is displaced on purpose and the
+// space is somewhere inside — a shape with a tip would be pointing at ground
+// the API never claimed. See results-map.ts.
+.disc {
   position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 1px;
+  aspect-ratio: 1;
   padding: 0;
-  border: 0;
-  background: transparent;
+  border: 1.5px solid rgb(18 54 66 / 45%);
+  border-radius: 50%;
+  background: rgb(18 54 66 / 12%);
+  color: #123642;
   cursor: pointer;
-  transform: translateX(50%);
-  transition: transform a.$transition-fast;
+  transform: translateX(50%) translateY(-50%);
+  transition:
+    background a.$transition-fast,
+    border-color a.$transition-fast;
+
+  &:hover {
+    background: rgb(18 54 66 / 20%);
+  }
 
   &:focus-visible {
     outline: none;
-
-    .pin__bubble {
-      box-shadow: var(--focus-ring);
-    }
+    box-shadow: var(--focus-ring);
   }
 }
 
-.pin--active {
+.disc--active {
   z-index: 5;
-  transform: translateX(50%) scale(1.14);
-
-  .pin__bubble {
-    border-color: #123642;
-    background: #123642;
-    color: #fff;
-  }
-
-  .pin__stem {
-    background: #123642;
-  }
+  border-color: #123642;
+  background: rgb(18 54 66 / 32%);
 }
 
-.pin__bubble {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-  padding: a.$space-6 a.$space-12;
-  border: 1px solid var(--color-border);
-  border-radius: a.$radius-pill;
-  background: #fff;
-  color: #123642;
-  box-shadow: 0 2px 8px rgb(18 54 66 / 18%);
-  white-space: nowrap;
-}
-
-.pin__price {
+.disc__price {
   @include a.numeric;
 
   font-family: a.$font-latin;
   font-size: a.$fs-sm;
   font-weight: a.$fw-bold;
+  line-height: 1;
 }
 
-.pin__currency {
+.disc__currency {
   font-size: a.$fs-2xs;
   font-weight: a.$fw-semibold;
-}
-
-.pin__stem {
-  width: 2px;
-  height: 8px;
-  background: #fff;
+  line-height: 1;
 }

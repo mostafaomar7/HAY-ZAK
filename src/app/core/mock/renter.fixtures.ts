@@ -907,6 +907,6 @@ export const MOCK_STATIC_PAGES: Record<StaticPageSlug, StaticPage> = {
 
 /** Route paths this fixture set answers, for the interceptor's own reference. */
 export const RENTER_MOCK_ROUTES = {
-  search: API_ENDPOINTS.marketplace.search,
+  search: API_ENDPOINTS.public.units,
   bookingsMine: API_ENDPOINTS.bookings.mine,
 } as const;

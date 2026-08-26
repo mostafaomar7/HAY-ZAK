@@ -43,7 +43,8 @@ screen that will call it has somewhere to point.
 ```
 auth      11 endpoints — terms, register, verify-mobile, resend-otp, login,
                          refresh, logout, logout-all, forgot/reset-password, me
-public     3 — categories, cities (districts nested), prohibited-items
+public     5 — categories, cities (districts nested), prohibited-items,
+               units (search), units/:id
 me        10 — GET /me, PATCH /me
                bank-accounts: list, add, make-default, remove
                notifications: list, read one, read all
@@ -172,6 +173,26 @@ endpoint lands and says otherwise.
 sends `role` for the first two and `adminRole` for the rest; `/admin/users` is
 not shipped, so nothing has agreed to that yet.
 
+**11. `q` matches nothing.** `GET /public/units?q=…` accepts the parameter,
+validates its length and then returns `total: 0` for every term tried —
+including the exact title of a seeded unit, a single word from it, a word from
+its description, its city name, and the same in English. Every other filter on
+the endpoint works. Twelve terms, all zero; the search box is wired and shipped
+because the parameter is real, but it currently returns an empty page for
+anything typed into it.
+
+**12. Two catalogue routes the details page needs are missing.**
+`/public/units/:id/availability` and `/public/units/:id/similar` both 404. So
+the booking calendar cannot grey out taken dates — it shows every day as free
+and lets the server refuse at the draft step — and the "مساحات مشابهة" rail is
+not rendered. The calendar one matters more: it turns a date clash into a
+rejection one step later rather than a choice the visitor never had.
+
+**13. Repeated `categoryId` is a 422.** The filter panel was built to tick
+several categories at once. `categoryId` is a single string and repeating it is
+rejected, so the panel is now one-at-a-time. Filtering the rest on the client
+was the alternative and would have filtered the page rather than the catalogue.
+
 ## Shapes worth knowing
 
 - `register` returns **no tokens** — the account is `PENDING_VERIFICATION` and
@@ -245,3 +266,40 @@ not shipped, so nothing has agreed to that yet.
 - `GET /me` nests `identity` with `idNumberLast4` — not the `idNumberMasked` the
   account screen models. That screen's endpoints are not shipped, so it has not
   been reconciled.
+
+### The public catalogue
+
+- `GET /public/units` returns results with **no parameters at all**, which is
+  what lets the opening screen show something before anybody chooses anything.
+- **`location` is not a location.** The point is displaced from the true one on
+  purpose, the space is somewhere *inside* `radiusMeters` rather than at the
+  centre, and there is no parameter anywhere that returns the real point — it is
+  released after a confirmed booking (FR-UNT-11). So it is drawn as a circle,
+  everywhere, and the client renames the field to `area` on the way in so that
+  `[point]="unit.location"` is not a thing anybody can type by accident.
+  The displacement is stable per unit, so the circle does not move between the
+  list and the details page.
+- `addressLine` and every means of contacting the lessor are absent by design,
+  not omitted from the projection. FR-MKT-09 gives the details page one button.
+- `minPrice`/`maxPrice` are **halalas**: `minPrice=1000` is ten riyals.
+- `indicativeMonthlyHalalas` is `dailyPriceHalalas × 30`, computed and stored
+  nowhere. Nothing is let by the month and nobody is charged it — every screen
+  showing it labels it تقديري.
+- `distanceMeters` is `null` without `lat`/`lng`, and **rounded to the nearest
+  100 m** when present. Shown with a `~`.
+- `visitHours` is `{ fromMinutes, toMinutes }` — minutes since midnight, Riyadh,
+  a window repeated *daily*. Not an instant: formatted by arithmetic, never
+  through a date library.
+- Four combinations answer 422 rather than failing quietly, and each is a real
+  mistake worth surfacing: `sort=nearest` with no point, latitude and longitude
+  transposed (caught by Saudi bounds), `minPrice > maxPrice`, and one end of a
+  date range without the other. The client prevents the first and the last —
+  they come from controls, not from the visitor — and shows the server's own
+  Arabic sentence for the other two.
+- Anything not published answers `404 UNIT_NOT_FOUND`: draft, rejected,
+  archived and "never existed" are indistinguishable, so a caller cannot probe
+  what lessors are working on. A malformed id is a 422 on `params.unitId`.
+- `pageSize` maxes at 50; `radiusKm` has a floor of 0.5 and defaults to 25.
+- `radiusKm` **without** `lat`/`lng` is accepted and ignored, so the radius
+  slider is hidden until a location is shared rather than shown doing nothing.
+- The detail wraps its payload: `{ unit: … }`.

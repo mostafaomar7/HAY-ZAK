@@ -37,17 +37,28 @@ export class UiLocationMap {
   /** The area label drawn on the map — "حي النرجس، شمال الرياض". */
   readonly areaLabel = input('');
   /**
-   * False draws the 300 m circle; true drops a pin. Defaults to false so a page
-   * that forgets to pass it withholds the location rather than revealing it.
+   * False draws the circle; true drops a pin. Defaults to false so a page that
+   * forgets to pass it withholds the location rather than revealing it.
    */
   readonly precise = input(false, { transform: booleanAttribute });
   readonly height = input<'sm' | 'md'>('md');
   /** Set false where the surrounding card already explains the radius. */
   readonly showNote = input(true, { transform: booleanAttribute });
 
-  protected readonly radiusMetres = APP.approximateLocationRadiusMetres;
+  /**
+   * The circle the API drew, in metres.
+   *
+   * Passed in rather than assumed: the server decides how far it displaces a
+   * unit and sends the radius alongside the point, and a map that drew a
+   * different figure would be telling the visitor the wrong thing about how
+   * much the number can be trusted. The constant is only the fallback for a
+   * caller with no server figure to hand.
+   */
+  readonly radiusMeters = input<number>(APP.approximateLocationRadiusMetres);
+
+  protected readonly radiusMetres = computed(() => this.radiusMeters());
 
   protected readonly circleLabel = computed(() =>
-    this.i18n.t('details.locationRadius', { metres: this.radiusMetres }),
+    this.i18n.t('details.locationRadius', { metres: this.radiusMetres() }),
   );
 }

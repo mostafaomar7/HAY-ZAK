@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { APP } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
-import type { Unit } from '@core/models/unit.model';
+import type { PublicUnit, WirePublicUnitDetail } from '@core/models/public-unit';
+import { publicUnitFromWire } from '@core/models/public-unit';
 import { ApiService } from '@core/services/api.service';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { NotificationService } from '@core/services/notification.service';
@@ -59,7 +60,7 @@ export class DatesStep {
   readonly start = input('');
   readonly end = input('');
 
-  protected readonly unit = signal<Unit | null>(null);
+  protected readonly unit = signal<PublicUnit | null>(null);
   protected readonly blockedDates = signal<string[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
@@ -90,8 +91,9 @@ export class DatesStep {
     this.isLoading.set(true);
     this.failed.set(false);
 
-    this.api.get<Unit>(API_ENDPOINTS.marketplace.unitById(this.unitId())).subscribe({
-      next: (unit) => {
+    this.api.get<WirePublicUnitDetail>(API_ENDPOINTS.public.unitById(this.unitId())).subscribe({
+      next: (payload) => {
+        const unit = publicUnitFromWire(payload.unit);
         this.unit.set(unit);
         this.wizard.setUnit(unit);
         this.isLoading.set(false);
@@ -108,6 +110,9 @@ export class DatesStep {
       },
     });
 
+    // Not shipped: the calendar shows every date as free until it is. The
+    // server re-checks the window when the draft is created, so a taken date
+    // is refused a step later rather than double-booked here.
     this.api
       .get<{ startDate: string; endDate: string }[]>(
         API_ENDPOINTS.marketplace.unitAvailability(this.unitId()),

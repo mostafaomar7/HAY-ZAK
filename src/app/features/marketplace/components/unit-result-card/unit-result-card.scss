@@ -141,23 +141,6 @@
   background: var(--color-border-strong);
 }
 
-.card__perks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: a.$space-6;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.card__perk {
-  padding: a.$space-4 a.$space-10;
-  border-radius: a.$radius-sm;
-  background: var(--color-bg);
-  font-size: a.$fs-2xs;
-  color: var(--color-text-muted);
-}
-
 .card__side {
   display: flex;
   flex-direction: column;

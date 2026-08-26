@@ -11,7 +11,7 @@ import { VerificationStatus } from '../enums/user-role.enum';
 import { AvailabilityBlockReason, UnitStatus } from '../enums/unit-status.enum';
 import type { ApiSuccess, ListPayload, Pagination } from '../models/api-response.model';
 import { accountFor } from './accounts';
-import { toWireBlock, toWireUnit } from './wire';
+import { toWireBlock, toWirePublicUnit, toWireUnit } from './wire';
 import {
   MOCK_ADMIN_KPIS,
   MOCK_ADMIN_RENTER_DETAIL,
@@ -68,7 +68,6 @@ import {
   MOCK_STATIC_PAGES,
 } from './renter.fixtures';
 import type { StaticPageSlug } from '../models/content.model';
-import type { Unit } from '../models/unit.model';
 import type { User } from '../models/user.model';
 import { calculatePrice } from '../utils/money.utils';
 
@@ -129,24 +128,21 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (/^\/reference\/cities\/[^/]+\/districts$/.test(path)) return ok(MOCK_DISTRICTS);
   if (path === API_ENDPOINTS.reference.prohibitedItems) return ok(MOCK_PROHIBITED_ITEMS);
 
-  // ── Renter marketplace (FR-MKT) ────────────────────────────────────────
-  if (path === API_ENDPOINTS.marketplace.search) {
-    return paginate(filterMarket(query).map(withheldAddress));
+  // ── Public catalogue (FR-MKT) ──────────────────────────────────────────
+  // The wire projection, not the fixtures: the public shape withholds the
+  // owner and the true point, and a mock that leaked either would let a screen
+  // be built on a field the real endpoint never sends.
+  if (path === API_ENDPOINTS.public.units) {
+    return paginate(filterMarket(query).map((unit) => toWirePublicUnit(unit)));
   }
-  if (/^\/marketplace\/units\/[^/]+\/availability$/.test(path)) {
+  if (/^\/public\/units\/[^/]+\/availability$/.test(path)) {
     return ok(MOCK_MARKET_AVAILABILITY);
   }
-  if (/^\/marketplace\/units\/[^/]+\/similar$/.test(path)) {
+  if (/^\/public\/units\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];
-    return ok(
-      MOCK_MARKET_UNITS.filter((u) => u.id !== id)
-        .slice(0, 4)
-        .map(withheldAddress),
-    );
-  }
-  if (/^\/marketplace\/units\/[^/]+$/.test(path)) {
-    const id = path.split('/')[3];
-    return ok(withheldAddress(MOCK_MARKET_UNITS.find((u) => u.id === id) ?? MOCK_MARKET_UNITS[0]));
+    const unit = MOCK_MARKET_UNITS.find((u) => u.id === id) ?? MOCK_MARKET_UNITS[0];
+    // Wrapped in `{ unit }`, as the server wraps it.
+    return ok({ unit: toWirePublicUnit(unit, { detail: true }) });
   }
 
   // ── Renter account (FR-AUTH, FR-NTF) ───────────────────────────────────
@@ -498,37 +494,38 @@ function currentUser(): User {
  * a field it was never sent. Deleting the key, not blanking it, so the type's
  * `undefined` really does mean "not released".
  */
-function withheldAddress(unit: Unit): Unit {
-  const { addressLine: _addressLine, postalCode: _postalCode, ...rest } = unit;
-  return rest;
-}
-
 /** FR-MKT-03 → FR-MKT-06 — enough of the filter set to exercise the screen. */
 function filterMarket(query: string) {
   const params = new URLSearchParams(query);
-  const categories = params.getAll('categoryIds');
-  const minPriceHalalas = Number(params.get('minPriceHalalas') ?? 0);
-  const maxPriceHalalas = Number(params.get('maxPriceHalalas') ?? Number.MAX_SAFE_INTEGER);
+  // The endpoint's own names — `categoryId` singular, prices in halalas. The
+  // mock answering a vocabulary the server does not speak is how a filter ends
+  // up working here and silently doing nothing there.
+  const categoryId = params.get('categoryId');
+  const districtId = params.get('districtId');
+  const q = params.get('q')?.trim().toLowerCase();
+  const minPrice = Number(params.get('minPrice') ?? 0);
+  const maxPrice = Number(params.get('maxPrice') ?? Number.MAX_SAFE_INTEGER);
   const minArea = Number(params.get('minArea') ?? 0);
   const maxArea = Number(params.get('maxArea') ?? Number.MAX_SAFE_INTEGER);
-  const radiusKm = Number(params.get('radiusKm') ?? Number.MAX_SAFE_INTEGER);
-  const sortBy = params.get('sortBy');
+  const sort = params.get('sort');
 
   const matched = MOCK_MARKET_UNITS.filter(
     (unit) =>
-      (categories.length === 0 || categories.includes(unit.categoryId)) &&
-      unit.dailyPriceHalalas >= minPriceHalalas &&
-      unit.dailyPriceHalalas <= maxPriceHalalas &&
+      (!categoryId || unit.categoryId === categoryId) &&
+      (!districtId || unit.districtId === districtId) &&
+      (!q || `${unit.title} ${unit.description}`.toLowerCase().includes(q)) &&
+      unit.dailyPriceHalalas >= minPrice &&
+      unit.dailyPriceHalalas <= maxPrice &&
       unit.areaSqm >= minArea &&
-      unit.areaSqm <= maxArea &&
-      (unit.distanceKm ?? 0) <= radiusKm,
+      unit.areaSqm <= maxArea,
   );
 
-  if (sortBy === 'priceAsc')
+  if (sort === 'priceAsc')
     return [...matched].sort((a, b) => a.dailyPriceHalalas - b.dailyPriceHalalas);
-  if (sortBy === 'nearest') {
-    return [...matched].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
-  }
+  if (sort === 'priceDesc')
+    return [...matched].sort((a, b) => b.dailyPriceHalalas - a.dailyPriceHalalas);
+  // "nearest" needs a point the fixtures have no distance for; the server
+  // refuses the sort without one, so falling back to the default is honest.
   return matched;
 }
 

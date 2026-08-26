@@ -82,12 +82,22 @@ describe('UnitDetailsPage', () => {
     expect(el.textContent).not.toContain('شارع الأمير سلطان');
   });
 
-  it('groups the visiting hours by day', async () => {
+  /**
+   * One row, not a table.
+   *
+   * The design groups visiting hours by day, but the API keeps a single
+   * `visitHours` window per unit and repeats it daily. Rendering seven
+   * identical rows would have implied the lessor chose those days, so the page
+   * says "يوميًا" once — and this asserts it, because the day the API grows a
+   * per-day table is the day this test should fail and be rewritten.
+   */
+  it('states the visiting window once, as a daily one', async () => {
     await build();
 
     const rows = el.querySelectorAll('.hours__row');
-    expect(rows.length).toBe(3);
-    // The design's own grouping: Sunday through Thursday as one range.
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain('يوميًا');
+    // The time range itself, LTR inside the Arabic run.
     expect(rows[0].textContent).toContain('—');
   });
 
