@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
+import { ApiError } from '@core/models/api-error.model';
 import { AuthService } from '@core/services/auth.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
@@ -34,6 +35,15 @@ export class MyBookingsPage {
 
   protected readonly tab = signal<BookingTab>('current');
   protected readonly failed = signal(false);
+  /**
+   * The endpoint is not built yet, as opposed to a request that went wrong.
+   *
+   * `/bookings/mine` answers 404 because FR-BKG is not shipped. Showing
+   * "تعذّر تحميل الحجوزات" with a retry button invites somebody to press it
+   * forever against something that was never going to answer — and reads as a
+   * fault in their connection rather than in ours.
+   */
+  protected readonly notConnected = signal(false);
 
   protected readonly isLoading = this.service.isLoading;
   protected readonly current = this.service.current;
@@ -64,6 +74,16 @@ export class MyBookingsPage {
 
   protected fetch(): void {
     this.failed.set(false);
-    this.service.load().subscribe({ error: () => this.failed.set(true) });
+    this.notConnected.set(false);
+
+    this.service.load().subscribe({
+      error: (error: unknown) => {
+        if (error instanceof ApiError && error.status === 404) {
+          this.notConnected.set(true);
+          return;
+        }
+        this.failed.set(true);
+      },
+    });
   }
 }

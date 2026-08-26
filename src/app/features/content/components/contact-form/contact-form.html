@@ -83,4 +83,10 @@
       {{ i18n.t('contact.sent', { ticket: ticketNo() }) }}
     </app-ui-notice>
   }
+
+  <!-- Never silence: a submit that fails without a word is indistinguishable
+       from one that worked, and somebody walks away thinking they were heard. -->
+  @if (errorKey(); as key) {
+    <app-ui-notice tone="warning">{{ i18n.t(key) }}</app-ui-notice>
+  }
 </form>

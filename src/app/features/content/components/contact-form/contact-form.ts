@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '@core/i18n/language.service';
+import { ApiError } from '@core/models/api-error.model';
 import type { TranslationKey } from '@core/i18n/translations';
 import type { ContactSubject } from '@core/models/content.model';
 import { AuthService } from '@core/services/auth.service';
@@ -50,6 +51,18 @@ export class ContactForm {
 
   protected readonly submitting = signal(false);
   protected readonly ticketNo = signal('');
+  /**
+   * Why the message did not go, in the visitor's words.
+   *
+   * A failed submit used to clear the spinner and say nothing at all, which
+   * looks exactly like a form that worked. Somebody would walk away believing
+   * they had raised a complaint. `POST /content/contact` is a 404 today — the
+   * module is not shipped — so the common case is not even a failure, and
+   * being told to try again would waste the message they just typed. The page
+   * carries a phone number and an email above this form; that is where the
+   * notice points.
+   */
+  protected readonly errorKey = signal<'contact.notConnected' | 'contact.failed' | ''>('');
   protected readonly used = signal(0);
 
   protected readonly form = this.fb.group({
@@ -89,6 +102,7 @@ export class ContactForm {
     }
 
     this.submitting.set(true);
+    this.errorKey.set('');
     const value = this.form.getRawValue();
 
     this.content
@@ -106,7 +120,16 @@ export class ContactForm {
           this.form.controls.message.reset('');
           this.used.set(0);
         },
-        error: () => this.submitting.set(false),
+        error: (error: unknown) => {
+          this.submitting.set(false);
+          this.errorKey.set(
+            error instanceof ApiError && error.status === 404
+              ? 'contact.notConnected'
+              : 'contact.failed',
+          );
+          // The message stays in the box. Clearing it here would throw away
+          // what somebody wrote because of a fault that is ours.
+        },
       });
   }
 }

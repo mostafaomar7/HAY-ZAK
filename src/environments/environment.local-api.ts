@@ -1,11 +1,15 @@
 import type { Environment } from './environment.model';
 
 /**
- * Development against the real backend.
+ * Development against the real backend — **the default `ng serve`**.
  *
- * `npm run start:api`. Separate from `environment.development.ts` because that
- * one also backs `ng test`: a suite that pointed at a machine on the LAN would
- * fail whenever that machine was off, for reasons that are not the code's.
+ * `npm start`, `npm run start:api` and a bare `ng serve` all land here. It is
+ * the default because the alternative was: the obvious command served fixtures,
+ * and somebody could wire an endpoint, reload, and see nothing change.
+ *
+ * Separate from `environment.development.ts` because that one also backs
+ * `ng test`: a suite that pointed at a machine on the LAN would fail whenever
+ * that machine was off, for reasons that are not the code's.
  *
  * The host is a colleague's laptop, so it changes. It is the only line here
  * anybody should need to edit — check `http://<host>/health` answers 200 before

@@ -616,6 +616,9 @@ const ar = {
 
   // ── My bookings (RNT-01) ───────────────────────────────────────────────
   'bookings.title': 'حجوزاتي',
+  'bookings.notConnected': 'الحجوزات لم تُربط بعد',
+  'bookings.notConnectedHint':
+    'هذه الصفحة جاهزة، وتظهر حجوزاتك فور تفعيل الخدمة على الخادم. تصفَّح المساحات في الوقت الحالي.',
   'bookings.subtitle': '{name} · {count} حجوزات حالية',
   'bookings.tabCurrent': 'حالية',
   'bookings.tabPrevious': 'سابقة',
@@ -837,6 +840,9 @@ const ar = {
   'contact.send': 'إرسال الاستفسار',
   'contact.orFaq': 'أو راجع',
   'contact.sent': 'تم استلام استفسارك برقم {ticket}، وسيصل الرد على بريدك.',
+  'contact.notConnected':
+    'إرسال النموذج لم يُفعَّل بعد. تواصل معنا عبر الهاتف أو البريد الموضّحين أعلاه، وسنردّ عليك.',
+  'contact.failed': 'تعذّر إرسال رسالتك. رسالتك محفوظة في الصندوق — جرّب مرة أخرى.',
   'contact.channels': 'بيانات التواصل',
 
   // ── Admin console (FR-ADM, FR-RPT) ─────────────────────────────────────
@@ -1964,6 +1970,9 @@ const en: Partial<Record<TranslationKey, string>> = {
   'joinPrompt.signIn': 'Sign in',
 
   'bookings.title': 'My bookings',
+  'bookings.notConnected': 'Bookings are not connected yet',
+  'bookings.notConnectedHint':
+    'This page is ready; your bookings appear as soon as the service is live. Browse spaces in the meantime.',
   'bookings.subtitle': '{name} · {count} current bookings',
   'bookings.tabCurrent': 'Current',
   'bookings.tabPrevious': 'Past',
@@ -2179,6 +2188,9 @@ const en: Partial<Record<TranslationKey, string>> = {
   'contact.send': 'Send',
   'contact.orFaq': 'Or read the',
   'contact.sent': 'Your question was received as {ticket}. The reply will reach your inbox.',
+  'contact.notConnected':
+    'Sending is not enabled yet. Use the phone number or email above and we will reply.',
+  'contact.failed': 'Your message could not be sent. It is still in the box — try again.',
   'contact.channels': 'Contact details',
 
   // ── Admin console ──────────────────────────────────────────────────────
