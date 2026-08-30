@@ -29,6 +29,7 @@
       <div class="gallery__main">
         <app-ui-thumbnail
           class="gallery__image"
+          size="fill"
           [src]="photos()[activePhoto()]?.url"
           [alt]="unit()!.title"
         />
@@ -56,7 +57,7 @@
                 [attr.aria-pressed]="index === activePhoto()"
                 (click)="setPhoto(index)"
               >
-                <app-ui-thumbnail [src]="photo.url" alt="" />
+                <app-ui-thumbnail size="fill" [src]="photo.url" alt="" />
               </button>
             </li>
           }

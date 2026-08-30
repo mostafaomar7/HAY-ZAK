@@ -19,12 +19,12 @@
 .card__thumb {
   display: block;
   width: 100%;
-  min-height: 140px;
+  min-height: 200px;
   flex: none;
 
   @include a.up(md) {
-    width: 180px;
-    min-height: 100%;
+    width: 248px;
+    min-height: 176px;
   }
 }
 

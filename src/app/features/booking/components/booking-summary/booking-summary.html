@@ -1,7 +1,12 @@
 <section class="summary" [attr.aria-label]="i18n.t('booking.summary')">
   @if (unit(); as space) {
     <div class="summary__unit">
-      <app-ui-thumbnail class="summary__thumb" [src]="space.images[0]?.url" [alt]="space.title" />
+      <app-ui-thumbnail
+        class="summary__thumb"
+        size="fill"
+        [src]="space.images[0]?.url"
+        [alt]="space.title"
+      />
 
       <div class="summary__unitText">
         <h2 class="summary__title">{{ space.title }}</h2>

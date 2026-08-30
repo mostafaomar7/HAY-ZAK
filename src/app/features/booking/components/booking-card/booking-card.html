@@ -2,7 +2,9 @@
   <!-- No image: a booking's `unit` carries an id, a title, the city and —
        once confirmed — the address. Fetching the listing to decorate a row
        would be a request per card. -->
-  <app-ui-thumbnail class="card__thumb" [alt]="booking().unit.title" />
+  <!-- No `src`: `GET /renter/bookings` carries no photo for the unit, so this
+       is the hatch by design rather than a failed load. -->
+  <app-ui-thumbnail class="card__thumb" size="fill" [alt]="booking().unit.title" />
 
   <div class="card__body">
     <div class="card__main">

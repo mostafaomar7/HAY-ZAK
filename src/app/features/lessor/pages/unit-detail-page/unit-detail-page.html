@@ -60,7 +60,7 @@
         @if (u.images.length) {
           <div class="gallery">
             @for (image of u.images; track image.id) {
-              <app-ui-thumbnail [src]="image.url" [alt]="u.title" size="md" />
+              <app-ui-thumbnail [src]="image.url" [alt]="u.title" size="lg" />
             }
           </div>
         } @else {

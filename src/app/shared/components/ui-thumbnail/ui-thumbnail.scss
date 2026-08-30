@@ -19,6 +19,31 @@
   height: a.$thumb-md;
 }
 
+.thumb--lg {
+  width: a.$thumb-lg;
+  height: a.$thumb-lg;
+}
+
+/**
+ * Takes the whole slot the host gave it, corners included.
+ *
+ * `min-height: inherit` is the part that matters: a host that only states a
+ * `min-height` — a card's media column, whose real height comes from the text
+ * beside it — has no definite height for `100%` to resolve against, and the
+ * box would collapse to the icon. Inheriting the host's own minimum keeps the
+ * floor without duplicating the number here.
+ *
+ * The radius is dropped because a filling thumbnail is bounded by whatever
+ * clipped it — a card that already rounds its own corners, or a gallery frame.
+ * Rounding again leaves a sliver of hatch outside the curve.
+ */
+.thumb--fill {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  border-radius: 0;
+}
+
 .thumb__img {
   width: 100%;
   height: 100%;
