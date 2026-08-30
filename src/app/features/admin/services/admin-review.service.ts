@@ -64,6 +64,23 @@ export class AdminReviewService {
   }
 
   /**
+   * Takes a **published** listing off the market, and puts it back.
+   *
+   * Not the same act as rejecting one: a rejection is a decision about a
+   * listing that was never live, and this is about one that renters can see
+   * today. Both answer with the unit, so the row refreshes from the response.
+   */
+  suspendListing(id: string, reason: string): Observable<void> {
+    return this.api.post<void, { reason: string }>(API_ENDPOINTS.admin.suspendUnit(id), {
+      reason,
+    });
+  }
+
+  reinstateListing(id: string): Observable<void> {
+    return this.api.post<void>(API_ENDPOINTS.admin.reinstateUnit(id));
+  }
+
+  /**
    * Bulk actions run one request per row rather than through a bulk endpoint:
    * each decision is its own audit entry and its own notification, and a partial
    * failure must leave the rows it did reach decided.

@@ -12,6 +12,8 @@ import type {
 } from '@core/models/renter.model';
 import { AuthService } from '@core/services/auth.service';
 import { IdentityService } from '@core/services/identity.service';
+import { isApiError } from '@core/models/api-error.model';
+import { EmailVerificationService } from '@core/services/email-verification.service';
 import { NotificationService } from '@core/services/notification.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -68,6 +70,7 @@ export class AccountPage {
   private readonly identityService = inject(IdentityService);
   private readonly auth = inject(AuthService);
   private readonly notifications = inject(NotificationService);
+  private readonly emails = inject(EmailVerificationService);
 
   protected readonly i18n = inject(LanguageService);
 
@@ -76,6 +79,34 @@ export class AccountPage {
   protected readonly preferences = signal<NotificationPreference[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly savingProfile = signal(false);
+  protected readonly sendingEmail = signal(false);
+
+  /**
+   * Read from the profile the server sent back, never from the form.
+   *
+   * Changing the address clears `emailVerifiedAt` server-side, so a badge
+   * driven by what was typed would keep saying "confirmed" about an address
+   * nobody has confirmed.
+   */
+  protected readonly emailVerified = computed(() => !!this.profile()?.emailVerifiedAt);
+
+  /** Sixty-second cooldown server-side; asking early is a 429 with its own copy. */
+  protected sendEmailVerification(): void {
+    if (this.sendingEmail()) return;
+
+    this.sendingEmail.set(true);
+    this.emails.send().subscribe({
+      next: () => {
+        this.sendingEmail.set(false);
+        this.notifications.success(this.i18n.t('account.emailSent'));
+      },
+      error: (failure: unknown) => {
+        this.sendingEmail.set(false);
+        // The server's own wording, including the cooldown copy on a 429.
+        if (isApiError(failure)) this.notifications.error(failure.message);
+      },
+    });
+  }
   protected readonly savingPassword = signal(false);
   protected readonly deleteOpen = signal(false);
   protected readonly deleteConfirmation = signal('');

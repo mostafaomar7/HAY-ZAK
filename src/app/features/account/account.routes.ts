@@ -16,6 +16,18 @@ export const ACCOUNT_ROUTES: Routes = [
     loadComponent: () => import('./pages/account-page/account-page').then((m) => m.AccountPage),
   },
   {
+    /**
+     * Two-factor enrolment (§17). Its own screen rather than a panel on the
+     * account page: it is a sequence with a point of no return in the middle —
+     * the recovery codes are shown once and never reissued — and burying that
+     * among unrelated settings is how somebody navigates away from them.
+     */
+    path: 'security',
+    canActivate: [authGuard],
+    title: 'الأمان',
+    loadComponent: () => import('./pages/security-page/security-page').then((m) => m.SecurityPage),
+  },
+  {
     path: 'notifications',
     canActivate: [authGuard],
     title: 'الإشعارات',

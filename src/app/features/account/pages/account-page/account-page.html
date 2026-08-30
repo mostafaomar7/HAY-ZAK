@@ -87,6 +87,31 @@
             />
           </app-ui-field>
 
+          <!-- Read from `GET /me`, not from what was typed: changing the
+               address clears the confirmation, so the badge has to come from
+               the response rather than from the form. -->
+          <div class="emailState">
+            @if (emailVerified()) {
+              <app-ui-badge tone="success" size="sm">
+                {{ i18n.t('account.emailVerified') }}
+              </app-ui-badge>
+            } @else {
+              <app-ui-badge tone="warning" size="sm">
+                {{ i18n.t('account.emailUnverified') }}
+              </app-ui-badge>
+              <button
+                appUiButton
+                variant="ghost"
+                size="sm"
+                type="button"
+                [disabled]="sendingEmail()"
+                (click)="sendEmailVerification()"
+              >
+                {{ i18n.t('account.emailVerify') }}
+              </button>
+            }
+          </div>
+
           <div class="grid__actions">
             <button appUiButton variant="primary" type="submit" [disabled]="savingProfile()">
               {{ i18n.t('account.saveChanges') }}
@@ -145,6 +170,16 @@
       </section>
 
       <!-- ── Password ──────────────────────────────────────────────────── -->
+      <!-- Its own screen: enrolment is a sequence with a point of no return in
+           the middle, and the recovery codes are shown once. -->
+      <section class="panel" id="security">
+        <h2 class="panel__title">{{ i18n.t('account.security') }}</h2>
+        <p class="panel__hint">{{ i18n.t('security.totpBody') }}</p>
+        <a appUiButton variant="outline" routerLink="/account/security">
+          {{ i18n.t('account.security') }}
+        </a>
+      </section>
+
       <section class="panel" id="password">
         <h2 class="panel__title">{{ i18n.t('account.changePassword') }}</h2>
 

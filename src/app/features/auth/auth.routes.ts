@@ -44,6 +44,20 @@ export const AUTH_ROUTES: Routes = [
         redirectTo: 'register/lessor',
       },
       {
+        /**
+         * Where the emailed confirmation link lands (§18).
+         *
+         * No guard: whoever follows the link may not be signed in on the device
+         * they opened it on, and a login wall would strand them holding a token
+         * that is timing out. Not `guestGuard` either — a signed-in user
+         * confirming their own address is the normal case.
+         */
+        path: 'verify-email',
+        title: 'تأكيد البريد الإلكتروني',
+        loadComponent: () =>
+          import('./pages/verify-email-page/verify-email-page').then((m) => m.VerifyEmailPage),
+      },
+      {
         path: 'verify',
         title: 'رمز التحقق',
         loadComponent: () => import('./pages/otp-page/otp-page').then((m) => m.OtpPage),

@@ -35,52 +35,68 @@
       <p class="form__sub">{{ i18n.t('adminAuth.subtitle') }}</p>
     </header>
 
-    @if (failed()) {
-      <app-ui-notice tone="danger">{{ i18n.t('adminAuth.failed') }}</app-ui-notice>
+    @if (challengeToken()) {
+      <!-- Shown in place of the password form. The server asked for this; it is
+           not a step this screen adds on principle. -->
+      @if (codeFailed()) {
+        <app-ui-notice tone="danger">{{ i18n.t('adminAuth.codeFailed') }}</app-ui-notice>
+      }
+
+      <app-ui-otp-input
+        [label]="i18n.t('adminAuth.codeLabel')"
+        [disabled]="verifying()"
+        (completed)="verifyCode($event)"
+      />
+
+      <app-ui-notice tone="info">{{ i18n.t('adminAuth.codeOnce') }}</app-ui-notice>
+    } @else {
+      @if (failed()) {
+        <app-ui-notice tone="danger">{{ i18n.t('adminAuth.failed') }}</app-ui-notice>
+      }
+
+      <form class="form__body" [formGroup]="form" (ngSubmit)="submit()">
+        <app-ui-field
+          [label]="i18n.t('adminAuth.email')"
+          for="adm-email"
+          [control]="form.controls.email"
+        >
+          <input
+            id="adm-email"
+            class="input num"
+            type="email"
+            dir="ltr"
+            autocomplete="username"
+            inputmode="email"
+            formControlName="email"
+          />
+        </app-ui-field>
+
+        <app-ui-field
+          [label]="i18n.t('adminAuth.password')"
+          for="adm-password"
+          [control]="form.controls.password"
+        >
+          <input
+            id="adm-password"
+            class="input"
+            type="password"
+            dir="ltr"
+            autocomplete="current-password"
+            formControlName="password"
+          />
+        </app-ui-field>
+
+        <label class="remember">
+          <input type="checkbox" formControlName="rememberDevice" />
+          {{ i18n.t('adminAuth.remember') }}
+        </label>
+
+        <button appUiButton variant="primary" type="submit" fullWidth [disabled]="submitting()">
+          {{ i18n.t('adminAuth.submit') }}
+        </button>
+      </form>
+
+      <app-ui-notice tone="info">{{ i18n.t('adminAuth.mfaNote') }}</app-ui-notice>
     }
-
-    <form class="form__body" [formGroup]="form" (ngSubmit)="submit()">
-      <app-ui-field
-        [label]="i18n.t('adminAuth.email')"
-        for="adm-email"
-        [control]="form.controls.email"
-      >
-        <input
-          id="adm-email"
-          class="input num"
-          type="email"
-          dir="ltr"
-          autocomplete="username"
-          inputmode="email"
-          formControlName="email"
-        />
-      </app-ui-field>
-
-      <app-ui-field
-        [label]="i18n.t('adminAuth.password')"
-        for="adm-password"
-        [control]="form.controls.password"
-      >
-        <input
-          id="adm-password"
-          class="input"
-          type="password"
-          dir="ltr"
-          autocomplete="current-password"
-          formControlName="password"
-        />
-      </app-ui-field>
-
-      <label class="remember">
-        <input type="checkbox" formControlName="rememberDevice" />
-        {{ i18n.t('adminAuth.remember') }}
-      </label>
-
-      <button appUiButton variant="primary" type="submit" fullWidth [disabled]="submitting()">
-        {{ i18n.t('adminAuth.submit') }}
-      </button>
-    </form>
-
-    <app-ui-notice tone="info">{{ i18n.t('adminAuth.mfaNote') }}</app-ui-notice>
   </main>
 </div>

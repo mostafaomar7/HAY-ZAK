@@ -182,3 +182,11 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
+
+// The one-use note under the two-factor code boxes.
+.authForm__hint {
+  margin: 0;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-subtle);
+  text-align: center;
+}

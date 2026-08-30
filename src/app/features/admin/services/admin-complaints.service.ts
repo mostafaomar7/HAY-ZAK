@@ -105,6 +105,24 @@ export class AdminComplaintsService {
     );
   }
 
+  /**
+   * Lifts a `PAYOUT_HOLD` a resolution put on the booking.
+   *
+   * On the complaint rather than the booking, and **not automatic when a case
+   * closes**: closing a case and letting the money go are two judgements, and a
+   * case may close precisely because the money is still disputed.
+   *
+   * Needs `complaints:manage`, not `payouts:approve` — this moves nothing, it
+   * only makes the booking eligible again, and finance still approves the run.
+   */
+  releasePayout(id: string, note: string): Observable<ComplaintDetail> {
+    return this.api
+      .post<WireComplaintResponse, { note: string }>(API_ENDPOINTS.admin.releasePayout(id), {
+        note,
+      })
+      .pipe(map((response) => complaintDetailFromWire(response.complaint)));
+  }
+
   assign(id: string, adminId: string): Observable<ComplaintDetail> {
     return this.api
       .post<WireComplaintResponse, { adminId: string }>(API_ENDPOINTS.admin.assignComplaint(id), {

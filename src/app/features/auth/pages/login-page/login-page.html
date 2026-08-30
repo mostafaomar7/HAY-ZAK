@@ -1,52 +1,87 @@
-<form class="authForm" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-  <header class="authForm__head">
-    <h1 class="authForm__title">تسجيل دخول المؤجر</h1>
-    <p class="authForm__sub">ادخل إلى حسابك لمتابعة مساحاتك وطلباتك.</p>
-  </header>
+@if (challengeToken()) {
+  <!-- The second step, in place of the password form rather than on a route of
+       its own: the challenge lives five minutes, and a reload that lost it
+       would send the user back to re-enter a password they already got right. -->
+  <section class="authForm">
+    <header class="authForm__head">
+      <h1 class="authForm__title">التحقق بخطوتين</h1>
+      <p class="authForm__sub">اكتب الرمز من تطبيق المصادقة، أو استخدم أحد رموز الاسترداد.</p>
+    </header>
 
-  <app-ui-error-notice [error]="error()" [extras]="extras()" />
+    <app-ui-error-notice [error]="codeError()" />
 
-  <app-ui-field
-    label="الجوال أو البريد الإلكتروني"
-    for="l-identifier"
-    [control]="form.controls.identifier"
-  >
-    <input
-      id="l-identifier"
-      type="text"
-      formControlName="identifier"
-      autocomplete="username"
-      dir="auto"
+    <app-ui-otp-input
+      label="رمز التحقق"
+      [disabled]="verifying()"
+      (completed)="verifyCode($event)"
     />
-  </app-ui-field>
 
-  <app-ui-field label="كلمة المرور" for="l-password" [control]="form.controls.password">
-    <input
-      id="l-password"
-      type="password"
-      formControlName="password"
-      autocomplete="current-password"
-    />
-  </app-ui-field>
+    <!-- Said out loud because it is the one thing that makes a correct code
+         look broken: the app shows the same digits for thirty seconds, and a
+         second attempt with them is refused as a replay. -->
+    <p class="authForm__hint">الرمز يُقبل مرة واحدة. لو فشلت المحاولة، انتظر الرمز التالي.</p>
 
-  <a class="authForm__link" routerLink="/auth/forgot-password">نسيت كلمة المرور؟</a>
+    <button
+      appUiButton
+      variant="ghost"
+      type="button"
+      [fullWidth]="true"
+      (click)="challengeToken.set('')"
+    >
+      الرجوع لتسجيل الدخول
+    </button>
+  </section>
+} @else {
+  <form class="authForm" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="authForm__head">
+      <h1 class="authForm__title">تسجيل دخول المؤجر</h1>
+      <p class="authForm__sub">ادخل إلى حسابك لمتابعة مساحاتك وطلباتك.</p>
+    </header>
 
-  <button
-    appUiButton
-    variant="primary"
-    size="lg"
-    [fullWidth]="true"
-    [disabled]="submitting() || locked()"
-  >
-    @if (locked()) {
-      {{ lockLabel() }}
-    } @else {
-      {{ submitting() ? 'جارٍ الدخول...' : 'تسجيل الدخول' }}
-    }
-  </button>
+    <app-ui-error-notice [error]="error()" [extras]="extras()" />
 
-  <p class="authForm__foot">
-    ليس لديك حساب؟
-    <a routerLink="/auth/register">تسجيل مؤجر جديد</a>
-  </p>
-</form>
+    <app-ui-field
+      label="الجوال أو البريد الإلكتروني"
+      for="l-identifier"
+      [control]="form.controls.identifier"
+    >
+      <input
+        id="l-identifier"
+        type="text"
+        formControlName="identifier"
+        autocomplete="username"
+        dir="auto"
+      />
+    </app-ui-field>
+
+    <app-ui-field label="كلمة المرور" for="l-password" [control]="form.controls.password">
+      <input
+        id="l-password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+      />
+    </app-ui-field>
+
+    <a class="authForm__link" routerLink="/auth/forgot-password">نسيت كلمة المرور؟</a>
+
+    <button
+      appUiButton
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [disabled]="submitting() || locked()"
+    >
+      @if (locked()) {
+        {{ lockLabel() }}
+      } @else {
+        {{ submitting() ? 'جارٍ الدخول...' : 'تسجيل الدخول' }}
+      }
+    </button>
+
+    <p class="authForm__foot">
+      ليس لديك حساب؟
+      <a routerLink="/auth/register">تسجيل مؤجر جديد</a>
+    </p>
+  </form>
+}

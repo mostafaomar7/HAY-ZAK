@@ -1,6 +1,7 @@
 import type { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { HttpContextToken } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HttpStatus } from '../enums/http-status.enum';
@@ -33,6 +34,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notifications = inject(NotificationService);
   const logger = inject(LoggerService);
   const i18n = inject(LanguageService);
+  // Resolved here, not inside `catchError`: that callback runs outside the
+  // injection context, where `inject()` throws.
+  const router = inject(Router);
 
   return next(req).pipe(
     catchError((response: HttpErrorResponse) => {
@@ -51,6 +55,21 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       });
 
       logger.error(`${req.method} ${req.url} → ${error.status} ${error.code}`, response.error);
+
+      /**
+       * An administrator who has not enrolled in two-factor authentication.
+       *
+       * Every `/admin` route answers this while `security.admin_2fa_required`
+       * is on, so it is handled once here rather than on fifty screens. They
+       * are **not forbidden — they are unenrolled**, and a generic permission
+       * error would send somebody to ask for access they already have.
+       *
+       * Routed rather than toasted: the console is unusable until it is done,
+       * so a dismissible message would leave them on a screen that cannot load.
+       */
+      if (error.code === ERROR_CODES.ADMIN_2FA_REQUIRED) {
+        void router.navigate(['/account/security']);
+      }
 
       if (!req.context.get(SKIP_ERROR_TOAST)) {
         notifications.error(error.message);

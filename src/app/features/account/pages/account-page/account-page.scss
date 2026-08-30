@@ -286,3 +286,11 @@
   font-weight: a.$fw-semibold;
   color: var(--color-text);
 }
+
+// The confirmation badge under the email field, with its resend beside it.
+.emailState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-8;
+}

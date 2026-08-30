@@ -117,6 +117,39 @@ export class AdminComplaintsPage {
     this.permissions.can(Permission.IssueRefunds),
   );
 
+  protected readonly releaseNote = signal('');
+
+  /**
+   * Only where a resolution actually froze one.
+   *
+   * `PAYOUT_HOLD` and nothing else: offering "release the payout" on a case
+   * that never held one is an action that can only fail, and on the screen
+   * where an operator is least able to tell whether it did.
+   */
+  protected readonly canReleasePayout = computed(
+    () => this.detail()?.resolution === ComplaintResolution.PayoutHold,
+  );
+
+  protected readonly canSubmitRelease = computed(
+    () => this.releaseNote().trim().length >= MIN_RESOLUTION_NOTE && !this.submitting(),
+  );
+
+  protected releasePayout(): void {
+    const id = this.detail()?.id;
+    if (!id || !this.canSubmitRelease()) return;
+
+    this.submitting.set(true);
+    this.complaints.releasePayout(id, this.releaseNote().trim()).subscribe({
+      next: (updated) => {
+        this.submitting.set(false);
+        this.detail.set(updated);
+        this.releaseNote.set('');
+        this.notifications.success(this.i18n.t('complaints.released'));
+      },
+      error: () => this.submitting.set(false),
+    });
+  }
+
   protected readonly isSettled = computed(() => {
     const status = this.detail()?.status;
     return !!status && SETTLED_COMPLAINT_STATUSES.includes(status);

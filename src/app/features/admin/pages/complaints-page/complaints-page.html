@@ -158,6 +158,37 @@
           <span dir="auto">{{ complaint.resolutionNote }}</span>
         }
       </app-ui-notice>
+
+      <!-- A frozen payout outlives the case that froze it, deliberately: a case
+           may close precisely because the money is still disputed. So the
+           release is offered here, after the decision, and never implied by it. -->
+      @if (canReleasePayout()) {
+        <section class="block">
+          <h3 class="block__title">{{ i18n.t('complaints.releaseTitle') }}</h3>
+          <p class="block__hint">{{ i18n.t('complaints.releaseHint') }}</p>
+
+          <label class="field">
+            <span class="field__label">{{ i18n.t('complaints.releaseNote') }}</span>
+            <textarea
+              class="field__input"
+              rows="2"
+              dir="auto"
+              [value]="releaseNote()"
+              (input)="releaseNote.set($any($event.target).value)"
+            ></textarea>
+          </label>
+
+          <button
+            appUiButton
+            variant="outline"
+            type="button"
+            [disabled]="!canSubmitRelease()"
+            (click)="releasePayout()"
+          >
+            {{ i18n.t('complaints.releaseAction') }}
+          </button>
+        </section>
+      }
     } @else {
       <section class="block">
         <h3 class="block__title">{{ i18n.t('complaints.sendMessage') }}</h3>

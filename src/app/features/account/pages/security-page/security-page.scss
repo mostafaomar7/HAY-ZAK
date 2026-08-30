@@ -1,0 +1,126 @@
+@use 'abstracts' as a;
+
+.page {
+  @include a.stack(a.$space-20);
+
+  max-width: 640px;
+  margin-inline: auto;
+  padding: a.$space-24 a.$space-16;
+}
+
+.page__head {
+  @include a.stack(a.$space-6);
+}
+
+.page__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.page__sub {
+  margin: 0;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.panel {
+  @include a.surface(a.$radius-xl);
+  @include a.stack(a.$space-14);
+
+  padding: a.$space-20;
+  align-items: flex-start;
+}
+
+.panel--codes {
+  border-color: var(--color-warning-border);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+}
+
+.panel__body {
+  margin: 0;
+  font-size: a.$fs-sm;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+// ── Enrolment ────────────────────────────────────────────────────────────
+.setup {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: a.$space-6 a.$space-12;
+  width: 100%;
+  margin: 0;
+  font-size: a.$fs-sm;
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text);
+  }
+}
+
+// Large and spaced, because on a phone this is typed rather than scanned.
+.setup__secret {
+  @include a.numeric;
+
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+
+.setup__link {
+  @include a.focus-ring;
+
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+// ── Recovery codes ───────────────────────────────────────────────────────
+.codes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: a.$space-8;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.codes__item {
+  @include a.numeric;
+
+  padding: a.$space-8 a.$space-10;
+  border: 1px solid var(--color-border-divider);
+  border-radius: a.$radius-md;
+  background: var(--color-surface-muted);
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  text-align: center;
+}
+
+// ── Disable form ─────────────────────────────────────────────────────────
+.form {
+  @include a.stack(a.$space-12);
+
+  width: 100%;
+}
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: a.$space-10;
+}

@@ -1,0 +1,182 @@
+<section class="page">
+  <header class="page__head">
+    <h1 class="page__title">{{ i18n.t('security.title') }}</h1>
+    <p class="page__sub">{{ i18n.t('security.sub') }}</p>
+  </header>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="3" [label]="i18n.t('common.loading')" />
+  } @else if (failed()) {
+    <app-ui-notice tone="danger">
+      {{ i18n.t('security.loadFailed') }}
+      <button appUiButton variant="ghost" size="sm" type="button" (click)="load()">
+        {{ i18n.t('common.retry') }}
+      </button>
+    </app-ui-notice>
+  } @else if (status(); as state) {
+    <app-ui-error-notice [error]="error()" />
+
+    <!-- ── The recovery codes, shown once ──────────────────────────────── -->
+    @if (step() === 'codes') {
+      @if (recoveryCodes(); as codes) {
+        <section class="panel panel--codes">
+          <h2 class="panel__title">{{ i18n.t('security.recoveryTitle') }}</h2>
+          <!-- The strongest wording on the screen, because it is the only
+               screen in the product where leaving without reading loses
+               something that cannot be reissued. -->
+          <app-ui-notice tone="warning">{{ i18n.t('security.recoveryOnce') }}</app-ui-notice>
+
+          <ul class="codes">
+            @for (code of codes; track code) {
+              <li class="codes__item num" dir="ltr">{{ code }}</li>
+            }
+          </ul>
+
+          <button appUiButton variant="primary" type="button" (click)="acknowledgeCodes()">
+            {{ i18n.t('security.recoverySaved') }}
+          </button>
+        </section>
+      } @else {
+        <!-- Enabled, but this response carried no codes. Saying "you have none"
+             would be inventing a fact the server did not state. -->
+        <section class="panel">
+          <app-ui-notice tone="info">{{ i18n.t('security.recoveryNone') }}</app-ui-notice>
+          <button appUiButton variant="primary" type="button" (click)="acknowledgeCodes()">
+            {{ i18n.t('security.recoverySaved') }}
+          </button>
+        </section>
+      }
+    } @else if (step() === 'scanning' && setup(); as provisional) {
+      <!-- ── Enrolment ─────────────────────────────────────────────────── -->
+      <section class="panel">
+        <h2 class="panel__title">{{ i18n.t('security.setupTitle') }}</h2>
+        <p class="panel__body">{{ i18n.t('security.setupBody') }}</p>
+
+        <!-- No QR: this project carries no QR encoder, and one is a dependency
+             decision rather than something to slip in here. The link below is
+             the better path on a phone anyway — a QR cannot be scanned from
+             the screen that is displaying it. -->
+        <a class="setup__link num" dir="ltr" [href]="provisional.otpauthUri">
+          {{ i18n.t('security.openApp') }}
+        </a>
+
+        <dl class="setup">
+          <dt>{{ i18n.t('security.secret') }}</dt>
+          <dd class="setup__secret num" dir="ltr">{{ groupedSecret() }}</dd>
+          <dt>{{ i18n.t('security.codeLength') }}</dt>
+          <dd class="num" dir="ltr">{{ provisional.digits }} · {{ provisional.periodSeconds }}s</dd>
+        </dl>
+
+        <p class="panel__body">{{ i18n.t('security.confirmBody') }}</p>
+        <app-ui-otp-input
+          [label]="i18n.t('security.codeLabel')"
+          [disabled]="busy()"
+          (completed)="confirmSetup($event)"
+        />
+
+        <button appUiButton variant="ghost" type="button" (click)="cancel()">
+          {{ i18n.t('common.cancel') }}
+        </button>
+      </section>
+    } @else if (step() === 'disabling') {
+      <!-- ── Turning it off ────────────────────────────────────────────── -->
+      <section class="panel">
+        <h2 class="panel__title">{{ i18n.t('security.disableTitle') }}</h2>
+        <!-- Both, because either alone is exactly the case this protects
+             against: a stolen phone, or a stolen password. -->
+        <p class="panel__body">{{ i18n.t('security.disableBody') }}</p>
+
+        <form class="form" [formGroup]="disableForm" (ngSubmit)="disable()" novalidate>
+          <app-ui-field
+            [label]="i18n.t('security.password')"
+            for="sec-pass"
+            [control]="disableForm.controls.password"
+          >
+            <input
+              id="sec-pass"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+            />
+          </app-ui-field>
+
+          <app-ui-field
+            [label]="i18n.t('security.codeLabel')"
+            for="sec-code"
+            [control]="disableForm.controls.code"
+          >
+            <input
+              id="sec-code"
+              class="num"
+              type="text"
+              inputmode="numeric"
+              dir="ltr"
+              formControlName="code"
+              autocomplete="one-time-code"
+            />
+          </app-ui-field>
+
+          <div class="form__actions">
+            <button appUiButton variant="danger" type="submit" [disabled]="busy()">
+              {{ i18n.t('security.disableAction') }}
+            </button>
+            <button appUiButton variant="ghost" type="button" (click)="cancel()">
+              {{ i18n.t('common.cancel') }}
+            </button>
+          </div>
+        </form>
+      </section>
+    } @else {
+      <!-- ── The resting state ─────────────────────────────────────────── -->
+      <section class="panel">
+        <h2 class="panel__title">{{ i18n.t('security.totpTitle') }}</h2>
+        <p class="panel__body">{{ i18n.t('security.totpBody') }}</p>
+
+        @if (state.enabled) {
+          <app-ui-notice tone="success">{{ i18n.t('security.on') }}</app-ui-notice>
+
+          <!-- Only ever counts down: there is no route that reissues them. -->
+          <p class="panel__body num">
+            {{ i18n.t('security.recoveryLeft', { count: state.recoveryCodesRemaining }) }}
+          </p>
+          @if (recoveryLow()) {
+            <app-ui-notice tone="warning">{{ i18n.t('security.recoveryLow') }}</app-ui-notice>
+          }
+
+          @if (state.required) {
+            <!-- Required by policy: offering "turn it off" would be offering an
+                 action the server refuses. -->
+            <app-ui-notice tone="info">{{ i18n.t('security.requiredNote') }}</app-ui-notice>
+          } @else {
+            <button appUiButton variant="outline" type="button" (click)="startDisabling()">
+              {{ i18n.t('security.disableAction') }}
+            </button>
+          }
+        } @else {
+          @if (state.required) {
+            <app-ui-notice tone="warning">{{
+              i18n.t('security.requiredUnenrolled')
+            }}</app-ui-notice>
+          }
+          @if (state.setupPending) {
+            <app-ui-notice tone="info">{{ i18n.t('security.pending') }}</app-ui-notice>
+          }
+
+          <button
+            appUiButton
+            variant="primary"
+            type="button"
+            [disabled]="busy()"
+            (click)="beginSetup()"
+          >
+            {{ state.setupPending ? i18n.t('security.restart') : i18n.t('security.enableAction') }}
+          </button>
+
+          @if (state.setupPending) {
+            <p class="panel__body">{{ i18n.t('security.restartWarning') }}</p>
+          }
+        }
+      </section>
+    }
+  }
+</section>

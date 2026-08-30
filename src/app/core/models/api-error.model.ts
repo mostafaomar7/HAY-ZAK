@@ -95,6 +95,15 @@ export const ERROR_CODES = {
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   /** 403 — signed in, but not allowed. */
   FORBIDDEN: 'FORBIDDEN',
+  /**
+   * 403 on every `/admin` route while `security.admin_2fa_required` is on and
+   * this administrator has not enrolled.
+   *
+   * Handled apart from `FORBIDDEN` because it is the opposite situation: they
+   * are not lacking permission, they are lacking a second factor, and the fix
+   * is a screen they can reach rather than a request to somebody else.
+   */
+  ADMIN_2FA_REQUIRED: 'ADMIN_2FA_REQUIRED',
   /** 429 — the action is disabled until `retryAfterSeconds` elapses. */
   RATE_LIMITED: 'RATE_LIMITED',
 

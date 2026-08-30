@@ -1,0 +1,28 @@
+<section class="authForm">
+  <header class="authForm__head">
+    <h1 class="authForm__title">{{ i18n.t('verifyEmail.title') }}</h1>
+  </header>
+
+  @if (isVerifying()) {
+    <app-ui-skeleton [count]="2" [label]="i18n.t('common.loading')" />
+  } @else if (alreadyVerified()) {
+    <!-- A success, and worded as one. Clicking a link twice is an ordinary
+         thing for a person to do, and a mail scanner may well have opened it
+         first — an error screen here reads as "my account broke". -->
+    <app-ui-notice tone="success">{{ i18n.t('verifyEmail.already') }}</app-ui-notice>
+  } @else if (verified()) {
+    <app-ui-notice tone="success">{{ i18n.t('verifyEmail.done') }}</app-ui-notice>
+  } @else if (error(); as failure) {
+    <!-- The server's own wording: it knows whether the token expired, was
+         already spent or never existed, and it has decided how much of that
+         to say. -->
+    <app-ui-notice tone="danger">{{ failure.message }}</app-ui-notice>
+    <p class="authForm__hint">{{ i18n.t('verifyEmail.retryHint') }}</p>
+  } @else {
+    <app-ui-notice tone="danger">{{ i18n.t('verifyEmail.noToken') }}</app-ui-notice>
+  }
+
+  <a appUiButton variant="primary" [fullWidth]="true" routerLink="/account">
+    {{ i18n.t('verifyEmail.toAccount') }}
+  </a>
+</section>

@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { map, tap } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import type { TwoFactorChallenge, TwoFactorVerifyRequest } from '../models/two-factor';
+import { isTwoFactorChallenge } from '../models/two-factor';
 import { SKIP_AUTH } from '../interceptors/auth.interceptor';
 import { STORAGE_KEYS } from '../constants/storage-keys';
 import { UserRole, isAdminRole } from '../enums/user-role.enum';
@@ -64,10 +66,42 @@ export class AuthService {
     });
   }
 
-  login(credentials: LoginRequest): Observable<AuthResult> {
+  /**
+   * Signs in, **or** stops one step short.
+   *
+   * An account with two-factor authentication on answers
+   * `{ twoFactorRequired: true, challengeToken }` and no tokens at all, so the
+   * return type is the union and every caller has to say which one it got.
+   * `isTwoFactorChallenge` is the test — not "did `tokens` come back", which
+   * reads `undefined` on the challenge and signs nobody in without failing.
+   *
+   * Nothing is stored for a challenge: the token it carries opens nothing, and
+   * putting it where an access token lives would have the interceptor sending
+   * it as a bearer on every request until the API refused them all.
+   */
+  login(credentials: LoginRequest): Observable<AuthResult | TwoFactorChallenge> {
     return this.api
-      .post<AuthResult, LoginRequest>(API_ENDPOINTS.auth.login, credentials)
+      .post<AuthResult | TwoFactorChallenge, LoginRequest>(API_ENDPOINTS.auth.login, credentials)
+      .pipe(tap((result) => this.setSessionUnlessChallenged(result)));
+  }
+
+  /**
+   * The second step. Answers with the session the login withheld.
+   *
+   * A code is accepted **once**: a failed request must wait for the next
+   * thirty-second window rather than re-sending the same digits, which the
+   * server refuses as a replay even while they are still valid.
+   */
+  verifyTwoFactor(request: TwoFactorVerifyRequest): Observable<AuthResult> {
+    return this.api
+      .post<AuthResult, TwoFactorVerifyRequest>(API_ENDPOINTS.auth.twoFactorVerify, request, {
+        context: new HttpContext().set(SKIP_AUTH, true),
+      })
       .pipe(tap((result) => this.setSession(result)));
+  }
+
+  private setSessionUnlessChallenged(result: AuthResult | TwoFactorChallenge): void {
+    if (!isTwoFactorChallenge(result)) this.setSession(result);
   }
 
   /**

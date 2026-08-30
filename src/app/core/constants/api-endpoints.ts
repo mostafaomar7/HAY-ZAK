@@ -38,8 +38,25 @@ export const API_ENDPOINTS = {
     resetPassword: '/auth/reset-password',
     me: '/auth/me',
 
+    /**
+     * The second step of a login that answered `twoFactorRequired`.
+     *
+     * The `challengeToken` it takes opens nothing on its own — it carries its
+     * own type and audience, and the API rejects it as a bearer. That is why
+     * the login response is branched on `twoFactorRequired` rather than on
+     * whether `tokens` came back.
+     */
+    twoFactorVerify: '/auth/2fa/verify',
+
+    /**
+     * The token out of the emailed link. **A `POST`, and the link goes to the
+     * web app rather than here** — corporate mail scanners open every link in a
+     * message before the recipient does, and a `GET` verification link would be
+     * spent by the scanner. So the link opens a page and the page posts.
+     */
+    verifyEmail: '/auth/verify-email',
+
     // ── Not shipped yet; the screens that call them are behind these names.
-    verifyEmail: '/auth/email/verify',
     changePassword: '/auth/password/change',
     /** RNT-09 — starts a Nafath session and polls its outcome. */
     nafathStart: '/auth/identity/nafath',
@@ -249,6 +266,14 @@ export const API_ENDPOINTS = {
     approveUnit: (id: string) => `/admin/units/${id}/approve`,
     /** `reason` is required — a rejection with no reason is refused. */
     rejectUnit: (id: string) => `/admin/units/${id}/reject`,
+    /**
+     * Takes a published listing off the market, and puts it back.
+     *
+     * Both answer with the unit, so the row refreshes from the response rather
+     * than from a re-read that could disagree with what just happened.
+     */
+    suspendUnit: (id: string) => `/admin/units/${id}/suspend`,
+    reinstateUnit: (id: string) => `/admin/units/${id}/reinstate`,
 
     // ── Not shipped yet.
     dashboard: '/admin/dashboard',
@@ -337,6 +362,17 @@ export const API_ENDPOINTS = {
     resolveComplaint: (id: string) => `/admin/complaints/${id}/resolve`,
     /** Ends it without one — a duplicate, or somebody withdrew it. */
     closeComplaint: (id: string) => `/admin/complaints/${id}/close`,
+    /**
+     * Lifts a `PAYOUT_HOLD`. On the **complaint**, not the booking, and not
+     * automatic when a case closes: closing a case and releasing the money are
+     * two judgements, and a case may close precisely because the money is still
+     * disputed.
+     *
+     * Needs `complaints:manage` rather than `payouts:approve` — releasing moves
+     * nothing, it only makes the booking eligible again, and finance still has
+     * to approve the run.
+     */
+    releasePayout: (id: string) => `/admin/complaints/${id}/release-payout`,
 
     /** FR-ADM-05 — one endpoint per list kind, so ordering stays per list. */
     /**
@@ -456,6 +492,34 @@ export const API_ENDPOINTS = {
     complaintById: (id: string) => `/me/complaints/${id}`,
     /** **multipart/form-data**. Empty body with no files is a 422. */
     complaintMessages: (id: string) => `/me/complaints/${id}/messages`,
+
+    /**
+     * TOTP through an authenticator app — **not SMS**, which is exactly what a
+     * SIM-swap takes over.
+     *
+     * `setup` enables nothing: the secret stays provisional until a code proves
+     * the user actually stored it, so nobody locks themselves out of an account
+     * with a secret they never saved. `disable` takes the password **and** a
+     * code together, because either alone is a case this protects against — a
+     * stolen phone, or a stolen password.
+     */
+    twoFactor: '/me/2fa',
+    twoFactorSetup: '/me/2fa/setup',
+    twoFactorEnable: '/me/2fa/enable',
+    twoFactorDisable: '/me/2fa/disable',
+
+    /** 60-second cooldown; a second call inside it is a 429. */
+    sendEmailVerification: '/me/email/send-verification',
+
+    /**
+     * Every tax document **addressed to this user** — not "the bookings I am
+     * on". The same person lets a space and rents one, so the list mixes the
+     * booking invoice they were charged and the commission invoice they were
+     * billed. Render `type`, or two rows show different totals for one booking
+     * with no stated reason.
+     */
+    invoices: '/me/invoices',
+    invoiceById: (id: string) => `/me/invoices/${id}`,
   },
 
   /**

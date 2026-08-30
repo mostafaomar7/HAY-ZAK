@@ -179,6 +179,67 @@ function route(path: string, query: string, method: string, payload: unknown): u
    */
   if (path === API_ENDPOINTS.auth.terms) return ok(MOCK_SIGNUP_TERMS);
 
+  /**
+   * Two-factor (§17). Off in the fixture, because that is the state every
+   * screen has to render first — an "already enrolled" mock would leave the
+   * whole enrolment sequence unexercised.
+   */
+  if (path === API_ENDPOINTS.me.twoFactor) {
+    return ok({
+      twoFactor: {
+        enabled: false,
+        enabledAt: null,
+        setupPending: false,
+        recoveryCodesRemaining: 0,
+        required: false,
+      },
+    });
+  }
+  if (path === API_ENDPOINTS.me.twoFactorSetup) {
+    return ok({
+      setup: {
+        secret: 'QZZZFTNHG4LFGTUXBUBQTD4HPFPLO5EN',
+        otpauthUri:
+          'otpauth://totp/HAY-ZAK:renter%40hayzak.example.com' +
+          '?secret=QZZZFTNHG4LFGTUXBUBQTD4HPFPLO5EN&issuer=HAY-ZAK&digits=6&period=30',
+        digits: 6,
+        periodSeconds: 30,
+      },
+    });
+  }
+  if (path === API_ENDPOINTS.me.twoFactorEnable) {
+    // Codes come back once and are never reissued — the fixture sends them so
+    // the screen that has to say so is actually reachable.
+    return ok({
+      twoFactor: {
+        enabled: true,
+        enabledAt: new Date().toISOString(),
+        setupPending: false,
+        recoveryCodesRemaining: 8,
+        required: false,
+      },
+      recoveryCodes: ['4F2K-9QMT', '7XPD-2B4V', 'HN63-LT8W', 'ZR91-KD5C'],
+    });
+  }
+  if (path === API_ENDPOINTS.me.twoFactorDisable) {
+    return ok({
+      twoFactor: {
+        enabled: false,
+        enabledAt: null,
+        setupPending: false,
+        recoveryCodesRemaining: 0,
+        required: false,
+      },
+    });
+  }
+
+  // Email confirmation (§18). `devLink` exists only outside production, the
+  // same way OTP responses carry `devCode`.
+  if (path === API_ENDPOINTS.me.sendEmailVerification) {
+    return ok({ sent: true, expiresInHours: 24 });
+  }
+  if (path === API_ENDPOINTS.auth.verifyEmail) return ok({ verified: true });
+
   if (path === API_ENDPOINTS.auth.nafathStart) return ok(MOCK_NAFATH_SESSION);
   if (/^\/auth\/identity\/nafath\/[^/]+$/.test(path)) {
     // Flips to success after the first poll, so the happy path is reachable
@@ -240,7 +301,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // disagree about what the new state is.
   if (path === API_ENDPOINTS.admin.dashboard) return ok(MOCK_ADMIN_KPIS);
 
-  if (/^\/admin\/units\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
+  if (/^\/admin\/units\/[^/]+\/(approve|reject|suspend|reinstate)$/.test(path)) return ok(null);
   if (/^\/admin\/units\/[^/]+$/.test(path) && method === 'GET') {
     const id = path.split('/')[3];
     const unit = MOCK_REVIEW_UNITS.find((u) => u.id === id) ?? MOCK_REVIEW_UNITS[0];
@@ -372,7 +433,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
       complaint: MOCK_COMPLAINT_DETAIL,
     });
   }
-  if (/^\/admin\/complaints\/[^/]+\/(assign|resolve|close)$/.test(path)) {
+  if (/^\/admin\/complaints\/[^/]+\/(assign|resolve|close|release-payout)$/.test(path)) {
     return ok({ complaint: MOCK_COMPLAINT_DETAIL });
   }
   if (path === API_ENDPOINTS.admin.complaints) return paginate(MOCK_COMPLAINTS);
