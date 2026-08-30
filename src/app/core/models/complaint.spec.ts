@@ -157,21 +157,45 @@ describe('complaint requests', () => {
       };
     }
 
-    it('derives isOverdue from the deadline, because the server sends none', () => {
-      // Past the promised reply time with nobody having answered.
-      expect(complaintFromWire(wire({ slaDueAt: '2020-01-01T00:00:00Z' })).isOverdue).toBeTrue();
+    it('reads isOverdue from the server and never works it out', () => {
+      expect(complaintFromWire(wire({ isOverdue: true })).isOverdue).toBeTrue();
+      expect(complaintFromWire(wire({ isOverdue: false })).isOverdue).toBeFalse();
+    });
 
-      // Answered already — still open, but not late. Keyed on
-      // `firstResponseAt` rather than on the status, or every old open
-      // complaint would read as overdue forever.
-      expect(
-        complaintFromWire(
-          wire({ slaDueAt: '2020-01-01T00:00:00Z', firstResponseAt: '2020-01-01T00:00:00Z' }),
-        ).isOverdue,
-      ).toBeFalse();
+    it('leaves isOverdue null when the response does not carry it', () => {
+      // `/me/complaints` sends no flag: how late the platform is to answer is
+      // its own operational measure, not the user's to read. Null means "not
+      // stated" and must not collapse to "on time" — a deadline long past with
+      // nobody having answered still reads as null here, because working it
+      // out is exactly what produced a second answer to one question.
+      expect(complaintFromWire(wire()).isOverdue).toBeNull();
+      expect(complaintFromWire(wire({ slaDueAt: '2020-01-01T00:00:00Z' })).isOverdue).toBeNull();
+    });
 
-      // No deadline at all is not a late one.
-      expect(complaintFromWire(wire()).isOverdue).toBeFalse();
+    it('separates a refund list that is empty from one that was never sent', () => {
+      // The console gets `refunds: []` when none were issued; the user's own
+      // view gets no key at all. A screen must be able to tell those apart.
+      expect(complaintDetailFromWire(wire()).refunds).toBeNull();
+      expect(complaintDetailFromWire(wire({ refunds: [] })).refunds).toEqual([]);
+
+      const refunded = complaintDetailFromWire(
+        wire({
+          refunds: [
+            {
+              id: 'rf-1',
+              amountHalalas: 5000,
+              status: 'COMPLETED',
+              createdAt: '2026-08-30T10:09:18.266Z',
+            },
+          ],
+        }),
+      );
+
+      // The amount is read, never inferred: a partial refund's resolution says
+      // money went back and not how much.
+      expect(refunded.refunds?.[0].amountHalalas).toBe(5000);
+      expect(refunded.refunds?.[0].method).toBeNull();
+      expect(refunded.refunds?.[0].providerReference).toBeNull();
     });
 
     it('keeps firstResponseAt null rather than undefined', () => {
@@ -185,9 +209,8 @@ describe('complaint requests', () => {
       const detail = complaintDetailFromWire(wire());
 
       // `messages.length` is read in a template on the first render, before
-      // anything has been sent. There is no complaint-level attachment list
-      // and no refunds array on the wire — the opening photos are on the first
-      // message, and a refund reads as the resolution.
+      // anything has been sent. There is no complaint-level attachment list —
+      // the opening photos are on the first message.
       expect(detail.messages).toEqual([]);
     });
 

@@ -52,12 +52,23 @@ export interface ComplaintMessage {
   createdAt: string;
 }
 
-/*
- * There is no `refunds[]` on the wire. A refund that was issued shows up as
- * the resolution (`REFUND` / `REFUND_AND_CANCEL`) and in the audit trail, and
- * the money itself is on the transfers screen — so nothing here invents a
- * ledger the server does not keep.
+/**
+ * A refund actually issued against this complaint. **Console only.**
+ *
+ * Read it rather than the resolution: `REFUND_PARTIAL` says money went back
+ * but not how much, so a screen deriving the figure from the decision would
+ * have to guess — and a guessed refund amount is the kind of number somebody
+ * quotes to a customer.
  */
+export interface ComplaintRefund {
+  id: string;
+  amountHalalas: number;
+  status: string;
+  method: RefundMethod | null;
+  /** The gateway's or the bank's reference, once there is one. */
+  providerReference: string | null;
+  createdAt: string;
+}
 
 export interface ComplaintBookingRef {
   id: string;
@@ -81,15 +92,18 @@ export interface Complaint {
   /** When a reply is owed by. The console's queue is ordered on it. */
   slaDueAt: string | null;
   /**
-   * Past its reply deadline with nobody having answered.
+   * Past its reply deadline with nobody having answered — **the server's own
+   * answer**, from the same definition that backs `?overdue=true`.
    *
-   * **Derived here**, because the server does not send it: `slaDueAt` in the
-   * past and `firstResponseAt` still null. Computed rather than left out so the
-   * console can still paint the row that has been waiting longest — but it is
-   * the client's arithmetic, not a fact from the server, and it is the one
-   * field on this object that could disagree with `?overdue=true`.
+   * `null` on `/me/complaints`, which does not send it: the flag is the
+   * console's operational measure, and a user reading their own complaint is
+   * not being shown how late the platform is to it. Null means "not stated",
+   * never "on time".
+   *
+   * This was derived here once, from `slaDueAt` against the clock. It agreed
+   * with the server most of the time, which is exactly what made it dangerous.
    */
-  isOverdue: boolean;
+  isOverdue: boolean | null;
   /** `null` means nobody has answered yet — not that it is new. */
   firstResponseAt: string | null;
   createdAt: string;
@@ -116,6 +130,11 @@ export interface ComplaintDetail extends Complaint {
   assignedToId: string | null;
   /** Which side raised it. */
   raisedByType: string | null;
+  /**
+   * What was actually refunded. `null` on the user's own view, which does not
+   * carry the list — an empty array means the console asked and there are none.
+   */
+  refunds: ComplaintRefund[] | null;
 }
 
 /**
@@ -193,9 +212,14 @@ export interface WireComplaintMessage {
   createdAt: string;
 }
 
-/** `POST .../messages` answers with the message alone, not the complaint. */
+/**
+ * `POST .../messages` answers with both, and the complaint is read inside the
+ * same transaction — so the status the reply moves (`AWAITING_USER` →
+ * `IN_PROGRESS`) is already in it. No second request.
+ */
 export interface WireComplaintMessageResponse {
   message: WireComplaintMessage;
+  complaint: WireComplaintDetail;
 }
 
 export interface WireComplaintBooking {
@@ -217,13 +241,26 @@ export interface WireComplaint {
   status: ComplaintStatus;
   slaDueAt?: string | null;
   firstResponseAt?: string | null;
+  /** Console rows only. Absent on `/me/complaints`. */
+  isOverdue?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WireComplaintRefund {
+  id: string;
+  amountHalalas: number;
+  status: string;
+  method?: RefundMethod | null;
+  providerReference?: string | null;
+  createdAt: string;
 }
 
 export interface WireComplaintDetail extends WireComplaint {
   description: string;
   messages?: WireComplaintMessage[] | null;
+  /** Console detail only. Absent on `/me/complaints/:id`. */
+  refunds?: WireComplaintRefund[] | null;
   resolution?: ComplaintResolution | null;
   resolutionNote?: string | null;
   resolvedAt?: string | null;
@@ -294,24 +331,13 @@ export function complaintFromWire(wire: WireComplaint): Complaint {
     subject: wire.subject,
     status: wire.status,
     slaDueAt,
-    isOverdue: isPastDeadline(slaDueAt, firstResponseAt),
+    // `?? null` and not `?? false`: the user's own view does not send this,
+    // and "not stated" is not the same claim as "on time".
+    isOverdue: wire.isOverdue ?? null,
     firstResponseAt,
     createdAt: wire.createdAt,
     updatedAt: wire.updatedAt,
   };
-}
-
-/**
- * Past the promised reply time with nobody having answered.
- *
- * The server has `?overdue=true` but does not send the flag, so the console
- * works it out. Deliberately keyed on `firstResponseAt` rather than on the
- * status: a complaint somebody replied to yesterday is not overdue today just
- * because it is still open.
- */
-function isPastDeadline(slaDueAt: string | null, firstResponseAt: string | null): boolean {
-  if (!slaDueAt || firstResponseAt) return false;
-  return new Date(slaDueAt).getTime() < Date.now();
 }
 
 export function complaintDetailFromWire(wire: WireComplaintDetail): ComplaintDetail {
@@ -324,15 +350,32 @@ export function complaintDetailFromWire(wire: WireComplaintDetail): ComplaintDet
     resolvedAt: wire.resolvedAt ?? null,
     assignedToId: wire.assignedToId ?? null,
     raisedByType: wire.raisedByType ?? null,
+    // Null, not `[]`: the console gets a list and the user's own view gets no
+    // key at all, and "none were issued" is not "we were not told".
+    refunds: wire.refunds ? wire.refunds.map(refundFromWire) : null,
+  };
+}
+
+function refundFromWire(wire: WireComplaintRefund): ComplaintRefund {
+  return {
+    id: wire.id,
+    amountHalalas: wire.amountHalalas,
+    status: wire.status,
+    method: wire.method ?? null,
+    providerReference: wire.providerReference ?? null,
+    createdAt: wire.createdAt,
   };
 }
 
 // ── Request bodies ────────────────────────────────────────────────────────
 
 /**
- * `multipart/form-data`, even with nothing attached — the endpoint refuses
- * JSON. Built here rather than in each caller so the field names, and
- * particularly the literal `attachments`, are written once.
+ * `multipart/form-data`, even with nothing attached. Not because JSON is
+ * refused — it is accepted — but so the form has one path through it rather
+ * than two, only one of which would ever be exercised.
+ *
+ * Built here rather than in each caller so the field names, and particularly
+ * the literal `attachments`, are written once.
  */
 export function complaintToFormData(request: CreateComplaintRequest): FormData {
   const form = new FormData();

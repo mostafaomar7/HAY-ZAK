@@ -1,9 +1,10 @@
 import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { type Observable, of } from 'rxjs';
-import { catchError, shareReplay } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { BUNDLED_PAGES } from '@core/constants/static-pages';
+import { LegalDocumentType } from '@core/enums/operations.enum';
 import { SKIP_AUTH } from '@core/interceptors/auth.interceptor';
 import type {
   ContactRequest,
@@ -11,6 +12,7 @@ import type {
   StaticPage,
   StaticPageSlug,
 } from '@core/models/content.model';
+import type { SignupTerms } from '@core/models/user.model';
 import { LoggerService } from '@core/services/logger.service';
 import { ApiService } from '@core/services/api.service';
 
@@ -35,6 +37,13 @@ import { ApiService } from '@core/services/api.service';
  * be — what is shown when the CMS has nothing, which for a legal document is
  * worth having regardless.
  *
+ * **The terms are the exception, and they are not a CMS page.** They live in
+ * `terms_versions` and come from `GET /auth/terms`, which is also where the
+ * `termsVersionId` a registration must record consent against comes from. A
+ * copy of them under `/public/pages/terms` would be a second legal document
+ * with its own version number, and the two could disagree about what somebody
+ * agreed to. So that slug asks the authoritative endpoint first.
+ *
  * The contact form is not cached — it is a write.
  */
 @Injectable({ providedIn: 'root' })
@@ -48,18 +57,24 @@ export class ContentService {
   page(slug: StaticPageSlug): Observable<StaticPage> {
     let cached = this.pages.get(slug);
     if (!cached) {
-      cached = this.api
-        .get<StaticPage>(API_ENDPOINTS.content.pageBySlug(slug), { context: this.context })
-        .pipe(
-          catchError(() => {
-            // Said once per slug per session, in the console rather than on the
-            // page: the visitor is reading the document either way, and which
-            // copy it came from is the developer's problem, not theirs.
-            this.log.warn(`المحتوى غير متاح من السيرفر — عُرضت النسخة المضمّنة: ${slug}`);
-            return of(BUNDLED_PAGES[slug]);
-          }),
-          shareReplay({ bufferSize: 1, refCount: false }),
-        );
+      cached = (
+        slug === 'terms'
+          ? this.api
+              .get<SignupTerms>(API_ENDPOINTS.auth.terms, { context: this.context })
+              .pipe(map(termsAsPage))
+          : this.api.get<StaticPage>(API_ENDPOINTS.content.pageBySlug(slug), {
+              context: this.context,
+            })
+      ).pipe(
+        catchError(() => {
+          // Said once per slug per session, in the console rather than on the
+          // page: the visitor is reading the document either way, and which
+          // copy it came from is the developer's problem, not theirs.
+          this.log.warn(`المحتوى غير متاح من السيرفر — عُرضت النسخة المضمّنة: ${slug}`);
+          return of(BUNDLED_PAGES[slug]);
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
       this.pages.set(slug, cached);
     }
     return cached;
@@ -75,4 +90,40 @@ export class ContentService {
   invalidate(): void {
     this.pages.clear();
   }
+}
+
+/**
+ * The terms as the static-page screen renders them.
+ *
+ * `content` is one plain string, so each blank-line-separated paragraph
+ * becomes an untitled section — the legal pages' numbered side index has
+ * nothing to index here, and inventing headings for somebody else's legal text
+ * would be putting words in it.
+ *
+ * `documentType` is `TermsOfUse` because that is the only document this
+ * endpoint serves; `acceptedVersionNo` is deliberately absent — whether *this*
+ * reader has accepted it is not something `/auth/terms` is told, and claiming
+ * it would be the client asserting a consent record it cannot see.
+ */
+function termsAsPage(terms: SignupTerms): StaticPage {
+  const paragraphs = terms.content
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return {
+    slug: 'terms',
+    title: BUNDLED_PAGES.terms.title,
+    version: {
+      id: terms.id,
+      documentType: LegalDocumentType.TermsOfUse,
+      versionNo: String(terms.versionNo),
+      effectiveFrom: terms.effectiveFrom,
+    },
+    sections: paragraphs.map((body, index) => ({
+      id: `terms-${index + 1}`,
+      title: '',
+      body,
+    })),
+  };
 }

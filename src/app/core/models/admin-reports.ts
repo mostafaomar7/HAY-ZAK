@@ -29,11 +29,15 @@ import type { AccountStatus, UserRole } from '../enums/user-role.enum';
  * windowed, and offering the control would invite a question the number does
  * not answer.
  *
- * The buckets are **partial**, despite the handover saying otherwise: `GUEST`
- * never appears under `byRole`, and only the booking statuses that exist are
- * listed. So every screen iterates what it is given rather than indexing keys
- * it expects — which is also why a missing status shows as an absent row and
- * not as a zero the server never sent.
+ * The buckets are **partial**: the aggregate returns only the groups that have
+ * rows, so a status nobody is in does not come back at all. `GUEST` never
+ * appears under `byRole` — it is not an account — and `DELETED` appears under
+ * `byStatus` although no enum here has it.
+ *
+ * The screens fill the gaps with zeros rather than dropping the row, because
+ * "٠ شكاوى مفتوحة" is an answer and a missing line is a screen that looks
+ * broken. Keys this build does not recognise are shown as they arrive rather
+ * than hidden.
  */
 export interface AdminOverview {
   users: {
@@ -49,11 +53,12 @@ export interface AdminOverview {
     /** Past their reply deadline — the number an operations lead acts on. */
     overdue: number;
   };
-  payouts: {
+  /** Partial for the same reason as the rest: no payouts, no bucket. */
+  payouts: Partial<{
     APPROVED: PayoutBucket;
     PAID: PayoutBucket;
     FAILED: PayoutBucket;
-  };
+  }>;
 }
 
 export interface PayoutBucket {

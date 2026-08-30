@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { FINANCIAL_DEFAULTS } from '@core/constants/app.constants';
+import { PayoutEligibility } from '@core/enums/payment.enum';
 import type { PlatformSetting } from '@core/models/platform-setting';
 import { bpsToPercent } from '@core/utils/money.utils';
 import { AdminSettingsService } from './admin-settings.service';
@@ -41,15 +42,26 @@ export class AdminSettingsStore {
   readonly bookingHoldMinutes = computed(() => this.number('booking.hold_minutes', 15));
 
   /**
-   * The listing-review deadline and the payout cycle.
+   * The listing-review deadline, in working hours.
    *
-   * **The server has no key for either yet**, so these are the compiled-in
-   * defaults every time — which is why they are named here rather than read
-   * inline: three screens flag a row as late on the first, and when a setting
-   * does arrive they start honouring it without any of them changing.
+   * Read for display only. Whether a particular row is *late* is `isOverdue`
+   * on the row itself — the server decides that from this same setting, and a
+   * screen re-deciding it here is two answers to one question.
    */
-  readonly approvalSlaHours = computed(() => this.number('operations.approval_sla_hours', 24));
-  readonly payoutCycleHours = computed(() => this.number('payout.cycle_hours', 168));
+  readonly approvalSlaHours = computed(() => this.number('operations.approval_sla_hours', 4));
+
+  /**
+   * When a booking becomes eligible for a payout — a **policy, not a period**.
+   *
+   * There is no `payout.cycle_hours` and there is not going to be one: "24
+   * hours after payment" and "24 hours after the booking starts" are different
+   * rules that a single number cannot tell apart. So this is the string the
+   * server stores, and the transfers header names the rule rather than
+   * counting down to it.
+   */
+  readonly payoutEligibleAfter = computed(() =>
+    this.text('payout.eligible_after', PayoutEligibility.AfterBookingStart24h),
+  );
 
   /** As a whole percentage, which is how every label prints it. */
   readonly commissionPercent = computed(() => bpsToPercent(this.commissionRateBps()));
@@ -84,5 +96,10 @@ export class AdminSettingsStore {
     const raw = this.rows().find((row) => row.key === key)?.value;
     const parsed = Number(raw);
     return raw !== undefined && raw !== '' && Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  /** The raw string value, or the default when the row has not loaded. */
+  private text(key: string, fallback: string): string {
+    return this.rows().find((row) => row.key === key)?.value || fallback;
   }
 }

@@ -79,19 +79,21 @@ export class AdminReviewService {
   /**
    * The API sends a unit; the queue shows a review row.
    *
-   * Three of its fields are not on the wire and are derived here, each stated
-   * rather than assumed:
+   * `submittedAt`, `slaDueAt` and `isOverdue` all come from the server now.
+   * `submittedAt` used to be read off `updatedAt` here — which was wrong in a
+   * way that only showed up under use: editing a listing already in the queue
+   * moves `updatedAt`, so every deadline silently reset whenever a lessor
+   * touched anything.
    *
-   * - `submittedAt` is `updatedAt`. Submitting is the last thing that touches a
-   *   unit on its way into this queue, so for a PENDING_REVIEW row the two are
-   *   the same moment.
-   * - `waitingHours` is counted from it. The server does not send a figure, and
-   *   an operator sorting by "longest waiting" needs one.
+   * Two fields are still derived, and both are arithmetic rather than policy:
+   *
+   * - `waitingHours` from the server's `submittedAt`, for the "waiting since"
+   *   label. Whether that is *late* is `isOverdue`, which the server decides.
    * - `isEdit` is "has been reviewed before" — a unit with a `reviewedAt` is
    *   back for a second look, which is what the badge means.
    */
   private toRow(unit: WireUnit): ListingReviewRow {
-    const submittedAt = unit.updatedAt;
+    const submittedAt = unit.submittedAt ?? null;
 
     return {
       id: unit.id,
@@ -102,7 +104,9 @@ export class AdminReviewService {
       dailyPriceHalalas: unit.dailyPriceHalalas,
       areaSqm: unit.areaSqm,
       submittedAt,
-      waitingHours: hoursSince(submittedAt),
+      slaDueAt: unit.slaDueAt ?? null,
+      isOverdue: unit.isOverdue ?? false,
+      waitingHours: submittedAt ? hoursSince(submittedAt) : null,
       isEdit: !!unit.reviewedAt,
     };
   }

@@ -5,6 +5,7 @@ import type {
 } from '../enums/operations.enum';
 import type { CommissionBearer, VatBase } from '../constants/app.constants';
 import type { BookingStatus } from '../enums/booking-status.enum';
+import type { PayoutEligibility } from '../enums/payment.enum';
 import type { UnitStatus } from '../enums/unit-status.enum';
 import type { LessorEarnings } from './payment.model';
 
@@ -85,7 +86,8 @@ export interface PlatformSettings {
   commissionBearer: CommissionBearer;
   vatRateBps: number;
   vatBase: VatBase;
-  payoutCycleHours: number;
+  /** A policy with three values, not a period — see `PayoutEligibility`. */
+  payoutEligibleAfter: PayoutEligibility;
   approvalSlaHours: number;
   /** FR-ADM-12 — the auto-approval switch, built in from day one (SRS §2.1). */
   autoApproveBookings: boolean;

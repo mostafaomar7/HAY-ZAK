@@ -145,8 +145,10 @@ export class RegisterPage {
         email: value.email ?? '',
         mobile: value.mobile ?? '',
         password: value.password ?? '',
-        // TODO: replace with the active version from /content/terms/active once
-        // the CMS endpoint is live (FR-ADM-07).
+        // From `GET /auth/terms`, which is the authoritative version — the
+        // server records consent against this exact id and refuses a stale one
+        // with `TERMS_ACCEPTANCE_REQUIRED` (FR-ADM-07). Not a CMS page: the
+        // terms live in their own versioned table.
         termsVersionId: this.terms()?.id ?? '',
         acceptedTerms: true,
       })

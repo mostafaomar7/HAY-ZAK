@@ -17,8 +17,6 @@ export const APP = {
   bookingHoldMinutes: 15,
   /** SRS §3 item 4 — suggested administration decision SLA. */
   approvalSlaHours: 4,
-  /** FR-PAY-07 — suggested payout cycle after the booking actually starts. */
-  payoutCycleHours: 24,
 
   /** FR-UNT-02 / FR-UNT-03. */
   unitImages: {

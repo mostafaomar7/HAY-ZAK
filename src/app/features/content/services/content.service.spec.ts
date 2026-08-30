@@ -36,13 +36,44 @@ describe('ContentService', () => {
   afterEach(() => http.verify());
 
   it('asks the server before it reaches for the bundle', () => {
-    service.page('terms').subscribe();
+    service.page('about').subscribe();
 
-    const request = http.expectOne((candidate) => candidate.url.endsWith('/public/pages/terms'));
-    // Public: a guest reads the terms, and a bearer here would mean a signed-in
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/public/pages/about'));
+    // Public: a guest reads these, and a bearer here would mean a signed-in
     // visitor could be served a different document.
     expect(request.request.headers.has('Authorization')).toBeFalse();
-    request.flush({ success: true, data: { ...BUNDLED_PAGES.terms, title: 'من الخادم' } });
+    request.flush({ success: true, data: { ...BUNDLED_PAGES.about, title: 'من الخادم' } });
+  });
+
+  /**
+   * The terms are not a CMS page. They live in their own versioned table, and
+   * `/auth/terms` is where the `termsVersionId` a registration records consent
+   * against comes from — a second copy under `/public/pages/terms` would be a
+   * second legal document that could disagree with the one somebody signed.
+   */
+  it('reads the terms from the versioned endpoint, not from the CMS', () => {
+    let received: { title: string; sections: { body: string }[] } | undefined;
+    service.page('terms').subscribe((page) => (received = page));
+
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/auth/terms'));
+    expect(request.request.headers.has('Authorization')).toBeFalse();
+    request.flush({
+      success: true,
+      data: {
+        id: 'terms-v9',
+        versionNo: 9,
+        effectiveFrom: '2026-08-12T00:00:00Z',
+        content: 'الفقرة الأولى.\n\nالفقرة الثانية.',
+      },
+    });
+
+    // Each blank-line-separated paragraph becomes an untitled section: the
+    // endpoint sends prose, and inventing headings for a legal text would be
+    // putting words in it.
+    expect(received?.sections.map((section) => section.body)).toEqual([
+      'الفقرة الأولى.',
+      'الفقرة الثانية.',
+    ]);
   });
 
   it('prefers the published version over the bundled one', () => {

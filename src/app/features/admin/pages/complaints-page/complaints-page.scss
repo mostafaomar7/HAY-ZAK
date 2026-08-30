@@ -139,3 +139,50 @@
   line-height: 1.8;
   color: var(--color-text-muted);
 }
+
+// ── Refunds paid ─────────────────────────────────────────────────────────
+.refunds {
+  @include a.stack(a.$space-8);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.refund {
+  @include a.stack(a.$space-2);
+
+  padding: a.$space-10 a.$space-12;
+  border: 1px solid var(--color-border-divider);
+  border-radius: a.$radius-md;
+  background: var(--color-surface-muted);
+}
+
+.refund__amount {
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.refund__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: a.$space-6;
+  font-size: a.$fs-xs;
+  color: var(--color-text-muted);
+}
+
+.refund__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: a.$radius-pill;
+  background: var(--color-border-strong);
+}
+
+.refund__ref {
+  @include a.numeric;
+
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}

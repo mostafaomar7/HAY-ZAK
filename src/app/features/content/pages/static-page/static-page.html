@@ -114,12 +114,17 @@
         <!-- The prose sections — every page. -->
         @for (section of page()!.sections; track section.id) {
           <section class="block" [id]="section.id">
-            <h2 class="block__title">
-              @if (section.number) {
-                <span class="block__num num" dir="ltr">{{ section.number }}</span>
-              }
-              {{ section.title }}
-            </h2>
+            <!-- The terms arrive as prose with no headings of their own, and an
+                 empty <h2> would put a gap in the document and a blank entry in
+                 the side index. -->
+            @if (section.title) {
+              <h2 class="block__title">
+                @if (section.number) {
+                  <span class="block__num num" dir="ltr">{{ section.number }}</span>
+                }
+                {{ section.title }}
+              </h2>
+            }
 
             <p class="block__body">{{ section.body }}</p>
 

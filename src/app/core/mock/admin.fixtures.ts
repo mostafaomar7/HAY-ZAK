@@ -26,11 +26,11 @@ import type {
   RevenueReport,
 } from '../models/admin-reports';
 import type { WirePlatformSetting } from '../models/platform-setting';
-import type { ReferenceData } from '../models/reference-admin';
+import type { WireReferenceData } from '../models/reference-admin';
 import type { WireCmsPage } from '../models/cms-page';
 import type { AdminDashboardKpis } from '../models/operations.model';
 import type { EligiblePayout, Payout } from '../models/payment.model';
-import type { Unit } from '../models/unit.model';
+import type { WireUnit } from '../models/unit-wire';
 import type { User } from '../models/user.model';
 
 /**
@@ -110,6 +110,8 @@ export const MOCK_LISTING_QUEUE: ListingReviewRow[] = [
     dailyPriceHalalas: 7500,
     areaSqm: 35,
     submittedAt: '2026-08-12T09:20:00Z',
+    slaDueAt: '2026-08-12T13:20:00Z',
+    isOverdue: true,
     waitingHours: 26,
     isEdit: false,
   },
@@ -122,6 +124,8 @@ export const MOCK_LISTING_QUEUE: ListingReviewRow[] = [
     dailyPriceHalalas: 4500,
     areaSqm: 18,
     submittedAt: '2026-08-12T16:05:00Z',
+    slaDueAt: '2026-08-12T20:05:00Z',
+    isOverdue: true,
     waitingHours: 19,
     isEdit: true,
   },
@@ -134,6 +138,8 @@ export const MOCK_LISTING_QUEUE: ListingReviewRow[] = [
     dailyPriceHalalas: 6000,
     areaSqm: 22,
     submittedAt: '2026-08-11T18:40:00Z',
+    slaDueAt: '2026-08-11T22:40:00Z',
+    isOverdue: true,
     waitingHours: 41,
     isEdit: false,
   },
@@ -146,6 +152,10 @@ export const MOCK_LISTING_QUEUE: ListingReviewRow[] = [
     dailyPriceHalalas: 9500,
     areaSqm: 50,
     submittedAt: '2026-08-13T03:10:00Z',
+    // Still inside the four-hour window when the fixture was written — the one
+    // row that is not late, so the red is visibly a state and not the default.
+    slaDueAt: '2026-08-13T07:10:00Z',
+    isOverdue: false,
     waitingHours: 8,
     isEdit: false,
   },
@@ -174,8 +184,12 @@ export const MOCK_LISTING_DETAIL: ListingReviewDetail = {
  * eighteen rows the design's board shows while the mock still answers in the
  * shape the server answers in — the demo would otherwise be a demo of a
  * response nobody sends.
+ *
+ * `WireUnit`, not `Unit`: this is what goes over the wire, and typing it as the
+ * domain object let `submittedAt` be smuggled in as `publishedAt` for as long
+ * as the server had no column of its own.
  */
-export const MOCK_REVIEW_UNITS: Unit[] = MOCK_LISTING_QUEUE.map((row) => ({
+export const MOCK_REVIEW_UNITS: WireUnit[] = MOCK_LISTING_QUEUE.map((row) => ({
   id: row.id,
   lessorId: `lsr-${row.id}`,
   lessorName: row.ownerName,
@@ -194,16 +208,25 @@ export const MOCK_REVIEW_UNITS: Unit[] = MOCK_LISTING_QUEUE.map((row) => ({
   areaSqm: row.areaSqm,
   dailyPriceHalalas: row.dailyPriceHalalas,
   location: { latitude: 24.7136, longitude: 46.6753 },
-  isApproximateLocation: false,
   addressLine: 'الرياض — حي النرجس، شارع أنس بن مالك',
-  visitSchedule: [{ days: [0, 1, 2, 3, 4, 5, 6], from: '09:00', to: '21:00' }],
+  // Minutes since midnight — 09:00 to 21:00, as the API stores them.
+  visitHoursFrom: 540,
+  visitHoursTo: 1260,
+  minDays: 1,
+  maxDays: 365,
   images: [],
   status: UnitStatus.PendingReview,
-  // `submittedAt` is the last touch before review, which is what the client
-  // reads `updatedAt` as; a re-submission is one that has been reviewed before.
-  publishedAt: row.submittedAt,
-  reviewedAt: row.isEdit ? row.submittedAt : undefined,
-  createdAt: row.submittedAt,
+  // Its own field now, rather than smuggled in as `publishedAt`. Nothing
+  // waiting for review has been published, so that one is null.
+  submittedAt: row.submittedAt,
+  slaDueAt: row.slaDueAt,
+  isOverdue: row.isOverdue,
+  publishedAt: null,
+  rejectionReason: null,
+  // A re-submission is one that has been reviewed before.
+  reviewedAt: row.isEdit ? row.submittedAt : null,
+  createdAt: row.submittedAt ?? '',
+  updatedAt: row.submittedAt ?? '',
 }));
 
 export const MOCK_BOOKING_QUEUE: BookingReviewRow[] = [
@@ -734,13 +757,14 @@ export const MOCK_ADMIN_RENTER_DETAIL: AdminUserDetail = {
 // ── Reference lists ──────────────────────────────────────────────────────
 
 /**
- * All four lists in one object, with `isActive` on every row — the shape
- * `GET /admin/reference` answers with.
+ * The **wire** shape `GET /admin/reference` answers with, `isActive` on every
+ * row — three lists, with the districts nested inside their city. Not the
+ * domain shape: a fixture in that one would never exercise the flattening.
  *
  * One entry is deactivated on purpose: a fixture where everything is on would
  * demo a screen whose only real action never shows its effect.
  */
-export const MOCK_REFERENCE_DATA: ReferenceData = {
+export const MOCK_REFERENCE_DATA: WireReferenceData = {
   categories: [
     {
       id: 'cat-1',
@@ -781,35 +805,60 @@ export const MOCK_REFERENCE_DATA: ReferenceData = {
       isActive: false,
     },
   ],
+  // Districts nested inside their city, as the wire carries them — there is
+  // no top-level key, and Jeddah having none is a real case: the adapter must
+  // flatten to an empty list rather than to `undefined`.
   cities: [
-    { id: 'city-1', nameAr: 'الرياض', nameEn: 'Riyadh', sortOrder: 1, isActive: true },
-    { id: 'city-2', nameAr: 'جدة', nameEn: 'Jeddah', sortOrder: 2, isActive: true },
-    { id: 'city-3', nameAr: 'الدمام', nameEn: 'Dammam', sortOrder: 3, isActive: true },
-  ],
-  districts: [
     {
-      id: 'dst-1',
-      cityId: 'city-1',
-      nameAr: 'حي النرجس',
-      nameEn: 'Al Narjis',
+      id: 'city-1',
+      nameAr: 'الرياض',
+      nameEn: 'Riyadh',
       sortOrder: 1,
       isActive: true,
+      districts: [
+        {
+          id: 'dst-1',
+          cityId: 'city-1',
+          nameAr: 'حي النرجس',
+          nameEn: 'Al Narjis',
+          sortOrder: 1,
+          isActive: true,
+        },
+        {
+          id: 'dst-2',
+          cityId: 'city-1',
+          nameAr: 'حي الياسمين',
+          nameEn: 'Al Yasmin',
+          sortOrder: 2,
+          isActive: true,
+        },
+        {
+          id: 'dst-3',
+          cityId: 'city-1',
+          nameAr: 'حي الملقا',
+          nameEn: 'Al Malqa',
+          sortOrder: 3,
+          isActive: true,
+        },
+      ],
     },
+    { id: 'city-2', nameAr: 'جدة', nameEn: 'Jeddah', sortOrder: 2, isActive: true },
     {
-      id: 'dst-2',
-      cityId: 'city-1',
-      nameAr: 'حي الياسمين',
-      nameEn: 'Al Yasmin',
-      sortOrder: 2,
-      isActive: true,
-    },
-    {
-      id: 'dst-3',
-      cityId: 'city-1',
-      nameAr: 'حي الملقا',
-      nameEn: 'Al Malqa',
+      id: 'city-3',
+      nameAr: 'الدمام',
+      nameEn: 'Dammam',
       sortOrder: 3,
       isActive: true,
+      districts: [
+        {
+          id: 'dst-4',
+          cityId: 'city-3',
+          nameAr: 'حي الشاطئ',
+          nameEn: 'Al Shati',
+          sortOrder: 1,
+          isActive: true,
+        },
+      ],
     },
   ],
   prohibitedItems: [
@@ -975,6 +1024,7 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
     status: ComplaintStatus.InProgress,
     slaDueAt: '2026-07-19T09:10:00Z',
     firstResponseAt: '2026-07-19T13:40:00Z',
+    isOverdue: false,
     createdAt: '2026-07-18T09:10:00Z',
     updatedAt: '2026-07-20T08:05:00Z',
   },
@@ -992,6 +1042,7 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
     slaDueAt: '2026-08-05T12:00:00Z',
     // Nobody has answered this one yet, which is a different thing from new.
     firstResponseAt: null,
+    isOverdue: true,
     createdAt: '2026-08-04T11:20:00Z',
     updatedAt: '2026-08-04T11:20:00Z',
   },
@@ -1008,6 +1059,7 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
     status: ComplaintStatus.Resolved,
     slaDueAt: '2026-07-03T09:00:00Z',
     firstResponseAt: '2026-07-02T15:00:00Z',
+    isOverdue: false,
     createdAt: '2026-07-02T08:00:00Z',
     updatedAt: '2026-07-04T10:00:00Z',
   },
@@ -1020,6 +1072,9 @@ export const MOCK_COMPLAINT_DETAIL: WireComplaintDetail = {
   resolution: null,
   resolutionNote: null,
   resolvedAt: null,
+  // Console only, and empty rather than absent: this one has not been refunded.
+  // `/me/complaints/:id` sends no key at all, which the interceptor mirrors.
+  refunds: [],
   messages: [
     {
       id: 'msg-1',

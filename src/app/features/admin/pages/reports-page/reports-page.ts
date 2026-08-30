@@ -1,4 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { BookingStatus } from '@core/enums/booking-status.enum';
+import { ComplaintStatus } from '@core/enums/complaint.enum';
+import { UnitStatus } from '@core/enums/unit-status.enum';
+import { AccountStatus, UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type {
   AdminOverview,
@@ -66,10 +70,16 @@ export class AdminReportsPage {
   protected readonly from = signal('');
   protected readonly to = signal('');
 
-  protected readonly unitRows = computed(() => toRows(this.overview()?.units));
-  protected readonly bookingRows = computed(() => toRows(this.overview()?.bookings));
-  protected readonly usersByRole = computed(() => toRows(this.overview()?.users.byRole));
-  protected readonly usersByStatus = computed(() => toRows(this.overview()?.users.byStatus));
+  protected readonly unitRows = computed(() => toRows(this.overview()?.units, UNIT_STATUSES));
+  protected readonly bookingRows = computed(() =>
+    toRows(this.overview()?.bookings, BOOKING_STATUSES),
+  );
+  protected readonly usersByRole = computed(() =>
+    toRows(this.overview()?.users.byRole, ACCOUNT_ROLES),
+  );
+  protected readonly usersByStatus = computed(() =>
+    toRows(this.overview()?.users.byStatus, ACCOUNT_STATUSES),
+  );
 
   /**
    * The complaint counts, with `overdue` pulled out.
@@ -82,7 +92,7 @@ export class AdminReportsPage {
     const complaints = this.overview()?.complaints;
     if (!complaints) return [];
     const { overdue: _overdue, ...statuses } = complaints;
-    return toRows(statuses);
+    return toRows(statuses, COMPLAINT_STATUSES);
   });
 
   protected readonly overdueComplaints = computed(() => this.overview()?.complaints.overdue ?? 0);
@@ -90,11 +100,12 @@ export class AdminReportsPage {
   protected readonly payoutBuckets = computed(() => {
     const payouts = this.overview()?.payouts;
     if (!payouts) return [];
-    return [
-      { key: 'APPROVED', ...payouts.APPROVED },
-      { key: 'PAID', ...payouts.PAID },
-      { key: 'FAILED', ...payouts.FAILED },
-    ];
+    // Spreading a bucket the server omitted used to produce a row with no
+    // `count` at all, which rendered as an empty cell rather than as nothing.
+    return (['APPROVED', 'PAID', 'FAILED'] as const).map((key) => ({
+      key,
+      ...(payouts[key] ?? EMPTY_PAYOUT_BUCKET),
+    }));
   });
 
   constructor() {
@@ -145,14 +156,49 @@ export class AdminReportsPage {
   }
 }
 
+const EMPTY_PAYOUT_BUCKET = { count: 0, totalHalalas: 0 };
+
 /**
- * A record of counts as rows, in the order the server sent them.
+ * The vocabularies, in the order an operator reads them — lifecycle order, not
+ * by value: "الحجوزات" is a sequence, and sorting it by this week's numbers
+ * would reshuffle the column every refresh.
  *
- * Not sorted by value: these are status vocabularies, and an operator reading
- * "الحجوزات" expects them in lifecycle order rather than in whatever order
- * this week's numbers happen to fall.
+ * `GUEST` is left out of the roles because it is not an account — the enum
+ * says so itself, it is the client's word for nobody being signed in — and
+ * `LOCKED` is left out of the statuses because a lockout is a 423, not a
+ * stored state. Neither can ever be counted, and a permanent `0` beside a real
+ * figure is a row an operator has to learn to ignore.
  */
-function toRows(counts: Record<string, number> | undefined): CountRow[] {
+const UNIT_STATUSES = Object.values(UnitStatus) as string[];
+const BOOKING_STATUSES = Object.values(BookingStatus) as string[];
+const COMPLAINT_STATUSES = Object.values(ComplaintStatus) as string[];
+const ACCOUNT_ROLES = [UserRole.Renter, UserRole.Lessor, UserRole.Admin] as string[];
+const ACCOUNT_STATUSES = [
+  AccountStatus.PendingVerification,
+  AccountStatus.Active,
+  AccountStatus.Suspended,
+] as string[];
+
+/**
+ * A record of counts as rows: every status in the vocabulary, then anything
+ * the server sent that this build does not know about.
+ *
+ * **The zeros matter.** The aggregate returns only the groups that have rows,
+ * so a status nobody is in simply does not come back — and a column that
+ * silently drops "٠ شكاوى مفتوحة" reads as a screen that failed to load rather
+ * than as a queue that is empty.
+ *
+ * The unknown keys are appended rather than dropped for the opposite reason:
+ * `DELETED` is a real account status this build has no enum for, and hiding
+ * a real count is worse than showing an untranslated key.
+ */
+function toRows(counts: Record<string, number> | undefined, vocabulary: string[]): CountRow[] {
   if (!counts) return [];
-  return Object.entries(counts).map(([key, value]) => ({ key, label: key, value }));
+
+  const known = vocabulary.map((key) => ({ key, label: key, value: counts[key] ?? 0 }));
+  const extra = Object.entries(counts)
+    .filter(([key]) => !vocabulary.includes(key))
+    .map(([key, value]) => ({ key, label: key, value }));
+
+  return [...known, ...extra];
 }

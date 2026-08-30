@@ -24,10 +24,31 @@ export interface ListingReviewRow {
   cityName: string;
   dailyPriceHalalas: number;
   areaSqm: number;
-  /** ISO date the lessor submitted it for review. */
-  submittedAt: string;
-  /** Whole hours waiting, from `submittedAt` to now, computed server-side. */
-  waitingHours: number;
+  /**
+   * When the lessor submitted it — the server's own column, not `updatedAt`.
+   *
+   * That distinction is the whole reason it exists: any edit to a listing
+   * already in the queue moves `updatedAt`, so a client reading that would
+   * have quietly reset every deadline the moment somebody fixed a typo.
+   *
+   * `null` on anything that is not awaiting review.
+   */
+  submittedAt: string | null;
+  /** When a decision is owed by. `null` unless the row is awaiting review. */
+  slaDueAt: string | null;
+  /**
+   * Past that deadline — **the server's answer**, from the same definition
+   * that decides `operations.approval_sla_hours`. Not the client comparing an
+   * elapsed hour count against a setting it fetched separately.
+   */
+  isOverdue: boolean;
+  /**
+   * Whole hours waiting, counted here from the server's `submittedAt`.
+   *
+   * A label, not a verdict: "منذ ٦ ساعات" is arithmetic anybody can check, and
+   * whether that is *late* is `isOverdue`. `null` when nothing was submitted.
+   */
+  waitingHours: number | null;
   /** True for a re-submitted listing rather than a first publication. */
   isEdit: boolean;
 }

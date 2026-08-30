@@ -125,10 +125,6 @@
           </li>
         }
       </ul>
-    } @else if (districtsUnavailable()) {
-      <!-- Not "no districts": the endpoint returns categories, cities and
-           prohibited items only, so this screen cannot know either way. -->
-      <app-ui-notice tone="info">{{ i18n.t('reference.districtsUnavailable') }}</app-ui-notice>
     } @else {
       <app-ui-empty-state [title]="i18n.t('reports.empty')" />
     }

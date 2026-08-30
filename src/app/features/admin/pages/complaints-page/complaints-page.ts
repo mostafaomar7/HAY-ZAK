@@ -5,6 +5,7 @@ import {
   COMPLAINT_RESOLUTION_DISPLAY,
   COMPLAINT_STATUS_ADMIN_DISPLAY,
   REFUND_METHOD_DISPLAY,
+  refundStatusText,
   statusText,
 } from '@core/constants/status-display';
 import { Permission } from '@core/constants/permissions';
@@ -414,6 +415,15 @@ export class AdminComplaintsPage {
 
   protected resolutionLabel(resolution: ComplaintResolution): string {
     return statusText(COMPLAINT_RESOLUTION_DISPLAY[resolution], this.i18n.language());
+  }
+
+  /** Falls back to the wire's own word for a state this build does not know. */
+  protected refundStatusLabel(status: string): string {
+    return refundStatusText(status, this.i18n.language());
+  }
+
+  protected refundMethodLabel(method: RefundMethod): string {
+    return statusText(REFUND_METHOD_DISPLAY[method], this.i18n.language());
   }
 
   protected remainingLabel(): string {

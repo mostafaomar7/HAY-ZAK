@@ -15,6 +15,20 @@ export enum PaymentStatus {
   Voided = 'Voided',
 }
 
+/**
+ * `payout.eligible_after` — when a booking's money may be approved for
+ * transfer to the lessor. A policy, not a delay.
+ *
+ * The three are genuinely different rules rather than three durations: paying
+ * out on payment means the money leaves before anybody has confirmed the space
+ * exists, which is why the platform is set to the last of them.
+ */
+export enum PayoutEligibility {
+  OnPayment = 'on_payment',
+  OnBookingStart = 'on_booking_start',
+  AfterBookingStart24h = 'after_booking_start_24h',
+}
+
 export enum RefundStatus {
   Pending = 'Pending',
   Processing = 'Processing',

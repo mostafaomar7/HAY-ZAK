@@ -120,12 +120,15 @@ export class AdminDashboardPage {
       .subscribe({ next: (page) => this.listings.set(page.items), error: () => undefined });
   }
 
-  protected isLate(hours: number): boolean {
-    return hours > this.settings.approvalSlaHours();
-  }
-
-  protected waitLabel(hours: number): string {
-    return this.i18n.t('listings.hours', { hours });
+  /**
+   * How long it has been waiting. The lateness beside it is `row.isOverdue`,
+   * read straight off the row — the dashboard and the queue must not be able
+   * to disagree about the same listing.
+   */
+  protected waitLabel(row: ListingReviewRow): string {
+    return row.waitingHours === null
+      ? this.i18n.t('common.notAvailable')
+      : this.i18n.t('listings.hours', { hours: row.waitingHours });
   }
 }
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import type { ComplaintStatus } from '../enums/complaint.enum';
 import type { PaginatedResponse } from '../models/api-response.model';
@@ -86,12 +86,12 @@ export class ComplaintsService {
           API_ENDPOINTS.me.complaintMessages(id),
           replyToFormData(request),
         )
-        // The write answers with the **message**, not the complaint — so the
-        // status it may have moved (AWAITING_USER back to IN_PROGRESS, and the
-        // first-response clock) is only visible on a re-read. Chained here so no
-        // caller has to remember, and so the screen never renders a thread that
-        // is one message ahead of the status above it.
-        .pipe(switchMap(() => this.byId(id)))
+        // The write answers with the message *and* the whole complaint, read
+        // inside the same transaction — so the status the reply moved
+        // (AWAITING_USER back to IN_PROGRESS, and the first-response clock) is
+        // already in it. There was a re-read here; it was a second round trip
+        // for something the response already carried.
+        .pipe(map((response) => complaintDetailFromWire(response.complaint)))
     );
   }
 }

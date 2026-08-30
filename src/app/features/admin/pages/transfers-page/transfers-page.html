@@ -1,4 +1,6 @@
-<p class="cycle">{{ i18n.t('transfers.cycleNote', { hours: settings.payoutCycleHours() }) }}</p>
+<!-- The rule, not a countdown: `payout.eligible_after` is a policy with three
+     values, and "every N hours" cannot say which of them is in force. -->
+<p class="cycle">{{ i18n.t('transfers.cycleNote', { policy: eligibilityNote() }) }}</p>
 
 @if (isLoading()) {
   <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />

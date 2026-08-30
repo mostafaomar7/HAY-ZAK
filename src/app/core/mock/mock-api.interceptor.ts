@@ -58,6 +58,7 @@ import {
   MOCK_MARKET_AVAILABILITY,
   MOCK_MARKET_UNITS,
   MOCK_NAFATH_SESSION,
+  MOCK_SIGNUP_TERMS,
   MOCK_PREFERENCES,
   MOCK_PROHIBITED_ITEMS,
   MOCK_RENTER_BOOKINGS,
@@ -171,6 +172,13 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (path === API_ENDPOINTS.account.identity) return ok(MOCK_IDENTITY);
   if (path === API_ENDPOINTS.account.notificationPreferences) return ok(MOCK_PREFERENCES);
   if (path === API_ENDPOINTS.account.delete && method === 'DELETE') return ok(null);
+  /**
+   * The legal version a registration records consent against, and the source
+   * the terms page reads. **Not a CMS page** — the terms live in their own
+   * versioned table, and the id here is what `termsVersionId` must carry.
+   */
+  if (path === API_ENDPOINTS.auth.terms) return ok(MOCK_SIGNUP_TERMS);
+
   if (path === API_ENDPOINTS.auth.nafathStart) return ok(MOCK_NAFATH_SESSION);
   if (/^\/auth\/identity\/nafath\/[^/]+$/.test(path)) {
     // Flips to success after the first poll, so the happy path is reachable
@@ -236,7 +244,9 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (/^\/admin\/units\/[^/]+$/.test(path) && method === 'GET') {
     const id = path.split('/')[3];
     const unit = MOCK_REVIEW_UNITS.find((u) => u.id === id) ?? MOCK_REVIEW_UNITS[0];
-    return ok(toWireUnit(unit, { detail: true, availability: MOCK_AVAILABILITY }));
+    // Already the wire shape — the fixture is what the server sends, not a
+    // domain object that has to be converted back on the way out.
+    return ok({ ...unit, availability: MOCK_AVAILABILITY });
   }
   // The queue is this endpoint filtered — there is no /admin/units/pending, and
   // asking for one answers 422 with `pending` read as a unit identifier.
@@ -245,7 +255,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
     const units = status
       ? MOCK_REVIEW_UNITS.filter((unit) => unit.status === status)
       : MOCK_REVIEW_UNITS;
-    return paginate(units.map((unit) => toWireUnit(unit)));
+    return paginate(units);
   }
 
   if (/^\/admin\/bookings\/[^/]+\/review-detail$/.test(path)) {
@@ -354,7 +364,15 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Complaints (FR-ADM-08) ─────────────────────────────────────────────
   // The console's side. Every write answers with the whole complaint, as the
   // server does, so a screen never has to guess what the status became.
-  if (/^\/admin\/complaints\/[^/]+\/(messages|assign|resolve|close)$/.test(path)) {
+  // `messages` answers with the new message *and* the complaint; the other
+  // three answer with the complaint alone, exactly as the server does.
+  if (/^\/admin\/complaints\/[^/]+\/messages$/.test(path)) {
+    return ok({
+      message: (MOCK_COMPLAINT_DETAIL.messages ?? []).at(-1),
+      complaint: MOCK_COMPLAINT_DETAIL,
+    });
+  }
+  if (/^\/admin\/complaints\/[^/]+\/(assign|resolve|close)$/.test(path)) {
     return ok({ complaint: MOCK_COMPLAINT_DETAIL });
   }
   if (path === API_ENDPOINTS.admin.complaints) return paginate(MOCK_COMPLAINTS);
@@ -365,12 +383,13 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // The user's own. Internal notes are stripped here exactly as the server
   // strips them — a mock that leaked one would make the leak look supported.
   if (/^\/me\/complaints\/[^/]+\/messages$/.test(path)) {
-    return ok({ complaint: userComplaint(path.split('/')[3]) });
+    const complaint = userComplaint(path.split('/')[3]);
+    return ok({ message: complaint.messages.at(-1), complaint });
   }
   if (path === API_ENDPOINTS.me.complaints) {
     return method === 'POST'
       ? ok({ complaint: userComplaint('cmp-1') })
-      : paginate(MOCK_COMPLAINTS);
+      : paginate(MOCK_COMPLAINTS.map(userComplaintRow));
   }
   if (/^\/me\/complaints\/[^/]+$/.test(path)) {
     return ok({ complaint: userComplaint(path.split('/')[3]) });
@@ -689,10 +708,29 @@ function adminComplaint(id: string) {
 function userComplaint(id: string) {
   const complaint = adminComplaint(id);
   return {
-    ...complaint,
-    assignedToName: undefined,
+    ...userComplaintRow(complaint),
     messages: (complaint.messages ?? []).filter((message) => !message.isInternal),
   };
+}
+
+/**
+ * The console-only fields removed, as `/me/complaints` removes them.
+ *
+ * `isOverdue` and `refunds` are the platform's own operational measures: how
+ * late it is to answer, and what it paid back. Neither is the user's to read,
+ * and a mock that sent them would make the client's "null means not stated"
+ * handling look like dead code.
+ */
+function userComplaintRow<T extends object>(complaint: T): Omit<T, 'isOverdue' | 'refunds'> {
+  const {
+    isOverdue: _overdue,
+    refunds: _refunds,
+    ...rest
+  } = complaint as T & {
+    isOverdue?: boolean;
+    refunds?: unknown;
+  };
+  return rest;
 }
 
 /** An unknown id falls back to the first fixture, so no route dead-ends. */

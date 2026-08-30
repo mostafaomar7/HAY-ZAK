@@ -55,6 +55,20 @@ export interface WireUnit {
   createdAt: string;
   updatedAt: string;
 
+  // ── Review SLA, on the console's projection only ────────────────────────
+  /**
+   * When the lessor submitted it for review — a column of its own, **not**
+   * `updatedAt`. Any write to a listing already in the queue moves `updatedAt`,
+   * which would push every deadline back without anybody noticing.
+   *
+   * `null` on anything that is not awaiting review, as are the other two.
+   */
+  submittedAt?: string | null;
+  /** When a decision is owed by, from `operations.approval_sla_hours`. */
+  slaDueAt?: string | null;
+  /** Past that deadline. The server's answer, not the client's arithmetic. */
+  isOverdue?: boolean;
+
   // Present on the detail projection.
   location?: GeoPoint | null;
   images?: WireUnitImage[];

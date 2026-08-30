@@ -105,12 +105,15 @@ export class AdminListingsPage {
     },
   ]);
 
-  /** The row tone the table paints — an SLA breach colours the whole row. */
+  /**
+   * The row tone the table paints — an SLA breach colours the whole row.
+   *
+   * `isOverdue` off the wire, not an hour count measured against a setting
+   * fetched separately: two numbers for one fact is how a row gets painted red
+   * that the server's own `?overdue=true` filter does not return.
+   */
   protected readonly tone = computed(
-    () => (row: ListingReviewRow) =>
-      row.waitingHours > this.settings.approvalSlaHours()
-        ? ('danger' as const)
-        : ('default' as const),
+    () => (row: ListingReviewRow) => (row.isOverdue ? ('danger' as const) : ('default' as const)),
   );
 
   constructor() {
@@ -160,12 +163,18 @@ export class AdminListingsPage {
     this.detail.set(null);
   }
 
-  protected isLate(hours: number): boolean {
-    return hours > this.settings.approvalSlaHours();
-  }
+  /**
+   * How long it has been waiting, and whether that is late.
+   *
+   * The hours are this screen's arithmetic off the server's `submittedAt`; the
+   * lateness is the server's own flag. A row with no `submittedAt` is not in
+   * the queue at all, so it gets a dash rather than "منذ ٠ ساعة".
+   */
+  protected waitLabel(row: ListingReviewRow): string {
+    if (row.waitingHours === null) return this.i18n.t('common.notAvailable');
 
-  protected waitLabel(hours: number): string {
-    return this.isLate(hours)
+    const hours = row.waitingHours;
+    return row.isOverdue
       ? this.i18n.t('listings.late', { hours })
       : this.i18n.t('listings.hours', { hours });
   }

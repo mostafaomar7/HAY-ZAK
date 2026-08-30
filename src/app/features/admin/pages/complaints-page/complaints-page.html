@@ -113,6 +113,38 @@
       <app-ui-complaint-thread [messages]="complaint.messages" showsInternal />
     </section>
 
+    <!-- The money that actually went back, read rather than inferred: a
+         `REFUND_PARTIAL` resolution says a refund happened and not how much,
+         so the amount has to come from here or be guessed. Rendered only when
+         there is one — an empty ledger is not a fact worth a heading. -->
+    @if (complaint.refunds?.length) {
+      <section class="block">
+        <h3 class="block__title">{{ i18n.t('complaints.refunds') }}</h3>
+
+        <ul class="refunds">
+          @for (refund of complaint.refunds; track refund.id) {
+            <li class="refund">
+              <span class="refund__amount num">
+                <app-ui-money [halalas]="refund.amountHalalas" />
+              </span>
+              <span class="refund__meta">
+                <span>{{ refundStatusLabel(refund.status) }}</span>
+                @if (refund.method) {
+                  <span class="refund__dot" aria-hidden="true"></span>
+                  <span>{{ refundMethodLabel(refund.method) }}</span>
+                }
+                <span class="refund__dot" aria-hidden="true"></span>
+                <span class="num">{{ refund.createdAt | date: 'd MMM y' }}</span>
+              </span>
+              @if (refund.providerReference) {
+                <span class="refund__ref num" dir="ltr">{{ refund.providerReference }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
     @if (isSettled()) {
       <app-ui-notice tone="success">
         <span class="outcome">

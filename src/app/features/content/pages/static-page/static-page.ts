@@ -89,7 +89,12 @@ export class StaticPageComponent {
     if (page.faqGroups?.length) {
       return page.faqGroups.map((group) => ({ id: group.id, label: group.title }));
     }
-    return page.sections.map((section) => ({ id: section.id, label: section.title }));
+    // Untitled sections are skipped rather than listed blank: the terms come
+    // from `/auth/terms` as prose with no headings, and an index of empty
+    // links is worse than no index — which the template already handles.
+    return page.sections
+      .filter((section) => !!section.title)
+      .map((section) => ({ id: section.id, label: section.title }));
   });
 
   /** FR-ADM-05 — the prohibited list is reference data, never template text. */

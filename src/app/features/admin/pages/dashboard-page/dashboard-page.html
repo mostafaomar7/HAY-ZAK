@@ -48,8 +48,8 @@
                     {{ i18n.t('admin.sar') }}
                   </span>
                 </span>
-                <span class="entry__wait num" [class.entry__wait--late]="isLate(row.waitingHours)">
-                  {{ waitLabel(row.waitingHours) }}
+                <span class="entry__wait num" [class.entry__wait--late]="row.isOverdue">
+                  {{ waitLabel(row) }}
                 </span>
               </a>
             </li>

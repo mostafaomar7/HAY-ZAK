@@ -66,11 +66,11 @@
     <span class="cell num"
       >{{ row.dailyPriceHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span></span
     >
-    <span class="cell num">{{ row.submittedAt | date: 'd MMM y' }}</span>
+    <span class="cell num">
+      {{ row.submittedAt ? (row.submittedAt | date: 'd MMM y') : i18n.t('common.notAvailable') }}
+    </span>
     <span class="cell">
-      <span class="wait num" [class.wait--late]="isLate(row.waitingHours)">
-        {{ waitLabel(row.waitingHours) }}
-      </span>
+      <span class="wait num" [class.wait--late]="row.isOverdue">{{ waitLabel(row) }}</span>
     </span>
     <span class="cell cell--link">{{ i18n.t('admin.openReview') }}</span>
   </ng-template>
@@ -122,7 +122,13 @@
         </div>
         <div class="fact">
           <dt>{{ i18n.t('listings.sentAt') }}</dt>
-          <dd class="num">{{ unit.submittedAt | date: 'd MMMM y' }}</dd>
+          <dd class="num">
+            {{
+              unit.submittedAt
+                ? (unit.submittedAt | date: 'd MMMM y')
+                : i18n.t('common.notAvailable')
+            }}
+          </dd>
         </div>
       </dl>
     </section>

@@ -13,6 +13,7 @@ import type {
   RenterProfile,
 } from '../models/renter.model';
 import type { ReferenceItem, Unit, UnitAvailabilityBlock } from '../models/unit.model';
+import type { SignupTerms } from '../models/user.model';
 import { sarToHalalas } from '../utils/money.utils';
 
 /**
@@ -276,6 +277,25 @@ export const MOCK_IDENTITY: IdentityVerification = {
   idNumberMasked: '•••••••1234',
   status: VerificationStatus.Verified,
   verifiedAt: '2026-07-24',
+};
+
+/**
+ * `GET /auth/terms` — the version a registration records consent against.
+ *
+ * `content` is one plain string, not the structured document the CMS pages
+ * use: the terms are a legal text in their own versioned table, and the shape
+ * here is what the endpoint actually sends rather than what would be
+ * convenient to render.
+ */
+export const MOCK_SIGNUP_TERMS: SignupTerms = {
+  id: 'terms-v2',
+  versionNo: 2,
+  effectiveFrom: '2026-08-12T00:00:00Z',
+  content: [
+    'تحكم هذه الشروط استخدام منصة حيزك من المستأجرين والمؤجرين.',
+    'يعني إنشاء الحساب أو إتمام أي حجز الموافقة على الإصدار الساري منها، ويسجل النظام رقم الإصدار ووقت الموافقة.',
+    'المنصة وسيط بين الطرفين ولا تتولى حيازة البضاعة، والمسؤولية عن محتوى المساحة تقع على مالكها والمستأجر وفق الاتفاق بينهما.',
+  ].join('\n\n'),
 };
 
 export const MOCK_NAFATH_SESSION: NafathSession = {

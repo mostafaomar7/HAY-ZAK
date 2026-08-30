@@ -6,6 +6,7 @@ import {
   statusText,
 } from '@core/constants/status-display';
 import { PayoutStatus } from '@core/enums/payment.enum';
+import { PayoutEligibility } from '@core/enums/payment.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { EligiblePayout, Payout } from '@core/models/payment.model';
 import { NotificationService } from '@core/services/notification.service';
@@ -73,6 +74,24 @@ export class AdminTransfersPage {
 
   protected readonly bankReference = signal('');
   protected readonly failureReason = signal('');
+
+  /**
+   * Which eligibility rule the platform is running, in words.
+   *
+   * A value this build does not recognise falls through to the rule the
+   * platform is configured with rather than to a blank line — but it is never
+   * silently relabelled as one of the three.
+   */
+  protected readonly eligibilityNote = computed(() => {
+    switch (this.settings.payoutEligibleAfter()) {
+      case PayoutEligibility.OnPayment:
+        return this.i18n.t('transfers.eligibleOnPayment');
+      case PayoutEligibility.OnBookingStart:
+        return this.i18n.t('transfers.eligibleOnStart');
+      default:
+        return this.i18n.t('transfers.eligibleAfter24h');
+    }
+  });
 
   protected readonly isEmpty = computed(
     () => this.eligible().length === 0 && this.payouts().length === 0,

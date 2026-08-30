@@ -34,7 +34,14 @@ export interface ReferenceCategory extends ReferenceEntry {
   iconKey: string | null;
 }
 
-export type ReferenceCity = ReferenceEntry;
+export interface ReferenceCity extends ReferenceEntry {
+  /**
+   * Nested, as `/public/cities` nests them, and there is no top-level
+   * `districts` key — deliberately, on the server's part: a district without
+   * its city is not an address.
+   */
+  districts: ReferenceDistrict[];
+}
 
 export interface ReferenceDistrict extends ReferenceEntry {
   cityId: string;
@@ -49,14 +56,15 @@ export interface ProhibitedItem extends ReferenceEntry {
  * `GET /admin/reference` — everything the endpoint returns, active and
  * inactive alike.
  *
- * **Districts are not in it.** The routes to create and update one exist, so
- * the list is presumably still to come; until it does there is nothing to
- * show, and an empty array here would claim the server said there were none.
+ * `districts` is **flattened here** out of `cities[].districts`, which is the
+ * only place the wire carries them. Every district already names its `cityId`,
+ * so nothing is invented by the flattening — and the console's districts tab
+ * is one list of every district, not one list per city.
  */
 export interface ReferenceData {
   categories: ReferenceCategory[];
   cities: ReferenceCity[];
-  districts: ReferenceDistrict[] | null;
+  districts: ReferenceDistrict[];
   prohibitedItems: ProhibitedItem[];
 }
 
@@ -99,10 +107,13 @@ export interface ProhibitedItemRequest {
 
 // ── Wire ──────────────────────────────────────────────────────────────────
 
+export interface WireReferenceCity extends ReferenceEntry {
+  districts?: ReferenceDistrict[] | null;
+}
+
 export interface WireReferenceData {
   categories?: ReferenceCategory[] | null;
-  cities?: ReferenceCity[] | null;
-  districts?: ReferenceDistrict[] | null;
+  cities?: WireReferenceCity[] | null;
   prohibitedItems?: ProhibitedItem[] | null;
 }
 
@@ -116,12 +127,17 @@ export interface CategoryInUseMeta {
 export function referenceDataFromWire(wire: WireReferenceData): ReferenceData {
   // Empty arrays rather than undefined: each of the four is read as `.length`
   // on the first render, before anything has been added.
+  const cities: ReferenceCity[] = (wire.cities ?? []).map((city) => ({
+    ...city,
+    districts: city.districts ?? [],
+  }));
+
   return {
     categories: wire.categories ?? [],
-    cities: wire.cities ?? [],
-    // Null, not `[]`: the endpoint does not send districts at all, and "the
-    // server has none" is a different claim from "the server did not say".
-    districts: wire.districts ?? null,
+    cities,
+    // One flat list for the districts tab, sorted the way each city sorts its
+    // own — the wire has no global ordering to preserve, only a per-city one.
+    districts: cities.flatMap((city) => city.districts),
     prohibitedItems: wire.prohibitedItems ?? [],
   };
 }
