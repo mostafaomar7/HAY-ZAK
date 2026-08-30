@@ -128,6 +128,52 @@ describe('HomePage (renter landing)', () => {
     expect(hijri).not.toContain('2026');
   });
 
+  it('lets the date be entered in Hijri and stores the Gregorian equivalent', () => {
+    const page = fixture.componentInstance as unknown as {
+      setCalendar(c: 'gregorian' | 'hijri'): void;
+      setHijriYear(v: string): void;
+      setHijriMonth(v: string): void;
+      setHijriDay(v: string): void;
+      hijriDays(): number[];
+    };
+
+    page.setCalendar('hijri');
+    fixture.detectChanges();
+
+    // The native control is gone; three lists stand in its place.
+    expect(el.querySelector('input[type="date"]')).toBeNull();
+    expect(el.querySelectorAll('.hj__part').length).toBe(3);
+
+    page.setHijriYear('1448');
+    page.setHijriMonth('9');
+    page.setHijriDay('1');
+    fixture.detectChanges();
+
+    // 1 Ramadan 1448. The value that leaves the form is Gregorian, because that
+    // is the only thing the API accepts.
+    expect(fixture.componentInstance['form'].controls.startDate.value).toBe('2027-02-08');
+  });
+
+  it('offers only the days the Umm al-Qura month actually has', () => {
+    const page = fixture.componentInstance as unknown as {
+      setCalendar(c: 'gregorian' | 'hijri'): void;
+      setHijriYear(v: string): void;
+      setHijriMonth(v: string): void;
+      hijriDays(): number[];
+    };
+
+    page.setCalendar('hijri');
+    page.setHijriYear('1448');
+
+    // Ramadan 1448 is twenty-nine days. A thirtieth in the list is a date the
+    // conversion would have to answer `null` for.
+    page.setHijriMonth('9');
+    expect(page.hijriDays().length).toBe(29);
+
+    page.setHijriMonth('10');
+    expect(page.hijriDays().length).toBe(30);
+  });
+
   it('rejects a start date in the past', () => {
     const control = fixture.componentInstance['form'].controls.startDate;
 

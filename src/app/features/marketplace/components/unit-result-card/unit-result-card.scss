@@ -18,6 +18,13 @@
 
   @include a.up(md) {
     flex-direction: row;
+
+    // A tile is the vertical card: photo on top, everything else beneath. It
+    // stays a column at every width because the grids that use it are 240px
+    // tracks — a photo beside text in that space is a strip, not a photograph.
+    &.card--tile {
+      flex-direction: column;
+    }
   }
 
   // The map pin under the pointer highlights its card, and the reverse.
@@ -50,6 +57,7 @@
   @include a.up(md) {
     width: 268px;
 
+    // Full width of the tile, which the column direction already gives it.
     .card--tile & {
       width: auto;
     }

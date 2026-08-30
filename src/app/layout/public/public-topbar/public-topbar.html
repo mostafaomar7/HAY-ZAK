@@ -120,14 +120,20 @@
         <span aria-hidden="true">{{ user()?.fullName?.charAt(0) }}</span>
       </a>
     } @else {
-      <a appUiButton variant="ghost" routerLink="/auth/login">{{ i18n.t('public.signIn') }}</a>
+      <!-- `ghost` is dark ink for a light surface; this bar is the dark
+           primary, so the link gets its own colour here rather than being
+           invisible until a hover paints a light background behind it. -->
+      <a appUiButton variant="ghost" class="actions__signIn" routerLink="/auth/login">
+        {{ i18n.t('public.signIn') }}
+      </a>
     }
 
-    <!-- Cross-sell into the lessor portal, exactly as the design has it. It goes
-         through the account-type screen because one account holds one role
-         (FR-AUTH-12) and the visitor may already be a renter. -->
-    <a appUiButton variant="accent" class="actions__cta" routerLink="/auth/account-type">
-      {{ i18n.t('public.listYourSpace') }}
-    </a>
+    <!-- Cross-sell into the lessor portal, exactly as the design has it —
+         but only for somebody it can lead somewhere. See `listSpaceUrl`. -->
+    @if (listSpaceUrl(); as url) {
+      <a appUiButton variant="accent" class="actions__cta" [routerLink]="url">
+        {{ i18n.t('public.listYourSpace') }}
+      </a>
+    }
   </div>
 </header>

@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import { AuthService } from '@core/services/auth.service';
 import type { AppNotification } from '@core/models/operations.model';
@@ -45,6 +46,23 @@ export class PublicTopbar {
   protected readonly notifications = this.inbox.notifications;
 
   protected readonly notificationsOpen = signal(false);
+
+  /**
+   * Where "إضافة مساحتك الآن" goes, or nothing at all.
+   *
+   * One account holds one role (FR-AUTH-12), and `/auth/account-type` is behind
+   * `guestGuard` — so a signed-in renter who pressed this was bounced straight
+   * back to the page they were already on. It looked like a broken button
+   * because it was one.
+   *
+   * A lessor gets the screen the words actually name. A renter and an
+   * administrator get no button: they cannot list a space on this account, and
+   * a control that leads nowhere is worse than an absent one.
+   */
+  protected readonly listSpaceUrl = computed(() => {
+    if (!this.isAuthenticated()) return '/auth/account-type';
+    return this.user()?.role === UserRole.Lessor ? '/lessor/units/new' : null;
+  });
 
   /**
    * "٦ إشعارات غير مقروءة" when there are any, the plain name otherwise — the

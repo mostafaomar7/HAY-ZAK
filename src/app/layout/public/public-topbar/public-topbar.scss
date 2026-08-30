@@ -101,6 +101,18 @@
   }
 }
 
+// Two classes deep so it outweighs `:host(.btn--ghost)` in the button's own
+// stylesheet, which paints the label in the same colour as this bar.
+.actions .actions__signIn {
+  border: 1px solid color-mix(in srgb, var(--color-on-primary) 35%, transparent);
+  color: var(--color-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--hover-overlay);
+    color: var(--color-on-primary);
+  }
+}
+
 .icon-btn {
   @include a.flex-center;
   @include a.focus-ring;
