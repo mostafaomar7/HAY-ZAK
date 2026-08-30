@@ -1,890 +1,1079 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مؤشر ربط حيزك</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap">
-
-<style>
-  :root {
-    --paper:      #F4F6F4;
-    --surface:    #FFFFFF;
-    --sunken:     #ECEFEC;
-    --ink:        #111F1D;
-    --ink-soft:   #3C4A48;
-    --muted:      #65706E;
-    --line:       #DCE2DF;
-    --line-firm:  #C3CDC9;
-
-    --accent:     #0E6E63;
-    --accent-dim: #0E6E6318;
-    --ochre:      #A9761F;
-    --ochre-dim:  #A9761F1F;
-    --mauve:      #7C7186;
-    --mauve-dim:  #7C718618;
-
-    --display: "Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
-    --body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, monospace;
-
-    --measure: 68ch;
-    --shell: 66rem;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --paper:      #0D1513;
-      --surface:    #151F1D;
-      --sunken:     #101A18;
-      --ink:        #E2E9E6;
-      --ink-soft:   #B6C2BE;
-      --muted:      #8B9793;
-      --line:       #253331;
-      --line-firm:  #354644;
-
-      --accent:     #4EB5A6;
-      --accent-dim: #4EB5A622;
-      --ochre:      #D2A055;
-      --ochre-dim:  #D2A05522;
-      --mauve:      #A99BB4;
-      --mauve-dim:  #A99BB422;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --paper:      #0D1513;
-    --surface:    #151F1D;
-    --sunken:     #101A18;
-    --ink:        #E2E9E6;
-    --ink-soft:   #B6C2BE;
-    --muted:      #8B9793;
-    --line:       #253331;
-    --line-firm:  #354644;
-
-    --accent:     #4EB5A6;
-    --accent-dim: #4EB5A622;
-    --ochre:      #D2A055;
-    --ochre-dim:  #D2A05522;
-    --mauve:      #A99BB4;
-    --mauve-dim:  #A99BB422;
-  }
-
-  * { box-sizing: border-box; }
-
-  html { direction: rtl; }
-
-  body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--body);
-    font-size: 16px;
-    line-height: 1.75;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .shell {
-    max-width: var(--shell);
-    margin: 0 auto;
-    padding: 3.5rem 1.5rem 6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 3.5rem;
-  }
-
-  /* ── Masthead ─────────────────────────────────────────────── */
-
-  .masthead {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    padding-bottom: 2.25rem;
-    border-bottom: 2px solid var(--ink);
-  }
-
-  .masthead__eyebrow {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
-
-  .masthead__title {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: clamp(2rem, 5.5vw, 3rem);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  .masthead__standfirst {
-    max-width: var(--measure);
-    margin: 0;
-    font-size: 1.0625rem;
-    color: var(--ink-soft);
-  }
-
-  .masthead__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.75rem;
-    font-family: var(--mono);
-    font-size: 0.8125rem;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ── Headline figures ─────────────────────────────────────── */
-
-  .figures {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-  }
-
-  .figure {
-    background: var(--surface);
-    padding: 1.75rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .figure__value {
-    font-family: var(--mono);
-    font-size: 2.75rem;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .figure__value--quiet { color: var(--ink); }
-
-  .figure__label {
-    font-weight: 600;
-    font-size: 0.9375rem;
-  }
-
-  .figure__note {
-    font-size: 0.8125rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  /* ── Sections ─────────────────────────────────────────────── */
-
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .section__head {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .section__title {
-    font-family: var(--display);
-    font-weight: 600;
-    font-size: 1.5rem;
-    line-height: 1.4;
-    margin: 0;
-    padding-bottom: 0.625rem;
-    border-bottom: 1px solid var(--line-firm);
-    text-wrap: balance;
-  }
-
-  .section__intro {
-    max-width: var(--measure);
-    margin: 0;
-    color: var(--ink-soft);
-  }
-
-  .prose {
-    max-width: var(--measure);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .prose p { margin: 0; }
-
-  strong { font-weight: 600; }
-
-  em {
-    font-style: normal;
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  code {
-    font-family: var(--mono);
-    font-size: 0.875em;
-    background: var(--sunken);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 0.05em 0.35em;
-    direction: ltr;
-    unicode-bidi: embed;
-    display: inline-block;
-  }
-
-  /* ── Completion rails ─────────────────────────────────────── */
-
-  .rails {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--line);
-    background: var(--surface);
-  }
-
-  .rail {
-    display: grid;
-    grid-template-columns: minmax(9rem, 1.4fr) minmax(7rem, 2fr) 4.5rem;
-    align-items: center;
-    gap: 1rem 1.25rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .rail:last-child { border-bottom: 0; }
-
-  .rail--total {
-    background: var(--sunken);
-    border-top: 2px solid var(--ink);
-    border-bottom: 0;
-  }
-
-  .rail__name {
-    font-weight: 600;
-    font-size: 0.9375rem;
-    line-height: 1.4;
-  }
-
-  .rail__count {
-    display: block;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .rail__bar {
-    display: flex;
-    height: 0.75rem;
-    background: var(--sunken);
-    overflow: hidden;
-  }
-
-  .rail--total .rail__bar { background: var(--paper); }
-
-  .rail__seg { height: 100%; }
-  .rail__seg--done    { background: var(--accent); }
-  .rail__seg--partial { background: var(--ochre); }
-  .rail__seg--wait    { background: var(--mauve); opacity: 0.5; }
-
-  .rail__pct {
-    font-family: var(--mono);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    text-align: left;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    font-size: 0.8125rem;
-    color: var(--muted);
-  }
-
-  .legend__item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .legend__swatch {
-    width: 0.875rem;
-    height: 0.875rem;
-    flex: none;
-  }
-
-  .legend__swatch--done    { background: var(--accent); }
-  .legend__swatch--partial { background: var(--ochre); }
-  .legend__swatch--wait    { background: var(--mauve); opacity: 0.5; }
-
-  /* ── Tables ───────────────────────────────────────────────── */
-
-  .scroller {
-    overflow-x: auto;
-    border: 1px solid var(--line);
-    background: var(--surface);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9375rem;
-    min-width: 34rem;
-  }
-
-  thead th {
-    text-align: right;
-    font-family: var(--body);
-    font-weight: 600;
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    padding: 0.875rem 1.25rem;
-    border-bottom: 1px solid var(--line-firm);
-    background: var(--sunken);
-    white-space: nowrap;
-  }
-
-  tbody td {
-    padding: 0.875rem 1.25rem;
-    border-bottom: 1px solid var(--line);
-    vertical-align: top;
-    line-height: 1.6;
-  }
-
-  tbody tr:last-child td { border-bottom: 0; }
-
-  td.num, th.num {
-    font-family: var(--mono);
-    font-variant-numeric: tabular-nums;
-    text-align: left;
-    white-space: nowrap;
-  }
-
-  .cell__sub {
-    display: block;
-    font-size: 0.8125rem;
-    color: var(--muted);
-    line-height: 1.55;
-  }
-
-  /* ── Status chips ─────────────────────────────────────────── */
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    padding: 0.15rem 0.6rem;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-
-  .chip::before {
-    content: "";
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    flex: none;
-  }
-
-  .chip--done    { color: var(--accent); background: var(--accent-dim); }
-  .chip--done::before    { background: var(--accent); }
-  .chip--partial { color: var(--ochre); background: var(--ochre-dim); }
-  .chip--partial::before { background: var(--ochre); }
-  .chip--wait    { color: var(--mauve); background: var(--mauve-dim); }
-  .chip--wait::before    { background: var(--mauve); }
-
-  /* ── Callout ──────────────────────────────────────────────── */
-
-  .callout {
-    border-inline-start: 3px solid var(--accent);
-    background: var(--surface);
-    border-block: 1px solid var(--line);
-    border-inline-end: 1px solid var(--line);
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    max-width: var(--measure);
-  }
-
-  .callout--warn { border-inline-start-color: var(--ochre); }
-
-  .callout__title {
-    font-family: var(--display);
-    font-weight: 600;
-    font-size: 1rem;
-    margin: 0;
-  }
-
-  .callout p {
-    margin: 0;
-    color: var(--ink-soft);
-    font-size: 0.9375rem;
-  }
-
-  /* ── Checklist ────────────────────────────────────────────── */
-
-  .checks {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-  }
-
-  .checks li {
-    background: var(--surface);
-    padding: 1rem 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.9375rem;
-  }
-
-  .checks b {
-    font-weight: 600;
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-
-  .checks b::before {
-    content: "✓";
-    color: var(--accent);
-    font-family: var(--mono);
-    font-weight: 600;
-  }
-
-  .checks span {
-    font-size: 0.8125rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  /* ── Footer ───────────────────────────────────────────────── */
-
-  .colophon {
-    border-top: 1px solid var(--line-firm);
-    padding-top: 1.5rem;
-    font-size: 0.8125rem;
-    color: var(--muted);
-    max-width: var(--measure);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  @media (max-width: 34rem) {
-    .rail {
-      grid-template-columns: 1fr 3.5rem;
-      grid-template-areas: "name pct" "bar bar";
-      row-gap: 0.75rem;
-    }
-    .rail__name { grid-area: name; }
-    .rail__pct  { grid-area: pct; }
-    .rail__bar  { grid-area: bar; }
-  }
-</style>
-
-</head>
-<body>
-<div class="shell">
-
-  <header class="masthead">
-    <div class="masthead__eyebrow">HAY-ZAK · تقرير حالة</div>
-    <h1 class="masthead__title">أين وصل ربط الواجهة بالـ API</h1>
-    <p class="masthead__standfirst">
-      قياس اكتمال الربط مع الخادم الحقيقي — وليس مع البيانات التجريبية. رحلة المستأجر
-      كاملة، ورحلة المؤجّر تقريبًا، ولوحة التحكّم لحقت. الباقي محصور في إدارة المحتوى
-      والوثائق القانونية وتتبّع المدفوعات.
-    </p>
-    <div class="masthead__meta">
-      <span>التاريخ: 30 أغسطس 2026</span>
-      <span>الإصدار: 35 دفعة تطوير</span>
-      <span>المصدر: فحص مباشر للخادم اليوم + قراءة الشيفرة</span>
-    </div>
-  </header>
-
-  <section class="figures">
-    <div class="figure">
-      <div class="figure__value">89٪</div>
-      <div class="figure__label">من الشاشات مربوطة</div>
-      <p class="figure__note">
-        ٣٦ شاشة مكتملة و٦ جزئية من أصل ٤٤ شاشة تحتاج الخادم.
-      </p>
-    </div>
-    <div class="figure">
-      <div class="figure__value">74٪</div>
-      <div class="figure__label">من نقاط الاتصال جاهزة</div>
-      <p class="figure__note">
-        ٨١ نقطة تعمل فعليًا، و٢٨ لم تُبنَ بعد في الخلفية.
-      </p>
-    </div>
-    <div class="figure">
-      <div class="figure__value figure__value--quiet">2</div>
-      <div class="figure__label">شاشتان فقط بلا خادم</div>
-      <p class="figure__note">
-        إدارة الوثائق القانونية، وتتبّع المدفوعات. كانتا تسعًا في التقرير السابق.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">ما تغيّر منذ التقرير السابق</h2>
-    </div>
-    <div class="prose">
-      <p>
-        <strong>لوحة التحكّم لحقت.</strong> كانت ٣ شاشات مربوطة من ١٣ وأصبحت ١٠. شُحنت
-        إدارة الحسابات وسجل التدقيق والتقارير وإعدادات المنصة والبيانات المرجعية
-        والمحتوى، وربطناها كلها.
-      </p>
-      <p>
-        <strong>نظام الشكاوى دخل بالكامل.</strong> ثلاث شاشات جديدة — تقديم شكوى،
-        قائمة الشكاوى، والمحادثة — وهي مخرج الطوارئ الوحيد في المنتج: لا يوجد زر إلغاء،
-        ولا استرداد ذاتي، ولا تعديل حجز بعد الدفع.
-      </p>
-      <p>
-        <strong>الإشعارات صارت تُرسل فعلًا.</strong> جرس داخل التطبيق ورسائل نصية،
-        وتحققنا من كل سلوكها على الخادم.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">نسبة الاكتمال لكل رحلة</h2>
-      <p class="section__intro">
-        الشاشة «جزئية» حين تعمل بياناتها الأساسية ويتعطّل جزء ثانوي منها — مثل صفحة
-        تعرض الحجز بالكامل لكن تعذّر عليها عرض سجل تغيّر حالته.
-      </p>
-    </div>
-
-    <div class="legend">
-      <span class="legend__item"><span class="legend__swatch legend__swatch--done"></span> مربوطة بالكامل</span>
-      <span class="legend__item"><span class="legend__swatch legend__swatch--partial"></span> جزئية</span>
-      <span class="legend__item"><span class="legend__swatch legend__swatch--wait"></span> بانتظار الخلفية</span>
-    </div>
-
-    <div class="rails">
-      <div class="rail">
-        <div class="rail__name">المصادقة وإنشاء الحساب<span class="rail__count">٥ شاشات</span></div>
-        <div class="rail__bar"><span class="rail__seg rail__seg--done" style="width:100%"></span></div>
-        <div class="rail__pct">100٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">السوق والبحث<span class="rail__count">٣ شاشات</span></div>
-        <div class="rail__bar"><span class="rail__seg rail__seg--done" style="width:100%"></span></div>
-        <div class="rail__pct">100٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">الحجز والدفع<span class="rail__count">٤ شاشات</span></div>
-        <div class="rail__bar"><span class="rail__seg rail__seg--done" style="width:100%"></span></div>
-        <div class="rail__pct">100٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">الشكاوى<span class="rail__count">٣ شاشات · جديدة</span></div>
-        <div class="rail__bar"><span class="rail__seg rail__seg--done" style="width:100%"></span></div>
-        <div class="rail__pct">100٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">رحلة المؤجّر<span class="rail__count">١٠ شاشات</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--done" style="width:90%"></span>
-          <span class="rail__seg rail__seg--partial" style="width:10%"></span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مؤشر ربط حيزك</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap"
+    />
+
+    <style>
+      :root {
+        --paper: #f4f6f4;
+        --surface: #ffffff;
+        --sunken: #ecefec;
+        --ink: #111f1d;
+        --ink-soft: #3c4a48;
+        --muted: #65706e;
+        --line: #dce2df;
+        --line-firm: #c3cdc9;
+
+        --accent: #0e6e63;
+        --accent-dim: #0e6e6318;
+        --ochre: #a9761f;
+        --ochre-dim: #a9761f1f;
+        --mauve: #7c7186;
+        --mauve-dim: #7c718618;
+
+        --display: 'Noto Kufi Arabic', 'Segoe UI', Tahoma, sans-serif;
+        --body: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+        --measure: 68ch;
+        --shell: 66rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --paper: #0d1513;
+          --surface: #151f1d;
+          --sunken: #101a18;
+          --ink: #e2e9e6;
+          --ink-soft: #b6c2be;
+          --muted: #8b9793;
+          --line: #253331;
+          --line-firm: #354644;
+
+          --accent: #4eb5a6;
+          --accent-dim: #4eb5a622;
+          --ochre: #d2a055;
+          --ochre-dim: #d2a05522;
+          --mauve: #a99bb4;
+          --mauve-dim: #a99bb422;
+        }
+      }
+
+      :root[data-theme='dark'] {
+        --paper: #0d1513;
+        --surface: #151f1d;
+        --sunken: #101a18;
+        --ink: #e2e9e6;
+        --ink-soft: #b6c2be;
+        --muted: #8b9793;
+        --line: #253331;
+        --line-firm: #354644;
+
+        --accent: #4eb5a6;
+        --accent-dim: #4eb5a622;
+        --ochre: #d2a055;
+        --ochre-dim: #d2a05522;
+        --mauve: #a99bb4;
+        --mauve-dim: #a99bb422;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        direction: rtl;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 16px;
+        line-height: 1.75;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .shell {
+        max-width: var(--shell);
+        margin: 0 auto;
+        padding: 3.5rem 1.5rem 6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3.5rem;
+      }
+
+      /* ── Masthead ─────────────────────────────────────────────── */
+
+      .masthead {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding-bottom: 2.25rem;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .masthead__eyebrow {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+
+      .masthead__title {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: clamp(2rem, 5.5vw, 3rem);
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        margin: 0;
+        text-wrap: balance;
+      }
+
+      .masthead__standfirst {
+        max-width: var(--measure);
+        margin: 0;
+        font-size: 1.0625rem;
+        color: var(--ink-soft);
+      }
+
+      .masthead__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.75rem;
+        font-family: var(--mono);
+        font-size: 0.8125rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ── Headline figures ─────────────────────────────────────── */
+
+      .figures {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+
+      .figure {
+        background: var(--surface);
+        padding: 1.75rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
+
+      .figure__value {
+        font-family: var(--mono);
+        font-size: 2.75rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .figure__value--quiet {
+        color: var(--ink);
+      }
+
+      .figure__label {
+        font-weight: 600;
+        font-size: 0.9375rem;
+      }
+
+      .figure__note {
+        font-size: 0.8125rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      /* ── Sections ─────────────────────────────────────────────── */
+
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .section__head {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .section__title {
+        font-family: var(--display);
+        font-weight: 600;
+        font-size: 1.5rem;
+        line-height: 1.4;
+        margin: 0;
+        padding-bottom: 0.625rem;
+        border-bottom: 1px solid var(--line-firm);
+        text-wrap: balance;
+      }
+
+      .section__intro {
+        max-width: var(--measure);
+        margin: 0;
+        color: var(--ink-soft);
+      }
+
+      .prose {
+        max-width: var(--measure);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .prose p {
+        margin: 0;
+      }
+
+      strong {
+        font-weight: 600;
+      }
+
+      em {
+        font-style: normal;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      code {
+        font-family: var(--mono);
+        font-size: 0.875em;
+        background: var(--sunken);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 0.05em 0.35em;
+        direction: ltr;
+        unicode-bidi: embed;
+        display: inline-block;
+      }
+
+      /* ── Completion rails ─────────────────────────────────────── */
+
+      .rails {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .rail {
+        display: grid;
+        grid-template-columns: minmax(9rem, 1.4fr) minmax(7rem, 2fr) 4.5rem;
+        align-items: center;
+        gap: 1rem 1.25rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .rail:last-child {
+        border-bottom: 0;
+      }
+
+      .rail--total {
+        background: var(--sunken);
+        border-top: 2px solid var(--ink);
+        border-bottom: 0;
+      }
+
+      .rail__name {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        line-height: 1.4;
+      }
+
+      .rail__count {
+        display: block;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .rail__bar {
+        display: flex;
+        height: 0.75rem;
+        background: var(--sunken);
+        overflow: hidden;
+      }
+
+      .rail--total .rail__bar {
+        background: var(--paper);
+      }
+
+      .rail__seg {
+        height: 100%;
+      }
+      .rail__seg--done {
+        background: var(--accent);
+      }
+      .rail__seg--partial {
+        background: var(--ochre);
+      }
+      .rail__seg--wait {
+        background: var(--mauve);
+        opacity: 0.5;
+      }
+
+      .rail__pct {
+        font-family: var(--mono);
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink);
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.5rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+
+      .legend__item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .legend__swatch {
+        width: 0.875rem;
+        height: 0.875rem;
+        flex: none;
+      }
+
+      .legend__swatch--done {
+        background: var(--accent);
+      }
+      .legend__swatch--partial {
+        background: var(--ochre);
+      }
+      .legend__swatch--wait {
+        background: var(--mauve);
+        opacity: 0.5;
+      }
+
+      /* ── Tables ───────────────────────────────────────────────── */
+
+      .scroller {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+        min-width: 34rem;
+      }
+
+      thead th {
+        text-align: right;
+        font-family: var(--body);
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        padding: 0.875rem 1.25rem;
+        border-bottom: 1px solid var(--line-firm);
+        background: var(--sunken);
+        white-space: nowrap;
+      }
+
+      tbody td {
+        padding: 0.875rem 1.25rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+        line-height: 1.6;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      td.num,
+      th.num {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        text-align: left;
+        white-space: nowrap;
+      }
+
+      .cell__sub {
+        display: block;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      /* ── Status chips ─────────────────────────────────────────── */
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.15rem 0.6rem;
+        border-radius: 2px;
+        white-space: nowrap;
+      }
+
+      .chip::before {
+        content: '';
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        flex: none;
+      }
+
+      .chip--done {
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+      .chip--done::before {
+        background: var(--accent);
+      }
+      .chip--partial {
+        color: var(--ochre);
+        background: var(--ochre-dim);
+      }
+      .chip--partial::before {
+        background: var(--ochre);
+      }
+      .chip--wait {
+        color: var(--mauve);
+        background: var(--mauve-dim);
+      }
+      .chip--wait::before {
+        background: var(--mauve);
+      }
+
+      /* ── Callout ──────────────────────────────────────────────── */
+
+      .callout {
+        border-inline-start: 3px solid var(--accent);
+        background: var(--surface);
+        border-block: 1px solid var(--line);
+        border-inline-end: 1px solid var(--line);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        max-width: var(--measure);
+      }
+
+      .callout--warn {
+        border-inline-start-color: var(--ochre);
+      }
+
+      .callout__title {
+        font-family: var(--display);
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+      }
+
+      .callout p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 0.9375rem;
+      }
+
+      /* ── Checklist ────────────────────────────────────────────── */
+
+      .checks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+
+      .checks li {
+        background: var(--surface);
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.9375rem;
+      }
+
+      .checks b {
+        font-weight: 600;
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+      }
+
+      .checks b::before {
+        content: '✓';
+        color: var(--accent);
+        font-family: var(--mono);
+        font-weight: 600;
+      }
+
+      .checks span {
+        font-size: 0.8125rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      /* ── Footer ───────────────────────────────────────────────── */
+
+      .colophon {
+        border-top: 1px solid var(--line-firm);
+        padding-top: 1.5rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+        max-width: var(--measure);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      @media (max-width: 34rem) {
+        .rail {
+          grid-template-columns: 1fr 3.5rem;
+          grid-template-areas: 'name pct' 'bar bar';
+          row-gap: 0.75rem;
+        }
+        .rail__name {
+          grid-area: name;
+        }
+        .rail__pct {
+          grid-area: pct;
+        }
+        .rail__bar {
+          grid-area: bar;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <div class="masthead__eyebrow">HAY-ZAK · تقرير حالة</div>
+        <h1 class="masthead__title">أين وصل ربط الواجهة بالـ API</h1>
+        <p class="masthead__standfirst">
+          قياس اكتمال الربط مع الخادم الحقيقي — وليس مع البيانات التجريبية. رحلة المستأجر كاملة،
+          ورحلة المؤجّر تقريبًا، ولوحة التحكّم لحقت. الباقي محصور في إدارة المحتوى والوثائق
+          القانونية وتتبّع المدفوعات.
+        </p>
+        <div class="masthead__meta">
+          <span>التاريخ: 30 أغسطس 2026 — تحديث مسائي</span>
+          <span>الإصدار: 40 دفعة تطوير</span>
+          <span>المصدر: دليل التكامل الرسمي + فحص مباشر للخادم + قراءة الشيفرة</span>
         </div>
-        <div class="rail__pct">95٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">حجوزاتي والفواتير<span class="rail__count">٣ شاشات</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--done" style="width:67%"></span>
-          <span class="rail__seg rail__seg--partial" style="width:33%"></span>
+      </header>
+
+      <section class="figures">
+        <div class="figure">
+          <div class="figure__value">96٪</div>
+          <div class="figure__label">من نقاط الاتصال مربوطة</div>
+          <p class="figure__note">
+            ٩٧ نقطة من أصل ١٠١ في دليل التكامل الرسمي. الأربعة الباقية محسوبة أدناه بالاسم.
+          </p>
         </div>
-        <div class="rail__pct">83٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">لوحة تحكّم الإدارة<span class="rail__count">١٣ شاشة</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--done" style="width:69%"></span>
-          <span class="rail__seg rail__seg--partial" style="width:16%"></span>
-          <span class="rail__seg rail__seg--wait" style="width:15%"></span>
+        <div class="figure">
+          <div class="figure__value">95٪</div>
+          <div class="figure__label">من الشاشات مربوطة</div>
+          <p class="figure__note">٤٢ شاشة مكتملة من أصل ٤٤. تبقّت أربع شاشات جديدة لم تُبنَ بعد.</p>
         </div>
-        <div class="rail__pct">77٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">حساب المستأجر<span class="rail__count">شاشتان</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--done" style="width:50%"></span>
-          <span class="rail__seg rail__seg--partial" style="width:50%"></span>
+        <div class="figure">
+          <div class="figure__value figure__value--quiet">0</div>
+          <div class="figure__label">شاشات بانتظار الخلفية</div>
+          <p class="figure__note">
+            كانت تسعًا، ثم اثنتين. الخلفية لم تعد تعطّل أي شاشة — ما تبقّى عمل عندنا وقرارات محتوى
+            عند العميل.
+          </p>
         </div>
-        <div class="rail__pct">75٪</div>
-      </div>
-      <div class="rail">
-        <div class="rail__name">صفحات المحتوى<span class="rail__count">شاشة واحدة</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--partial" style="width:100%"></span>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">ما تغيّر منذ التقرير السابق</h2>
         </div>
-        <div class="rail__pct">50٪</div>
-      </div>
-      <div class="rail rail--total">
-        <div class="rail__name">الإجمالي<span class="rail__count">٤٤ شاشة تحتاج الخادم</span></div>
-        <div class="rail__bar">
-          <span class="rail__seg rail__seg--done" style="width:82%"></span>
-          <span class="rail__seg rail__seg--partial" style="width:14%"></span>
-          <span class="rail__seg rail__seg--wait" style="width:4%"></span>
+        <div class="prose">
+          <p>
+            <strong>وصل دليل التكامل الرسمي، وهو أول مستند بُني منه بلا تخمين.</strong>
+            قارنّا كل نقطة فيه بالخادم الحيّ قبل تعديل أي سطر — وهو ما كشف ثلاثة تناقضات بين الدليل
+            والخادم الذي يوثّقه، وردّت إلى الخلفية.
+          </p>
+          <p>
+            <strong>التحقق بخطوتين كان يعمل على الخادم منذ مدّة، وبلا شاشة واحدة عندنا.</strong>
+            اكتُشف بمسحٍ للمسارات لا بتسليم، وبُني بالكامل: شاشة تسجيل، خطوة الرمز عند الدخول،
+            ومعالجة الحساب الإداري غير المسجَّل. وأُصلح عطبٌ في شاشة دخول الإدارة كان يوجّه كل دخول
+            ناجح إلى شاشة رمز لا تطلبها الواجهة البرمجية أصلًا — أي أن كلمة مرور صحيحة كانت تنتهي
+            عند شاشة يستحيل تجاوزها.
+          </p>
+          <p>
+            <strong>وأُغلقت أربعة أبواب أخرى:</strong> تأكيد البريد الإلكتروني، ورفع تجميد التحويل
+            من داخل الشكوى، وإيقاف الإعلان المنشور وإعادته، وعرض المبالغ المستردة فعليًا على القضية
+            بدل استنتاجها من نوع الحل.
+          </p>
+          <p>
+            <strong>الخلفية لم تعد تعطّل شيئًا.</strong> في التقرير السابق كانت ٢٨ نقطة اتصال غير
+            مشحونة؛ اليوم صفر. ما تبقّى — أربع شاشات — عملٌ عندنا، وقد صار قابلًا للجدولة بدقّة لأن
+            كل ما تحتاجه جاهز على الخادم.
+          </p>
         </div>
-        <div class="rail__pct">89٪</div>
-      </div>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">نسبة الاكتمال لكل رحلة</h2>
+          <p class="section__intro">
+            الشاشة «جزئية» حين تعمل بياناتها الأساسية ويتعطّل جزء ثانوي منها — مثل صفحة تعرض الحجز
+            بالكامل لكن تعذّر عليها عرض سجل تغيّر حالته.
+          </p>
+        </div>
+
+        <div class="legend">
+          <span class="legend__item"
+            ><span class="legend__swatch legend__swatch--done"></span> مربوطة بالكامل</span
+          >
+          <span class="legend__item"
+            ><span class="legend__swatch legend__swatch--partial"></span> جزئية</span
+          >
+          <span class="legend__item"
+            ><span class="legend__swatch legend__swatch--wait"></span> بانتظار الخلفية</span
+          >
+        </div>
+
+        <div class="rails">
+          <div class="rail">
+            <div class="rail__name">
+              المصادقة وإنشاء الحساب<span class="rail__count">٥ شاشات</span>
+            </div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">السوق والبحث<span class="rail__count">٣ شاشات</span></div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">الحجز والدفع<span class="rail__count">٤ شاشات</span></div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">الشكاوى<span class="rail__count">٣ شاشات · جديدة</span></div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">رحلة المؤجّر<span class="rail__count">١٠ شاشات</span></div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 90%"></span>
+              <span class="rail__seg rail__seg--partial" style="width: 10%"></span>
+            </div>
+            <div class="rail__pct">95٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">
+              حجوزاتي والفواتير<span class="rail__count">٤ شاشات · واحدة جديدة</span>
+            </div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 75%"></span>
+              <span class="rail__seg rail__seg--wait" style="width: 25%"></span>
+            </div>
+            <div class="rail__pct">75٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">
+              لوحة تحكّم الإدارة<span class="rail__count">١٥ شاشة · اثنتان جديدتان</span>
+            </div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 87%"></span>
+              <span class="rail__seg rail__seg--wait" style="width: 13%"></span>
+            </div>
+            <div class="rail__pct">87٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">
+              حساب المستأجر والأمان<span class="rail__count">٣ شاشات · واحدة جديدة</span>
+            </div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪</div>
+          </div>
+          <div class="rail">
+            <div class="rail__name">صفحات المحتوى<span class="rail__count">شاشة واحدة</span></div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 100%"></span>
+            </div>
+            <div class="rail__pct">100٪<span class="rail__count">المحتوى نفسه فارغ</span></div>
+          </div>
+          <div class="rail rail--total">
+            <div class="rail__name">
+              الإجمالي<span class="rail__count">٤٨ شاشة تحتاج الخادم</span>
+            </div>
+            <div class="rail__bar">
+              <span class="rail__seg rail__seg--done" style="width: 92%"></span>
+              <span class="rail__seg rail__seg--wait" style="width: 8%"></span>
+            </div>
+            <div class="rail__pct">92٪</div>
+          </div>
+        </div>
+
+        <p class="section__intro">
+          إلى جانب هذه، أربع شاشات لا تحتاج الخادم أصلاً (اختيار نوع الحساب، مكتبة المكوّنات، صفحة
+          «غير مصرّح»، صفحة «غير موجود») — استُثنيت من الحساب حتى لا ترفع النسبة بلا سبب.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">ما الذي يتبقّى بالضبط</h2>
+          <p class="section__intro">
+            انقلب اتجاه الفجوة. في التقرير السابق كانت ٢٨ نقطة اتصال غير مشحونة في الخلفية؛ اليوم
+            صفر. ما تبقّى أربع شاشات لم تُبنَ بعد عندنا، وكل ما تحتاجه جاهز على الخادم — أي أنها
+            قابلة للجدولة بدقّة لا للتقدير.
+          </p>
+        </div>
+
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>الشاشة الناقصة</th>
+                <th class="num">النقاط</th>
+                <th>لماذا تهم</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>سجلّ فواتيري</strong
+                  ><span class="cell__sub"><code>/me/invoices</code></span>
+                </td>
+                <td class="num">2</td>
+                <td>
+                  كل حجز يُصدر وثيقتين لطرفين مختلفين. اليوم تُقرأ فاتورة الحجز الواحد فقط، ولا توجد
+                  شاشة تعرض للمستخدم كل وثائقه الضريبية مجتمعة.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>سجلّ الفواتير في الكونسول</strong
+                  ><span class="cell__sub"><code>/admin/invoices</code></span>
+                </td>
+                <td class="num">1</td>
+                <td>
+                  الوثائق مرقّمة تسلسليًا بلا فجوات — وهو مطلب زكاتي. لا توجد اليوم شاشة تُثبت ذلك
+                  أو تُصدّر السجل لفترة.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>إنشاء حساب إداري وتغيير دوره</strong
+                  ><span class="cell__sub"><code>/admin/users/admins</code></span>
+                </td>
+                <td class="num">2</td>
+                <td>
+                  يُنشأ الحساب بلا كلمة مرور ويدخل صاحبه عبر «نسيت كلمة المرور». اليوم تُدار
+                  الحسابات الإدارية من قاعدة البيانات مباشرة.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>إعادة ترتيب صور الإعلان</strong
+                  ><span class="cell__sub"><code>…/images/order</code></span>
+                </td>
+                <td class="num">1</td>
+                <td>
+                  الصورة الأولى هي صورة الغلاف. المؤجّر يرفع ويحذف لكنه لا يستطيع اختيار أيّها
+                  تتصدّر إعلانه.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <h3 class="callout__title">الاستنتاج التخطيطي</h3>
+          <p>
+            لا يوجد بند واحد منها يعطّل رحلة كاملة، ولا واحد منها ينتظر أحدًا. أثقلها تجاريًا
+            <strong>سجلّ الفواتير في الكونسول</strong> لارتباطه بمتطلب زكاتي، وأسرعها أثرًا
+            <strong>إعادة ترتيب الصور</strong> لأن المؤجّر اليوم لا يتحكّم في صورة غلاف إعلانه.
+          </p>
+          <p>
+            وهناك قرار واحد عند العميل لا يستطيع الفريق اتخاذه:
+            <strong>مكتبة رمز الاستجابة السريعة (QR)</strong> لتسجيل التحقق بخطوتين. المشروع لا يحمل
+            أي اعتمادية خارجية اليوم، وإضافة واحدة قرار معماري. البديل المشحون حاليًا — عرض المفتاح
+            مكتوبًا ورابط يفتح تطبيق المصادقة مباشرة — يعمل على الهاتف أفضل من الرمز، ويعمل على سطح
+            المكتب بدرجة أقل راحة.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">ما تم التحقق منه على الخادم فعليًا</h2>
+          <p class="section__intro">
+            ليس «الكود يجمّع بنجاح» — هذه نتائج طلبات حقيقية أُجريت اليوم على الخادم المشترك.
+          </p>
+        </div>
+
+        <ul class="checks">
+          <li>
+            <b>دورة دفع كاملة</b>
+            <span>من إنشاء الحجز إلى تأكيده وإصدار فاتورته، عبر بوابة الدفع التجريبية.</span>
+          </li>
+          <li>
+            <b>بطاقة مرفوضة</b>
+            <span
+              >الحجز يبقى محجوزًا والمهلة سارية، وإعادة المحاولة تعيد نفس عملية الدفع لا عملية
+              ثانية.</span
+            >
+          </li>
+          <li>
+            <b>الملاحظات الداخلية لا تتسرّب</b>
+            <span>كتبنا ملاحظة إدارية على شكوى وتحققنا أنها لا تصل لشاشة صاحب الشكوى إطلاقًا.</span>
+          </li>
+          <li>
+            <b>الاسترداد صلاحية أضيق</b>
+            <span
+              >المشرف التشغيلي يُرفض عند محاولة الاسترداد (403) ويمرّ عند إغلاق الشكوى بقرار
+              آخر.</span
+            >
+          </li>
+          <li>
+            <b>فصل صلاحيات الإدارة</b>
+            <span
+              >الموظّف المالي مرفوض من طابور الشكاوى، والتشغيلي مرفوض من المستحقّات — والرفض من
+              الخادم.</span
+            >
+          </li>
+          <li>
+            <b>الشكوى المكرّرة</b>
+            <span
+              >محاولة ثانية على نفس الحجز ترجع رقم الشكوى القائمة، فالشاشة تعرض رابطًا لها لا رسالة
+              خطأ.</span
+            >
+          </li>
+          <li>
+            <b>استرداد فعلي</b>
+            <span
+              >أصدرنا استردادًا جزئيًا حقيقيًا على حجز اختبار لنقرأ شكل سجلّه بدل افتراضه — وأُبلغت
+              الخلفية بالحجز ليُعكَس.</span
+            >
+          </li>
+          <li>
+            <b>قائمة حلول الشكاوى</b>
+            <span
+              >جُرّبت القيم التسع على شكوى محسومة سلفًا: ستٌّ يعرفها الخادم وثلاثٌ يسمّيها الدليل
+              ولا وجود لها.</span
+            >
+          </li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">ماذا كشف الفحص</h2>
+          <p class="section__intro">
+            السلوك الأمني كله كان مطابقًا للموثّق في كل جولة. أشكال البيانات لم تكن كذلك.
+          </p>
+        </div>
+        <div class="prose">
+          <p>
+            <strong>الجولة الأولى: عشرة اختلافات</strong> بين الوصف والخادم، صُحّحت كلها. أخطرها أن
+            الرد على إرسال رسالة في شكوى كان يعيد الرسالة وحدها لا الشكوى — وهو ما كان سيُعطِّل أول
+            ردّ يكتبه أي مستخدم، على شاشته وعلى شاشة الإدارة.
+          </p>
+          <p>
+            <strong>الجولة الثانية: ثلاثة تناقضات داخل دليل التكامل نفسه.</strong> أهمها أن الدليل
+            يسمّي ثلاثة «حلول» للشكوى لا يعرفها الخادم. تحقّقنا منها بطريقة لا تُغيّر شيئًا: تجربة
+            كل قيمة على شكوى محسومة سلفًا — القيمة الصحيحة تُرفض بأنها «محسومة»، والخاطئة تُرفض
+            بأنها «غير معروفة».
+          </p>
+          <p>
+            <strong>وعطبٌ كان عندنا، لا عندهم:</strong> كنّا نقرأ تاريخ إرسال الإعلان للمراجعة من
+            حقل «آخر تعديل». أي تعديل على إعلان في الطابور كان يُصفِّر مهلته في صمت — والطابور لا
+            يُظهر تأخّرًا أبدًا. عطبٌ لا يُكتشف إلا بعد شكوى مؤجّر.
+          </p>
+          <p>
+            هذا هو الفارق بين «الكود مكتوب» و«الكود مُختبر»، وهو سبب عدم اعتماد أي شاشة نهائيًا قبل
+            تشغيلها على خادم حقيقي. القوائم كاملة وموثّقة ومُرسلة لفريق الخلفية.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">بنود يجب إغلاقها قبل الإطلاق</h2>
+          <p class="section__intro">
+            مرتّبة بحسب ما يحدث إن لم تُغلق. جميعها مسجّلة ومُبلَّغة لفريق الخلفية.
+          </p>
+        </div>
+
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>البند</th>
+                <th>الأثر إن لم يُغلق</th>
+                <th>المسؤول</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>ضبط نطاق المنصة في إعدادات الخادم</strong
+                  ><span class="cell__sub">متغيّر <code>WEB_URL</code></span>
+                </td>
+                <td>
+                  <strong>كل عملية دفع تُرفض.</strong> ليس تدهورًا في الأداء — توقّف كامل لمسار
+                  الدفع.
+                </td>
+                <td>الخلفية / التشغيل</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>نصّ الشروط والأحكام لم يُكتب</strong
+                  ><span class="cell__sub">المسار مربوط والنصّ مؤقّت</span>
+                </td>
+                <td>
+                  الشاشة تقرأ اليوم من المصدر الصحيح، والذي يرجع منه حرفيًا: «هذه نسخة مبدئية لأغراض
+                  التطوير فقط وليست نصاً قانونياً». <strong>هذا ما يقرأه الزائر.</strong>
+                  لا أحد في الفريقين يستطيع إغلاق هذا البند.
+                </td>
+                <td>المستشار القانوني</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>لا توجد صورة واحدة على المنصّة</strong
+                  ><span class="cell__sub">٢١٨ إعلانًا</span>
+                </td>
+                <td>
+                  كل من يستعرض المنتج اليوم يرى مربّعات فارغة. ليس عطبًا في الواجهة ولا في الخادم —
+                  البيانات التجريبية بلا صور. عشر صور تكفي لتغيير الانطباع الأول.
+                </td>
+                <td>الخلفية / البيانات</td>
+              </tr>
+              <tr>
+                <td><strong>رموز استرداد التحقق بخطوتين طريق مسدود</strong></td>
+                <td>
+                  لا مسار يُعيد توليدها، والعدّاد ينقص فقط. من ينفد رصيده ويفقد هاتفه يُغلق حسابه
+                  بلا طريق رجوع داخل المنتج. <strong>أخطر فجوة في التسليم.</strong>
+                </td>
+                <td>الخلفية</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>رمز هيئة الزكاة غير مولَّد</strong
+                  ><span class="cell__sub">حتى يُضبط الرقم الضريبي</span>
+                </td>
+                <td>
+                  الفواتير تُصدر وتُرقَّم، لكنها بلا رمز — والفاتورة غير مكتملة نظاميًا دونه.
+                  الواجهة تعرضه فور وصوله ولا تعامل غيابه كعطب.
+                </td>
+                <td>الخلفية / التشغيل</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>محتوى الصفحات الست لم يُكتب</strong
+                  ><span class="cell__sub">موجودة وغير منشورة</span>
+                </td>
+                <td>
+                  صفحات «من نحن» و«كيف تعمل المنصة» وغيرها تعرض نصًّا مؤقتًا حتى تُكتب وتُنشر.
+                </td>
+                <td>المحتوى</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>ازدواج <code>/account/*</code> و<code>/me/*</code></strong>
+                </td>
+                <td>مساران لنفس البيانات؛ يحتاج قرارًا قبل أن يُبنى عليهما المزيد.</td>
+                <td>قرار مشترك</td>
+              </tr>
+              <tr>
+                <td><strong>مواعيد الزيارة: نافذة واحدة أم لكل يوم؟</strong></td>
+                <td>
+                  النموذج الآن نافذة واحدة «يوميًا» — صادق مع ما يُخزَّن. القرار يحدّد هل نعود
+                  للجدول.
+                </td>
+                <td>العميل</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">مؤشّرات جودة الواجهة</h2>
+        </div>
+
+        <section class="figures">
+          <div class="figure">
+            <div class="figure__value">363</div>
+            <div class="figure__label">اختبار ناجح</div>
+            <p class="figure__note">
+              صفر إخفاق. منها اختبارات تُثبت أن إيقاف التحقق بخطوتين يرفض كلمة المرور وحدها والرمز
+              وحده، وأن رموز الاسترداد تُعرض في اللحظة الوحيدة التي توجد فيها.
+            </p>
+          </div>
+          <div class="figure">
+            <div class="figure__value">0</div>
+            <div class="figure__label">تحذير في الفحص</div>
+            <p class="figure__note">البناء ومدقّق الأسلوب ومنسّق الشيفرة — ثلاثتها نظيفة.</p>
+          </div>
+          <div class="figure">
+            <div class="figure__value">34k</div>
+            <div class="figure__label">سطر شيفرة</div>
+            <p class="figure__note">٥١ شاشة و٣٣ مكوّنًا مشتركًا وقاعدة تصميم موحّدة.</p>
+          </div>
+        </section>
+
+        <div class="callout callout--warn">
+          <h3 class="callout__title">ملاحظة على البيانات التجريبية</h3>
+          <p>
+            الواجهة تعمل افتراضيًا على الخادم الحقيقي. البيانات التجريبية لم تُحذف عمدًا: هي ما تعمل
+            عليه الاختبارات دون الاعتماد على جهاز على الشبكة، وهي مصمَّمة لتُطابق شكل الخادم لا
+            لتُسهّل العرض — التحقق بخطوتين فيها <em>مطفأ</em> مثلًا، لأن تلك هي الحالة التي يجب أن
+            تُرسم أولًا. لا تُستخدم في أي بناء موجّه للإنتاج.
+          </p>
+        </div>
+      </section>
+
+      <footer class="colophon">
+        <p>
+          نسبة نقاط الاتصال محسوبة على <strong>جرد دليل التكامل الرسمي نفسه</strong> — ١٠١ نقطة،
+          قُورنت واحدة واحدة بالشيفرة. النسب على الشاشات محسوبة على ٤٨ شاشة تحتاج الخادم من أصل ٥١.
+        </p>
+        <p>
+          كل ما ورد تحت «ما تم التحقق منه» و«ماذا كشف الفحص» نتيجة طلبات فعلية على الخادم بتاريخ ٣٠
+          أغسطس. نِسَب الاكتمال مستخرجة من قراءة الشيفرة.
+        </p>
+      </footer>
     </div>
-
-    <p class="section__intro">
-      إلى جانب هذه، أربع شاشات لا تحتاج الخادم أصلاً (اختيار نوع الحساب، مكتبة المكوّنات،
-      صفحة «غير مصرّح»، صفحة «غير موجود») — استُثنيت من الحساب حتى لا ترفع النسبة بلا سبب.
-    </p>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">ما الذي يتبقّى بالضبط</h2>
-      <p class="section__intro">
-        ٢٨ نقطة اتصال تشير إليها شاشات جاهزة ولم تُشحن بعد — كانت ٥٣ في التقرير السابق.
-      </p>
-    </div>
-
-    <div class="scroller">
-      <table>
-        <thead>
-          <tr>
-            <th>الوحدة المطلوبة من الخلفية</th>
-            <th class="num">النقاط</th>
-            <th>ما تفتحه</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>الوثائق القانونية وإصداراتها</strong><span class="cell__sub">الشروط، الموافقات، نموذج التواصل</span></td>
-            <td class="num">7</td>
-            <td>شاشة «الشروط والأحكام» في الكونسول، ونموذج التواصل العام.</td>
-          </tr>
-          <tr>
-            <td><strong>تتبّع المدفوعات والاسترداد</strong></td>
-            <td class="num">4</td>
-            <td>شاشة تتبّع المدفوعات، ومطالبة المؤجّر ببياناته البنكية.</td>
-          </tr>
-          <tr>
-            <td><strong>حساب المستأجر</strong><span class="cell__sub">يحتاج قرارًا: <code>/account/*</code> أم <code>/me/*</code></span></td>
-            <td class="num">4</td>
-            <td>تفضيلات الإشعارات وحذف الحساب.</td>
-          </tr>
-          <tr>
-            <td><strong>التحقق من الهوية وتأكيد البريد</strong><span class="cell__sub">نفاذ، تغيير كلمة المرور</span></td>
-            <td class="num">4</td>
-            <td>توثيق هوية المستأجر ذاتيًا (الاعتماد اليدوي من الكونسول يعمل).</td>
-          </tr>
-          <tr>
-            <td><strong>أرباح المؤجّر التفصيلية</strong><span class="cell__sub">وطلب الإيقاف المؤقت</span></td>
-            <td class="num">4</td>
-            <td>جدول المستحقّات لكل حجز، وكشف الحساب.</td>
-          </tr>
-          <tr>
-            <td><strong>مؤشّرات لوحة الإدارة</strong><span class="cell__sub">وتفاصيل المراجعة</span></td>
-            <td class="num">3</td>
-            <td>أرقام الأداء أعلى لوحة الكونسول.</td>
-          </tr>
-          <tr>
-            <td><strong>سجل الحجز وعقده</strong></td>
-            <td class="num">2</td>
-            <td>القسم الناقص في صفحة تفاصيل الحجز.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout">
-      <h3 class="callout__title">الاستنتاج التخطيطي</h3>
-      <p>
-        لم يعد هناك تكتّل كبير. أكبر بند متبقٍّ سبع نقاط، ولا توجد وحدة واحدة تعطّل رحلة
-        كاملة. الأولوية الوحيدة ذات الأثر التجاري هي <strong>الوثائق القانونية</strong> —
-        الشروط والأحكام مطلوبة نظاميًا قبل الإطلاق، وتُعرض الآن من نسخة مضمّنة في التطبيق.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">ما تم التحقق منه على الخادم فعليًا</h2>
-      <p class="section__intro">
-        ليس «الكود يجمّع بنجاح» — هذه نتائج طلبات حقيقية أُجريت اليوم على الخادم المشترك.
-      </p>
-    </div>
-
-    <ul class="checks">
-      <li>
-        <b>دورة دفع كاملة</b>
-        <span>من إنشاء الحجز إلى تأكيده وإصدار فاتورته، عبر بوابة الدفع التجريبية.</span>
-      </li>
-      <li>
-        <b>بطاقة مرفوضة</b>
-        <span>الحجز يبقى محجوزًا والمهلة سارية، وإعادة المحاولة تعيد نفس عملية الدفع لا عملية ثانية.</span>
-      </li>
-      <li>
-        <b>الملاحظات الداخلية لا تتسرّب</b>
-        <span>كتبنا ملاحظة إدارية على شكوى وتحققنا أنها لا تصل لشاشة صاحب الشكوى إطلاقًا.</span>
-      </li>
-      <li>
-        <b>الاسترداد صلاحية أضيق</b>
-        <span>المشرف التشغيلي يُرفض عند محاولة الاسترداد (403) ويمرّ عند إغلاق الشكوى بقرار آخر.</span>
-      </li>
-      <li>
-        <b>فصل صلاحيات الإدارة</b>
-        <span>الموظّف المالي مرفوض من طابور الشكاوى، والتشغيلي مرفوض من المستحقّات — والرفض من الخادم.</span>
-      </li>
-      <li>
-        <b>الشكوى المكرّرة</b>
-        <span>محاولة ثانية على نفس الحجز ترجع رقم الشكوى القائمة، فالشاشة تعرض رابطًا لها لا رسالة خطأ.</span>
-      </li>
-    </ul>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">ماذا كشف الفحص</h2>
-      <p class="section__intro">
-        السلوك الأمني كله كان مطابقًا للموثّق. أشكال البيانات لم تكن كذلك.
-      </p>
-    </div>
-    <div class="prose">
-      <p>
-        <strong>عشرة اختلافات</strong> بين ما وصفه فريق الخلفية وما يرسله الخادم فعلًا،
-        صُحّحت كلها اليوم. أخطرها أن الرد على إرسال رسالة في شكوى يعيد الرسالة وحدها لا
-        الشكوى — وهو ما كان سيُعطِّل أول ردّ يكتبه أي مستخدم، على شاشته وعلى شاشة الإدارة.
-      </p>
-      <p>
-        هذا هو الفارق بين «الكود مكتوب» و«الكود مُختبر»، وهو سبب عدم اعتماد أي شاشة
-        نهائيًا قبل تشغيلها على خادم حقيقي. القائمة الكاملة موثّقة ومُرسلة لفريق الخلفية.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">بنود يجب إغلاقها قبل الإطلاق</h2>
-      <p class="section__intro">
-        مرتّبة بحسب ما يحدث إن لم تُغلق. جميعها مسجّلة ومُبلَّغة لفريق الخلفية.
-      </p>
-    </div>
-
-    <div class="scroller">
-      <table>
-        <thead>
-          <tr>
-            <th>البند</th>
-            <th>الأثر إن لم يُغلق</th>
-            <th>المسؤول</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>ضبط نطاق المنصة في إعدادات الخادم</strong><span class="cell__sub">متغيّر <code>WEB_URL</code></span></td>
-            <td><strong>كل عملية دفع تُرفض.</strong> ليس تدهورًا في الأداء — توقّف كامل لمسار الدفع.</td>
-            <td>الخلفية / التشغيل</td>
-          </tr>
-          <tr>
-            <td><strong>الشروط والأحكام غير مُدارة</strong><span class="cell__sub">نظام المحتوى مشحون لكنه فارغ</span></td>
-            <td>الوثيقة النظامية تُعرض من نسخة داخل التطبيق، ولا يمكن لأحد تعديلها دون إصدار جديد.</td>
-            <td>الخلفية + المحتوى</td>
-          </tr>
-          <tr>
-            <td><strong>٥٤ مساحة منشورة بلا صور ولا موقع</strong></td>
-            <td>نتائج بحث فارغة بصريًا. تشير إلى ثغرة: النشر لا يفحص ما يفحصه الإرسال للمراجعة.</td>
-            <td>الخلفية / البيانات</td>
-          </tr>
-          <tr>
-            <td><strong>لا يوجد ملف PDF للفاتورة</strong><span class="cell__sub">ورمز هيئة الزكاة غير مولَّد</span></td>
-            <td>لا مستند دائم يُحفَظ أو يُرسَل، والفاتورة غير مكتملة نظاميًا.</td>
-            <td>الخلفية</td>
-          </tr>
-          <tr>
-            <td><strong>ازدواج <code>/account/*</code> و<code>/me/*</code></strong></td>
-            <td>مساران لنفس البيانات؛ يحتاج قرارًا قبل أن يُبنى عليهما المزيد.</td>
-            <td>قرار مشترك</td>
-          </tr>
-          <tr>
-            <td><strong>مواعيد الزيارة: نافذة واحدة أم لكل يوم؟</strong></td>
-            <td>النموذج الآن نافذة واحدة «يوميًا» — صادق مع ما يُخزَّن. القرار يحدّد هل نعود للجدول.</td>
-            <td>العميل</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head">
-      <h2 class="section__title">مؤشّرات جودة الواجهة</h2>
-    </div>
-
-    <section class="figures">
-      <div class="figure">
-        <div class="figure__value">333</div>
-        <div class="figure__label">اختبار ناجح</div>
-        <p class="figure__note">صفر إخفاق، تشمل اختبارات تحقّق من مسارات التنقّل والصلاحيات.</p>
-      </div>
-      <div class="figure">
-        <div class="figure__value">0</div>
-        <div class="figure__label">تحذير في الفحص</div>
-        <p class="figure__note">البناء ومدقّق الأسلوب ومنسّق الشيفرة — ثلاثتها نظيفة.</p>
-      </div>
-      <div class="figure">
-        <div class="figure__value">31k</div>
-        <div class="figure__label">سطر شيفرة</div>
-        <p class="figure__note">٤٨ شاشة و٣٢ مكوّنًا مشتركًا وقاعدة تصميم موحّدة.</p>
-      </div>
-    </section>
-
-    <div class="callout callout--warn">
-      <h3 class="callout__title">ملاحظة على البيانات التجريبية</h3>
-      <p>
-        الواجهة تعمل افتراضيًا على الخادم الحقيقي. البيانات التجريبية لم تُحذف عمدًا: هي
-        ما يسمح بعرض الشاشتين المتبقيتين قبل شحن نقاطهما، وهي أيضًا ما تعمل عليه
-        الاختبارات دون الاعتماد على جهاز على الشبكة. لا تُستخدم في أي بناء موجّه للإنتاج.
-      </p>
-    </div>
-  </section>
-
-  <footer class="colophon">
-    <p>
-      النسب محسوبة على الشاشات التي تحتاج الخادم فعليًا (٤٤ من ٤٨)، وتُحتسب الشاشة الجزئية
-      بنصف درجة. نسبة نقاط الاتصال محسوبة على ١٠٩ نقاط تستدعيها شاشة قائمة؛ ١٦ اسمًا آخر
-      في الشيفرة موروثة من تصميم سابق ولا يستدعيها شيء.
-    </p>
-    <p>
-      كل ما ورد تحت «ما تم التحقق منه» و«ماذا كشف الفحص» نتيجة طلبات فعلية على الخادم
-      بتاريخ ٣٠ أغسطس. نِسَب الاكتمال مستخرجة من قراءة الشيفرة.
-    </p>
-  </footer>
-
-</div>
-
-</body>
+  </body>
 </html>
