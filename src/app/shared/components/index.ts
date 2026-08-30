@@ -6,6 +6,7 @@ export * from './ui-countdown/ui-countdown';
 export * from './ui-empty-state/ui-empty-state';
 export * from './ui-field/ui-field';
 export * from './ui-filter-chips/ui-filter-chips';
+export * from './ui-hijri-date/ui-hijri-date';
 export * from './ui-icon/ui-icon';
 export * from './ui-location-map/ui-location-map';
 export * from './ui-locked-panel/ui-locked-panel';

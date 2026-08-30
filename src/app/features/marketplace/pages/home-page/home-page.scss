@@ -148,28 +148,6 @@
   font-weight: a.$fw-semibold;
 }
 
-// ── Hijri entry ──────────────────────────────────────────────────────────
-// Three lists where the Gregorian field has one control, sharing its row so
-// the search bar keeps its height whichever calendar is showing.
-.hj {
-  @include a.flex(row, $align: center, $gap: a.$space-6);
-
-  min-width: 0;
-}
-
-.hj__part {
-  flex: none;
-  width: auto;
-  text-align: start;
-  cursor: pointer;
-}
-
-// The one that has to survive "جمادى الآخرة" without pushing the year out.
-.hj__part--month {
-  flex: 1;
-  min-width: 0;
-}
-
 .bar__rule {
   display: none;
 

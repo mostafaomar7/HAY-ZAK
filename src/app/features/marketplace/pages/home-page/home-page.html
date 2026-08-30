@@ -38,7 +38,9 @@
 
       <div class="bar__field bar__field--wide">
         <div class="bar__head">
-          <label class="bar__label" for="h-start">{{ i18n.t('home.startDate') }}</label>
+          <label class="bar__label" [attr.for]="calendar() === 'hijri' ? null : 'h-start'">
+            {{ i18n.t('home.startDate') }}
+          </label>
 
           <!-- Hidden rather than shown-and-broken on a browser with no Umm
                al-Qura table: the toggle would offer a calendar that cannot be
@@ -68,51 +70,16 @@
         </div>
 
         @if (calendar() === 'hijri') {
-          <!-- `<input type="date">` is Gregorian in every browser, so Hijri is
-               entered rather than typed: three lists off the Umm al-Qura table.
-               They write the Gregorian equivalent into the same control, which
-               is the only value the search and the API ever see. -->
-          <div class="hj" role="group" [attr.aria-label]="i18n.t('home.startDate')">
-            <!-- `[selected]` per option rather than `[value]` on the select:
-                 changing the month replaces the option list and the chosen day
-                 in the same pass, and a value set before its option exists does
-                 not stick. -->
-            <select
-              id="h-start"
-              class="bar__control hj__part"
-              [attr.aria-label]="i18n.t('home.hijriDay')"
-              (change)="setHijriDay($any($event.target).value)"
-            >
-              <option value="" [selected]="hijriDay() === null">
-                {{ i18n.t('home.hijriPickDay') }}
-              </option>
-              @for (day of hijriDays(); track day) {
-                <option [value]="day" [selected]="day === hijriDay()">{{ day }}</option>
-              }
-            </select>
-
-            <select
-              class="bar__control hj__part hj__part--month"
-              [attr.aria-label]="i18n.t('home.hijriMonth')"
-              (change)="setHijriMonth($any($event.target).value)"
-            >
-              @for (month of hijriMonths(); track month.value) {
-                <option [value]="month.value" [selected]="month.value === hijriMonth()">
-                  {{ month.label }}
-                </option>
-              }
-            </select>
-
-            <select
-              class="bar__control hj__part num"
-              [attr.aria-label]="i18n.t('home.hijriYear')"
-              (change)="setHijriYear($any($event.target).value)"
-            >
-              @for (year of hijriYears(); track year) {
-                <option [value]="year" [selected]="year === hijriYear()">{{ year }}</option>
-              }
-            </select>
-          </div>
+          <!-- `<input type="date">` is Gregorian in every browser, so Hijri
+               gets its own month grid — one whose months are Hijri months, not
+               Gregorian ones wearing Hijri numerals. It hands back the plain
+               Gregorian date, which is all the search and the API ever see. -->
+          <app-ui-hijri-date
+            [value]="form.controls.startDate.value ?? ''"
+            [min]="minDate"
+            [placeholder]="i18n.t('home.hijriPickDay')"
+            (valueChange)="setHijriDate($event)"
+          />
         } @else {
           <input
             id="h-start"
@@ -123,15 +90,13 @@
           />
         }
 
-        <!-- Whichever calendar is being used, the other one is printed beneath
-             it. Nobody should have to trust a conversion they cannot see. -->
+        <!-- In Gregorian mode the Hijri reading goes underneath; in Hijri mode
+             the picker's own trigger already carries both, so this would say
+             the same thing twice. Nobody should have to trust a conversion they
+             cannot see, and nobody should be told it twice either. -->
         @if (startDateInPast()) {
           <p class="bar__hint bar__hint--bad">{{ i18n.t('home.startInPast') }}</p>
-        } @else if (calendar() === 'hijri' && hijriGregorian()) {
-          <p class="bar__hint num">
-            {{ i18n.t('home.hijriEquals', { date: hijriGregorian() }) }}
-          </p>
-        } @else if (hijriDate()) {
+        } @else if (calendar() === 'gregorian' && hijriDate()) {
           <p class="bar__hint">{{ hijriDate() }}</p>
         }
       </div>

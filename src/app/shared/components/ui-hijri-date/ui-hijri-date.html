@@ -1,0 +1,70 @@
+<div class="hd" (appClickOutside)="close()">
+  <button
+    type="button"
+    class="hd__trigger"
+    [class.hd__trigger--empty]="!value()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-haspopup]="'dialog'"
+    (click)="toggle()"
+  >
+    <span class="hd__value">{{ label() }}</span>
+    @if (subLabel()) {
+      <span class="hd__sub num" dir="ltr">{{ subLabel() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="panel" role="dialog" [attr.aria-label]="i18n.t('calendar.dateLabel')">
+      <div class="panel__head">
+        <!-- Logical arrows: "‹" is the previous month in Arabic and in English
+             alike, because the panel itself flips with the direction. -->
+        <button
+          type="button"
+          class="panel__nav"
+          [disabled]="!canGoBack()"
+          [attr.aria-label]="i18n.t('calendar.prevMonth')"
+          (click)="shiftMonth(-1)"
+        >
+          <span aria-hidden="true">‹</span>
+        </button>
+
+        <span class="panel__title">{{ title() }}</span>
+
+        <button
+          type="button"
+          class="panel__nav"
+          [disabled]="!canGoForward()"
+          [attr.aria-label]="i18n.t('calendar.nextMonth')"
+          (click)="shiftMonth(1)"
+        >
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
+
+      <div class="grid">
+        @for (name of weekdayNames(); track $index) {
+          <span class="grid__weekday" aria-hidden="true">{{ name }}</span>
+        }
+
+        @for (cell of cells(); track $index) {
+          @if (cell) {
+            <button
+              type="button"
+              class="day"
+              [class.day--on]="isSelected(cell)"
+              [class.day--off]="cell.disabled"
+              [disabled]="cell.disabled"
+              [attr.aria-label]="dayLabel(cell)"
+              [attr.aria-pressed]="isSelected(cell)"
+              (click)="pick(cell)"
+            >
+              <span class="day__num num" dir="ltr">{{ cell.day }}</span>
+            </button>
+          } @else {
+            <span class="day day--blank" aria-hidden="true"></span>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>
