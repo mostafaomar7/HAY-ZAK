@@ -21,17 +21,19 @@ import { ApiService } from '@core/services/api.service';
  * publishes a new version, which is rare, and re-fetching the terms every time a
  * footer link is followed is pure latency.
  *
- * **The server wins, and the bundle catches.** `/content/pages/:slug` is not
- * shipped — every one of them answers 404 — and four of these pages are links
- * in the header and the footer of every screen, so a visitor's second click was
- * landing on an error. "تعذّر تحميل الشروط والأحكام" is not something to show
+ * **The server wins, and the bundle catches.** `/public/pages/:slug` answers
+ * 404 for anything an administrator has not published — 404 and not 403, so
+ * that being able to tell "hidden" from "absent" cannot leak what is being
+ * drafted. Four of these pages are links in the header and the footer of every
+ * screen, so an unpublished slug would otherwise put a visitor's second click
+ * on an error, and "تعذّر تحميل الشروط والأحكام" is not something to show
  * somebody who came to read the terms.
  *
- * So a failure falls back to the copy in `content.pages.ts` rather than
- * surfacing. The order matters: asking the server first means the day the CMS
- * ships, an administrator's published version takes over with no change here,
- * and the bundle quietly becomes what it should be — what is shown when the CMS
- * is unreachable, which for a legal document is worth having regardless.
+ * So a failure falls back to the copy in `core/constants/static-pages.ts`. The
+ * order matters: asking the server first means an administrator's published
+ * version takes over with no change here, and the bundle stays what it should
+ * be — what is shown when the CMS has nothing, which for a legal document is
+ * worth having regardless.
  *
  * The contact form is not cached — it is a write.
  */

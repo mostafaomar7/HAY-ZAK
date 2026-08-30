@@ -12,22 +12,24 @@ import type {
   AuditRow,
   BookingReviewDetail,
   BookingReviewRow,
-  BookingsReportRow,
-  CmsPageDetail,
-  CommissionException,
   LessorBankDetails,
   ListingReviewDetail,
   ListingReviewRow,
-  OccupancyReportRow,
-  PayoutReportRow,
   PaymentTrackingRow,
-  ReferenceListRow,
-  RevenueReportRow,
   TermsApprovalRow,
   TermsVersionRow,
 } from '../models/admin.model';
 import type { WireComplaint, WireComplaintDetail } from '../models/complaint';
-import type { AdminDashboardKpis, PlatformSettings } from '../models/operations.model';
+import type {
+  AdminOverview,
+  BookingsReport,
+  LessorReportRow,
+  RevenueReport,
+} from '../models/admin-reports';
+import type { WirePlatformSetting } from '../models/platform-setting';
+import type { ReferenceData } from '../models/reference-admin';
+import type { WireCmsPage } from '../models/cms-page';
+import type { AdminDashboardKpis } from '../models/operations.model';
 import type { EligiblePayout, Payout } from '../models/payment.model';
 import type { Unit } from '../models/unit.model';
 import type { User } from '../models/user.model';
@@ -413,69 +415,122 @@ export const MOCK_BANK_DETAILS: LessorBankDetails = {
 
 // ── Reports ──────────────────────────────────────────────────────────────
 
-export const MOCK_REPORT_BOOKINGS: BookingsReportRow[] = [
-  { month: '2026-04-01', count: 62, totalValue: 31_400 },
-  { month: '2026-05-01', count: 78, totalValue: 40_120 },
-  { month: '2026-06-01', count: 95, totalValue: 51_880 },
-  { month: '2026-07-01', count: 121, totalValue: 66_950 },
-  { month: '2026-08-01', count: 148, totalValue: 86_420 },
-];
+/**
+ * The overview, with **every** key present including the zeros.
+ *
+ * The server guarantees that, so nothing downstream needs a `?? 0` — and a
+ * fixture with holes in it would teach exactly the defensive habit that hides
+ * a block the server stopped sending.
+ */
+export const MOCK_OVERVIEW: AdminOverview = {
+  users: {
+    byRole: {
+      [UserRole.Guest]: 0,
+      [UserRole.Renter]: 184,
+      [UserRole.Lessor]: 62,
+      [UserRole.Admin]: 4,
+    },
+    byStatus: {
+      [AccountStatus.PendingVerification]: 9,
+      [AccountStatus.Active]: 236,
+      [AccountStatus.Suspended]: 5,
+      [AccountStatus.Locked]: 1,
+    },
+  },
+  units: {
+    [UnitStatus.Draft]: 11,
+    [UnitStatus.PendingReview]: 7,
+    [UnitStatus.Published]: 79,
+    [UnitStatus.Rejected]: 3,
+    [UnitStatus.Suspended]: 2,
+    [UnitStatus.Archived]: 6,
+  },
+  bookings: {
+    [BookingStatus.Draft]: 0,
+    [BookingStatus.AwaitingPayment]: 4,
+    [BookingStatus.Confirmed]: 38,
+    [BookingStatus.Active]: 12,
+    [BookingStatus.Completed]: 141,
+    [BookingStatus.Expired]: 17,
+    [BookingStatus.Cancelled]: 3,
+  },
+  complaints: {
+    [ComplaintStatus.Open]: 2,
+    [ComplaintStatus.InProgress]: 3,
+    [ComplaintStatus.AwaitingUser]: 1,
+    [ComplaintStatus.Resolved]: 24,
+    [ComplaintStatus.Closed]: 5,
+    // Not one of the five above — an overdue complaint is also OPEN or
+    // IN_PROGRESS, so it is counted separately and never added to them.
+    overdue: 1,
+  },
+  payouts: {
+    APPROVED: { count: 6, totalHalalas: 4_820_000 },
+    PAID: { count: 41, totalHalalas: 38_610_000 },
+    FAILED: { count: 1, totalHalalas: 92_000 },
+  },
+};
 
-export const MOCK_REPORT_REVENUE: RevenueReportRow[] = MOCK_REPORT_BOOKINGS.map((row) => {
-  const commission = Math.round(row.totalValue * 0.05 * 100) / 100;
-  const vat = Math.round(commission * 0.15 * 100) / 100;
-  return {
-    month: row.month,
-    revenue: row.totalValue,
-    commission,
-    vat,
-    netToLessors: Math.round((row.totalValue - commission) * 100) / 100,
-  };
-});
+export const MOCK_REPORT_BOOKINGS: BookingsReport = {
+  count: 148,
+  // What renters paid. Not revenue — see the commission below.
+  grossHalalas: 8_642_000,
+  byStatus: {
+    [BookingStatus.Draft]: 0,
+    [BookingStatus.AwaitingPayment]: 4,
+    [BookingStatus.Confirmed]: 38,
+    [BookingStatus.Active]: 12,
+    [BookingStatus.Completed]: 91,
+    [BookingStatus.Expired]: 2,
+    [BookingStatus.Cancelled]: 1,
+  },
+};
 
-export const MOCK_REPORT_PAYOUTS: PayoutReportRow[] = [
+/**
+ * The revenue, and the two liabilities beside it.
+ *
+ * `commissionHalalas` is 5% of the gross above, less refunds, which is what
+ * makes the arithmetic on the screen checkable by eye — a fixture where the
+ * numbers do not relate would let a mislabelled figure look plausible.
+ */
+export const MOCK_REPORT_REVENUE: RevenueReport = {
+  netCashHalalas: 1_240_000,
+  commissionHalalas: 424_100,
+  owedToLessorsHalalas: 7_912_900,
+  vatPayableHalalas: 63_615,
+  refundedHalalas: 88_000,
+  paidOutHalalas: 7_402_000,
+};
+
+export const MOCK_REPORT_LESSORS: LessorReportRow[] = [
   {
     lessorId: 'lsr-1',
     lessorName: 'سعود العنزي',
-    totalDue: 12_480,
-    transferred: 10_982,
-    remaining: 1498,
+    unitsCount: 9,
+    bookingsCount: 41,
+    grossHalalas: 2_480_000,
+    commissionHalalas: 124_000,
+    netToLessorHalalas: 2_356_000,
   },
   {
     lessorId: 'lsr-2',
     lessorName: 'فهد بن سعد العمري',
-    totalDue: 7940,
-    transferred: 4160,
-    remaining: 3780,
+    unitsCount: 5,
+    bookingsCount: 27,
+    grossHalalas: 1_610_000,
+    commissionHalalas: 80_500,
+    netToLessorHalalas: 1_529_500,
+  },
+  {
+    lessorId: 'lsr-3',
+    lessorName: 'منى الحربي',
+    unitsCount: 3,
+    bookingsCount: 12,
+    grossHalalas: 740_000,
+    commissionHalalas: 37_000,
+    netToLessorHalalas: 703_000,
   },
 ];
-
-export const MOCK_REPORT_OCCUPANCY: OccupancyReportRow[] = [
-  {
-    cityName: 'الرياض',
-    categoryName: 'مستودع',
-    unitCount: 96,
-    bookedDays: 2184,
-    occupancyRate: 74,
-  },
-  {
-    cityName: 'الرياض',
-    categoryName: 'غرفة تخزين',
-    unitCount: 71,
-    bookedDays: 1320,
-    occupancyRate: 61,
-  },
-  { cityName: 'الرياض', categoryName: 'قراج', unitCount: 34, bookedDays: 512, occupancyRate: 49 },
-  {
-    cityName: 'الرياض',
-    categoryName: 'مكان مكشوف',
-    unitCount: 13,
-    bookedDays: 148,
-    occupancyRate: 37,
-  },
-];
-
-// ── Financial settings ───────────────────────────────────────────────────
 
 /**
  * The runtime configuration FR-ADM-06 exposes. The commission rate here is the
@@ -483,31 +538,101 @@ export const MOCK_REPORT_OCCUPANCY: OccupancyReportRow[] = [
  * disagreement is an open client decision (SRS §15 item 3) and is recorded in
  * docs/design/admin-plan.md rather than silently reconciled.
  */
-export const MOCK_SETTINGS: PlatformSettings = {
-  commissionRateBps: 500,
-  commissionBearer: 'lessor',
-  vatRateBps: 1500,
-  vatBase: 'commission',
-  payoutCycleHours: 168,
-  approvalSlaHours: 24,
-  autoApproveBookings: false,
-  cancellationPolicy: [
-    { minDaysBeforeStart: 7, refundPercentage: 1 },
-    { minDaysBeforeStart: 3, refundPercentage: 0.5 },
-    { minDaysBeforeStart: 0, refundPercentage: 0 },
-  ],
-};
-
-export const MOCK_COMMISSION_EXCEPTIONS: CommissionException[] = [
+export const MOCK_SETTINGS: WirePlatformSetting[] = [
   {
-    id: 'ex-1',
-    scope: 'unit',
-    targetId: 'unit-r2',
-    targetName: 'غرفة تخزين نظيفة — الياسمين',
-    rateBps: 300,
+    key: 'finance.commission_rate_bps',
+    // A string, as the wire sends it. A fixture with a real number would let a
+    // screen bind an input to one and still look correct here.
+    value: '500',
+    dataType: 'number',
+    group: 'financial',
+    labelAr: 'نسبة عمولة المنصة',
+    labelEn: 'Platform commission rate',
+    hintAr: 'تُخصم من المؤجّر ولا تُضاف على المستأجر. القيمة بالنقاط الأساسية — 500 تعني 5%.',
+    hintEn: 'Deducted from the lessor, not added to the renter. In basis points — 500 is 5%.',
+    isEditable: true,
+    isPublic: false,
   },
-  { id: 'ex-2', scope: 'lessor', targetId: 'lsr-2', targetName: 'فهد بن سعد العمري', rateBps: 700 },
+  {
+    key: 'finance.vat_rate_bps',
+    value: '1500',
+    dataType: 'number',
+    group: 'financial',
+    labelAr: 'نسبة ضريبة القيمة المضافة',
+    labelEn: 'VAT rate',
+    hintAr: 'تُطبَّق على العمولة. 1500 تعني 15%.',
+    hintEn: 'Applied to the commission. 1500 is 15%.',
+    isEditable: true,
+    isPublic: false,
+  },
+  {
+    key: 'finance.payout_cycle_hours',
+    value: '168',
+    dataType: 'number',
+    group: 'financial',
+    labelAr: 'دورة التحويل',
+    labelEn: 'Payout cycle',
+    hintAr: 'المدة بين دورتي صرف المستحقات، بالساعات.',
+    hintEn: 'Hours between payout runs.',
+    isEditable: true,
+    isPublic: false,
+  },
+  {
+    key: 'operations.approval_sla_hours',
+    value: '24',
+    dataType: 'number',
+    group: 'operations',
+    labelAr: 'مهلة مراجعة الإعلان',
+    labelEn: 'Listing review deadline',
+    hintAr: 'بعدها يُعدّ الإعلان متأخّرًا في طابور المراجعة.',
+    hintEn: 'After this a listing counts as late in the review queue.',
+    isEditable: true,
+    isPublic: false,
+  },
+  {
+    key: 'booking.hold_minutes',
+    value: '15',
+    dataType: 'number',
+    group: 'booking',
+    labelAr: 'مهلة حجز التواريخ',
+    labelEn: 'Date hold',
+    hintAr: 'المدة التي تبقى فيها التواريخ محجوزة قبل الدفع.',
+    hintEn: 'How long dates stay held before payment.',
+    isEditable: true,
+    isPublic: true,
+  },
+  {
+    key: 'marketplace.page_size',
+    value: '12',
+    dataType: 'number',
+    group: 'general',
+    labelAr: 'عدد النتائج في الصفحة',
+    labelEn: 'Results per page',
+    hintAr: null,
+    hintEn: null,
+    isEditable: true,
+    isPublic: true,
+  },
+  {
+    key: 'general.platform_name',
+    value: 'حيّزك',
+    dataType: 'string',
+    group: 'general',
+    labelAr: 'اسم المنصة',
+    labelEn: 'Platform name',
+    hintAr: 'يظهر في الرسائل النصية والفواتير.',
+    hintEn: 'Appears in SMS messages and on invoices.',
+    // Read-only here so the screen's disabled state is exercised.
+    isEditable: false,
+    isPublic: true,
+  },
 ];
+
+/*
+ * Commission exceptions are not shipped and have no endpoint. They were a
+ * fixture for a screen that never had a server behind it; the settings above
+ * are the shipped shape.
+ */
 
 // ── Users ────────────────────────────────────────────────────────────────
 
@@ -616,136 +741,152 @@ export const MOCK_ADMIN_RENTER_DETAIL: AdminUserDetail = {
 
 // ── Reference lists ──────────────────────────────────────────────────────
 
-export const MOCK_REF_LISTS: Record<string, ReferenceListRow[]> = {
+/**
+ * All four lists in one object, with `isActive` on every row — the shape
+ * `GET /admin/reference` answers with.
+ *
+ * One entry is deactivated on purpose: a fixture where everything is on would
+ * demo a screen whose only real action never shows its effect.
+ */
+export const MOCK_REFERENCE_DATA: ReferenceData = {
   categories: [
-    { id: 'cat-1', nameAr: 'مستودع', nameEn: 'Warehouse', sortOrder: 1, linkedCount: 96 },
-    { id: 'cat-2', nameAr: 'غرفة تخزين', nameEn: 'Storage room', sortOrder: 2, linkedCount: 71 },
-    { id: 'cat-3', nameAr: 'قراج', nameEn: 'Garage', sortOrder: 3, linkedCount: 34 },
-    { id: 'cat-4', nameAr: 'مكان مكشوف', nameEn: 'Open space', sortOrder: 4, linkedCount: 13 },
+    {
+      id: 'cat-1',
+      // The stable identifier. Renaming the category does not change it, which
+      // is why saved filters and existing listings keep matching.
+      slug: 'warehouse',
+      nameAr: 'مستودع',
+      nameEn: 'Warehouse',
+      iconKey: 'box',
+      sortOrder: 1,
+      isActive: true,
+    },
+    {
+      id: 'cat-2',
+      slug: 'storage-room',
+      nameAr: 'غرفة تخزين',
+      nameEn: 'Storage room',
+      iconKey: null,
+      sortOrder: 2,
+      isActive: true,
+    },
+    {
+      id: 'cat-3',
+      slug: 'garage',
+      nameAr: 'قراج',
+      nameEn: 'Garage',
+      iconKey: null,
+      sortOrder: 3,
+      isActive: true,
+    },
+    {
+      id: 'cat-4',
+      slug: 'open-space',
+      nameAr: 'مكان مكشوف',
+      nameEn: 'Open space',
+      iconKey: null,
+      sortOrder: 4,
+      isActive: false,
+    },
   ],
   cities: [
-    { id: 'city-1', nameAr: 'الرياض', nameEn: 'Riyadh', sortOrder: 1, linkedCount: 214 },
-    { id: 'city-2', nameAr: 'جدة', nameEn: 'Jeddah', sortOrder: 2, linkedCount: 0 },
-    { id: 'city-3', nameAr: 'الدمام', nameEn: 'Dammam', sortOrder: 3, linkedCount: 0 },
+    { id: 'city-1', nameAr: 'الرياض', nameEn: 'Riyadh', sortOrder: 1, isActive: true },
+    { id: 'city-2', nameAr: 'جدة', nameEn: 'Jeddah', sortOrder: 2, isActive: true },
+    { id: 'city-3', nameAr: 'الدمام', nameEn: 'Dammam', sortOrder: 3, isActive: true },
   ],
   districts: [
-    { id: 'dst-1', nameAr: 'حي النرجس', nameEn: 'Al Narjis', sortOrder: 1, linkedCount: 42 },
-    { id: 'dst-2', nameAr: 'حي الياسمين', nameEn: 'Al Yasmin', sortOrder: 2, linkedCount: 37 },
-    { id: 'dst-3', nameAr: 'حي الملقا', nameEn: 'Al Malqa', sortOrder: 3, linkedCount: 28 },
-    { id: 'dst-4', nameAr: 'حي الصحافة', nameEn: 'Al Sahafah', sortOrder: 4, linkedCount: 19 },
+    {
+      id: 'dst-1',
+      cityId: 'city-1',
+      nameAr: 'حي النرجس',
+      nameEn: 'Al Narjis',
+      sortOrder: 1,
+      isActive: true,
+    },
+    {
+      id: 'dst-2',
+      cityId: 'city-1',
+      nameAr: 'حي الياسمين',
+      nameEn: 'Al Yasmin',
+      sortOrder: 2,
+      isActive: true,
+    },
+    {
+      id: 'dst-3',
+      cityId: 'city-1',
+      nameAr: 'حي الملقا',
+      nameEn: 'Al Malqa',
+      sortOrder: 3,
+      isActive: true,
+    },
   ],
   prohibitedItems: [
     {
       id: 'prh-1',
       nameAr: 'المواد القابلة للاشتعال',
       nameEn: 'Flammable materials',
+      noteAr: 'تشمل الوقود والغاز والدهانات.',
+      noteEn: 'Includes fuel, gas and paint.',
       sortOrder: 1,
-      linkedCount: 0,
+      isActive: true,
     },
     {
       id: 'prh-2',
-      nameAr: 'المواد الكيميائية الخطرة',
-      nameEn: 'Hazardous chemicals',
-      sortOrder: 2,
-      linkedCount: 0,
-    },
-    {
-      id: 'prh-3',
-      nameAr: 'الأسلحة والذخائر',
-      nameEn: 'Weapons and ammunition',
-      sortOrder: 3,
-      linkedCount: 0,
-    },
-    {
-      id: 'prh-4',
       nameAr: 'المواد الغذائية سريعة التلف',
       nameEn: 'Perishable food',
-      sortOrder: 4,
-      linkedCount: 0,
-    },
-    {
-      id: 'prh-5',
-      nameAr: 'الحيوانات الحية',
-      nameEn: 'Live animals',
-      sortOrder: 5,
-      linkedCount: 0,
+      noteAr: null,
+      noteEn: null,
+      sortOrder: 2,
+      isActive: true,
     },
   ],
 };
 
 // ── CMS ──────────────────────────────────────────────────────────────────
 
-export const MOCK_CMS_PAGES: CmsPageDetail[] = [
+export const MOCK_CMS_PAGES: WireCmsPage[] = [
   {
+    id: 'cms-1',
     slug: 'about',
     titleAr: 'من نحن',
     titleEn: 'About us',
     bodyAr:
       'حيزك منصة سعودية تربط من يملك مساحة تخزين غير مستغلة بمن يحتاجها، بعقد واضح وسعر معروض قبل أي خطوة.',
-    bodyEn: '',
-    seoTitle: 'من نحن — حيزك',
-    seoDescription: 'تعرّف على منصة حيزك ودورها في تأجير مساحات التخزين في السعودية.',
-    updatedAt: '2026-08-02',
+    bodyEn:
+      'HAY-ZAK connects people with unused storage space to the people who need it, on a clear contract at a price shown up front.',
+    metaTitleAr: 'من نحن — حيزك',
+    metaDescriptionAr: 'تعرّف على منصة حيزك ودورها في تأجير مساحات التخزين في السعودية.',
+    isPublished: true,
+    sortOrder: 1,
+    updatedAt: '2026-08-02T09:00:00Z',
   },
   {
+    id: 'cms-2',
     slug: 'how-it-works',
     titleAr: 'كيف تعمل المنصة',
     titleEn: 'How it works',
     bodyAr: 'ثلاث خطوات: ابحث واختر المساحة، احجز وادفع، ثم استلم المساحة بعد اعتماد الطلب.',
-    bodyEn: '',
-    seoTitle: 'كيف تعمل منصة حيزك',
-    seoDescription: 'خطوات الحجز في حيزك من البحث حتى استلام المساحة.',
-    updatedAt: '2026-07-28',
+    bodyEn: 'Three steps: find a space, book and pay, then collect the keys.',
+    metaTitleAr: 'كيف تعمل منصة حيزك',
+    metaDescriptionAr: 'خطوات الحجز في حيزك من البحث حتى استلام المساحة.',
+    isPublished: true,
+    sortOrder: 2,
+    updatedAt: '2026-07-28T09:00:00Z',
   },
   {
-    slug: 'faq',
-    titleAr: 'الأسئلة الشائعة',
-    titleEn: 'FAQ',
-    bodyAr: 'إجابات عن أكثر الأسئلة تكرارًا حول الحجز والدفع والإلغاء.',
-    bodyEn: '',
-    seoTitle: 'الأسئلة الشائعة — حيزك',
-    seoDescription: 'إجابات عن الحجز والدفع والإلغاء والاسترداد في منصة حيزك.',
-    updatedAt: '2026-08-11',
-  },
-  {
-    slug: 'terms',
-    titleAr: 'الشروط والأحكام',
-    titleEn: 'Terms',
-    bodyAr: 'تحكم هذه الشروط استخدام المنصة من المؤجرين والمستأجرين.',
-    bodyEn: '',
-    seoTitle: 'الشروط والأحكام — حيزك',
-    seoDescription: 'الشروط والأحكام المنظمة لاستخدام منصة حيزك.',
-    updatedAt: '2026-06-15',
-  },
-  {
-    slug: 'privacy',
-    titleAr: 'سياسة الخصوصية',
-    titleEn: 'Privacy policy',
-    bodyAr: 'نوضّح هنا البيانات التي نجمعها وكيف تُستخدم وتُحفظ.',
-    bodyEn: '',
-    seoTitle: 'سياسة الخصوصية — حيزك',
-    seoDescription: 'كيف تجمع منصة حيزك البيانات الشخصية وتحميها.',
-    updatedAt: '2026-06-15',
-  },
-  {
+    // Unpublished on purpose: the public route answers 404 for this one, not
+    // 403, and the console is the only place it can be seen at all.
+    id: 'cms-3',
     slug: 'refund-policy',
-    titleAr: 'سياسة الإلغاء والاسترداد',
+    titleAr: 'سياسة الاسترداد',
     titleEn: 'Refund policy',
-    bodyAr: 'تعتمد نسبة الاسترداد على المدة المتبقية قبل بداية الحجز.',
-    bodyEn: '',
-    seoTitle: 'سياسة الإلغاء والاسترداد — حيزك',
-    seoDescription: 'نسب الاسترداد حسب موعد الإلغاء قبل بداية الحجز.',
-    updatedAt: '2026-07-04',
-  },
-  {
-    slug: 'contact',
-    titleAr: 'التواصل معنا',
-    titleEn: 'Contact us',
-    bodyAr: 'فريق الدعم متاح من الأحد إلى الخميس، من التاسعة صباحًا حتى الخامسة مساءً.',
-    bodyEn: '',
-    seoTitle: 'التواصل معنا — حيزك',
-    seoDescription: 'قنوات التواصل مع فريق دعم منصة حيزك.',
-    updatedAt: '2026-08-09',
+    bodyAr: 'مسودّة قيد المراجعة.',
+    bodyEn: 'Draft under review.',
+    metaTitleAr: null,
+    metaDescriptionAr: null,
+    isPublished: false,
+    sortOrder: 3,
+    updatedAt: '2026-08-20T09:00:00Z',
   },
 ];
 

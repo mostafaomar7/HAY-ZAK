@@ -1,256 +1,96 @@
-@if (isLoading()) {
-  <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
-} @else if (failed() || !settings()) {
-  <app-ui-empty-state
-    tone="error"
-    [title]="i18n.t('finset.error')"
-    [hint]="i18n.t('finset.errorHint')"
-  >
-    <button appUiButton variant="primary" type="button" (click)="fetch()">
-      {{ i18n.t('common.retry') }}
-    </button>
-  </app-ui-empty-state>
-} @else if (settings(); as config) {
-  <app-ui-notice tone="warning">{{ i18n.t('finset.auditNote') }}</app-ui-notice>
+<section class="page">
+  <header class="head">
+    <h1 class="head__title">{{ i18n.t('settings.pageTitle') }}</h1>
+    <p class="head__sub">{{ i18n.t('settings.pageIntro') }}</p>
+  </header>
 
-  <!-- Commission and its exceptions -->
-  <section class="card">
-    <header class="card__head">
-      <div class="card__text">
-        <h2 class="card__title">{{ i18n.t('finset.commission') }}</h2>
-        <p class="card__hint">{{ i18n.t('finset.commissionHint') }}</p>
-      </div>
-      <div class="card__value">
-        <span class="figure num">
-          {{ percentOf(config.commissionRateBps) }}
-          <span class="figure__unit">{{ i18n.t('admin.percent') }}</span>
-        </span>
-        <button appUiButton variant="primary" size="sm" type="button" (click)="edit('commission')">
-          {{ i18n.t('finset.editRate') }}
-        </button>
-      </div>
-    </header>
+  <app-ui-tabs [tabs]="tabs()" [selected]="group()" (selectionChange)="setGroup($event)" />
 
-    <div class="ex">
-      <div class="ex__head">
-        <span class="ex__title">
-          {{ i18n.t('finset.exceptions') }} —
-          <span class="num">{{ exceptions().length }}</span>
-        </span>
-        <button appUiButton variant="outline" size="sm" type="button" (click)="addException()">
-          {{ i18n.t('finset.addException') }}
-        </button>
-      </div>
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('settings.loadFailed')"
+      [hint]="i18n.t('results.errorHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="load()">
+        {{ i18n.t('common.retry') }}
+      </button>
+    </app-ui-empty-state>
+  } @else if (!visible().length) {
+    <app-ui-empty-state [title]="i18n.t('settings.emptyGroup')" />
+  } @else {
+    <!-- Said once for the whole tab, because it is a fact about the group
+         rather than about any one field: the finance officer holds
+         settings:financial and not settings:manage, and the system
+         administrator holds the reverse. -->
+    @if (!canWriteGroup()) {
+      <app-ui-notice tone="info">{{ i18n.t('settings.noPermission') }}</app-ui-notice>
+    }
 
-      @if (exceptions().length > 0) {
-        <div class="ex__row ex__row--head">
-          <span>{{ i18n.t('finset.scope') }}</span>
-          <span>{{ i18n.t('finset.target') }}</span>
-          <span>{{ i18n.t('finset.rate') }}</span>
-          <span>{{ i18n.t('admin.action') }}</span>
-        </div>
-        @for (row of exceptions(); track row.id) {
-          <div class="ex__row">
-            <span>
-              <span class="tag">
-                {{
-                  row.scope === 'unit' ? i18n.t('finset.scopeUnit') : i18n.t('finset.scopeLessor')
-                }}
-              </span>
-            </span>
-            <span>{{ row.targetName }}</span>
-            <span class="cell--strong num">
-              {{ percentOf(row.rateBps) }} <span class="unit">{{ i18n.t('admin.percent') }}</span>
-            </span>
-            <span>
+    <ul class="list">
+      @for (row of visible(); track row.key) {
+        <li class="setting">
+          <div class="setting__text">
+            <span class="setting__label" dir="auto">{{ label(row) }}</span>
+            <span class="setting__key num" dir="ltr">{{ row.key }}</span>
+            @if (hint(row)) {
+              <!-- Written by whoever added the setting, for exactly this
+                   moment: it says what changing the number actually does. -->
+              <span class="setting__hint" dir="auto">{{ hint(row) }}</span>
+            }
+          </div>
+
+          <div class="setting__control">
+            @if (!canEdit(row)) {
+              <span class="setting__value num" dir="ltr">{{ row.value }}</span>
+              <app-ui-badge tone="neutral" size="sm">{{
+                i18n.t('settings.readOnly')
+              }}</app-ui-badge>
+            } @else if (row.dataType === 'boolean') {
+              <!-- Sent as the string "true" or "false", like every other
+                   value: the wire carries text and the server parses it. -->
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  [checked]="valueOf(row) === 'true'"
+                  (change)="setValue(row, $any($event.target).checked ? 'true' : 'false')"
+                />
+              </label>
+            } @else if (row.dataType === 'number') {
+              <input
+                class="setting__input num"
+                type="number"
+                dir="ltr"
+                [value]="valueOf(row)"
+                (input)="setValue(row, $any($event.target).value)"
+              />
+            } @else {
+              <input
+                class="setting__input"
+                type="text"
+                dir="auto"
+                [value]="valueOf(row)"
+                (input)="setValue(row, $any($event.target).value)"
+              />
+            }
+
+            @if (canEdit(row)) {
               <button
                 appUiButton
-                variant="danger"
+                variant="primary"
                 size="sm"
                 type="button"
-                (click)="removeException(row)"
+                [disabled]="!isDirty(row) || savingKey() === row.key"
+                (click)="save(row)"
               >
-                {{ i18n.t('finset.removeException') }}
+                {{ i18n.t('settings.saveOne') }}
               </button>
-            </span>
+            }
           </div>
-        }
-      }
-    </div>
-  </section>
-
-  <!-- VAT and payout cycle -->
-  <div class="pair">
-    <section class="card card--compact">
-      <h2 class="card__title">{{ i18n.t('finset.vat') }}</h2>
-      <p class="card__hint">{{ i18n.t('finset.vatHint') }}</p>
-      <div class="card__value">
-        <span class="figure num">
-          {{ percentOf(config.vatRateBps) }}
-          <span class="figure__unit">{{ i18n.t('admin.percent') }}</span>
-        </span>
-        <button appUiButton variant="outline" size="sm" type="button" (click)="edit('vat')">
-          {{ i18n.t('finset.editRate') }}
-        </button>
-      </div>
-    </section>
-
-    <section class="card card--compact">
-      <h2 class="card__title">{{ i18n.t('finset.cycle') }}</h2>
-      <p class="card__hint">{{ i18n.t('finset.cycleHint') }}</p>
-      <div class="card__value">
-        <span class="cycle num">
-          {{ i18n.t('finset.cycleValue', { hours: config.payoutCycleHours }) }}
-        </span>
-        <button appUiButton variant="outline" size="sm" type="button" (click)="edit('cycle')">
-          {{ i18n.t('finset.editCycle') }}
-        </button>
-      </div>
-    </section>
-  </div>
-
-  <!-- Refund tiers. Read-only here: the tiers come from the same settings the
-       renter's cancellation quote is computed from, and the place to change them
-       is the CMS policy page they are published on. -->
-  <section class="card">
-    <h2 class="card__title">{{ i18n.t('finset.refund') }}</h2>
-    <ul class="tiers">
-      @for (tier of config.cancellationPolicy; track tier.minDaysBeforeStart) {
-        <li class="tiers__item num">
-          {{
-            i18n.t('finset.refundTier', {
-              days: tier.minDaysBeforeStart,
-              percent: tier.refundPercentage * 100,
-            })
-          }}
         </li>
       }
     </ul>
-  </section>
-
-  <!-- FR-ADM-12 -->
-  <section class="card card--switch">
-    <div class="card__text">
-      <h2 class="card__title">{{ i18n.t('finset.autoApprove') }}</h2>
-      <p class="card__body">{{ i18n.t('finset.autoApproveBody') }}</p>
-      <p class="card__state" [class.card__state--on]="config.autoApproveBookings">
-        {{
-          config.autoApproveBookings
-            ? i18n.t('finset.autoApproveOn')
-            : i18n.t('finset.autoApproveOff')
-        }}
-      </p>
-    </div>
-    <app-ui-toggle
-      [label]="i18n.t('finset.autoApprove')"
-      [checked]="config.autoApproveBookings"
-      (checkedChange)="edit('autoApprove')"
-    />
-  </section>
-}
-
-<!-- One confirmation for every change on the screen -->
-<app-ui-modal
-  [open]="editing() !== null && editing() !== 'exception'"
-  [title]="i18n.t('finset.confirmTitle')"
-  (dismissed)="close()"
->
-  <div class="diff">
-    <div class="diff__box">
-      <span class="diff__label">{{ i18n.t('finset.oldValue') }}</span>
-      <span class="diff__value num">{{ oldValue() }}</span>
-    </div>
-    <div class="diff__box diff__box--new">
-      <span class="diff__label">{{ i18n.t('finset.newValue') }}</span>
-      @if (isSwitch()) {
-        <span class="diff__value num">{{ newValue() }}</span>
-      } @else {
-        <input
-          class="diff__input num"
-          type="number"
-          min="0"
-          step="0.01"
-          [value]="draft()"
-          (input)="draft.set($any($event.target).value)"
-        />
-      }
-    </div>
-  </div>
-
-  <p class="note">{{ i18n.t('finset.confirmNote') }}</p>
-
-  <ng-container slot="actions">
-    <button appUiButton variant="outline" type="button" (click)="close()">
-      {{ i18n.t('common.cancel') }}
-    </button>
-    <button
-      appUiButton
-      variant="primary"
-      type="button"
-      [disabled]="!canSave() || submitting()"
-      (click)="save()"
-    >
-      {{ i18n.t('finset.confirmSave') }}
-    </button>
-  </ng-container>
-</app-ui-modal>
-
-<app-ui-modal
-  [open]="editing() === 'exception'"
-  [title]="i18n.t('finset.exceptionTitle')"
-  (dismissed)="close()"
->
-  <p class="note">{{ i18n.t('finset.exceptionHint') }}</p>
-
-  <div class="fields">
-    <label class="field">
-      <span class="field__label">{{ i18n.t('finset.scope') }}</span>
-      <select
-        class="field__input"
-        [value]="exceptionScope()"
-        (change)="exceptionScope.set($any($event.target).value)"
-      >
-        <option value="unit">{{ i18n.t('finset.scopeUnit') }}</option>
-        <option value="lessor">{{ i18n.t('finset.scopeLessor') }}</option>
-      </select>
-    </label>
-
-    <label class="field">
-      <span class="field__label">{{ i18n.t('finset.target') }}</span>
-      <input
-        class="field__input"
-        type="text"
-        [value]="exceptionTarget()"
-        (input)="exceptionTarget.set($any($event.target).value)"
-      />
-    </label>
-
-    <label class="field">
-      <span class="field__label">{{ i18n.t('finset.exceptionRate') }}</span>
-      <input
-        class="field__input num"
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder="0.00"
-        [value]="draft()"
-        (input)="draft.set($any($event.target).value)"
-      />
-    </label>
-  </div>
-
-  <ng-container slot="actions">
-    <button appUiButton variant="outline" type="button" (click)="close()">
-      {{ i18n.t('common.cancel') }}
-    </button>
-    <button
-      appUiButton
-      variant="primary"
-      type="button"
-      [disabled]="!canSave() || submitting()"
-      (click)="save()"
-    >
-      {{ i18n.t('finset.exceptionAdd') }}
-    </button>
-  </ng-container>
-</app-ui-modal>
+  }
+</section>

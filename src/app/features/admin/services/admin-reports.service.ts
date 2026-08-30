@@ -1,55 +1,70 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
+import type { PaginatedResponse } from '@core/models/api-response.model';
 import type {
-  BookingsReportRow,
-  OccupancyReportRow,
-  PayoutReportRow,
-  ReportFilters,
-  ReportKind,
-  RevenueReportRow,
-} from '@core/models/admin.model';
+  AdminOverview,
+  BookingsReport,
+  LessorReportRow,
+  ReportRange,
+  RevenueReport,
+  WireBookingsReportResponse,
+  WireOverviewResponse,
+  WireRevenueReportResponse,
+} from '@core/models/admin-reports';
 import { ApiService } from '@core/services/api.service';
 
 /**
- * The four reports (FR-RPT-01 … FR-RPT-04).
+ * The reports (FR-RPT) — `reports:view`, which all three administrators hold.
  *
- * Each has its own return type rather than one shared "report row": the four
- * differ in every column, and a single loose shape would push the
- * disambiguation into the template, where the compiler cannot help.
+ * Four calls with four shapes, not one report with a `kind`: the overview has
+ * no date range at all, two are single objects and one is a paged table. A
+ * shared loose type would have pushed the disambiguation into the templates,
+ * where the compiler cannot help — and these are the screens where a number
+ * put under the wrong heading is most expensive.
+ *
+ * There is no export yet. The old `?format=xlsx` route is gone rather than
+ * left pointing at a 404.
  */
 @Injectable()
 export class AdminReportsService {
   private readonly api = inject(ApiService);
 
-  bookings(filters: ReportFilters): Observable<BookingsReportRow[]> {
-    return this.api.get<BookingsReportRow[]>(API_ENDPOINTS.reports.bookings, {
-      params: { ...filters },
-    });
+  /**
+   * The platform as it stands. **No date range, and no parameter for one** —
+   * these are counts of what exists, and windowing them would answer a
+   * question nobody asked.
+   */
+  overview(): Observable<AdminOverview> {
+    return this.api
+      .get<WireOverviewResponse>(API_ENDPOINTS.reports.overview)
+      .pipe(map((response) => response.overview));
   }
 
-  revenue(filters: ReportFilters): Observable<RevenueReportRow[]> {
-    return this.api.get<RevenueReportRow[]>(API_ENDPOINTS.reports.revenue, {
-      params: { ...filters },
-    });
+  /**
+   * What was booked in a window.
+   *
+   * `grossHalalas` here is **what renters paid, not what the platform earned**
+   * — the commission is the only part of it that is income, and that is on
+   * `revenue()`.
+   */
+  bookings(range: ReportRange = {}): Observable<BookingsReport> {
+    return this.api
+      .get<WireBookingsReportResponse>(API_ENDPOINTS.reports.bookings, { params: { ...range } })
+      .pipe(map((response) => response.report));
   }
 
-  payouts(filters: ReportFilters): Observable<PayoutReportRow[]> {
-    return this.api.get<PayoutReportRow[]>(API_ENDPOINTS.reports.payouts, {
-      params: { ...filters },
-    });
+  /** The revenue, and beside it the money the platform is only holding. */
+  revenue(range: ReportRange = {}): Observable<RevenueReport> {
+    return this.api
+      .get<WireRevenueReportResponse>(API_ENDPOINTS.reports.revenue, { params: { ...range } })
+      .pipe(map((response) => response.report));
   }
 
-  occupancy(filters: ReportFilters): Observable<OccupancyReportRow[]> {
-    return this.api.get<OccupancyReportRow[]>(API_ENDPOINTS.reports.occupancy, {
-      params: { ...filters },
-    });
-  }
-
-  /** FR-RPT-05 — the file is rendered server-side; the client only saves it. */
-  export(kind: ReportKind, format: 'xlsx' | 'pdf', filters: ReportFilters): Observable<Blob> {
-    return this.api.download(API_ENDPOINTS.reports.export(kind), {
-      params: { ...filters, format },
+  lessors(page = 1, pageSize?: number): Observable<PaginatedResponse<LessorReportRow>> {
+    return this.api.list<LessorReportRow>(API_ENDPOINTS.reports.lessors, {
+      params: { page, pageSize },
     });
   }
 }

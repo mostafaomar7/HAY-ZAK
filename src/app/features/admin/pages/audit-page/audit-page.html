@@ -16,27 +16,26 @@
   [total]="list.total()"
   [page]="list.page()"
   [pageSize]="list.pageSize"
-  [sort]="list.sort()"
   [emptyTitle]="i18n.t('audit.empty')"
   [emptyHint]="i18n.t('audit.emptyHint')"
   [errorTitle]="i18n.t('audit.error')"
   [errorHint]="i18n.t('audit.errorHint')"
   errorRef="ERR-5307"
   (rowOpen)="openRow($any($event))"
-  (sortChange)="onSort($event)"
   (pageChange)="onPage($event)"
   (retried)="fetch()"
   (clearedFilters)="onReset()"
 >
   <ng-template #row let-row>
     <span class="cell cell--stack">
-      <span class="cell--strong">{{ row.actorName }}</span>
-      <span class="cell__sub">{{ roleLabel(row.actorRole, row.actorAdminRole) }}</span>
+      <!-- Null for a background job, or for an account since removed. -->
+      <span class="cell--strong">{{ actorName(row) }}</span>
+      <span class="cell__sub">{{ actorRole(row) }}</span>
     </span>
     <span class="cell">{{ row.action }}</span>
-    <span class="cell num">{{ row.occurredAt | date: 'd MMM y · HH:mm' }}</span>
-    <span class="cell cell--muted num">{{ row.oldValue }}</span>
-    <span class="cell cell--strong num">{{ row.newValue }}</span>
+    <span class="cell num">{{ row.createdAt | date: 'd MMM y · HH:mm' }}</span>
+    <span class="cell cell--muted num">{{ row.oldValue ?? '—' }}</span>
+    <span class="cell cell--strong num">{{ row.newValue ?? '—' }}</span>
   </ng-template>
 </app-admin-table>
 
@@ -51,36 +50,44 @@
       <dl class="facts">
         <div class="fact">
           <dt>{{ i18n.t('audit.user') }}</dt>
-          <dd>{{ entry.actorName }}</dd>
+          <dd>{{ actorName(entry) }}</dd>
         </div>
-        <div class="fact">
-          <dt>{{ i18n.t('users.role') }}</dt>
-          <dd>{{ roleLabel(entry.actorRole, entry.actorAdminRole) }}</dd>
-        </div>
+        @if (actorRole(entry)) {
+          <div class="fact">
+            <dt>{{ i18n.t('users.role') }}</dt>
+            <dd>{{ actorRole(entry) }}</dd>
+          </div>
+        }
         <div class="fact">
           <dt>{{ i18n.t('audit.action') }}</dt>
           <dd>{{ entry.action }}</dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('audit.time') }}</dt>
-          <dd class="num">{{ entry.occurredAt | date: 'd MMMM y · HH:mm' }}</dd>
+          <dd class="num">{{ entry.createdAt | date: 'd MMMM y · HH:mm' }}</dd>
         </div>
         <div class="fact">
           <dt>{{ i18n.t('audit.entity') }}</dt>
           <dd>{{ entry.entityType }}</dd>
         </div>
-        <div class="fact">
-          <dt>{{ i18n.t('audit.entityId') }}</dt>
-          <dd class="num" dir="ltr">{{ entry.entityId }}</dd>
-        </div>
-        <div class="fact">
-          <dt>{{ i18n.t('audit.ip') }}</dt>
-          <dd class="num" dir="ltr">{{ entry.ipAddress }}</dd>
-        </div>
-        @if (entry.userAgent) {
+        @if (entry.entityId) {
           <div class="fact">
-            <dt>{{ i18n.t('audit.device') }}</dt>
-            <dd>{{ entry.userAgent }}</dd>
+            <dt>{{ i18n.t('audit.entityId') }}</dt>
+            <dd class="num" dir="ltr">{{ entry.entityId }}</dd>
+          </div>
+        }
+        @if (entry.ipAddress) {
+          <div class="fact">
+            <dt>{{ i18n.t('audit.ip') }}</dt>
+            <dd class="num" dir="ltr">{{ entry.ipAddress }}</dd>
+          </div>
+        }
+        @if (entry.requestId) {
+          <!-- The one field that ties this row to a request in the server's
+               own logs, which is where an investigation continues. -->
+          <div class="fact">
+            <dt>{{ i18n.t('audit.requestId') }}</dt>
+            <dd class="num" dir="ltr">{{ entry.requestId }}</dd>
           </div>
         }
       </dl>
@@ -89,11 +96,11 @@
     <div class="diff">
       <div class="diff__box">
         <span class="diff__label">{{ i18n.t('audit.before') }}</span>
-        <span class="diff__value num">{{ entry.oldValue }}</span>
+        <span class="diff__value num">{{ entry.oldValue ?? '—' }}</span>
       </div>
       <div class="diff__box diff__box--new">
         <span class="diff__label">{{ i18n.t('audit.after') }}</span>
-        <span class="diff__value num">{{ entry.newValue }}</span>
+        <span class="diff__value num">{{ entry.newValue ?? '—' }}</span>
       </div>
     </div>
 

@@ -13,7 +13,9 @@ import { ContentService } from './content.service';
  * The seven pages must arrive whatever the server does.
  *
  * Four of them are links in the header and the footer of every screen, and
- * `/content/pages/:slug` is not shipped — so until the CMS exists, the failure
+ * `/public/pages/:slug` answers 404 for a page nobody has published — and 404
+ * rather than 403, deliberately, so that being able to tell "hidden" from
+ * "absent" cannot leak what is being drafted. Either way the failure
  * path *is* the path. What these assert is the order: the server is asked
  * first, so the day an administrator publishes a version it wins without a
  * change here, and the bundle is only reached when the request does not answer.
@@ -36,7 +38,7 @@ describe('ContentService', () => {
   it('asks the server before it reaches for the bundle', () => {
     service.page('terms').subscribe();
 
-    const request = http.expectOne((candidate) => candidate.url.endsWith('/content/pages/terms'));
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/public/pages/terms'));
     // Public: a guest reads the terms, and a bearer here would mean a signed-in
     // visitor could be served a different document.
     expect(request.request.headers.has('Authorization')).toBeFalse();
@@ -48,7 +50,7 @@ describe('ContentService', () => {
     service.page('faq').subscribe((page) => (received = page));
 
     http
-      .expectOne((candidate) => candidate.url.endsWith('/content/pages/faq'))
+      .expectOne((candidate) => candidate.url.endsWith('/public/pages/faq'))
       .flush({ success: true, data: { ...BUNDLED_PAGES.faq, title: 'نسخة المسؤول' } });
 
     expect(received?.title).toBe('نسخة المسؤول');
@@ -60,7 +62,7 @@ describe('ContentService', () => {
     service.page('how-it-works').subscribe((page) => (received = page));
 
     http
-      .expectOne((candidate) => candidate.url.endsWith('/content/pages/how-it-works'))
+      .expectOne((candidate) => candidate.url.endsWith('/public/pages/how-it-works'))
       .flush(
         { success: false, error: { code: 'NOT_FOUND', message: '' } },
         { status: 404, statusText: 'Not Found' },
@@ -74,7 +76,7 @@ describe('ContentService', () => {
     service.page('contact').subscribe((page) => (received = page));
 
     http
-      .expectOne((candidate) => candidate.url.endsWith('/content/pages/contact'))
+      .expectOne((candidate) => candidate.url.endsWith('/public/pages/contact'))
       .error(new ProgressEvent('offline'));
 
     expect(received?.title).toBe(BUNDLED_PAGES.contact.title);
@@ -83,7 +85,7 @@ describe('ContentService', () => {
   it('does not re-request a page it already resolved', () => {
     service.page('privacy').subscribe();
     http
-      .expectOne((candidate) => candidate.url.endsWith('/content/pages/privacy'))
+      .expectOne((candidate) => candidate.url.endsWith('/public/pages/privacy'))
       .flush(
         { success: false, error: { code: 'NOT_FOUND', message: '' } },
         { status: 404, statusText: 'Not Found' },

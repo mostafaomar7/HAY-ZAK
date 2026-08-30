@@ -1,90 +1,127 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
-import type { ReferenceListKind, ReferenceListRow } from '@core/models/admin.model';
+import { ApiError } from '@core/models/api-error.model';
+import type {
+  ReferenceCategory,
+  ReferenceCity,
+  ReferenceData,
+  ReferenceDistrict,
+  ReferenceEntry,
+  ReferenceKind,
+  ProhibitedItem,
+} from '@core/models/reference-admin';
+import { isValidSlug } from '@core/models/reference-admin';
 import { NotificationService } from '@core/services/notification.service';
+import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
-import { UiModal } from '@shared/components/ui-modal/ui-modal';
+import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
-import { UiTabs } from '@shared/components/ui-tabs/ui-tabs';
 import type { TabItem } from '@shared/components/ui-tabs/ui-tabs';
-import { AdminContentService } from '../../services/admin-content.service';
+import { UiTabs } from '@shared/components/ui-tabs/ui-tabs';
+import {
+  AdminReferenceService,
+  listingsBlockingDeactivation,
+} from '../../services/admin-reference.service';
 
 /**
- * ADM-10 — the reference lists (FR-ADM-05).
+ * ADM-11 — the reference lists (FR-ADM-05), `reference:manage`.
  *
- * These four lists are what every picker in the platform is built from, so the
- * screen is deliberately conservative: an entry can be renamed, reordered or
- * removed, and the `linkedCount` beside each one says how much would break.
+ * **There is no delete on this screen, and there is no delete endpoint.**
+ * Entries are turned off. A city, a category or a prohibited item is pointed at
+ * by listings and bookings written years ago, and those still have to read
+ * correctly — so the strongest thing that can happen to an entry is that it
+ * stops being offered.
  *
- * Reordering is done with move buttons rather than the design's drag handle.
- * Drag-and-drop is unreachable by keyboard and unusable with a screen reader; the
- * buttons do the same job, are announced, and let one keystroke be undone by the
- * opposite one. The whole order is then sent in a single call, so a reorder can
- * never land half-applied.
+ * A category with published listings under it will not even do that. The server
+ * answers 409 with the count, and the count is what goes on screen: "٣١ إعلان
+ * منشور تحت هذا التصنيف" tells an operator what to do next, where "تعذّر
+ * التعطيل" tells them only that something went wrong.
+ *
+ * All four lists arrive in one call, active and inactive together, so the
+ * districts on screen always belong to the city list beside them.
  */
 @Component({
   selector: 'app-admin-reference-lists-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminContentService],
-  imports: [UiButton, UiEmptyState, UiModal, UiSkeleton, UiTabs],
+  providers: [AdminReferenceService],
+  imports: [UiBadge, UiButton, UiEmptyState, UiNotice, UiSkeleton, UiTabs],
   templateUrl: './reference-lists-page.html',
   styleUrl: './reference-lists-page.scss',
 })
 export class AdminReferenceListsPage {
-  private readonly content = inject(AdminContentService);
+  private readonly reference = inject(AdminReferenceService);
   private readonly notifications = inject(NotificationService);
 
   protected readonly i18n = inject(LanguageService);
 
-  protected readonly kind = signal<ReferenceListKind>('categories');
-  protected readonly rows = signal<ReferenceListRow[]>([]);
+  protected readonly data = signal<ReferenceData | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
-  protected readonly submitting = signal(false);
+  protected readonly saving = signal(false);
+  protected readonly kind = signal<ReferenceKind>('categories');
 
-  /** The row being edited; null while adding a new one. */
-  protected readonly editing = signal<ReferenceListRow | null>(null);
-  protected readonly formOpen = signal(false);
-  protected readonly deleting = signal<ReferenceListRow | null>(null);
+  /** The 409's count, kept beside the row it refers to. */
+  protected readonly blockedBy = signal<{ id: string; count: number } | null>(null);
 
-  protected readonly draftAr = signal('');
-  protected readonly draftEn = signal('');
+  // ── The add form ────────────────────────────────────────────────────────
+  protected readonly slug = signal('');
+  protected readonly nameAr = signal('');
+  protected readonly nameEn = signal('');
+  protected readonly cityId = signal('');
 
-  protected readonly tabs = computed<TabItem<ReferenceListKind>[]>(() => [
-    { value: 'categories', label: this.i18n.t('ref.categories') },
-    { value: 'cities', label: this.i18n.t('ref.cities') },
-    { value: 'districts', label: this.i18n.t('ref.districts') },
-    { value: 'prohibitedItems', label: this.i18n.t('ref.prohibitedItems') },
+  protected readonly tabs = computed<TabItem<ReferenceKind>[]>(() => [
+    { value: 'categories', label: this.i18n.t('reference.categories') },
+    { value: 'cities', label: this.i18n.t('reference.cities') },
+    { value: 'districts', label: this.i18n.t('reference.districts') },
+    { value: 'prohibited-items', label: this.i18n.t('reference.prohibitedItems') },
   ]);
 
-  protected readonly listTitle = computed(
-    () => this.tabs().find((tab) => tab.value === this.kind())?.label ?? '',
+  protected readonly rows = computed<ReferenceEntry[]>(() => {
+    const data = this.data();
+    if (!data) return [];
+
+    switch (this.kind()) {
+      case 'categories':
+        return data.categories;
+      case 'cities':
+        return data.cities;
+      case 'districts':
+        return data.districts;
+      default:
+        return data.prohibitedItems;
+    }
+  });
+
+  protected readonly cities = computed(() => this.data()?.cities ?? []);
+
+  protected readonly needsSlug = computed(() => this.kind() === 'categories');
+  protected readonly needsCity = computed(() => this.kind() === 'districts');
+
+  protected readonly slugError = computed(() =>
+    this.needsSlug() && this.slug() && !isValidSlug(this.slug())
+      ? this.i18n.t('reference.slugInvalid')
+      : '',
   );
 
-  protected readonly canSave = computed(
-    () => this.draftAr().trim().length > 0 && this.draftEn().trim().length > 0,
-  );
-
-  /** FR-ADM-05 — an entry other records point at cannot be removed. */
-  protected readonly deleteBlocked = computed(() => (this.deleting()?.linkedCount ?? 0) > 0);
+  protected readonly canAdd = computed(() => {
+    if (!this.nameAr().trim() || !this.nameEn().trim() || this.saving()) return false;
+    if (this.needsSlug() && !isValidSlug(this.slug())) return false;
+    if (this.needsCity() && !this.cityId()) return false;
+    return true;
+  });
 
   constructor() {
-    this.fetch();
+    this.load();
   }
 
-  protected setKind(kind: ReferenceListKind): void {
-    this.kind.set(kind);
-    this.fetch();
-  }
-
-  protected fetch(): void {
-    this.failed.set(false);
+  protected load(): void {
     this.isLoading.set(true);
+    this.failed.set(false);
 
-    this.content.referenceList(this.kind()).subscribe({
-      next: (rows) => {
-        this.rows.set([...rows].sort((a, b) => a.sortOrder - b.sortOrder));
+    this.reference.all().subscribe({
+      next: (data) => {
+        this.data.set(data);
         this.isLoading.set(false);
       },
       error: () => {
@@ -94,91 +131,96 @@ export class AdminReferenceListsPage {
     });
   }
 
-  // ── Add and edit ───────────────────────────────────────────────────────
+  protected setKind(kind: ReferenceKind): void {
+    this.kind.set(kind);
+    this.blockedBy.set(null);
+    this.clearForm();
+  }
+
   protected add(): void {
-    this.editing.set(null);
-    this.draftAr.set('');
-    this.draftEn.set('');
-    this.formOpen.set(true);
-  }
+    if (!this.canAdd()) return;
 
-  protected edit(row: ReferenceListRow): void {
-    this.editing.set(row);
-    this.draftAr.set(row.nameAr);
-    this.draftEn.set(row.nameEn);
-    this.formOpen.set(true);
-  }
+    this.saving.set(true);
+    const base = { nameAr: this.nameAr().trim(), nameEn: this.nameEn().trim() };
+    const payload =
+      this.kind() === 'categories'
+        ? { ...base, slug: this.slug().trim() }
+        : this.kind() === 'districts'
+          ? { ...base, cityId: this.cityId() }
+          : base;
 
-  protected closeForm(): void {
-    this.formOpen.set(false);
-    this.editing.set(null);
-  }
-
-  protected save(): void {
-    if (!this.canSave()) return;
-
-    const request = { nameAr: this.draftAr().trim(), nameEn: this.draftEn().trim() };
-    const row = this.editing();
-    const work = row
-      ? this.content.updateReferenceItem(this.kind(), row.id, request)
-      : this.content.addReferenceItem(this.kind(), request);
-
-    this.submitting.set(true);
-    work.subscribe({
+    this.reference.create(this.kind(), payload as never).subscribe({
       next: () => {
-        this.submitting.set(false);
-        this.closeForm();
-        this.notifications.success(this.i18n.t('ref.saved'));
-        this.fetch();
+        this.saving.set(false);
+        this.clearForm();
+        this.notifications.success(this.i18n.t('reference.savedEntry'));
+        this.load();
       },
-      error: () => {
-        this.submitting.set(false);
-        this.notifications.error(this.i18n.t('admin.actionFailed'));
+      error: (failure: unknown) => {
+        this.saving.set(false);
+        this.notifications.error(
+          failure instanceof ApiError ? failure.message : this.i18n.t('admin.actionFailed'),
+        );
       },
     });
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────
-  protected askDelete(row: ReferenceListRow): void {
-    this.deleting.set(row);
-  }
+  /**
+   * Turns an entry on or off. There is no third option.
+   *
+   * A refusal is not a failure to report: the server says how many published
+   * listings are in the way, and that number is the answer the operator needs.
+   */
+  protected toggle(row: ReferenceEntry): void {
+    this.blockedBy.set(null);
+    this.saving.set(true);
 
-  protected confirmDelete(): void {
-    const row = this.deleting();
-    if (!row || this.deleteBlocked()) return;
-
-    this.deleting.set(null);
-    this.content.deleteReferenceItem(this.kind(), row.id).subscribe({
+    this.reference.setActive(this.kind(), row.id, !row.isActive).subscribe({
       next: () => {
-        this.notifications.success(this.i18n.t('ref.saved'));
-        this.fetch();
+        this.saving.set(false);
+        this.load();
       },
-      error: () => this.notifications.error(this.i18n.t('admin.actionFailed')),
-    });
-  }
-
-  // ── Ordering ───────────────────────────────────────────────────────────
-  protected move(index: number, delta: -1 | 1): void {
-    const rows = [...this.rows()];
-    const target = index + delta;
-    if (target < 0 || target >= rows.length) return;
-
-    [rows[index], rows[target]] = [rows[target], rows[index]];
-    // Optimistic: the list reorders under the operator's finger, and a failed
-    // save refetches the server's order rather than leaving a lie on screen.
-    this.rows.set(rows.map((row, position) => ({ ...row, sortOrder: position + 1 })));
-
-    this.content
-      .reorderReferenceList(
-        this.kind(),
-        rows.map((row) => row.id),
-      )
-      .subscribe({
-        next: () => this.notifications.success(this.i18n.t('ref.reordered')),
-        error: () => {
+      error: (failure: unknown) => {
+        this.saving.set(false);
+        if (!(failure instanceof ApiError)) {
           this.notifications.error(this.i18n.t('admin.actionFailed'));
-          this.fetch();
-        },
-      });
+          return;
+        }
+
+        const blocking = listingsBlockingDeactivation(failure);
+        if (blocking !== null) {
+          this.blockedBy.set({ id: row.id, count: blocking });
+          return;
+        }
+        this.notifications.error(failure.message);
+      },
+    });
+  }
+
+  protected blockedCount(row: ReferenceEntry): number | null {
+    const blocked = this.blockedBy();
+    return blocked?.id === row.id ? blocked.count : null;
+  }
+
+  protected cityName(row: ReferenceEntry): string {
+    const district = row as ReferenceDistrict;
+    const city = this.cities().find((c: ReferenceCity) => c.id === district.cityId);
+    return city ? this.i18n.pick({ nameAr: city.nameAr, nameEn: city.nameEn }) : '';
+  }
+
+  protected slugOf(row: ReferenceEntry): string {
+    return (row as ReferenceCategory).slug ?? '';
+  }
+
+  protected noteOf(row: ReferenceEntry): string {
+    const item = row as ProhibitedItem;
+    return (this.i18n.language() === 'en' ? item.noteEn : item.noteAr) ?? '';
+  }
+
+  private clearForm(): void {
+    this.slug.set('');
+    this.nameAr.set('');
+    this.nameEn.set('');
+    this.cityId.set('');
   }
 }

@@ -1,162 +1,132 @@
-<header class="head">
-  <app-ui-tabs
-    [tabs]="tabs()"
-    [selected]="kind()"
-    [label]="i18n.t('adminNav.referenceLists')"
-    (selectionChange)="setKind($event)"
-  />
-  <button appUiButton variant="primary" size="sm" type="button" (click)="add()">
-    {{ i18n.t('ref.addItem') }}
-  </button>
-</header>
+<section class="page">
+  <header class="head">
+    <h1 class="head__title">{{ i18n.t('reference.pageTitle') }}</h1>
+    <!-- Said once, at the top, because it explains why there is no delete
+         button anywhere below it. -->
+    <p class="head__sub">{{ i18n.t('reference.pageIntro') }}</p>
+  </header>
 
-<section class="list">
-  <div class="list__bar">
-    <span class="list__caption">
-      {{ listTitle() }} — <span class="num">{{ rows().length }}</span>
-    </span>
-    <span class="list__hint">{{ i18n.t('ref.orderHint') }}</span>
-  </div>
+  <app-ui-tabs [tabs]="tabs()" [selected]="kind()" (selectionChange)="setKind($event)" />
 
   @if (isLoading()) {
-    <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
   } @else if (failed()) {
-    <app-ui-empty-state tone="error" [title]="i18n.t('ref.error')" [hint]="i18n.t('ref.errorHint')">
-      <button appUiButton variant="primary" type="button" (click)="fetch()">
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('reference.loadFailed')"
+      [hint]="i18n.t('results.errorHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="load()">
         {{ i18n.t('common.retry') }}
       </button>
     </app-ui-empty-state>
-  } @else if (rows().length === 0) {
-    <app-ui-empty-state [title]="i18n.t('ref.empty')" [hint]="i18n.t('ref.emptyHint')">
-      <button appUiButton variant="primary" type="button" (click)="add()">
-        {{ i18n.t('ref.addItem') }}
-      </button>
-    </app-ui-empty-state>
   } @else {
-    <div class="row row--head">
-      <span>{{ i18n.t('ref.order') }}</span>
-      <span>{{ i18n.t('ref.name') }}</span>
-      <span>{{ i18n.t('ref.linked') }}</span>
-      <span>{{ i18n.t('admin.action') }}</span>
-    </div>
+    <form class="add" (ngSubmit)="add()">
+      @if (needsSlug()) {
+        <label class="field">
+          <span class="field__label">{{ i18n.t('reference.slug') }}</span>
+          <input
+            class="field__input num"
+            type="text"
+            dir="ltr"
+            [value]="slug()"
+            (input)="slug.set($any($event.target).value)"
+          />
+          <span class="field__hint">{{ i18n.t('reference.slugHint') }}</span>
+          @if (slugError()) {
+            <span class="field__error" role="alert">{{ slugError() }}</span>
+          }
+        </label>
+      }
 
-    @for (item of rows(); track item.id; let index = $index; let first = $first; let last = $last) {
-      <div class="row">
-        <span class="row__order">
-          <button
-            class="move"
-            type="button"
-            [attr.aria-label]="i18n.t('ref.moveUp')"
-            [disabled]="first"
-            (click)="move(index, -1)"
+      @if (needsCity()) {
+        <label class="field">
+          <span class="field__label">{{ i18n.t('reference.city') }}</span>
+          <select
+            class="field__input"
+            [value]="cityId()"
+            (change)="cityId.set($any($event.target).value)"
           >
-            ▲
-          </button>
-          <button
-            class="move"
-            type="button"
-            [attr.aria-label]="i18n.t('ref.moveDown')"
-            [disabled]="last"
-            (click)="move(index, 1)"
-          >
-            ▼
-          </button>
-          <span class="num">{{ item.sortOrder }}</span>
-        </span>
+            <option value="">—</option>
+            @for (city of cities(); track city.id) {
+              <option [value]="city.id">{{ i18n.pick(city) }}</option>
+            }
+          </select>
+        </label>
+      }
 
-        <span class="row__name">
-          <span class="cell--strong">{{ item.nameAr }}</span>
-          <span class="cell__sub" dir="ltr">{{ item.nameEn }}</span>
-        </span>
+      <label class="field">
+        <span class="field__label">{{ i18n.t('reference.nameAr') }}</span>
+        <input
+          class="field__input"
+          type="text"
+          dir="rtl"
+          [value]="nameAr()"
+          (input)="nameAr.set($any($event.target).value)"
+        />
+      </label>
 
-        <span class="row__linked num">
-          {{ i18n.t('ref.linkedCount', { count: item.linkedCount }) }}
-        </span>
+      <label class="field">
+        <span class="field__label">{{ i18n.t('reference.nameEn') }}</span>
+        <input
+          class="field__input"
+          type="text"
+          dir="ltr"
+          [value]="nameEn()"
+          (input)="nameEn.set($any($event.target).value)"
+        />
+      </label>
 
-        <span class="row__actions">
-          <button appUiButton variant="outline" size="sm" type="button" (click)="edit(item)">
-            {{ i18n.t('ref.edit') }}
-          </button>
-          <button appUiButton variant="danger" size="sm" type="button" (click)="askDelete(item)">
-            {{ i18n.t('ref.delete') }}
-          </button>
-        </span>
-      </div>
+      <button appUiButton variant="primary" type="submit" [disabled]="!canAdd()">
+        {{ i18n.t('reference.addEntry') }}
+      </button>
+    </form>
+
+    @if (rows().length) {
+      <ul class="list">
+        @for (row of rows(); track row.id) {
+          <li class="row" [class.row--off]="!row.isActive">
+            <div class="row__main">
+              <span class="row__name" dir="auto">{{ i18n.pick(row) }}</span>
+
+              @if (slugOf(row)) {
+                <span class="row__slug num" dir="ltr">{{ slugOf(row) }}</span>
+              }
+              @if (needsCity()) {
+                <span class="row__meta" dir="auto">{{ cityName(row) }}</span>
+              }
+              @if (noteOf(row)) {
+                <span class="row__meta" dir="auto">{{ noteOf(row) }}</span>
+              }
+            </div>
+
+            <app-ui-badge [tone]="row.isActive ? 'success' : 'neutral'">
+              {{ row.isActive ? i18n.t('reference.active') : i18n.t('reference.inactive') }}
+            </app-ui-badge>
+
+            <button
+              appUiButton
+              variant="outline"
+              type="button"
+              [disabled]="saving()"
+              (click)="toggle(row)"
+            >
+              {{ row.isActive ? i18n.t('reference.deactivate') : i18n.t('reference.activate') }}
+            </button>
+
+            <!-- The refusal, said as the count it carries rather than as the
+                 word "failed" — the number is what tells the operator what to
+                 do next. -->
+            @if (blockedCount(row) !== null) {
+              <app-ui-notice tone="warning" class="row__blocked">
+                {{ i18n.t('reference.inUse', { count: blockedCount(row) ?? 0 }) }}
+              </app-ui-notice>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <app-ui-empty-state [title]="i18n.t('reports.empty')" />
     }
   }
 </section>
-
-<app-ui-modal
-  showIcon="false"
-  [open]="formOpen()"
-  [title]="editing() ? i18n.t('ref.editTitle') : i18n.t('ref.addTitle')"
-  (dismissed)="closeForm()"
->
-  <label class="field">
-    <span class="field__label">{{ i18n.t('ref.name') }}</span>
-    <input
-      class="field__input"
-      type="text"
-      [value]="draftAr()"
-      (input)="draftAr.set($any($event.target).value)"
-    />
-  </label>
-
-  <!-- Both languages, always: the marketplace renders whichever the visitor is
-       reading in, and a half-filled entry shows a blank option to the other. -->
-  <label class="field">
-    <span class="field__label">{{ i18n.t('ref.nameEn') }}</span>
-    <input
-      class="field__input"
-      type="text"
-      dir="ltr"
-      [value]="draftEn()"
-      (input)="draftEn.set($any($event.target).value)"
-    />
-  </label>
-
-  <ng-container slot="actions">
-    <button appUiButton variant="outline" type="button" (click)="closeForm()">
-      {{ i18n.t('common.cancel') }}
-    </button>
-    <button
-      appUiButton
-      variant="primary"
-      type="button"
-      [disabled]="!canSave() || submitting()"
-      (click)="save()"
-    >
-      {{ i18n.t('common.save') }}
-    </button>
-  </ng-container>
-</app-ui-modal>
-
-<app-ui-modal
-  tone="danger"
-  [open]="deleting() !== null"
-  [title]="i18n.t('ref.deleteTitle')"
-  (dismissed)="deleting.set(null)"
->
-  @if (deleting(); as row) {
-    @if (deleteBlocked()) {
-      <p>{{ i18n.t('ref.deleteBlocked', { name: row.nameAr }) }}</p>
-    } @else {
-      <p>{{ i18n.t('ref.deleteBody', { name: row.nameAr }) }}</p>
-    }
-  }
-
-  <ng-container slot="actions">
-    <button appUiButton variant="outline" type="button" (click)="deleting.set(null)">
-      {{ i18n.t('common.cancel') }}
-    </button>
-    <button
-      appUiButton
-      variant="danger"
-      type="button"
-      [disabled]="deleteBlocked()"
-      (click)="confirmDelete()"
-    >
-      {{ i18n.t('ref.delete') }}
-    </button>
-  </ng-container>
-</app-ui-modal>

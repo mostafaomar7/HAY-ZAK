@@ -5,6 +5,13 @@
  * These mirror the FR modules of SRS §4. Confirm against the OpenAPI spec
  * (NFR-SCL-03) once the Technical Design Document lands.
  */
+/**
+ * The four reference lists, spelled the way their routes are. Declared here
+ * rather than imported: this file deliberately has no dependencies, so a
+ * constant can never be the reason a module cycle appears.
+ */
+export type ReferenceKind = 'categories' | 'cities' | 'districts' | 'prohibited-items';
+
 export const API_ENDPOINTS = {
   /**
    * FR-AUTH — the eleven the backend has shipped, verified against the running
@@ -246,20 +253,66 @@ export const API_ENDPOINTS = {
     // ── Not shipped yet.
     dashboard: '/admin/dashboard',
 
+    /**
+     * FR-ADM-04. `role` and `adminRole` are **separate** parameters, and
+     * `search` covers the name, the mobile and the email — not the national
+     * id, which is encrypted and cannot be searched by part of it.
+     */
     users: '/admin/users',
+    /** Carries an `activity` block: what suspending this account would break. */
     userById: (id: string) => `/admin/users/${id}`,
-    setUserStatus: (id: string) => `/admin/users/${id}/status`,
+    /**
+     * `{ reason, force? }`. Refused with 409
+     * `ADMIN_USER_HAS_ACTIVE_BOOKINGS` and `meta.liveBookings` while the
+     * account has live bookings; `force: true` is the confirmed second attempt.
+     *
+     * Every session the account holds is revoked immediately.
+     *
+     * There is deliberately no way to suspend another administrator
+     * (`ADMIN_CANNOT_SUSPEND_ADMIN`) or yourself (`ADMIN_CANNOT_ACT_ON_SELF`).
+     */
+    suspendUser: (id: string) => `/admin/users/${id}/suspend`,
+    /** `{ reason }`. */
+    activateUser: (id: string) => `/admin/users/${id}/activate`,
+    /** `{ approve, reason? }` — the reason is required to reject. */
+    reviewUserIdentity: (id: string) => `/admin/users/${id}/identity`,
+
+    // No route edits a user's name, mobile or email, on purpose: an
+    // administrator changing somebody's phone number is the shape of an
+    // account takeover. Nothing on this side should offer the control.
 
     unitReviewById: (id: string) => `/admin/units/${id}/review-detail`,
 
     bookingReviewById: (id: string) => `/admin/bookings/${id}/review-detail`,
 
+    /**
+     * `?group=general|financial|booking|operations|content`.
+     *
+     * Reading is open to any administrator; **writing depends on the group** —
+     * `financial` needs `settings:financial` and everything else needs
+     * `settings:manage`, so the two are not interchangeable and neither is a
+     * superset. The group is on each row; it cannot be read off the URL.
+     */
     settings: '/admin/settings',
-    commissionExceptions: '/admin/settings/commission-exceptions',
-    commissionExceptionById: (id: string) => `/admin/settings/commission-exceptions/${id}`,
+    /**
+     * `{ value }` — **always a string**, whatever the setting's type.
+     * `"1500"` and `"true"`, never `1500` or `true`; the server parses and
+     * refuses with a 422 if it will not convert.
+     */
+    settingByKey: (key: string) => `/admin/settings/${key}`,
 
-    auditLog: '/admin/audit-log',
-    auditEntryById: (id: string) => `/admin/audit-log/${id}`,
+    /**
+     * FR-ADM-09 — `audit:view`, the system administrator's alone, because it
+     * records what every administrator did including whoever is reading it.
+     *
+     * `?action=&entityType=&entityId=&actorUserId=&from=&to=&page=`, with
+     * `from`/`to` as plain `YYYY-MM-DD` and `to` inclusive of its whole day.
+     *
+     * There is no bulk export, deliberately. Ask before building one.
+     */
+    auditLog: '/admin/audit',
+    /** The `action` values actually present, for the filter. */
+    auditActions: '/admin/audit/actions',
 
     /**
      * FR-ADM-08 — the complaints queue, and the only exception path in the
@@ -286,13 +339,28 @@ export const API_ENDPOINTS = {
     closeComplaint: (id: string) => `/admin/complaints/${id}/close`,
 
     /** FR-ADM-05 — one endpoint per list kind, so ordering stays per list. */
-    referenceList: (kind: string) => `/admin/reference/${kind}`,
-    referenceItem: (kind: string, id: string) => `/admin/reference/${kind}/${id}`,
-    referenceOrder: (kind: string) => `/admin/reference/${kind}/order`,
+    /**
+     * FR-ADM-05 — every list at once, active and inactive alike.
+     *
+     * **Nothing is ever deleted.** Entries are deactivated (`isActive: false`),
+     * and a category with published listings under it refuses even that: 409
+     * `CATEGORY_IN_USE` with `meta.requested` — the count worth putting on
+     * screen instead of the word "failed".
+     */
+    reference: '/admin/reference',
+    referenceKind: (kind: ReferenceKind) => `/admin/reference/${kind}`,
+    referenceItem: (kind: ReferenceKind, id: string) => `/admin/reference/${kind}/${id}`,
 
     /** FR-CMS-01 */
+    /** FR-CMS-01. `POST` needs every field; `PUT` is a partial. */
     cmsPages: '/admin/cms/pages',
-    cmsPageBySlug: (slug: string) => `/admin/cms/pages/${slug}`,
+    /**
+     * By **id**, not by slug — the slug is editable, and a route keyed on an
+     * editable field renames itself when somebody fixes a typo.
+     *
+     * A duplicate slug is 409 `CMS_SLUG_TAKEN`; a slug with a space is a 422.
+     */
+    cmsPageById: (id: string) => `/admin/cms/pages/${id}`,
 
     /** FR-ADM-07 */
     termsVersions: '/admin/terms',
@@ -309,11 +377,31 @@ export const API_ENDPOINTS = {
    * lessor's own figures come from `lessor.earnings`, which is scoped to them.
    */
   reports: {
+    /**
+     * The platform as it stands — **no date filter, on purpose**. "42 listings
+     * published in March" is not a sentence that means anything; these are
+     * counts of what exists now.
+     *
+     * Every bucket carries every key, zeros included, so nothing here needs a
+     * `?? 0` that would hide a missing block.
+     */
+    overview: '/admin/reports/overview',
+    /**
+     * `?from=&to=` — plain `YYYY-MM-DD`, independent, both optional. A
+     * malformed date is a 422 rather than a filter quietly ignored.
+     *
+     * Answers `grossHalalas`: **what renters paid, which is not revenue.**
+     */
     bookings: '/admin/reports/bookings',
+    /**
+     * The actual revenue — `commissionHalalas`, net of refunds — beside the
+     * money the platform is only holding. Labelling `grossHalalas` as revenue
+     * overstates it by the value of every booking, which is the classic
+     * marketplace accounting error.
+     */
     revenue: '/admin/reports/revenue',
-    payouts: '/admin/reports/payouts',
-    occupancy: '/admin/reports/occupancy',
-    export: (kind: string) => `/admin/reports/${kind}/export`,
+    /** Per-lessor totals, paged. */
+    lessors: '/admin/reports/lessors',
   },
 
   /** Reference data — FR-ADM-05 */
@@ -379,8 +467,22 @@ export const API_ENDPOINTS = {
    * reach a page that cannot fill itself.
    */
   content: {
-    pageBySlug: (slug: string) => `/content/pages/${slug}`,
-    faq: '/content/pages/faq',
+    /** Published pages only — the footer and the menu read this. */
+    pages: '/public/pages',
+    /**
+     * One page. An unpublished slug answers **404, not 403**: anybody who can
+     * tell "exists but hidden" from "does not exist" can learn what is being
+     * drafted.
+     */
+    pageBySlug: (slug: string) => `/public/pages/${slug}`,
+    /**
+     * The public settings, already converted to their real types — numbers
+     * arrive as numbers here, unlike the administrator's string-valued view.
+     * Read this instead of hard-coding a page size or a hold length.
+     */
+    settings: '/public/settings',
+
+    // ── Not shipped; the screens that call them are behind these names.
     activeTerms: '/content/terms/active',
     contact: '/content/contact',
   },

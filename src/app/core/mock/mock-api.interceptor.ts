@@ -18,23 +18,21 @@ import {
   MOCK_ADMIN_RENTER_DETAIL,
   MOCK_ADMIN_USERS,
   MOCK_ADMIN_USER_DETAIL,
-  MOCK_AUDIT_DETAIL,
   MOCK_AUDIT_ROWS,
   MOCK_BOOKING_DETAIL,
   MOCK_BOOKING_QUEUE,
   MOCK_CMS_PAGES,
-  MOCK_COMMISSION_EXCEPTIONS,
   MOCK_COMPLAINTS,
   MOCK_COMPLAINT_DETAIL,
   MOCK_REVIEW_UNITS,
   MOCK_PAYMENT_ROWS,
   MOCK_ELIGIBLE_PAYOUTS,
   MOCK_PAYOUTS,
-  MOCK_REF_LISTS,
+  MOCK_REFERENCE_DATA,
   MOCK_SETTINGS,
   MOCK_REPORT_BOOKINGS,
-  MOCK_REPORT_OCCUPANCY,
-  MOCK_REPORT_PAYOUTS,
+  MOCK_OVERVIEW,
+  MOCK_REPORT_LESSORS,
   MOCK_REPORT_REVENUE,
   MOCK_TERMS_APPROVALS,
   MOCK_TERMS_VERSIONS,
@@ -287,41 +285,54 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (/^\/admin\/payouts\/[^/]+$/.test(path)) return ok(payoutById(path.split('/')[3]));
   if (/^\/admin\/lessors\/[^/]+\/bank-details-demand$/.test(path)) return ok(null);
 
-  if (path === API_ENDPOINTS.reports.bookings) return ok(MOCK_REPORT_BOOKINGS);
-  if (path === API_ENDPOINTS.reports.revenue) return ok(MOCK_REPORT_REVENUE);
-  if (path === API_ENDPOINTS.reports.payouts) return ok(MOCK_REPORT_PAYOUTS);
-  if (path === API_ENDPOINTS.reports.occupancy) return ok(MOCK_REPORT_OCCUPANCY);
+  // ── Reports ────────────────────────────────────────────────────────────
+  // The overview has no date range; the other two take one and ignore it here,
+  // because the fixture is a single snapshot and filtering it would be a
+  // pretence the real server does not make.
+  if (path === API_ENDPOINTS.reports.overview) return ok({ overview: MOCK_OVERVIEW });
+  if (path === API_ENDPOINTS.reports.bookings) return ok({ report: MOCK_REPORT_BOOKINGS });
+  if (path === API_ENDPOINTS.reports.revenue) return ok({ report: MOCK_REPORT_REVENUE });
+  if (path === API_ENDPOINTS.reports.lessors) return paginate(MOCK_REPORT_LESSORS);
 
-  if (path === API_ENDPOINTS.admin.commissionExceptions) {
-    if (method === 'GET') return ok(MOCK_COMMISSION_EXCEPTIONS);
-    if (method === 'POST') return ok(MOCK_COMMISSION_EXCEPTIONS[0]);
+  // ── Settings ───────────────────────────────────────────────────────────
+  // Rows with string values, as the wire sends them. A fixture with real
+  // numbers would let a screen bind an input to a number and still look right.
+  if (/^\/admin\/settings\/[^/]+$/.test(path) && method === 'PUT') {
+    const key = path.split('/')[3];
+    const row = MOCK_SETTINGS.find((s) => s.key === key) ?? MOCK_SETTINGS[0];
+    return ok({ setting: row });
   }
-  if (/^\/admin\/settings\/commission-exceptions\/[^/]+$/.test(path)) return ok(null);
-  if (path === API_ENDPOINTS.admin.settings && method === 'PUT') return ok(MOCK_SETTINGS);
-  if (path === API_ENDPOINTS.admin.settings) return ok(MOCK_SETTINGS);
+  if (path === API_ENDPOINTS.admin.settings) {
+    const group = new URLSearchParams(query).get('group');
+    return ok({ settings: group ? MOCK_SETTINGS.filter((s) => s.group === group) : MOCK_SETTINGS });
+  }
 
+  // ── Users ──────────────────────────────────────────────────────────────
+  if (/^\/admin\/users\/[^/]+\/(suspend|activate|identity)$/.test(path)) {
+    return ok({ user: adminUserDetail(path.split('/')[3]) });
+  }
   if (path === API_ENDPOINTS.admin.users) return paginate(MOCK_ADMIN_USERS);
-  if (/^\/admin\/users\/[^/]+\/status$/.test(path)) return ok(null);
   if (/^\/admin\/users\/[^/]+$/.test(path)) {
-    const id = path.split('/')[3];
-    const detail = id === MOCK_ADMIN_RENTER_DETAIL.id ? MOCK_ADMIN_RENTER_DETAIL : undefined;
-    const row = MOCK_ADMIN_USERS.find((u) => u.id === id);
-    return ok(detail ?? (row ? { ...MOCK_ADMIN_USER_DETAIL, ...row } : MOCK_ADMIN_USER_DETAIL));
+    return ok({ user: adminUserDetail(path.split('/')[3]) });
   }
 
-  if (/^\/admin\/reference\/[^/]+\/order$/.test(path)) return ok(null);
-  if (/^\/admin\/reference\/[^/]+\/[^/]+$/.test(path)) return ok(null);
-  if (/^\/admin\/reference\/[^/]+$/.test(path)) {
-    const kind = path.split('/')[3];
-    if (method === 'GET') return ok(MOCK_REF_LISTS[kind] ?? []);
-    return ok(null);
-  }
+  // ── Reference data ─────────────────────────────────────────────────────
+  // No delete route, exactly as the server has none.
+  if (/^\/admin\/reference\/[^/]+\/[^/]+$/.test(path) && method === 'PUT') return ok(null);
+  if (/^\/admin\/reference\/[^/]+$/.test(path) && method === 'POST') return ok(null);
+  if (path === API_ENDPOINTS.admin.reference) return ok(MOCK_REFERENCE_DATA);
 
-  if (path === API_ENDPOINTS.admin.cmsPages) return ok(MOCK_CMS_PAGES);
+  // ── CMS ────────────────────────────────────────────────────────────────
+  if (path === API_ENDPOINTS.admin.cmsPages) {
+    if (method === 'POST') return ok({ page: MOCK_CMS_PAGES[0] });
+    return ok({ pages: MOCK_CMS_PAGES });
+  }
   if (/^\/admin\/cms\/pages\/[^/]+$/.test(path)) {
-    const slug = path.split('/')[4];
-    if (method === 'PUT') return ok(null);
-    return ok(MOCK_CMS_PAGES.find((p) => p.slug === slug) ?? MOCK_CMS_PAGES[0]);
+    const id = path.split('/')[4];
+    const page = MOCK_CMS_PAGES.find((p) => p.id === id) ?? MOCK_CMS_PAGES[0];
+    // A write answers with the whole page, as the server does, so a screen
+    // never has to guess what publishing changed.
+    return ok({ page: method === 'PUT' ? { ...page, isPublished: !page.isPublished } : page });
   }
 
   if (/^\/admin\/terms\/[^/]+\/approvals$/.test(path)) return ok(MOCK_TERMS_APPROVALS);
@@ -331,12 +342,12 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return ok(MOCK_TERMS_VERSIONS[0]);
   }
 
-  if (path === API_ENDPOINTS.admin.auditLog) return paginate(MOCK_AUDIT_ROWS);
-  if (/^\/admin\/audit-log\/[^/]+$/.test(path)) {
-    const id = path.split('/')[3];
-    const row = MOCK_AUDIT_ROWS.find((r) => r.id === id);
-    return ok(row ? { ...MOCK_AUDIT_DETAIL, ...row } : MOCK_AUDIT_DETAIL);
+  if (path === API_ENDPOINTS.admin.auditActions) {
+    // Read off the fixture rather than listed twice: the filter must offer the
+    // actions that are actually present, which is what the server does.
+    return ok({ actions: [...new Set(MOCK_AUDIT_ROWS.map((r) => r.action))] });
   }
+  if (path === API_ENDPOINTS.admin.auditLog) return paginate(MOCK_AUDIT_ROWS);
 
   // ── Complaints (FR-ADM-08) ─────────────────────────────────────────────
   // The console's side. Every write answers with the whole complaint, as the
@@ -363,10 +374,27 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return ok({ complaint: userComplaint(path.split('/')[3]) });
   }
 
-  // ── Content (FR-CMS) ───────────────────────────────────────────────────
-  if (/^\/content\/pages\/[^/]+$/.test(path)) {
+  // ── Public content and settings (FR-CMS) ───────────────────────────────
+  if (path === API_ENDPOINTS.content.pages) {
+    return ok({ pages: MOCK_CMS_PAGES.filter((page) => page.isPublished) });
+  }
+  if (/^\/public\/pages\/[^/]+$/.test(path)) {
     const slug = path.split('/')[3] as StaticPageSlug;
+    // Falling through to a 404 for a slug nobody has published is the point:
+    // the caller reaches for the bundled copy, exactly as it does live.
     return MOCK_STATIC_PAGES[slug] ? ok(MOCK_STATIC_PAGES[slug]) : undefined;
+  }
+  if (path === API_ENDPOINTS.content.settings) {
+    // Already converted to real types here, unlike the administrator's
+    // string-valued view — which is the whole reason this route exists.
+    return ok(
+      Object.fromEntries(
+        MOCK_SETTINGS.filter((setting) => setting.isPublic).map((setting) => [
+          setting.key,
+          setting.dataType === 'number' ? Number(setting.value) : setting.value,
+        ]),
+      ),
+    );
   }
   if (path === API_ENDPOINTS.content.contact && method === 'POST') {
     return ok({ ticketNo: 'SR-2026-00714' });
@@ -633,6 +661,14 @@ function notificationRows() {
 
 function unreadFixtureCount(): number {
   return notificationRows().filter((n) => !n.readAt).length;
+}
+
+/** An unknown id falls back to the detailed fixture, so no route dead-ends. */
+function adminUserDetail(id: string) {
+  const row = MOCK_ADMIN_USERS.find((u) => u.id === id);
+  const base =
+    id === MOCK_ADMIN_RENTER_DETAIL.id ? MOCK_ADMIN_RENTER_DETAIL : MOCK_ADMIN_USER_DETAIL;
+  return row ? { ...base, ...row } : base;
 }
 
 /** An unknown id falls back to the detailed fixture, so no route dead-ends. */

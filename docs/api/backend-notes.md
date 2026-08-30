@@ -772,3 +772,141 @@ and hiding it here would make it invisible.
 
 SMS is sent server-side; there is nothing to do for it. In development it only
 prints to the server log.
+
+### The console — every screen, and the permission on each
+
+**There is no single "is this an admin?" check on the router**, and there must
+not be one: each group carries its own permission, so the three administrators
+genuinely see three different consoles. The navigation is built from
+`permissions[]`, never from `adminRole`.
+
+| Route                       | Permission           | Held by                       |
+| --------------------------- | -------------------- | ----------------------------- |
+| `/admin/users`              | `users:manage`       | `SYSTEM_ADMIN` + `OPERATIONS` |
+| `/admin/audit`              | `audit:view`         | `SYSTEM_ADMIN`                |
+| `/admin/reports`            | `reports:view`       | all three                     |
+| `/admin/reference-lists`    | `reference:manage`   | `SYSTEM_ADMIN` + `OPERATIONS` |
+| `/admin/content`            | `cms:manage`         | `SYSTEM_ADMIN` + `OPERATIONS` |
+| `/admin/financial-settings` | `settings:financial` | `SYSTEM_ADMIN` + `FINANCE`    |
+
+#### Accounts
+
+```
+GET  /admin/users?role=&adminRole=&status=&verificationStatus=&search=&page=
+GET  /admin/users/:id                    carries an `activity` block
+POST /admin/users/:id/suspend            { reason, force? }
+POST /admin/users/:id/activate           { reason }
+POST /admin/users/:id/identity           { approve, reason? }
+```
+
+`search` covers the name, the mobile and the email. **Not the national id** —
+encrypted, and partial search of it is impossible by design.
+
+Three absences are the contract, not gaps: **nothing edits a name, a mobile or
+an email**; an administrator cannot be suspended
+(`ADMIN_CANNOT_SUSPEND_ADMIN`); and nobody can act on themselves
+(`ADMIN_CANNOT_ACT_ON_SELF`). The console hides those buttons rather than
+disabling them — a greyed control still reads as "one day".
+
+Suspension **revokes every session immediately**, so the five `activity` counts
+sit _above_ the button rather than in a confirmation after it. A dialog that
+reveals the cost once the intent is formed asks somebody to change their mind;
+showing it first lets them make it up.
+
+While bookings are live the server refuses once — 409
+`ADMIN_USER_HAS_ACTIVE_BOOKINGS` with `meta.liveBookings` — and only then is
+`force` offered, which is what makes the second press a decision rather than a
+retry. The client never sends `force` on the first attempt.
+
+`verificationProvider` is `MANUAL` today and `NAFATH` later. It is shown, not
+hidden: an identity a person approved by eye is a different assurance from one
+Nafath returned.
+
+#### The audit trail
+
+`GET /admin/audit` (**not** `/admin/audit-log`) and `GET /admin/audit/actions`,
+the latter read from the data so a newly-recorded action appears in the filter
+without a release here.
+
+`oldValue` → `newValue` are shown side by side, because that pair is the point:
+"somebody changed the commission" is a rumour, "this person changed it from 15%
+to 5% at 14:12" is a record. `actor` can be `null` — a background job, or an
+account since removed — and the screen answers with a dash rather than
+inventing a name.
+
+`from`/`to` are plain `YYYY-MM-DD` and `to` covers its whole day. **No export**,
+deliberately; ask before building one.
+
+#### Reports — and the one number that must not be mislabelled
+
+```
+GET /admin/reports/overview            no date filter, on purpose
+GET /admin/reports/bookings?from=&to=  grossHalalas  ← NOT revenue
+GET /admin/reports/revenue?from=&to=   commissionHalalas ← revenue
+GET /admin/reports/lessors?page=
+```
+
+`grossHalalas` is what renters paid. Most of it is owed to lessors, some is VAT
+owed to ZATCA, and only the commission is income. The screen labels it "إجمالي
+ما دفعه المستأجرون" with the caveat under it, and puts `commissionHalalas` in
+its own card as "إيراد المنصة". `owedToLessorsHalalas` and `vatPayableHalalas`
+are marked as liabilities rather than listed beside the income as though they
+were more of it.
+
+The overview carries **every** key with zeros, so nothing needs `?? 0` — and a
+`?? 0` would hide a block the server stopped sending. `complaints.overdue` sits
+in the same object as the five statuses and is **not** one of them: an overdue
+complaint is also `OPEN` or `IN_PROGRESS`, so it is displayed separately or the
+column stops adding up.
+
+#### Settings
+
+`GET /admin/settings?group=` · `PUT /admin/settings/:key { value }`.
+
+**The value is always a string**, whatever the setting is: `"1500"`, `"true"`.
+The server parses against `dataType` and 422s if it will not convert. The
+client picks the input from `dataType` and sends the text back untouched —
+converting here would mean converting back on the way in, and one more place
+for a boolean to become the string `"false"` and then be truthy.
+
+**The permission depends on the group, not the screen.** `financial` needs
+`settings:financial`; every other group needs `settings:manage`; neither
+contains the other. So the finance officer opens the page, reads all of it, and
+can change one tab — and the system administrator can change the other four.
+Read from the row (`settingWritePermission`), never from the tab or the URL.
+
+`isEditable: false` renders read-only; writing anyway is a 409.
+
+#### Reference data
+
+`GET /admin/reference` returns all four lists at once, active and inactive
+together — one call, so the districts on screen always belong to the city list
+beside them.
+
+**There is no delete, and no method for one.** Entries are deactivated, because
+listings and bookings written years ago still point at them. A category with
+published listings under it will not even deactivate: 409 `CATEGORY_IN_USE`
+with `meta.requested`, and that number goes on screen — "٣١ إعلان منشور تحت هذا
+التصنيف" tells an operator what to do next where "تعذّر التعطيل" does not.
+
+A category's `slug` is the stable identifier: renaming "مستودعات" to "مخازن"
+must not change what a saved filter matches.
+
+#### Content, and the public side
+
+`POST /admin/cms/pages` needs every field; `PUT /admin/cms/pages/:id` is a
+partial, keyed by **id** rather than slug because the slug is editable and a
+route keyed on an editable field renames itself.
+
+Publishing is `{ "isPublished": true }` and nothing else. Sent as its own
+button, not "save and publish": two people with the editor open would otherwise
+have one publish a stale body over the other's correction.
+
+`GET /public/pages`, `/public/pages/:slug`, `/public/settings` need no token.
+An unpublished slug is **404, not 403** — anybody who can tell "exists but
+hidden" from "does not exist" can learn what is being drafted. `ContentService`
+already treats any failure the same way and falls back to the bundled copy.
+
+`/public/settings` returns values **already converted** — numbers as numbers,
+unlike the administrator's string-valued view. Read it instead of hard-coding a
+page size or a hold length.

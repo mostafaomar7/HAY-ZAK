@@ -17,7 +17,7 @@ import type { Environment } from './environment.model';
  */
 export const environment: Environment = {
   production: false,
-  apiUrl: 'http://192.168.1.12:4000/api/v1',
+  apiUrl: 'http://192.168.1.17:4000/api/v1',
   appName: 'HAY-ZAK (API)',
   version: '1.0.0-api',
   defaultLang: 'ar',

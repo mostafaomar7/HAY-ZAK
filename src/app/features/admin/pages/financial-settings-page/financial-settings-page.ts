@@ -1,118 +1,99 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
-import { bpsToPercent, percentToBps } from '@core/utils/money.utils';
-import type { CommissionException } from '@core/models/admin.model';
-import type { PlatformSettings } from '@core/models/operations.model';
+import { ApiError } from '@core/models/api-error.model';
+import type { PlatformSetting, SettingGroup } from '@core/models/platform-setting';
+import { settingWritePermission } from '@core/models/platform-setting';
 import { NotificationService } from '@core/services/notification.service';
+import { PermissionService } from '@core/services/permission.service';
+import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
-import { UiModal } from '@shared/components/ui-modal/ui-modal';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
-import { UiToggle } from '@shared/components/ui-toggle/ui-toggle';
-import { AdminFinanceService } from '../../services/admin-finance.service';
+import type { TabItem } from '@shared/components/ui-tabs/ui-tabs';
+import { UiTabs } from '@shared/components/ui-tabs/ui-tabs';
+import { AdminSettingsService } from '../../services/admin-settings.service';
 import { AdminSettingsStore } from '../../services/admin-settings.store';
 
-/** Which setting the confirmation dialog is holding. */
-type Field = 'commission' | 'vat' | 'cycle' | 'autoApprove' | 'exception' | null;
+const GROUPS: readonly SettingGroup[] = [
+  'general',
+  'financial',
+  'booking',
+  'operations',
+  'content',
+];
 
 /**
- * ADM-08 — the financial configuration (FR-ADM-06, FR-ADM-12).
+ * ADM-10 — the platform settings (FR-ADM-06).
  *
- * Every change on this screen goes through the same confirmation showing the old
- * value beside the new one, and nothing is written until it is confirmed. That is
- * the design's rule and it is the right one: a mistyped commission rate silently
- * saved would mis-price every booking taken until somebody noticed.
+ * **Reading is open to any administrator; writing depends on the row.** A
+ * `financial` setting needs `settings:financial`, which the finance officer
+ * holds; everything else needs `settings:manage`, which only the system
+ * administrator holds. Neither contains the other, so the finance officer sees
+ * the whole screen and can change exactly one tab of it — and the system
+ * administrator sees the same screen and can change the other four.
  *
- * The auto-approval switch is included from day one (SRS §2.1) and is the only
- * control here that changes an operational flow rather than a number — turning it
- * on stops the booking queue receiving work at all, so its confirmation says so.
+ * The rule is read off each row rather than from the tab, because the group is
+ * a property of the setting: a new group arriving from the server must not
+ * quietly become editable by whoever happens to be looking.
+ *
+ * **The value is a string in both directions.** `dataType` decides which input
+ * to draw; the text goes back untouched and the server does the parsing and
+ * the refusing. Converting here would mean converting back on the way in — two
+ * conversions to end up where the field started, and one more place for a
+ * boolean to become the string "false" and then be truthy.
  */
 @Component({
   selector: 'app-admin-financial-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminFinanceService],
-  imports: [UiButton, UiEmptyState, UiModal, UiNotice, UiSkeleton, UiToggle],
+  imports: [UiBadge, UiButton, UiEmptyState, UiNotice, UiSkeleton, UiTabs],
   templateUrl: './financial-settings-page.html',
   styleUrl: './financial-settings-page.scss',
 })
 export class AdminFinancialSettingsPage {
-  private readonly finance = inject(AdminFinanceService);
+  private readonly settingsApi = inject(AdminSettingsService);
+  private readonly store = inject(AdminSettingsStore);
+  private readonly permissions = inject(PermissionService);
   private readonly notifications = inject(NotificationService);
 
   protected readonly i18n = inject(LanguageService);
-  protected readonly store = inject(AdminSettingsStore);
 
-  protected readonly settings = signal<PlatformSettings | null>(null);
-  protected readonly exceptions = signal<CommissionException[]>([]);
+  protected readonly rows = signal<PlatformSetting[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
-  protected readonly submitting = signal(false);
+  protected readonly savingKey = signal('');
+  protected readonly group = signal<SettingGroup>('financial');
 
-  protected readonly editing = signal<Field>(null);
-  protected readonly draft = signal('');
+  /** What is currently typed, by key. Empty until a field is touched. */
+  protected readonly drafts = signal<Record<string, string>>({});
 
-  /** Only for the new-exception dialog. */
-  protected readonly exceptionScope = signal<'unit' | 'lessor'>('unit');
-  protected readonly exceptionTarget = signal('');
+  protected readonly tabs = computed<TabItem<SettingGroup>[]>(() =>
+    GROUPS.map((group) => ({ value: group, label: this.groupLabel(group) })),
+  );
 
-  protected readonly oldValue = computed(() => {
-    const settings = this.settings();
-    if (!settings) return '';
+  protected readonly visible = computed(() =>
+    this.rows().filter((row) => row.group === this.group()),
+  );
 
-    switch (this.editing()) {
-      case 'commission':
-        return `${bpsToPercent(settings.commissionRateBps)} ${this.i18n.t('admin.percent')}`;
-      case 'vat':
-        return `${bpsToPercent(settings.vatRateBps)} ${this.i18n.t('admin.percent')}`;
-      case 'cycle':
-        return this.i18n.t('finset.cycleValue', { hours: settings.payoutCycleHours });
-      case 'autoApprove':
-        return settings.autoApproveBookings
-          ? this.i18n.t('finset.autoApproveOn')
-          : this.i18n.t('finset.autoApproveOff');
-      default:
-        return '';
-    }
-  });
-
-  protected readonly newValue = computed(() => {
-    switch (this.editing()) {
-      case 'commission':
-      case 'vat':
-        return `${this.draft()} ${this.i18n.t('admin.percent')}`;
-      case 'cycle':
-        return this.i18n.t('finset.cycleValue', { hours: this.draft() });
-      case 'autoApprove':
-        return this.settings()?.autoApproveBookings
-          ? this.i18n.t('finset.autoApproveOff')
-          : this.i18n.t('finset.autoApproveOn');
-      default:
-        return this.draft();
-    }
-  });
-
-  /** The switch is a yes/no, so it has no field to fill in — only a confirmation. */
-  protected readonly isSwitch = computed(() => this.editing() === 'autoApprove');
-
-  protected readonly canSave = computed(() => {
-    if (this.isSwitch()) return true;
-    const value = Number(this.draft());
-    return Number.isFinite(value) && value >= 0;
+  /** True when this administrator may write to the group currently shown. */
+  protected readonly canWriteGroup = computed(() => {
+    const first = this.visible()[0];
+    return first ? this.permissions.can(settingWritePermission(first)) : false;
   });
 
   constructor() {
-    this.fetch();
+    this.load();
   }
 
-  protected fetch(): void {
-    this.failed.set(false);
+  protected load(): void {
     this.isLoading.set(true);
+    this.failed.set(false);
 
-    this.finance.settings().subscribe({
-      next: (settings) => {
-        this.settings.set(settings);
-        this.store.set(settings);
+    // Every group in one call: the tabs are a way of arranging what is already
+    // here, and refetching per tab would let two of them disagree.
+    this.settingsApi.list().subscribe({
+      next: (rows) => {
+        this.rows.set(rows);
         this.isLoading.set(false);
       },
       error: () => {
@@ -120,121 +101,85 @@ export class AdminFinancialSettingsPage {
         this.isLoading.set(false);
       },
     });
-
-    this.finance.exceptions().subscribe({
-      next: (rows) => this.exceptions.set(rows),
-      error: () => this.exceptions.set([]),
-    });
   }
 
-  // ── Opening the confirmation ───────────────────────────────────────────
-  protected edit(field: Exclude<Field, null>): void {
-    const settings = this.settings();
-    if (!settings) return;
-
-    this.editing.set(field);
-    switch (field) {
-      case 'commission':
-        this.draft.set(String(bpsToPercent(settings.commissionRateBps)));
-        break;
-      case 'vat':
-        this.draft.set(String(bpsToPercent(settings.vatRateBps)));
-        break;
-      case 'cycle':
-        this.draft.set(String(settings.payoutCycleHours));
-        break;
-      default:
-        this.draft.set('');
-    }
+  protected setGroup(group: SettingGroup): void {
+    this.group.set(group);
   }
 
-  protected addException(): void {
-    this.editing.set('exception');
-    this.draft.set('');
-    this.exceptionScope.set('unit');
-    this.exceptionTarget.set('');
+  protected valueOf(row: PlatformSetting): string {
+    return this.drafts()[row.key] ?? row.value;
   }
 
-  protected close(): void {
-    this.editing.set(null);
-    this.draft.set('');
+  protected setValue(row: PlatformSetting, value: string): void {
+    this.drafts.update((current) => ({ ...current, [row.key]: value }));
   }
 
-  // ── Saving ─────────────────────────────────────────────────────────────
-  protected save(): void {
-    const settings = this.settings();
-    const field = this.editing();
-    if (!settings || !field) return;
+  protected isDirty(row: PlatformSetting): boolean {
+    const draft = this.drafts()[row.key];
+    return draft !== undefined && draft !== row.value;
+  }
 
-    if (field === 'exception') {
-      this.saveException();
-      return;
-    }
+  /**
+   * Whether this particular row may be edited.
+   *
+   * Two independent reasons it may not: the server marked it read-only, or
+   * this administrator does not hold the permission its group requires.
+   */
+  protected canEdit(row: PlatformSetting): boolean {
+    return row.isEditable && this.permissions.can(settingWritePermission(row));
+  }
 
-    const value = Number(this.draft());
-    const patch: Partial<PlatformSettings> =
-      field === 'commission'
-        ? { commissionRateBps: percentToBps(value) }
-        : field === 'vat'
-          ? { vatRateBps: percentToBps(value) }
-          : field === 'cycle'
-            ? { payoutCycleHours: value }
-            : { autoApproveBookings: !settings.autoApproveBookings };
+  protected save(row: PlatformSetting): void {
+    if (!this.canEdit(row) || !this.isDirty(row)) return;
 
-    this.submitting.set(true);
-    this.finance.saveSettings(patch).subscribe({
+    this.savingKey.set(row.key);
+    // The text as typed. The server owns the parsing and answers 422 if it
+    // will not convert to the row's dataType.
+    this.settingsApi.update(row.key, this.valueOf(row)).subscribe({
       next: (saved) => {
-        this.settings.set(saved);
-        this.store.set(saved);
-        this.done();
+        this.savingKey.set('');
+        this.rows.update((rows) => rows.map((r) => (r.key === saved.key ? saved : r)));
+        this.drafts.update((current) => {
+          const { [saved.key]: _dropped, ...rest } = current;
+          return rest;
+        });
+        // So the reports and the queue headers agree with this screen at once.
+        this.store.apply(saved);
+        this.notifications.success(this.i18n.t('settings.savedOne'));
       },
-      error: () => this.fail(),
+      error: (failure: unknown) => {
+        this.savingKey.set('');
+        this.notifications.error(
+          failure instanceof ApiError
+            ? failure.details[0]?.message || failure.message
+            : this.i18n.t('admin.actionFailed'),
+        );
+      },
     });
   }
 
-  protected removeException(row: CommissionException): void {
-    this.finance.removeException(row.id).subscribe({
-      next: () => {
-        this.exceptions.update((rows) => rows.filter((item) => item.id !== row.id));
-        this.notifications.success(this.i18n.t('admin.saved'));
-      },
-      error: () => this.notifications.error(this.i18n.t('admin.actionFailed')),
-    });
+  protected label(row: PlatformSetting): string {
+    return this.i18n.language() === 'en' ? row.labelEn : row.labelAr;
   }
 
-  /** Basis points to the whole percentage every label prints. */
-  protected percentOf(rateBps: number): number {
-    return bpsToPercent(rateBps);
+  /** Written for the administrator, so it is shown rather than summarised. */
+  protected hint(row: PlatformSetting): string {
+    return (this.i18n.language() === 'en' ? row.hintEn : row.hintAr) ?? '';
   }
 
-  private saveException(): void {
-    const rate = Number(this.draft());
-    if (!Number.isFinite(rate)) return;
-
-    this.submitting.set(true);
-    this.finance
-      .addException({
-        scope: this.exceptionScope(),
-        targetId: this.exceptionTarget(),
-        rateBps: percentToBps(rate),
-      })
-      .subscribe({
-        next: (row) => {
-          this.exceptions.update((rows) => [...rows, row]);
-          this.done();
-        },
-        error: () => this.fail(),
-      });
-  }
-
-  private done(): void {
-    this.submitting.set(false);
-    this.close();
-    this.notifications.success(this.i18n.t('admin.saved'));
-  }
-
-  private fail(): void {
-    this.submitting.set(false);
-    this.notifications.error(this.i18n.t('admin.actionFailed'));
+  protected groupLabel(group: SettingGroup): string {
+    switch (group) {
+      case 'financial':
+        return this.i18n.t('settings.groupFinancial');
+      case 'booking':
+        return this.i18n.t('settings.groupBooking');
+      case 'operations':
+        return this.i18n.t('settings.groupOperations');
+      case 'content':
+        return this.i18n.t('settings.groupContent');
+      default:
+        return this.i18n.t('settings.groupGeneral');
+    }
   }
 }

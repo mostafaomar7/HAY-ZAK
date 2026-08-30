@@ -10,18 +10,21 @@
   <div class="layout">
     <nav class="pages" [attr.aria-label]="i18n.t('cms.pages')">
       <h2 class="pages__title">{{ i18n.t('cms.pages') }}</h2>
-      @for (page of pages(); track page.slug) {
+      @for (page of pages(); track page.id) {
         <button
           class="pages__item"
           type="button"
-          [class.pages__item--on]="page.slug === slug()"
-          [attr.aria-current]="page.slug === slug() ? 'true' : null"
-          (click)="select(page.slug)"
+          [class.pages__item--on]="page.id === selectedId()"
+          [attr.aria-current]="page.id === selectedId() ? 'true' : null"
+          (click)="select(page.id)"
         >
-          <span class="pages__name">{{ page.titleAr }}</span>
-          <span class="pages__meta num">
-            {{ i18n.t('cms.updatedAt', { date: page.updatedAt }) }}
-          </span>
+          <span class="pages__name" dir="auto">{{ page.titleAr }}</span>
+          <span class="pages__meta num" dir="ltr">{{ page.slug }}</span>
+          <!-- A draft in this list is a page the public cannot reach: the
+               public route answers 404 for it, not 403. -->
+          <app-ui-badge size="sm" [tone]="page.isPublished ? 'success' : 'neutral'">
+            {{ page.isPublished ? i18n.t('cms.isPublished') : i18n.t('cms.isDraft') }}
+          </app-ui-badge>
         </button>
       }
     </nav>
@@ -31,10 +34,8 @@
         <section class="card">
           <header class="card__head">
             <div class="card__text">
-              <h2 class="card__title">{{ page.titleAr }}</h2>
-              <p class="card__meta num">
-                {{ i18n.t('cms.updatedAt', { date: page.updatedAt }) }}
-              </p>
+              <h2 class="card__title" dir="auto">{{ page.titleAr }}</h2>
+              <p class="card__meta num" dir="ltr">/pages/{{ page.slug }}</p>
             </div>
             <div class="card__actions">
               <a
@@ -55,7 +56,20 @@
                 [disabled]="saving()"
                 (click)="save()"
               >
-                {{ i18n.t('cms.publish') }}
+                {{ i18n.t('common.save') }}
+              </button>
+              <!-- Its own button, sending one field. Saving and publishing
+                   together would carry a body that may be older than the
+                   server's over somebody else's correction. -->
+              <button
+                appUiButton
+                variant="outline"
+                size="sm"
+                type="button"
+                [disabled]="saving()"
+                (click)="togglePublished()"
+              >
+                {{ page.isPublished ? i18n.t('cms.unpublishAction') : i18n.t('cms.publishAction') }}
               </button>
             </div>
           </header>
@@ -72,12 +86,35 @@
             </label>
 
             <label class="field">
-              <span class="field__label">{{ i18n.t('cms.body') }}</span>
+              <span class="field__label">{{ i18n.t('cms.titleEn') }}</span>
+              <input
+                class="field__input"
+                type="text"
+                dir="ltr"
+                [value]="titleEn()"
+                (input)="titleEn.set($any($event.target).value)"
+              />
+            </label>
+
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.bodyAr') }}</span>
               <textarea
                 class="field__input field__input--area"
                 rows="12"
-                [value]="body()"
-                (input)="body.set($any($event.target).value)"
+                dir="rtl"
+                [value]="bodyAr()"
+                (input)="bodyAr.set($any($event.target).value)"
+              ></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field__label">{{ i18n.t('cms.bodyEn') }}</span>
+              <textarea
+                class="field__input field__input--area"
+                rows="12"
+                dir="ltr"
+                [value]="bodyEn()"
+                (input)="bodyEn.set($any($event.target).value)"
               ></textarea>
             </label>
           </div>
@@ -91,12 +128,12 @@
               <input
                 class="field__input"
                 type="text"
-                [value]="seoTitle()"
-                (input)="seoTitle.set($any($event.target).value)"
+                [value]="metaTitleAr()"
+                (input)="metaTitleAr.set($any($event.target).value)"
               />
               <span class="field__hint" [class.field__hint--over]="titleTooLong()">
                 {{ i18n.t('cms.seoTitleHint') }}
-                <span class="num" dir="ltr">{{ seoTitle().length }}/{{ seoTitleLimit }}</span>
+                <span class="num" dir="ltr">{{ metaTitleAr().length }}/{{ seoTitleLimit }}</span>
               </span>
             </label>
 
@@ -105,13 +142,13 @@
               <textarea
                 class="field__input field__input--area"
                 rows="3"
-                [value]="seoDescription()"
-                (input)="seoDescription.set($any($event.target).value)"
+                [value]="metaDescriptionAr()"
+                (input)="metaDescriptionAr.set($any($event.target).value)"
               ></textarea>
               <span class="field__hint" [class.field__hint--over]="descriptionTooLong()">
                 {{ i18n.t('cms.seoDescriptionHint') }}
                 <span class="num" dir="ltr">
-                  {{ seoDescription().length }}/{{ seoDescriptionLimit }}
+                  {{ metaDescriptionAr().length }}/{{ seoDescriptionLimit }}
                 </span>
               </span>
             </label>

@@ -1,277 +1,158 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
 import type {
-  BookingsReportRow,
-  OccupancyReportRow,
-  PayoutReportRow,
-  ReportFilters,
-  ReportKind,
-  RevenueReportRow,
-} from '@core/models/admin.model';
-import { NotificationService } from '@core/services/notification.service';
+  AdminOverview,
+  BookingsReport,
+  LessorReportRow,
+  RevenueReport,
+} from '@core/models/admin-reports';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
+import { UiMoney } from '@shared/components/ui-money/ui-money';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
-import { UiTabs } from '@shared/components/ui-tabs/ui-tabs';
-import type { TabItem } from '@shared/components/ui-tabs/ui-tabs';
-import { AdminBarChart } from '../../components/admin-bar-chart/admin-bar-chart';
-import type { BarGroup, BarSeries } from '../../components/admin-bar-chart/admin-bar-chart';
-import { AdminFilterBar } from '../../components/admin-filter-bar/admin-filter-bar';
-import type { AdminFilterValues } from '../../components/admin-filter-bar/admin-filter-bar';
-import { AdminMeter } from '../../components/admin-meter/admin-meter';
-import type { MeterRow } from '../../components/admin-meter/admin-meter';
 import { AdminReportsService } from '../../services/admin-reports.service';
-import { AdminSettingsStore } from '../../services/admin-settings.store';
-import { hijri, monthLabel } from '../../utils/report.utils';
+
+/** One count under a label, which is what most of this screen is. */
+interface CountRow {
+  key: string;
+  label: string;
+  value: number;
+}
 
 /**
- * ADM-07 — the four reports (FR-RPT-01 … FR-RPT-05).
+ * ADM-07 — the reports (FR-RPT), `reports:view`.
  *
- * One screen with four tabs rather than four routes: the filter set is the same
- * on all of them, and an operator comparing bookings against revenue for the
- * same period should not have to re-enter it.
+ * **The one thing this screen exists to get right is which number is revenue.**
  *
- * Each tab keeps its own rows. Switching back to a tab already fetched shows it
- * immediately rather than flashing a skeleton over data that has not changed.
+ * `grossHalalas` is what renters paid. The platform does not keep it: most is
+ * owed to lessors, some is VAT owed to ZATCA, and only the commission is
+ * income. Putting "الإيرادات" above the gross overstates revenue by the value
+ * of every booking on the platform — the classic marketplace accounting error,
+ * and one that survives all the way into a board pack because the number looks
+ * impressive and nobody re-derives it. So the two live in separate sections,
+ * each labelled with what it is, and the liabilities are named as liabilities
+ * rather than listed beside the income as though they were more of it.
+ *
+ * The overview has **no date filter**, and there is no control for one. These
+ * are counts of what exists now; "42 listings published in March" is not a
+ * sentence that means anything, and offering the picker would invite the
+ * question.
+ *
+ * There is no export. The old `?format=xlsx` route is gone rather than left
+ * pointing at a 404.
  */
 @Component({
   selector: 'app-admin-reports-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [AdminReportsService],
-  imports: [AdminBarChart, AdminFilterBar, AdminMeter, UiButton, UiEmptyState, UiSkeleton, UiTabs],
+  imports: [UiButton, UiEmptyState, UiMoney, UiSkeleton],
   templateUrl: './reports-page.html',
   styleUrl: './reports-page.scss',
 })
 export class AdminReportsPage {
   private readonly reports = inject(AdminReportsService);
-  private readonly notifications = inject(NotificationService);
 
   protected readonly i18n = inject(LanguageService);
-  protected readonly settings = inject(AdminSettingsStore);
 
-  protected readonly kind = signal<ReportKind>('bookings');
+  protected readonly overview = signal<AdminOverview | null>(null);
+  protected readonly bookings = signal<BookingsReport | null>(null);
+  protected readonly revenue = signal<RevenueReport | null>(null);
+  protected readonly lessors = signal<LessorReportRow[]>([]);
+
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
-  protected readonly filters = signal<AdminFilterValues>({ period: 'last5' });
 
-  protected readonly bookingRows = signal<BookingsReportRow[]>([]);
-  protected readonly revenueRows = signal<RevenueReportRow[]>([]);
-  protected readonly payoutRows = signal<PayoutReportRow[]>([]);
-  protected readonly occupancyRows = signal<OccupancyReportRow[]>([]);
+  /** Both ends optional and independent; a malformed date is a 422, not a shrug. */
+  protected readonly from = signal('');
+  protected readonly to = signal('');
 
-  protected readonly tabs = computed<TabItem<ReportKind>[]>(() => [
-    { value: 'bookings', label: this.i18n.t('reports.bookings') },
-    { value: 'revenue', label: this.i18n.t('reports.revenue') },
-    { value: 'payouts', label: this.i18n.t('reports.payouts') },
-    { value: 'occupancy', label: this.i18n.t('reports.occupancy') },
-  ]);
-
-  protected readonly selects = computed(() => [
-    {
-      key: 'period',
-      label: this.i18n.t('admin.period'),
-      options: [
-        { value: 'last5', label: this.i18n.t('reports.last5Months') },
-        { value: 'year', label: this.i18n.t('admin.thisYear') },
-      ],
-    },
-    {
-      key: 'cityId',
-      label: this.i18n.t('admin.city'),
-      options: [{ value: '', label: this.i18n.t('admin.allCities') }],
-    },
-    {
-      key: 'categoryId',
-      label: this.i18n.t('admin.category'),
-      options: [{ value: '', label: this.i18n.t('admin.allCategories') }],
-    },
-    {
-      key: 'lessorId',
-      label: this.i18n.t('admin.lessor'),
-      options: [{ value: '', label: this.i18n.t('admin.allLessors') }],
-    },
-  ]);
-
-  protected readonly isEmpty = computed(() => this.currentLength() === 0);
-
-  // ── Chart data ─────────────────────────────────────────────────────────
-  protected readonly bookingSeries = computed<BarSeries[]>(() => [
-    { label: this.i18n.t('reports.bookingCount'), tone: 'primary' },
-  ]);
-
-  protected readonly bookingGroups = computed<BarGroup[]>(() =>
-    this.bookingRows().map((row) => ({
-      label: monthLabel(row.month, this.i18n.language()),
-      sublabel: hijri(row.month, this.i18n.language()),
-      values: [row.count],
-    })),
-  );
-
-  protected readonly revenueSeries = computed<BarSeries[]>(() => [
-    { label: this.i18n.t('reports.revenueLegend'), tone: 'primary' },
-    { label: this.i18n.t('reports.commissionLegend'), tone: 'accent' },
-  ]);
-
-  protected readonly revenueGroups = computed<BarGroup[]>(() =>
-    this.revenueRows().map((row) => ({
-      label: monthLabel(row.month, this.i18n.language()),
-      sublabel: hijri(row.month, this.i18n.language()),
-      values: [row.revenue, row.commission],
-    })),
-  );
-
-  protected readonly payoutMeters = computed<MeterRow[]>(() =>
-    this.payoutRows().map((row) => ({
-      label: row.lessorName,
-      percent: row.totalDue === 0 ? 0 : Math.round((row.transferred / row.totalDue) * 100),
-      display: `${row.totalDue === 0 ? 0 : Math.round((row.transferred / row.totalDue) * 100)}%`,
-    })),
-  );
-
-  protected readonly occupancyMeters = computed<MeterRow[]>(() =>
-    this.occupancyRows().map((row) => ({
-      label: row.categoryName,
-      percent: row.occupancyRate,
-      display: `${row.occupancyRate}%`,
-    })),
-  );
-
-  constructor() {
-    this.fetch();
-  }
-
-  protected setKind(kind: ReportKind): void {
-    this.kind.set(kind);
-    if (this.currentLength() === 0) this.fetch();
-  }
-
-  protected onFilters(values: AdminFilterValues): void {
-    this.filters.set(values);
-    this.clearAll();
-    this.fetch();
-  }
-
-  protected onReset(): void {
-    this.filters.set({ period: 'last5' });
-    this.clearAll();
-    this.fetch();
-  }
-
-  protected fetch(): void {
-    this.failed.set(false);
-    this.isLoading.set(true);
-
-    const filters = this.reportFilters();
-    const done = () => this.isLoading.set(false);
-    const fail = () => {
-      this.failed.set(true);
-      this.isLoading.set(false);
-    };
-
-    switch (this.kind()) {
-      case 'revenue':
-        this.reports.revenue(filters).subscribe({
-          next: (rows) => {
-            this.revenueRows.set(rows);
-            done();
-          },
-          error: fail,
-        });
-        break;
-      case 'payouts':
-        this.reports.payouts(filters).subscribe({
-          next: (rows) => {
-            this.payoutRows.set(rows);
-            done();
-          },
-          error: fail,
-        });
-        break;
-      case 'occupancy':
-        this.reports.occupancy(filters).subscribe({
-          next: (rows) => {
-            this.occupancyRows.set(rows);
-            done();
-          },
-          error: fail,
-        });
-        break;
-      default:
-        this.reports.bookings(filters).subscribe({
-          next: (rows) => {
-            this.bookingRows.set(rows);
-            done();
-          },
-          error: fail,
-        });
-    }
-  }
+  protected readonly unitRows = computed(() => toRows(this.overview()?.units));
+  protected readonly bookingRows = computed(() => toRows(this.overview()?.bookings));
+  protected readonly usersByRole = computed(() => toRows(this.overview()?.users.byRole));
+  protected readonly usersByStatus = computed(() => toRows(this.overview()?.users.byStatus));
 
   /**
-   * FR-RPT-05 — the file is produced server-side. Rendering a spreadsheet in the
-   * browser would mean a second implementation of every total on this screen.
+   * The complaint counts, with `overdue` pulled out.
+   *
+   * It sits in the same object as the five statuses and is not one of them —
+   * an overdue complaint is also `OPEN` or `IN_PROGRESS` — so listing it in the
+   * row would double-count and make the column not add up.
    */
-  protected export(format: 'xlsx' | 'pdf'): void {
-    this.reports.export(this.kind(), format, this.reportFilters()).subscribe({
-      next: (blob) => this.save(blob, format),
-      error: () => this.notifications.error(this.i18n.t('reports.exportFailed')),
+  protected readonly complaintRows = computed(() => {
+    const complaints = this.overview()?.complaints;
+    if (!complaints) return [];
+    const { overdue: _overdue, ...statuses } = complaints;
+    return toRows(statuses);
+  });
+
+  protected readonly overdueComplaints = computed(() => this.overview()?.complaints.overdue ?? 0);
+
+  protected readonly payoutBuckets = computed(() => {
+    const payouts = this.overview()?.payouts;
+    if (!payouts) return [];
+    return [
+      { key: 'APPROVED', ...payouts.APPROVED },
+      { key: 'PAID', ...payouts.PAID },
+      { key: 'FAILED', ...payouts.FAILED },
+    ];
+  });
+
+  constructor() {
+    this.load();
+  }
+
+  protected load(): void {
+    this.isLoading.set(true);
+    this.failed.set(false);
+
+    // The overview is the screen; the dated half is refreshed on its own.
+    this.reports.overview().subscribe({
+      next: (overview) => {
+        this.overview.set(overview);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.failed.set(true);
+        this.isLoading.set(false);
+      },
+    });
+
+    this.loadRange();
+    this.reports.lessors().subscribe({
+      next: (page) => this.lessors.set(page.items),
+      error: () => this.lessors.set([]),
     });
   }
 
-  protected month(value: string): string {
-    return monthLabel(value, this.i18n.language());
+  protected loadRange(): void {
+    const range = { from: this.from() || undefined, to: this.to() || undefined };
+
+    this.reports.bookings(range).subscribe({
+      next: (report) => this.bookings.set(report),
+      error: () => this.bookings.set(null),
+    });
+
+    this.reports.revenue(range).subscribe({
+      next: (report) => this.revenue.set(report),
+      error: () => this.revenue.set(null),
+    });
   }
 
-  protected monthHijri(value: string): string {
-    return hijri(value, this.i18n.language());
-  }
-
-  private currentLength(): number {
-    switch (this.kind()) {
-      case 'revenue':
-        return this.revenueRows().length;
-      case 'payouts':
-        return this.payoutRows().length;
-      case 'occupancy':
-        return this.occupancyRows().length;
-      default:
-        return this.bookingRows().length;
-    }
-  }
-
-  private clearAll(): void {
-    this.bookingRows.set([]);
-    this.revenueRows.set([]);
-    this.payoutRows.set([]);
-    this.occupancyRows.set([]);
-  }
-
-  private reportFilters(): ReportFilters {
-    const values = this.filters();
-    const months = values['period'] === 'year' ? 12 : 5;
-    const to = new Date();
-    const from = new Date(to.getFullYear(), to.getMonth() - months + 1, 1);
-
-    return {
-      from: iso(from),
-      to: iso(to),
-      cityId: values['cityId'] || undefined,
-      categoryId: values['categoryId'] || undefined,
-      lessorId: values['lessorId'] || undefined,
-    };
-  }
-
-  private save(blob: Blob, format: 'xlsx' | 'pdf'): void {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `hayzak-${this.kind()}.${format}`;
-    link.click();
-    URL.revokeObjectURL(url);
+  protected clearRange(): void {
+    this.from.set('');
+    this.to.set('');
+    this.loadRange();
   }
 }
 
-function iso(date: Date): string {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+/**
+ * A record of counts as rows, in the order the server sent them.
+ *
+ * Not sorted by value: these are status vocabularies, and an operator reading
+ * "الحجوزات" expects them in lifecycle order rather than in whatever order
+ * this week's numbers happen to fall.
+ */
+function toRows(counts: Record<string, number> | undefined): CountRow[] {
+  if (!counts) return [];
+  return Object.entries(counts).map(([key, value]) => ({ key, label: key, value }));
 }

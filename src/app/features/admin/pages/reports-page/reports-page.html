@@ -1,28 +1,3 @@
-<header class="head">
-  <app-ui-tabs
-    [tabs]="tabs()"
-    [selected]="kind()"
-    [label]="i18n.t('adminNav.reports')"
-    (selectionChange)="setKind($event)"
-  />
-
-  <div class="head__exports">
-    <button appUiButton variant="outline" size="sm" type="button" (click)="export('xlsx')">
-      {{ i18n.t('reports.exportExcel') }}
-    </button>
-    <button appUiButton variant="outline" size="sm" type="button" (click)="export('pdf')">
-      {{ i18n.t('reports.exportPdf') }}
-    </button>
-  </div>
-</header>
-
-<app-admin-filter-bar
-  [selects]="selects()"
-  [values]="filters()"
-  (applied)="onFilters($event)"
-  (cleared)="onReset()"
-/>
-
 @if (isLoading()) {
   <app-ui-skeleton [count]="5" [label]="i18n.t('common.loading')" />
 } @else if (failed()) {
@@ -31,133 +6,217 @@
     [title]="i18n.t('reports.error')"
     [hint]="i18n.t('reports.errorHint')"
   >
-    <button appUiButton variant="primary" type="button" (click)="fetch()">
+    <button appUiButton variant="primary" type="button" (click)="load()">
       {{ i18n.t('common.retry') }}
     </button>
   </app-ui-empty-state>
-} @else if (isEmpty()) {
-  <app-ui-empty-state [title]="i18n.t('reports.empty')" [hint]="i18n.t('reports.emptyHint')">
-    <button appUiButton variant="outline" type="button" (click)="onReset()">
-      {{ i18n.t('admin.resetFilters') }}
-    </button>
-  </app-ui-empty-state>
 } @else {
-  @switch (kind()) {
-    @case ('revenue') {
-      <app-admin-bar-chart
-        [title]="i18n.t('reports.revenueChart')"
-        [series]="revenueSeries()"
-        [groups]="revenueGroups()"
-      />
+  <section class="section">
+    <header class="section__head">
+      <h2 class="section__title">{{ i18n.t('reports.overview') }}</h2>
+      <!-- No date picker here, and that is the point. -->
+      <p class="section__hint">{{ i18n.t('reports.overviewHint') }}</p>
+    </header>
 
-      <div class="table">
-        <div class="table__head">
-          <span>{{ i18n.t('reports.month') }}</span>
-          <span>{{ i18n.t('reports.revenueLegend') }}</span>
-          <span>{{ i18n.t('reports.commissionLegend') }}</span>
-          <span>{{ i18n.t('reports.vatColumn') }}</span>
-          <span>{{ i18n.t('reports.netColumn') }}</span>
-        </div>
-        @for (row of revenueRows(); track row.month) {
-          <div class="table__row table__row--5">
-            <span class="table__cell table__cell--stack">
-              <span class="cell--strong">{{ month(row.month) }}</span>
-              <span class="cell__sub num">{{ monthHijri(row.month) }}</span>
-            </span>
-            <span class="table__cell num">{{ row.revenue }}</span>
-            <span class="table__cell cell--muted num">{{ row.commission }}</span>
-            <span class="table__cell cell--muted num">{{ row.vat }}</span>
-            <span class="table__cell cell--strong num">
-              {{ row.netToLessors }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
-            </span>
+    <div class="grid">
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.usersByRole') }}</h3>
+        <dl class="counts">
+          @for (row of usersByRole(); track row.key) {
+            <div class="count">
+              <dt>{{ row.label }}</dt>
+              <dd class="num">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.usersByStatus') }}</h3>
+        <dl class="counts">
+          @for (row of usersByStatus(); track row.key) {
+            <div class="count">
+              <dt>{{ row.label }}</dt>
+              <dd class="num">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.unitsByStatus') }}</h3>
+        <dl class="counts">
+          @for (row of unitRows(); track row.key) {
+            <div class="count">
+              <dt>{{ row.label }}</dt>
+              <dd class="num">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.bookingsByStatus') }}</h3>
+        <dl class="counts">
+          @for (row of bookingRows(); track row.key) {
+            <div class="count">
+              <dt>{{ row.label }}</dt>
+              <dd class="num">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.complaintsByStatus') }}</h3>
+        <dl class="counts">
+          @for (row of complaintRows(); track row.key) {
+            <div class="count">
+              <dt>{{ row.label }}</dt>
+              <dd class="num">{{ row.value }}</dd>
+            </div>
+          }
+          <!-- Separate from the statuses above: an overdue complaint is also
+               OPEN or IN_PROGRESS, so listing it among them would double-count
+               and the column would stop adding up. -->
+          <div class="count count--alert">
+            <dt>{{ i18n.t('reports.overdue') }}</dt>
+            <dd class="num">{{ overdueComplaints() }}</dd>
           </div>
-        }
+        </dl>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">{{ i18n.t('reports.payoutBuckets') }}</h3>
+        <dl class="counts">
+          @for (bucket of payoutBuckets(); track bucket.key) {
+            <div class="count">
+              <dt>
+                {{ bucket.key }} <span class="num">({{ bucket.count }})</span>
+              </dt>
+              <dd><app-ui-money [halalas]="bucket.totalHalalas" /></dd>
+            </div>
+          }
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <header class="section__head">
+      <h2 class="section__title">{{ i18n.t('admin.period') }}</h2>
+
+      <div class="range">
+        <label class="range__field">
+          <span>{{ i18n.t('admin.rangeFrom') }}</span>
+          <input type="date" [value]="from()" (change)="from.set($any($event.target).value)" />
+        </label>
+        <label class="range__field">
+          <span>{{ i18n.t('admin.rangeTo') }}</span>
+          <input type="date" [value]="to()" (change)="to.set($any($event.target).value)" />
+        </label>
+
+        <button appUiButton variant="primary" type="button" (click)="loadRange()">
+          {{ i18n.t('admin.applyFilters') }}
+        </button>
+        <button appUiButton variant="ghost" type="button" (click)="clearRange()">
+          {{ i18n.t('admin.resetFilters') }}
+        </button>
       </div>
-    }
+    </header>
 
-    @case ('payouts') {
-      <app-admin-meter
-        [title]="i18n.t('reports.payoutsChart')"
-        [rows]="payoutMeters()"
-        [legend]="[i18n.t('reports.sentLegend'), i18n.t('reports.restLegend')]"
-      />
+    <div class="grid">
+      @if (bookings(); as report) {
+        <article class="card">
+          <h3 class="card__title">{{ i18n.t('reports.bookingsByStatus') }}</h3>
 
-      <div class="table">
-        <div class="table__head table__head--4">
-          <span>{{ i18n.t('reports.lessor') }}</span>
-          <span>{{ i18n.t('reports.totalDue') }}</span>
-          <span>{{ i18n.t('reports.transferred') }}</span>
-          <span>{{ i18n.t('reports.remaining') }}</span>
-        </div>
-        @for (row of payoutRows(); track row.lessorId) {
-          <div class="table__row table__row--4">
-            <span class="table__cell cell--strong">{{ row.lessorName }}</span>
-            <span class="table__cell num">{{ row.totalDue }}</span>
-            <span class="table__cell table__cell--good num">{{ row.transferred }}</span>
-            <span class="table__cell cell--strong num">
-              {{ row.remaining }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
-            </span>
+          <div class="figure">
+            <span class="figure__value num">{{ report.count }}</span>
+            <span class="figure__label">{{ i18n.t('reports.bookingsCount') }}</span>
           </div>
-        }
-      </div>
-    }
 
-    @case ('occupancy') {
-      <app-admin-meter
-        inline
-        [title]="i18n.t('reports.occupancyChart')"
-        [rows]="occupancyMeters()"
-      />
-
-      <div class="table">
-        <div class="table__head table__head--5">
-          <span>{{ i18n.t('reports.city') }}</span>
-          <span>{{ i18n.t('reports.category') }}</span>
-          <span>{{ i18n.t('reports.unitCount') }}</span>
-          <span>{{ i18n.t('reports.bookedDays') }}</span>
-          <span>{{ i18n.t('reports.rate') }}</span>
-        </div>
-        @for (row of occupancyRows(); track row.categoryName) {
-          <div class="table__row table__row--5">
-            <span class="table__cell">{{ row.cityName }}</span>
-            <span class="table__cell cell--strong">{{ row.categoryName }}</span>
-            <span class="table__cell num">{{ row.unitCount }}</span>
-            <span class="table__cell cell--muted num">{{ row.bookedDays }}</span>
-            <span class="table__cell cell--strong num">
-              {{ row.occupancyRate }} <span class="unit">{{ i18n.t('admin.percent') }}</span>
-            </span>
+          <!-- Labelled as what renters paid, never as revenue: the platform
+               keeps only the commission, and the rest is owed onward. -->
+          <div class="figure">
+            <app-ui-money strong [halalas]="report.grossHalalas" />
+            <span class="figure__label">{{ i18n.t('reports.gross') }}</span>
+            <span class="figure__note">{{ i18n.t('reports.grossHint') }}</span>
           </div>
-        }
-      </div>
-    }
+        </article>
+      }
 
-    @default {
-      <app-admin-bar-chart
-        showValues
-        [title]="i18n.t('reports.bookingsChart')"
-        [series]="bookingSeries()"
-        [groups]="bookingGroups()"
-      />
+      @if (revenue(); as report) {
+        <article class="card card--revenue">
+          <h3 class="card__title">{{ i18n.t('reports.commission') }}</h3>
 
-      <div class="table">
-        <div class="table__head table__head--3">
-          <span>{{ i18n.t('reports.month') }}</span>
-          <span>{{ i18n.t('reports.bookingCount') }}</span>
-          <span>{{ i18n.t('reports.bookingValue') }}</span>
-        </div>
-        @for (row of bookingRows(); track row.month) {
-          <div class="table__row table__row--3">
-            <span class="table__cell table__cell--stack">
-              <span class="cell--strong">{{ month(row.month) }}</span>
-              <span class="cell__sub num">{{ monthHijri(row.month) }}</span>
-            </span>
-            <span class="table__cell num">{{ row.count }}</span>
-            <span class="table__cell num">
-              {{ row.totalValue }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
-            </span>
+          <div class="figure">
+            <app-ui-money strong [halalas]="report.commissionHalalas" />
+            <span class="figure__note">{{ i18n.t('reports.commissionHint') }}</span>
           </div>
-        }
+
+          <dl class="counts">
+            <div class="count">
+              <dt>{{ i18n.t('reports.netCash') }}</dt>
+              <dd><app-ui-money [halalas]="report.netCashHalalas" /></dd>
+            </div>
+            <!-- Money held for somebody else is not money earned, and it is
+                 named that way rather than sitting in the same column as the
+                 commission above. -->
+            <div class="count count--liability">
+              <dt>
+                {{ i18n.t('reports.owedToLessors') }}
+                <span class="count__note">{{ i18n.t('reports.liability') }}</span>
+              </dt>
+              <dd><app-ui-money [halalas]="report.owedToLessorsHalalas" /></dd>
+            </div>
+            <div class="count count--liability">
+              <dt>{{ i18n.t('reports.vatPayable') }}</dt>
+              <dd><app-ui-money [halalas]="report.vatPayableHalalas" /></dd>
+            </div>
+            <div class="count">
+              <dt>{{ i18n.t('reports.refunded') }}</dt>
+              <dd><app-ui-money [halalas]="report.refundedHalalas" /></dd>
+            </div>
+            <div class="count">
+              <dt>{{ i18n.t('reports.paidOut') }}</dt>
+              <dd><app-ui-money [halalas]="report.paidOutHalalas" /></dd>
+            </div>
+          </dl>
+        </article>
+      }
+    </div>
+  </section>
+
+  @if (lessors().length) {
+    <section class="section">
+      <h2 class="section__title">{{ i18n.t('reports.lessorsTable') }}</h2>
+
+      <div class="scroller">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ i18n.t('reports.lessor') }}</th>
+              <th class="num">{{ i18n.t('users.units') }}</th>
+              <th class="num">{{ i18n.t('reports.bookingsCount') }}</th>
+              <th class="num">{{ i18n.t('reports.gross') }}</th>
+              <th class="num">{{ i18n.t('reports.commissionLegend') }}</th>
+              <th class="num">{{ i18n.t('reports.netToLessor') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of lessors(); track row.lessorId) {
+              <tr>
+                <td dir="auto">{{ row.lessorName }}</td>
+                <td class="num">{{ row.unitsCount }}</td>
+                <td class="num">{{ row.bookingsCount }}</td>
+                <td class="num"><app-ui-money [halalas]="row.grossHalalas" /></td>
+                <td class="num"><app-ui-money [halalas]="row.commissionHalalas" /></td>
+                <td class="num"><app-ui-money [halalas]="row.netToLessorHalalas" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-    }
+    </section>
   }
 }

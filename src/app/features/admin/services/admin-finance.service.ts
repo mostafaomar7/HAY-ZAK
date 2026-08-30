@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { PaginatedResponse } from '@core/models/api-response.model';
-import type {
-  CommissionException,
-  CommissionExceptionRequest,
-  PaymentTrackingRow,
-} from '@core/models/admin.model';
+import type { PaymentTrackingRow } from '@core/models/admin.model';
 import type { PayoutStatus } from '@core/enums/payment.enum';
 import type {
   EligiblePayout,
@@ -14,7 +10,6 @@ import type {
   PayoutFailedRequest,
   PayoutPaidRequest,
 } from '@core/models/payment.model';
-import type { PlatformSettings } from '@core/models/operations.model';
 import { ApiService } from '@core/services/api.service';
 
 /** Payments, payouts and the financial configuration (FR-PAY, FR-ADM-06). */
@@ -89,29 +84,10 @@ export class AdminFinanceService {
     );
   }
 
-  settings(): Observable<PlatformSettings> {
-    return this.api.get<PlatformSettings>(API_ENDPOINTS.admin.settings);
-  }
-
-  saveSettings(settings: Partial<PlatformSettings>): Observable<PlatformSettings> {
-    return this.api.put<PlatformSettings, Partial<PlatformSettings>>(
-      API_ENDPOINTS.admin.settings,
-      settings,
-    );
-  }
-
-  exceptions(): Observable<CommissionException[]> {
-    return this.api.get<CommissionException[]>(API_ENDPOINTS.admin.commissionExceptions);
-  }
-
-  addException(request: CommissionExceptionRequest): Observable<CommissionException> {
-    return this.api.post<CommissionException, CommissionExceptionRequest>(
-      API_ENDPOINTS.admin.commissionExceptions,
-      request,
-    );
-  }
-
-  removeException(id: string): Observable<void> {
-    return this.api.delete<void>(API_ENDPOINTS.admin.commissionExceptionById(id));
-  }
+  /*
+   * Settings and commission exceptions used to live here. The settings moved
+   * to `AdminSettingsService` when the shipped endpoint turned out to answer
+   * with string-valued rows and a per-group permission rather than one object;
+   * the exceptions have no endpoint at all and were a screen without a server.
+   */
 }

@@ -15,14 +15,12 @@
   [total]="list.total()"
   [page]="list.page()"
   [pageSize]="list.pageSize"
-  [sort]="list.sort()"
   [emptyTitle]="i18n.t('users.empty')"
   [emptyHint]="i18n.t('users.emptyHint')"
   [errorTitle]="i18n.t('users.error')"
   [errorHint]="i18n.t('users.errorHint')"
   errorRef="ERR-5203"
   (rowOpen)="openRow($any($event))"
-  (sortChange)="onSort($event)"
   (pageChange)="onPage($event)"
   (retried)="fetch()"
   (clearedFilters)="onReset()"
@@ -32,7 +30,7 @@
     <span class="cell cell--muted">{{ roleLabel(row.role, row.adminRole) }}</span>
     <span class="cell num" dir="ltr">{{ row.mobile }}</span>
     <span class="cell" dir="ltr">{{ row.email }}</span>
-    <span class="cell num">{{ row.registeredAt | date: 'd MMM y' }}</span>
+    <span class="cell num">{{ row.createdAt | date: 'd MMM y' }}</span>
     <span class="cell">
       <app-ui-badge [tone]="statusTone(row.status)">{{ statusLabel(row.status) }}</app-ui-badge>
     </span>
@@ -69,79 +67,205 @@
           <dt>{{ i18n.t('users.email') }}</dt>
           <dd dir="ltr">{{ user.email }}</dd>
         </div>
-        @if (user.nationalId) {
-          <div class="fact">
-            <dt>{{ i18n.t('users.nationalId') }}</dt>
-            <dd class="num" dir="ltr">{{ user.nationalId }}</dd>
-          </div>
-        }
+        <div class="fact">
+          <dt>{{ i18n.t('users.verification') }}</dt>
+          <dd>
+            {{ verificationLabel(user.verificationStatus) }}
+            @if (user.verificationProvider) {
+              <!-- MANUAL today, NAFATH once that is live. An identity somebody
+                   approved by eye is a different assurance from one Nafath
+                   returned, and a reviewer looking back needs to know which. -->
+              <span class="fact__sub num" dir="ltr">{{ user.verificationProvider }}</span>
+            }
+          </dd>
+        </div>
         <div class="fact">
           <dt>{{ i18n.t('users.registeredAt') }}</dt>
-          <dd class="num">{{ user.registeredAt | date: 'd MMMM y' }}</dd>
+          <dd class="num">{{ user.createdAt | date: 'd MMMM y' }}</dd>
+        </div>
+      </dl>
+
+      <!-- There is no national id here and no edit control anywhere on this
+           panel. The id is encrypted and never sent; the endpoints that would
+           change a name, a mobile or an email do not exist, because an
+           administrator changing somebody's phone number is the shape of an
+           account takeover. -->
+      <p class="block__note">{{ i18n.t('users.noEditing') }}</p>
+    </section>
+
+    <section class="block">
+      <h3 class="block__title">{{ i18n.t('users.activity') }}</h3>
+
+      <!-- Above the buttons, not inside a confirmation. Suspension revokes
+           every session immediately, and these five numbers are the decision
+           rather than a warning about one already made. -->
+      <dl class="facts facts--counts">
+        <div class="fact">
+          <dt>{{ i18n.t('users.units') }}</dt>
+          <dd class="num">{{ user.activity.unitsCount }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.asRenter') }}</dt>
+          <dd class="num">{{ user.activity.bookingsAsRenter }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.asLessor') }}</dt>
+          <dd class="num">{{ user.activity.bookingsAsLessor }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.liveBookings') }}</dt>
+          <dd class="num">{{ user.activity.liveBookings }}</dd>
+        </div>
+        <div class="fact">
+          <dt>{{ i18n.t('users.openComplaints') }}</dt>
+          <dd class="num">{{ user.activity.openComplaints }}</dd>
         </div>
       </dl>
     </section>
 
-    @if (user.units.length > 0) {
+    @if (awaitingIdentity()) {
       <section class="block">
-        <h3 class="block__title">
-          {{ i18n.t('users.units') }} — <span class="num">{{ user.units.length }}</span>
-        </h3>
-        <ul class="links">
-          @for (unit of user.units; track unit.id) {
-            <li class="links__item">{{ unit.title }}</li>
-          }
-        </ul>
+        <h3 class="block__title">{{ i18n.t('users.identityReview') }}</h3>
+        <div class="actions">
+          <button
+            appUiButton
+            variant="primary"
+            type="button"
+            [disabled]="submitting()"
+            (click)="approveIdentity()"
+          >
+            {{ i18n.t('users.approveIdentity') }}
+          </button>
+          <button
+            appUiButton
+            variant="outline"
+            type="button"
+            [disabled]="submitting()"
+            (click)="openReject()"
+          >
+            {{ i18n.t('users.rejectIdentity') }}
+          </button>
+        </div>
+      </section>
+    } @else if (user.verificationRejectionReason) {
+      <section class="block">
+        <h3 class="block__title">{{ i18n.t('users.identityReview') }}</h3>
+        <p class="block__note" dir="auto">{{ user.verificationRejectionReason }}</p>
       </section>
     }
 
-    @if (user.bookings.length > 0) {
+    @if (canAct()) {
       <section class="block">
-        <h3 class="block__title">
-          {{ i18n.t('users.bookings') }} — <span class="num">{{ user.bookings.length }}</span>
-        </h3>
-        <ul class="links">
-          @for (booking of user.bookings; track booking.id) {
-            <li class="links__item num">
-              <span dir="ltr">{{ booking.referenceNo }}</span> · {{ booking.unitTitle }}
-            </li>
-          }
-        </ul>
+        <h3 class="block__title">{{ i18n.t('users.accountAction') }}</h3>
+
+        <app-ui-notice tone="warning">{{ i18n.t('users.suspendWarning') }}</app-ui-notice>
+
+        <label class="field">
+          <span class="field__label">{{ i18n.t('users.reason') }}</span>
+          <textarea
+            class="field__input"
+            rows="2"
+            dir="auto"
+            [value]="reason()"
+            (input)="reason.set($any($event.target).value)"
+          ></textarea>
+          <span class="field__hint">{{ i18n.t('users.reasonHint') }}</span>
+        </label>
       </section>
     }
 
-    @if (hasNothing()) {
-      <p class="block__note">{{ i18n.t('users.nothing') }}</p>
+    @if (canAct()) {
+      <!-- Its own block: a projected slot that is not the only root node of
+           the surrounding control flow is silently dropped, and the action
+           disappears from the panel footer. -->
+      <ng-container panelActions>
+        @if (isSuspended()) {
+          <button
+            appUiButton
+            variant="primary"
+            type="button"
+            fullWidth
+            [disabled]="!canSubmit()"
+            (click)="activate()"
+          >
+            {{ i18n.t('users.activate') }}
+          </button>
+        } @else {
+          <button
+            appUiButton
+            variant="danger"
+            type="button"
+            fullWidth
+            [disabled]="!canSubmit()"
+            (click)="suspend()"
+          >
+            {{ i18n.t('users.suspend') }}
+          </button>
+        }
+      </ng-container>
     }
 
-    <ng-container panelActions>
-      <button appUiButton variant="primary" type="button" fullWidth (click)="activate()">
-        {{ i18n.t('users.activate') }}
-      </button>
-      <button appUiButton variant="danger" type="button" fullWidth (click)="askSuspend()">
-        {{ i18n.t('users.suspend') }}
-      </button>
-      <button appUiButton variant="outline" type="button" fullWidth (click)="verify()">
-        {{ i18n.t('users.verify') }}
-      </button>
-    </ng-container>
+    @if (!canAct()) {
+      <!-- An administrator, or the person reading the screen. The server
+           refuses both; the button is absent rather than disabled, because a
+           greyed control still reads as "one day". -->
+      <p class="block__note">{{ i18n.t('users.cannotAct') }}</p>
+    }
   </app-admin-panel>
 }
 
+<!-- Only reachable after the server has refused once and said how many
+     bookings are live. That count is what is being confirmed, which is why it
+     cannot be asked for before it exists. -->
 <app-ui-modal
   tone="danger"
   [open]="confirmSuspend()"
   [title]="i18n.t('users.suspendTitle')"
   (dismissed)="confirmSuspend.set(false)"
 >
+  <p>{{ i18n.t('users.suspendLive', { count: liveBookings() ?? 0 }) }}</p>
   <p>{{ i18n.t('users.suspendBody') }}</p>
 
   <ng-container slot="actions">
     <button appUiButton variant="outline" type="button" (click)="confirmSuspend.set(false)">
       {{ i18n.t('common.cancel') }}
     </button>
-    <button appUiButton variant="danger" type="button" (click)="suspend()">
-      {{ i18n.t('users.suspend') }}
+    <button appUiButton variant="danger" type="button" (click)="suspend(true)">
+      {{ i18n.t('users.suspendAnyway') }}
+    </button>
+  </ng-container>
+</app-ui-modal>
+
+<app-ui-modal
+  [open]="rejectOpen()"
+  [title]="i18n.t('users.rejectIdentity')"
+  (dismissed)="rejectOpen.set(false)"
+>
+  <!-- A rejection needs a reason: the person has to know what to fix, and
+       "rejected" on its own produces a complaint rather than a document. -->
+  <label class="field">
+    <span class="field__label">{{ i18n.t('users.rejectReason') }}</span>
+    <textarea
+      class="field__input"
+      rows="3"
+      dir="auto"
+      [value]="rejectReason()"
+      (input)="rejectReason.set($any($event.target).value)"
+    ></textarea>
+  </label>
+
+  <ng-container slot="actions">
+    <button appUiButton variant="outline" type="button" (click)="rejectOpen.set(false)">
+      {{ i18n.t('common.cancel') }}
+    </button>
+    <button
+      appUiButton
+      variant="danger"
+      type="button"
+      [disabled]="!rejectReason().trim()"
+      (click)="rejectIdentity()"
+    >
+      {{ i18n.t('users.rejectIdentity') }}
     </button>
   </ng-container>
 </app-ui-modal>
