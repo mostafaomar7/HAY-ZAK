@@ -77,7 +77,7 @@ export interface WireCmsPageResponse {
 }
 
 export interface WireCmsPagesResponse {
-  pages?: WireCmsPage[] | null;
+  items?: WireCmsPage[] | null;
 }
 
 // ── Adapter ───────────────────────────────────────────────────────────────

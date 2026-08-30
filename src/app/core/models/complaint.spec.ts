@@ -22,8 +22,8 @@ function file(name: string): File {
 /**
  * The four things about complaints that fail quietly.
  *
- * The request is multipart and the field names are literal, so a typo in
- * `attachments` uploads nothing and reports success. The 409 that means "you
+ * The field names are literal, so a typo in `attachments` uploads nothing and
+ * the server still answers 201. The 409 that means "you
  * already have one of these" carries the id of the one you have, and throwing
  * that away turns a link into a dead end. An internal note is a string on the
  * wire, not a boolean, so sending `false` is still sending a note. And the two
@@ -41,9 +41,9 @@ describe('complaint requests', () => {
         attachments: [file('door.png')],
       });
 
-      // Not JSON, and not renamed: the endpoint refuses a JSON body outright
-      // and reads `attachments` literally, so a plural typo uploads nothing
-      // and still answers 201.
+      // The field names are literal. `attachments` in particular: a typo
+      // there uploads nothing and the server still answers 201, so the failure
+      // is a complaint that quietly arrives without its photos.
       expect(form.get('bookingId')).toBe('bk-1');
       expect(form.get('category')).toBe(ComplaintCategory.AccessProblem);
       expect(form.get('subject')).toBe('الباب مقفول');
@@ -146,7 +146,7 @@ describe('complaint requests', () => {
       return {
         id: 'cmp-1',
         referenceNo: 'CMP-2026-08-0001',
-        booking: { id: 'bk-1', referenceNo: 'HZ-1', unitTitle: 'مستودع' },
+        booking: { id: 'bk-1', referenceNo: 'HZ-1', unit: { id: 'u-1', title: 'مستودع' } },
         category: ComplaintCategory.SpaceNotAsDescribed,
         subject: 'موضوع',
         status: ComplaintStatus.Open,
@@ -157,9 +157,20 @@ describe('complaint requests', () => {
       };
     }
 
-    it('reads a missing isOverdue as not overdue', () => {
-      // The console paints a row red on this. "Unknown" has to resolve to
-      // "not late" rather than to `undefined` reaching a template.
+    it('derives isOverdue from the deadline, because the server sends none', () => {
+      // Past the promised reply time with nobody having answered.
+      expect(complaintFromWire(wire({ slaDueAt: '2020-01-01T00:00:00Z' })).isOverdue).toBeTrue();
+
+      // Answered already — still open, but not late. Keyed on
+      // `firstResponseAt` rather than on the status, or every old open
+      // complaint would read as overdue forever.
+      expect(
+        complaintFromWire(
+          wire({ slaDueAt: '2020-01-01T00:00:00Z', firstResponseAt: '2020-01-01T00:00:00Z' }),
+        ).isOverdue,
+      ).toBeFalse();
+
+      // No deadline at all is not a late one.
       expect(complaintFromWire(wire()).isOverdue).toBeFalse();
     });
 
@@ -174,10 +185,10 @@ describe('complaint requests', () => {
       const detail = complaintDetailFromWire(wire());
 
       // `messages.length` is read in a template on the first render, before
-      // anything has been sent.
+      // anything has been sent. There is no complaint-level attachment list
+      // and no refunds array on the wire — the opening photos are on the first
+      // message, and a refund reads as the resolution.
       expect(detail.messages).toEqual([]);
-      expect(detail.attachments).toEqual([]);
-      expect(detail.refunds).toEqual([]);
     });
 
     it('carries an internal message through rather than dropping it', () => {
@@ -186,10 +197,10 @@ describe('complaint requests', () => {
           messages: [
             {
               id: 'm-1',
-              authorName: 'مشرف',
+              senderType: 'ADMIN',
               body: 'ملاحظة',
               isInternal: true,
-              sentAt: '2026-08-01T00:00:00Z',
+              createdAt: '2026-08-01T00:00:00Z',
             },
           ],
         }),

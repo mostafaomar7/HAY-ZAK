@@ -21,7 +21,8 @@ import { Permission } from '../constants/permissions';
 
 export type SettingGroup = 'general' | 'financial' | 'booking' | 'operations' | 'content';
 
-export type SettingDataType = 'string' | 'number' | 'boolean' | 'json';
+/** Uppercase on the wire, and `INTEGER` rather than `NUMBER`. */
+export type SettingDataType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'JSON';
 
 export interface PlatformSetting {
   key: string;
@@ -36,8 +37,9 @@ export interface PlatformSetting {
   hintEn: string | null;
   /** False means read-only; writing anyway is a 409. */
   isEditable: boolean;
-  /** Also served, converted, from `/public/settings`. */
+  /** Also served, converted to its real type, from `/public/settings`. */
   isPublic: boolean;
+  updatedAt: string | null;
 }
 
 // ── Wire ──────────────────────────────────────────────────────────────────
@@ -53,6 +55,16 @@ export interface WirePlatformSetting {
   hintEn?: string | null;
   isEditable?: boolean;
   isPublic?: boolean;
+  updatedAt?: string | null;
+}
+
+/** The list endpoint wraps them in `items`, like every other paged route. */
+export interface WireSettingsResponse {
+  items?: WirePlatformSetting[] | null;
+}
+
+export interface WireSettingResponse {
+  setting: WirePlatformSetting;
 }
 
 /** `PUT /admin/settings/:key`. */
@@ -80,6 +92,7 @@ export function settingFromWire(wire: WirePlatformSetting): PlatformSetting {
     // after somebody has typed, which reads as the platform being broken.
     isEditable: wire.isEditable ?? false,
     isPublic: wire.isPublic ?? false,
+    updatedAt: wire.updatedAt ?? null,
   };
 }
 

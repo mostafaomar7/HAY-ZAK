@@ -29,14 +29,27 @@ export class AdminSettingsStore {
 
   readonly settings = this.rows.asReadonly();
 
+  // The keys as the server actually spells them — read off `/admin/settings`
+  // rather than guessed, because a key that does not match falls silently back
+  // to the compiled-in default and the screen looks right while being stale.
   readonly commissionRateBps = computed(() =>
-    this.number('finance.commission_rate_bps', FINANCIAL_DEFAULTS.commissionRateBps),
+    this.number('commission.default_rate_bps', FINANCIAL_DEFAULTS.commissionRateBps),
   );
-  readonly vatRateBps = computed(() =>
-    this.number('finance.vat_rate_bps', FINANCIAL_DEFAULTS.vatRateBps),
-  );
+  readonly vatRateBps = computed(() => this.number('vat.rate_bps', FINANCIAL_DEFAULTS.vatRateBps));
+  /** The complaint reply deadline. */
+  readonly complaintSlaHours = computed(() => this.number('complaint.sla_hours', 48));
+  readonly bookingHoldMinutes = computed(() => this.number('booking.hold_minutes', 15));
+
+  /**
+   * The listing-review deadline and the payout cycle.
+   *
+   * **The server has no key for either yet**, so these are the compiled-in
+   * defaults every time — which is why they are named here rather than read
+   * inline: three screens flag a row as late on the first, and when a setting
+   * does arrive they start honouring it without any of them changing.
+   */
   readonly approvalSlaHours = computed(() => this.number('operations.approval_sla_hours', 24));
-  readonly payoutCycleHours = computed(() => this.number('finance.payout_cycle_hours', 168));
+  readonly payoutCycleHours = computed(() => this.number('payout.cycle_hours', 168));
 
   /** As a whole percentage, which is how every label prints it. */
   readonly commissionPercent = computed(() => bpsToPercent(this.commissionRateBps()));

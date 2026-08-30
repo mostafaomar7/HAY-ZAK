@@ -70,12 +70,14 @@
         <div class="fact">
           <dt>{{ i18n.t('users.verification') }}</dt>
           <dd>
-            {{ verificationLabel(user.verificationStatus) }}
-            @if (user.verificationProvider) {
+            {{ verificationLabel(user.identity?.verificationStatus) }}
+            @if (user.identity?.verificationProvider) {
               <!-- MANUAL today, NAFATH once that is live. An identity somebody
                    approved by eye is a different assurance from one Nafath
                    returned, and a reviewer looking back needs to know which. -->
-              <span class="fact__sub num" dir="ltr">{{ user.verificationProvider }}</span>
+              <span class="fact__sub num" dir="ltr">
+                {{ user.identity?.verificationProvider }}
+              </span>
             }
           </dd>
         </div>
@@ -147,10 +149,10 @@
           </button>
         </div>
       </section>
-    } @else if (user.verificationRejectionReason) {
+    } @else if (user.identity?.rejectionReason) {
       <section class="block">
         <h3 class="block__title">{{ i18n.t('users.identityReview') }}</h3>
-        <p class="block__note" dir="auto">{{ user.verificationRejectionReason }}</p>
+        <p class="block__note" dir="auto">{{ user.identity?.rejectionReason }}</p>
       </section>
     }
 

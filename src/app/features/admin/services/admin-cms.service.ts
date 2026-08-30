@@ -29,7 +29,7 @@ export class AdminCmsService {
   list(): Observable<CmsPage[]> {
     return this.api
       .get<WireCmsPagesResponse>(API_ENDPOINTS.admin.cmsPages)
-      .pipe(map((response) => (response.pages ?? []).map(cmsPageFromWire)));
+      .pipe(map((response) => (response.items ?? []).map(cmsPageFromWire)));
   }
 
   byId(id: string): Observable<CmsPage> {

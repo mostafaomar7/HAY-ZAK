@@ -3,7 +3,8 @@ import { DatePipe } from '@angular/common';
 import { statusText, userRoleDisplay } from '@core/constants/status-display';
 import { UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
-import type { AuditEntry } from '@core/models/audit';
+import type { AuditAction, AuditEntry } from '@core/models/audit';
+import { describeAuditValue } from '@core/models/audit';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { AdminFilterBar } from '../../components/admin-filter-bar/admin-filter-bar';
 import type { AdminFilterValues } from '../../components/admin-filter-bar/admin-filter-bar';
@@ -47,7 +48,7 @@ export class AdminAuditPage {
 
   protected readonly rows = signal<AuditEntry[]>([]);
   protected readonly detail = signal<AuditEntry | null>(null);
-  protected readonly actions = signal<string[]>([]);
+  protected readonly actions = signal<AuditAction[]>([]);
 
   protected readonly columns = computed<AdminColumn[]>(() => [
     { key: 'actor', label: this.i18n.t('audit.user'), width: '1.2fr' },
@@ -65,13 +66,24 @@ export class AdminAuditPage {
       // in the filter without a release on this side.
       options: [
         { value: '', label: this.i18n.t('audit.allActions') },
-        ...this.actions().map((action) => ({ value: action, label: action })),
+        // Deduplicated on the action itself: the server pairs each with an
+        // entity type, and the same verb appears under several of them.
+        ...[...new Set(this.actions().map((entry) => entry.action))].map((action) => ({
+          value: action,
+          label: action,
+        })),
       ],
     },
     {
       key: 'entityType',
       label: this.i18n.t('audit.entity'),
-      options: [{ value: '', label: this.i18n.t('audit.allEntities') }],
+      options: [
+        { value: '', label: this.i18n.t('audit.allEntities') },
+        ...[...new Set(this.actions().map((entry) => entry.entityType))].map((entityType) => ({
+          value: entityType,
+          label: entityType,
+        })),
+      ],
     },
   ]);
 
@@ -137,6 +149,17 @@ export class AdminAuditPage {
    */
   protected actorName(entry: AuditEntry): string {
     return entry.actor?.fullName ?? entry.actorType ?? '—';
+  }
+
+  /**
+   * The change as readable lines rather than `[object Object]`.
+   *
+   * `oldValue` and `newValue` are objects on the wire — `{ status: 'OPEN' }`
+   * against `{ status: 'RESOLVED', resolution: 'NO_ACTION' }` — and printing
+   * one straight into a cell is the failure this exists to avoid.
+   */
+  protected describe(value: Record<string, unknown> | null): string[] {
+    return describeAuditValue(value);
   }
 
   protected actorRole(entry: AuditEntry): string {

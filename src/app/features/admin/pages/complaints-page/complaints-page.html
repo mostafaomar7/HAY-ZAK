@@ -70,7 +70,7 @@
         <div class="fact">
           <dt>{{ i18n.t('complaints.booking') }}</dt>
           <dd>
-            <span dir="auto">{{ complaint.booking.unitTitle }}</span>
+            <span dir="auto">{{ complaint.booking.unit.title }}</span>
             <span class="num" dir="ltr">{{ complaint.booking.referenceNo }}</span>
           </dd>
         </div>
@@ -86,7 +86,15 @@
         </div>
         <div class="fact">
           <dt>{{ i18n.t('complaints.assignedTo') }}</dt>
-          <dd>{{ complaint.assignedToName || i18n.t('complaints.unassigned') }}</dd>
+          <!-- An id, not a name: the wire carries no assignee name, so the
+               panel says whether it is assigned and nothing it cannot know. -->
+          <dd>
+            {{
+              complaint.assignedToId
+                ? i18n.t('complaints.assigned')
+                : i18n.t('complaints.unassigned')
+            }}
+          </dd>
         </div>
       </dl>
     </section>
@@ -95,35 +103,10 @@
       <h3 class="block__title">{{ i18n.t('complaints.whatYouWrote') }}</h3>
       <p class="original" dir="auto">{{ complaint.description }}</p>
 
-      @if (complaint.attachments.length) {
-        <ul class="files">
-          @for (file of complaint.attachments; track file.id) {
-            <li>
-              <a class="files__link" [href]="file.url" target="_blank" rel="noopener noreferrer">
-                {{ i18n.t('complaint.attachment') }}
-              </a>
-            </li>
-          }
-        </ul>
-      }
+      <!-- Any photos sent when the complaint was raised are on the first
+           message in the thread below: the wire has no complaint-level
+           attachment list. -->
     </section>
-
-    @if (complaint.refunds.length) {
-      <section class="block">
-        <h3 class="block__title">{{ i18n.t('complaints.refunds') }}</h3>
-        <ul class="refunds">
-          @for (refund of complaint.refunds; track refund.id) {
-            <li class="refund">
-              <app-ui-money strong [halalas]="refund.amountHalalas" />
-              @if (refund.reference) {
-                <span class="num" dir="ltr">{{ refund.reference }}</span>
-              }
-              <span class="num">{{ refund.refundedAt | date: 'd MMM y' }}</span>
-            </li>
-          }
-        </ul>
-      </section>
-    }
 
     <section class="block">
       <h3 class="block__title">{{ i18n.t('complaints.thread') }}</h3>

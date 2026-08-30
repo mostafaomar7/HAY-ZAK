@@ -6,18 +6,11 @@ import type {
   PlatformSetting,
   SettingGroup,
   UpdateSettingRequest,
-  WirePlatformSetting,
+  WireSettingResponse,
+  WireSettingsResponse,
 } from '@core/models/platform-setting';
 import { settingFromWire } from '@core/models/platform-setting';
 import { ApiService } from '@core/services/api.service';
-
-interface WireSettingsResponse {
-  settings?: WirePlatformSetting[] | null;
-}
-
-interface WireSettingResponse {
-  setting: WirePlatformSetting;
-}
 
 /**
  * Reading and writing the platform's settings (FR-ADM-06).
@@ -41,7 +34,7 @@ export class AdminSettingsService {
   list(group?: SettingGroup): Observable<PlatformSetting[]> {
     return this.api
       .get<WireSettingsResponse>(API_ENDPOINTS.admin.settings, { params: { group } })
-      .pipe(map((response) => (response.settings ?? []).map(settingFromWire)));
+      .pipe(map((response) => (response.items ?? []).map(settingFromWire)));
   }
 
   /**

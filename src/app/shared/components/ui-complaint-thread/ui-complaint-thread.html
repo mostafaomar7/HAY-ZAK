@@ -7,8 +7,8 @@
         [class.msg--stray]="isStray(message)"
       >
         <div class="msg__head">
-          <span class="msg__author" dir="auto">{{ message.authorName }}</span>
-          <time class="msg__time num" dir="ltr">{{ message.sentAt }}</time>
+          <span class="msg__author">{{ senderLabel(message) }}</span>
+          <time class="msg__time num" dir="ltr">{{ message.createdAt }}</time>
         </div>
 
         @if (message.isInternal) {

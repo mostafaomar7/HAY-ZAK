@@ -8,8 +8,6 @@ import { TermsVersionStatus } from '../models/admin.model';
 import type {
   AdminUserDetail,
   AdminUserRow,
-  AuditDetail,
-  AuditRow,
   BookingReviewDetail,
   BookingReviewRow,
   LessorBankDetails,
@@ -20,6 +18,7 @@ import type {
   TermsVersionRow,
 } from '../models/admin.model';
 import type { WireComplaint, WireComplaintDetail } from '../models/complaint';
+import type { WireAuditEntry } from '../models/audit';
 import type {
   AdminOverview,
   BookingsReport,
@@ -424,8 +423,8 @@ export const MOCK_BANK_DETAILS: LessorBankDetails = {
  */
 export const MOCK_OVERVIEW: AdminOverview = {
   users: {
+    // No GUEST: the server sends only the roles that exist as accounts.
     byRole: {
-      [UserRole.Guest]: 0,
       [UserRole.Renter]: 184,
       [UserRole.Lessor]: 62,
       [UserRole.Admin]: 4,
@@ -472,18 +471,23 @@ export const MOCK_OVERVIEW: AdminOverview = {
 };
 
 export const MOCK_REPORT_BOOKINGS: BookingsReport = {
-  count: 148,
+  bookingsCount: 148,
   // What renters paid. Not revenue — see the commission below.
   grossHalalas: 8_642_000,
+  // Before refunds, unlike the revenue report's figure.
+  expectedCommissionHalalas: 432_100,
+  lessorShareHalalas: 8_209_900,
+  averageBookingHalalas: 58_392,
+  averageDays: 3.3,
+  // Only the statuses actually present, as the server sends it.
   byStatus: {
-    [BookingStatus.Draft]: 0,
-    [BookingStatus.AwaitingPayment]: 4,
     [BookingStatus.Confirmed]: 38,
-    [BookingStatus.Active]: 12,
     [BookingStatus.Completed]: 91,
-    [BookingStatus.Expired]: 2,
-    [BookingStatus.Cancelled]: 1,
   },
+  topCities: [
+    { id: 'city-1', nameAr: 'الرياض', nameEn: 'Riyadh', bookings: 121, grossHalalas: 7_040_000 },
+    { id: 'city-2', nameAr: 'جدة', nameEn: 'Jeddah', bookings: 27, grossHalalas: 1_602_000 },
+  ],
 };
 
 /**
@@ -494,6 +498,7 @@ export const MOCK_REPORT_BOOKINGS: BookingsReport = {
  * numbers do not relate would let a mislabelled figure look plausible.
  */
 export const MOCK_REPORT_REVENUE: RevenueReport = {
+  collectedHalalas: 8_642_000,
   netCashHalalas: 1_240_000,
   commissionHalalas: 424_100,
   owedToLessorsHalalas: 7_912_900,
@@ -504,31 +509,18 @@ export const MOCK_REPORT_REVENUE: RevenueReport = {
 
 export const MOCK_REPORT_LESSORS: LessorReportRow[] = [
   {
-    lessorId: 'lsr-1',
-    lessorName: 'سعود العنزي',
-    unitsCount: 9,
-    bookingsCount: 41,
+    lessor: { id: 'lsr-1', fullName: 'سعود العنزي' },
+    units: 9,
+    bookings: 41,
     grossHalalas: 2_480_000,
-    commissionHalalas: 124_000,
-    netToLessorHalalas: 2_356_000,
+    earnedHalalas: 2_356_000,
   },
   {
-    lessorId: 'lsr-2',
-    lessorName: 'فهد بن سعد العمري',
-    unitsCount: 5,
-    bookingsCount: 27,
+    lessor: { id: 'lsr-2', fullName: 'فهد بن سعد العمري' },
+    units: 5,
+    bookings: 27,
     grossHalalas: 1_610_000,
-    commissionHalalas: 80_500,
-    netToLessorHalalas: 1_529_500,
-  },
-  {
-    lessorId: 'lsr-3',
-    lessorName: 'منى الحربي',
-    unitsCount: 3,
-    bookingsCount: 12,
-    grossHalalas: 740_000,
-    commissionHalalas: 37_000,
-    netToLessorHalalas: 703_000,
+    earnedHalalas: 1_529_500,
   },
 ];
 
@@ -540,11 +532,11 @@ export const MOCK_REPORT_LESSORS: LessorReportRow[] = [
  */
 export const MOCK_SETTINGS: WirePlatformSetting[] = [
   {
-    key: 'finance.commission_rate_bps',
+    key: 'commission.default_rate_bps',
     // A string, as the wire sends it. A fixture with a real number would let a
     // screen bind an input to one and still look correct here.
     value: '500',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'financial',
     labelAr: 'نسبة عمولة المنصة',
     labelEn: 'Platform commission rate',
@@ -554,9 +546,9 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
     isPublic: false,
   },
   {
-    key: 'finance.vat_rate_bps',
+    key: 'vat.rate_bps',
     value: '1500',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'financial',
     labelAr: 'نسبة ضريبة القيمة المضافة',
     labelEn: 'VAT rate',
@@ -566,9 +558,9 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
     isPublic: false,
   },
   {
-    key: 'finance.payout_cycle_hours',
+    key: 'payout.eligible_after',
     value: '168',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'financial',
     labelAr: 'دورة التحويل',
     labelEn: 'Payout cycle',
@@ -578,9 +570,9 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
     isPublic: false,
   },
   {
-    key: 'operations.approval_sla_hours',
+    key: 'complaint.sla_hours',
     value: '24',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'operations',
     labelAr: 'مهلة مراجعة الإعلان',
     labelEn: 'Listing review deadline',
@@ -592,7 +584,7 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
   {
     key: 'booking.hold_minutes',
     value: '15',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'booking',
     labelAr: 'مهلة حجز التواريخ',
     labelEn: 'Date hold',
@@ -604,7 +596,7 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
   {
     key: 'marketplace.page_size',
     value: '12',
-    dataType: 'number',
+    dataType: 'INTEGER',
     group: 'general',
     labelAr: 'عدد النتائج في الصفحة',
     labelEn: 'Results per page',
@@ -616,7 +608,7 @@ export const MOCK_SETTINGS: WirePlatformSetting[] = [
   {
     key: 'general.platform_name',
     value: 'حيّزك',
-    dataType: 'string',
+    dataType: 'STRING',
     group: 'general',
     labelAr: 'اسم المنصة',
     labelEn: 'Platform name',
@@ -973,12 +965,15 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
   {
     id: 'cmp-1',
     referenceNo: 'CMP-2026-08-0042',
-    booking: { id: 'bk-r3', referenceNo: 'HZ-2026-01021', unitTitle: 'مستودع مكيّف — النرجس' },
+    booking: {
+      id: 'bk-r3',
+      referenceNo: 'HZ-2026-01021',
+      unit: { id: 'u-mock', title: 'مستودع مكيّف — النرجس' },
+    },
     category: ComplaintCategory.SpaceNotAsDescribed,
     subject: 'الوحدة غير مطابقة للوصف المنشور',
     status: ComplaintStatus.InProgress,
     slaDueAt: '2026-07-19T09:10:00Z',
-    isOverdue: true,
     firstResponseAt: '2026-07-19T13:40:00Z',
     createdAt: '2026-07-18T09:10:00Z',
     updatedAt: '2026-07-20T08:05:00Z',
@@ -986,12 +981,15 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
   {
     id: 'cmp-2',
     referenceNo: 'CMP-2026-08-0051',
-    booking: { id: 'bk-r4', referenceNo: 'HZ-2026-01033', unitTitle: 'غرفة تخزين — الياسمين' },
+    booking: {
+      id: 'bk-r4',
+      referenceNo: 'HZ-2026-01033',
+      unit: { id: 'u-mock', title: 'غرفة تخزين — الياسمين' },
+    },
     category: ComplaintCategory.AccessProblem,
     subject: 'تأخر تسليم مفاتيح المستودع',
     status: ComplaintStatus.Open,
     slaDueAt: '2026-08-05T12:00:00Z',
-    isOverdue: false,
     // Nobody has answered this one yet, which is a different thing from new.
     firstResponseAt: null,
     createdAt: '2026-08-04T11:20:00Z',
@@ -1000,12 +998,15 @@ export const MOCK_COMPLAINTS: WireComplaint[] = [
   {
     id: 'cmp-3',
     referenceNo: 'CMP-2026-08-0038',
-    booking: { id: 'bk-r5', referenceNo: 'HZ-2026-00981', unitTitle: 'مستودع صغير — الملقا' },
+    booking: {
+      id: 'bk-r5',
+      referenceNo: 'HZ-2026-00981',
+      unit: { id: 'u-mock', title: 'مستودع صغير — الملقا' },
+    },
     category: ComplaintCategory.ProhibitedGoods,
     subject: 'بضاعة مخالفة لقائمة الممنوعات',
     status: ComplaintStatus.Resolved,
     slaDueAt: '2026-07-03T09:00:00Z',
-    isOverdue: false,
     firstResponseAt: '2026-07-02T15:00:00Z',
     createdAt: '2026-07-02T08:00:00Z',
     updatedAt: '2026-07-04T10:00:00Z',
@@ -1016,108 +1017,94 @@ export const MOCK_COMPLAINT_DETAIL: WireComplaintDetail = {
   ...MOCK_COMPLAINTS[0],
   description:
     'المساحة الفعلية أصغر من المعلن، ولا يوجد تكييف كما ورد في الوصف. زرت المكان يوم الأحد ووجدت الباب الداخلي مغلقًا.',
-  attachments: [],
   resolution: null,
   resolutionNote: null,
   resolvedAt: null,
-  assignedToName: 'نوف السالم',
-  refunds: [],
   messages: [
     {
       id: 'msg-1',
-      authorName: 'نورة الشمري',
+      senderType: 'RENTER',
       body: 'المساحة الفعلية أصغر من المعلن، ولا يوجد تكييف كما ورد في الوصف.',
-      attachments: [],
-      sentAt: '2026-07-18T09:10:00Z',
+      createdAt: '2026-07-18T09:10:00Z',
     },
     {
       // The other party to the booking answers in the same thread — the lessor
       // being complained about has to be able to speak for themselves.
       id: 'msg-2',
-      authorName: 'فهد بن سعد العمري',
+      senderType: 'LESSOR',
       body: 'التكييف متوقف مؤقتًا للصيانة، والمساحة مطابقة للمخطط المرفق.',
-      attachments: [],
-      sentAt: '2026-07-19T13:40:00Z',
+      createdAt: '2026-07-19T13:40:00Z',
     },
     {
       id: 'msg-3',
-      authorName: 'نوف السالم — مشرف العمليات',
+      senderType: 'ADMIN',
       body: 'طُلب من المؤجر إرفاق صور محدّثة، وجُمّد التحويل حتى حسم الشكوى.',
-      attachments: [],
-      sentAt: '2026-07-20T08:05:00Z',
+      createdAt: '2026-07-20T08:05:00Z',
     },
     {
       // Console only. `/me/complaints` never sends one of these, so the
       // interceptor strips it below — the same way the server does.
       id: 'msg-4',
-      authorName: 'نوف السالم — مشرف العمليات',
+      senderType: 'ADMIN',
       body: 'ملاحظة: نفس المؤجر عليه شكوى سابقة بنفس السبب.',
-      attachments: [],
       isInternal: true,
-      sentAt: '2026-07-20T08:07:00Z',
+      createdAt: '2026-07-20T08:07:00Z',
     },
   ],
 };
 
 // ── Audit trail ──────────────────────────────────────────────────────────
 
-export const MOCK_AUDIT_ROWS: AuditRow[] = [
+/**
+ * The wire shape — `oldValue`/`newValue` are **objects**, `actor` is nested,
+ * and one row has no actor at all.
+ *
+ * The last of those is the one worth having: a background job and a deleted
+ * account both come back with `actor: null`, and a screen that assumed a name
+ * would break on a row it can neither reproduce nor delete.
+ */
+export const MOCK_AUDIT_ROWS: WireAuditEntry[] = [
   {
     id: 'aud-1',
-    actorName: 'محمد الحربي',
-    actorRole: UserRole.Admin,
-    actorAdminRole: AdminRole.SystemAdmin,
-    action: 'تعديل الإعدادات المالية — نسبة العمولة',
-    occurredAt: '2026-08-13T10:22:00Z',
-    oldValue: '10 بالمئة',
-    newValue: '5 بالمئة',
+    action: 'settings.updated',
+    entityType: 'setting',
+    entityId: 'commission.default_rate_bps',
+    oldValue: { value: '1000' },
+    newValue: { value: '500' },
+    actor: { id: 'usr-5', fullName: 'محمد الحربي', adminRole: AdminRole.SystemAdmin },
+    actorType: 'ADMIN',
+    ipAddress: '10.0.4.18',
+    requestId: 'req-8814',
+    createdAt: '2026-08-13T10:22:00Z',
   },
   {
     id: 'aud-2',
-    actorName: 'نوف السالم',
-    actorRole: UserRole.Admin,
-    actorAdminRole: AdminRole.Operations,
-    action: 'اعتماد إعلان — مستودع مكيّف، النرجس',
-    occurredAt: '2026-08-13T08:41:00Z',
-    oldValue: 'قيد المراجعة',
-    newValue: 'منشورة',
+    action: 'unit.approved',
+    entityType: 'unit',
+    entityId: 'un-1',
+    oldValue: { status: 'PENDING_REVIEW' },
+    newValue: { status: 'PUBLISHED' },
+    actor: { id: 'usr-6', fullName: 'نوف السالم', adminRole: AdminRole.Operations },
+    actorType: 'ADMIN',
+    ipAddress: '10.0.4.22',
+    requestId: 'req-8790',
+    createdAt: '2026-08-13T08:41:00Z',
   },
   {
+    // No actor: the hold lapsed on its own. Every screen needs an answer for
+    // this, and "—" is one where reaching into null is not.
     id: 'aud-3',
-    actorName: 'ريم الغامدي',
-    actorRole: UserRole.Admin,
-    actorAdminRole: AdminRole.Finance,
-    action: 'تنفيذ تحويل مالي — HZ-2026-01004',
-    occurredAt: '2026-08-12T14:07:00Z',
-    oldValue: 'مستحق',
-    newValue: 'محوّل — TRF-20260814',
-  },
-  {
-    id: 'aud-4',
-    actorName: 'نوف السالم',
-    actorRole: UserRole.Admin,
-    actorAdminRole: AdminRole.Operations,
-    action: 'رفض حجز — HZ-2026-00964',
-    occurredAt: '2026-08-11T17:55:00Z',
-    oldValue: 'مدفوع — بانتظار الموافقة',
-    newValue: 'مرفوض ومُسترد',
-  },
-  {
-    id: 'aud-5',
-    actorName: 'محمد الحربي',
-    actorRole: UserRole.Admin,
-    actorAdminRole: AdminRole.SystemAdmin,
-    action: 'إيقاف مستخدم — نورة الشمري',
-    occurredAt: '2026-08-10T09:30:00Z',
-    oldValue: 'نشط',
-    newValue: 'موقوف',
+    action: 'booking.expired',
+    entityType: 'booking',
+    entityId: 'bk-r7',
+    oldValue: { status: 'AWAITING_PAYMENT' },
+    newValue: { status: 'EXPIRED' },
+    actor: null,
+    actorType: 'SYSTEM',
+    ipAddress: null,
+    requestId: 'req-8702',
+    createdAt: '2026-08-12T19:05:00Z',
   },
 ];
 
-export const MOCK_AUDIT_DETAIL: AuditDetail = {
-  ...MOCK_AUDIT_ROWS[0],
-  entityType: 'PlatformSettings',
-  entityId: 'commissionRate',
-  ipAddress: '188.55.204.19',
-  userAgent: 'Chrome 151 · Windows',
-};
+/* There is no per-entry audit route: the list already carries every field. */

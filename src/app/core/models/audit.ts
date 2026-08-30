@@ -36,9 +36,16 @@ export interface AuditEntry {
   action: string;
   entityType: string;
   entityId: string | null;
-  /** Already rendered as text by the writer — only it knows how to say it. */
-  oldValue: string | null;
-  newValue: string | null;
+  /**
+   * The change, as **objects** — `{ status: 'OPEN' }` → `{ status: 'RESOLVED',
+   * resolution: 'NO_ACTION', … }`. Not pre-rendered text.
+   *
+   * Rendered here rather than printed: `{{ oldValue }}` on an object is
+   * `[object Object]`, which is the failure mode this field is most likely to
+   * meet, and the pair is the whole value of the log.
+   */
+  oldValue: Record<string, unknown> | null;
+  newValue: Record<string, unknown> | null;
   actor: AuditActor | null;
   /** `ADMIN`, `SYSTEM`, and so on — what kind of thing acted. */
   actorType: string | null;
@@ -68,8 +75,8 @@ export interface WireAuditEntry {
   action: string;
   entityType: string;
   entityId?: string | null;
-  oldValue?: string | null;
-  newValue?: string | null;
+  oldValue?: Record<string, unknown> | null;
+  newValue?: Record<string, unknown> | null;
   actor?: { id: string; fullName: string; adminRole?: AdminRole | null } | null;
   actorType?: string | null;
   ipAddress?: string | null;
@@ -77,9 +84,19 @@ export interface WireAuditEntry {
   createdAt: string;
 }
 
-/** `GET /admin/audit/actions` — the values actually present, for the filter. */
+/**
+ * `GET /admin/audit/actions` — what is actually present, for the filter.
+ *
+ * Each entry pairs the action with the kind of thing it happened to, because
+ * the same verb applies to more than one entity.
+ */
+export interface AuditAction {
+  action: string;
+  entityType: string;
+}
+
 export interface WireAuditActions {
-  actions: string[];
+  actions?: AuditAction[] | null;
 }
 
 // ── Adapter ───────────────────────────────────────────────────────────────
@@ -104,4 +121,22 @@ export function auditEntryFromWire(wire: WireAuditEntry): AuditEntry {
     requestId: wire.requestId ?? null,
     createdAt: wire.createdAt,
   };
+}
+
+/**
+ * One change as `field: value` lines, in the order the server wrote them.
+ *
+ * A single line of JSON is unreadable in a table cell and `[object Object]` is
+ * worse; a null or an empty object reads as "nothing recorded" rather than as
+ * an empty row.
+ */
+export function describeAuditValue(value: Record<string, unknown> | null): string[] {
+  if (!value) return [];
+  return Object.entries(value).map(([key, raw]) => `${key}: ${formatAuditValue(raw)}`);
+}
+
+function formatAuditValue(raw: unknown): string {
+  if (raw === null || raw === undefined) return '—';
+  if (typeof raw === 'object') return JSON.stringify(raw);
+  return String(raw);
 }

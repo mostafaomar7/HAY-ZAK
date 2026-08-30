@@ -87,13 +87,20 @@ export class AdminReferenceListsPage {
       case 'cities':
         return data.cities;
       case 'districts':
-        return data.districts;
+        // Null means the endpoint does not send them yet — a different thing
+        // from "there are none", and the template says which.
+        return data.districts ?? [];
       default:
         return data.prohibitedItems;
     }
   });
 
   protected readonly cities = computed(() => this.data()?.cities ?? []);
+
+  /** The server does not return the districts list, only the write routes. */
+  protected readonly districtsUnavailable = computed(
+    () => this.kind() === 'districts' && this.data()?.districts === null,
+  );
 
   protected readonly needsSlug = computed(() => this.kind() === 'categories');
   protected readonly needsCity = computed(() => this.kind() === 'districts');

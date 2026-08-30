@@ -4,13 +4,12 @@ import {
   COMPLAINT_CATEGORY_DISPLAY,
   COMPLAINT_RESOLUTION_DISPLAY,
   COMPLAINT_STATUS_DISPLAY,
-  REFUND_METHOD_DISPLAY,
   statusText,
 } from '@core/constants/status-display';
 import { ComplaintStatus, SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import { ApiError } from '@core/models/api-error.model';
-import type { ComplaintDetail, ComplaintRefund } from '@core/models/complaint';
+import type { ComplaintDetail } from '@core/models/complaint';
 import { MAX_COMPLAINT_ATTACHMENTS } from '@core/models/complaint';
 import { ComplaintsService } from '@core/services/complaints.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -18,7 +17,6 @@ import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiComplaintThread } from '@shared/components/ui-complaint-thread/ui-complaint-thread';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
-import { UiMoney } from '@shared/components/ui-money/ui-money';
 import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 
@@ -37,16 +35,7 @@ import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 @Component({
   selector: 'app-complaint-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterLink,
-    UiBadge,
-    UiButton,
-    UiComplaintThread,
-    UiEmptyState,
-    UiMoney,
-    UiNotice,
-    UiSkeleton,
-  ],
+  imports: [RouterLink, UiBadge, UiButton, UiComplaintThread, UiEmptyState, UiNotice, UiSkeleton],
   templateUrl: './complaint-detail-page.html',
   styleUrl: './complaint-detail-page.scss',
 })
@@ -174,7 +163,10 @@ export class ComplaintDetailPage {
       : '';
   }
 
-  protected refundMethodLabel(refund: ComplaintRefund): string {
-    return statusText(REFUND_METHOD_DISPLAY[refund.method], this.i18n.language());
-  }
+  /*
+   * There is no refunds list on the wire. A refund that was issued reads as
+   * the resolution above — "استرداد مبلغ" — and the money itself is the
+   * platform's record, not something to restate here from a field the server
+   * does not send.
+   */
 }

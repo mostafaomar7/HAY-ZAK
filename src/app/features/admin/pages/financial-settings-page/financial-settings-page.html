@@ -48,7 +48,7 @@
               <app-ui-badge tone="neutral" size="sm">{{
                 i18n.t('settings.readOnly')
               }}</app-ui-badge>
-            } @else if (row.dataType === 'boolean') {
+            } @else if (row.dataType === 'BOOLEAN') {
               <!-- Sent as the string "true" or "false", like every other
                    value: the wire carries text and the server parses it. -->
               <label class="switch">
@@ -58,7 +58,7 @@
                   (change)="setValue(row, $any($event.target).checked ? 'true' : 'false')"
                 />
               </label>
-            } @else if (row.dataType === 'number') {
+            } @else if (row.dataType === 'INTEGER' || row.dataType === 'DECIMAL') {
               <input
                 class="setting__input num"
                 type="number"

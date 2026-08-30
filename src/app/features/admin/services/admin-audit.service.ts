@@ -3,7 +3,13 @@ import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { PaginatedResponse } from '@core/models/api-response.model';
-import type { AuditEntry, AuditQuery, WireAuditActions, WireAuditEntry } from '@core/models/audit';
+import type {
+  AuditAction,
+  AuditEntry,
+  AuditQuery,
+  WireAuditActions,
+  WireAuditEntry,
+} from '@core/models/audit';
 import { auditEntryFromWire } from '@core/models/audit';
 import { ApiService } from '@core/services/api.service';
 
@@ -51,7 +57,7 @@ export class AdminAuditService {
    * Read from the data rather than hard-coded, so an action the server starts
    * recording appears in the filter without a release on this side.
    */
-  actions(): Observable<string[]> {
+  actions(): Observable<AuditAction[]> {
     return this.api
       .get<WireAuditActions>(API_ENDPOINTS.admin.auditActions)
       .pipe(map((response) => response.actions ?? []));

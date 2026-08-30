@@ -29,17 +29,23 @@ import type { AccountStatus, UserRole } from '../enums/user-role.enum';
  * windowed, and offering the control would invite a question the number does
  * not answer.
  *
- * Every bucket carries every key, zeros included, so nothing downstream needs
- * a `?? 0` — and a `?? 0` would hide a block the server stopped sending.
+ * The buckets are **partial**, despite the handover saying otherwise: `GUEST`
+ * never appears under `byRole`, and only the booking statuses that exist are
+ * listed. So every screen iterates what it is given rather than indexing keys
+ * it expects — which is also why a missing status shows as an absent row and
+ * not as a zero the server never sent.
  */
 export interface AdminOverview {
   users: {
-    byRole: Record<UserRole, number>;
-    byStatus: Record<AccountStatus, number>;
+    // Partial because the server sends only the roles it has: `GUEST` never
+    // appears, and `DELETED` does. A total record would have made a missing
+    // key a type error rather than a zero.
+    byRole: Partial<Record<UserRole, number>>;
+    byStatus: Partial<Record<AccountStatus, number>>;
   };
-  units: Record<UnitStatus, number>;
-  bookings: Record<BookingStatus, number>;
-  complaints: Record<ComplaintStatus, number> & {
+  units: Partial<Record<UnitStatus, number>>;
+  bookings: Partial<Record<BookingStatus, number>>;
+  complaints: Partial<Record<ComplaintStatus, number>> & {
     /** Past their reply deadline — the number an operations lead acts on. */
     overdue: number;
   };
@@ -66,13 +72,35 @@ export interface ReportRange {
 }
 
 export interface BookingsReport {
-  count: number;
+  bookingsCount: number;
   /**
    * **What renters paid. Not revenue.** The platform keeps the commission out
    * of this and owes the rest onward — see `RevenueReport`.
    */
   grossHalalas: number;
-  byStatus: Record<BookingStatus, number>;
+  /**
+   * The commission these bookings *should* produce.
+   *
+   * Still not revenue: it is what is expected on bookings in this window,
+   * before refunds. `RevenueReport.commissionHalalas` is the figure net of
+   * them, and the two will differ whenever anything was refunded.
+   */
+  expectedCommissionHalalas: number;
+  lessorShareHalalas: number;
+  averageBookingHalalas: number;
+  /** Nights, averaged — a fraction, not a count. */
+  averageDays: number;
+  /** Only the statuses actually present, so a partial record. */
+  byStatus: Partial<Record<BookingStatus, number>>;
+  topCities: CityBookings[];
+}
+
+export interface CityBookings {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  bookings: number;
+  grossHalalas: number;
 }
 
 /**
@@ -82,6 +110,8 @@ export interface BookingsReport {
  * on screen: money held for somebody else is not money earned.
  */
 export interface RevenueReport {
+  /** Everything taken in, before anything was paid back out. */
+  collectedHalalas: number;
   /** Cash sitting with the platform, whoever it ultimately belongs to. */
   netCashHalalas: number;
   /** The revenue, net of refunds. */
@@ -95,13 +125,13 @@ export interface RevenueReport {
 }
 
 export interface LessorReportRow {
-  lessorId: string;
-  lessorName: string;
-  unitsCount: number;
-  bookingsCount: number;
+  /** Nested on the wire, and the id is the row's key. */
+  lessor: { id: string; fullName: string };
+  units: number;
+  bookings: number;
   grossHalalas: number;
-  commissionHalalas: number;
-  netToLessorHalalas: number;
+  /** What this lessor keeps — the platform's commission is already out of it. */
+  earnedHalalas: number;
 }
 
 // ── Wire ──────────────────────────────────────────────────────────────────

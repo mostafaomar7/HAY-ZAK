@@ -304,7 +304,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (path === API_ENDPOINTS.admin.settings) {
     const group = new URLSearchParams(query).get('group');
-    return ok({ settings: group ? MOCK_SETTINGS.filter((s) => s.group === group) : MOCK_SETTINGS });
+    return ok({ items: group ? MOCK_SETTINGS.filter((s) => s.group === group) : MOCK_SETTINGS });
   }
 
   // ── Users ──────────────────────────────────────────────────────────────
@@ -325,7 +325,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── CMS ────────────────────────────────────────────────────────────────
   if (path === API_ENDPOINTS.admin.cmsPages) {
     if (method === 'POST') return ok({ page: MOCK_CMS_PAGES[0] });
-    return ok({ pages: MOCK_CMS_PAGES });
+    return ok({ items: MOCK_CMS_PAGES });
   }
   if (/^\/admin\/cms\/pages\/[^/]+$/.test(path)) {
     const id = path.split('/')[4];
@@ -345,7 +345,9 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (path === API_ENDPOINTS.admin.auditActions) {
     // Read off the fixture rather than listed twice: the filter must offer the
     // actions that are actually present, which is what the server does.
-    return ok({ actions: [...new Set(MOCK_AUDIT_ROWS.map((r) => r.action))] });
+    return ok({
+      actions: MOCK_AUDIT_ROWS.map((r) => ({ action: r.action, entityType: r.entityType })),
+    });
   }
   if (path === API_ENDPOINTS.admin.auditLog) return paginate(MOCK_AUDIT_ROWS);
 
@@ -376,7 +378,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
 
   // ── Public content and settings (FR-CMS) ───────────────────────────────
   if (path === API_ENDPOINTS.content.pages) {
-    return ok({ pages: MOCK_CMS_PAGES.filter((page) => page.isPublished) });
+    return ok({ items: MOCK_CMS_PAGES.filter((page) => page.isPublished) });
   }
   if (/^\/public\/pages\/[^/]+$/.test(path)) {
     const slug = path.split('/')[3] as StaticPageSlug;
@@ -391,7 +393,7 @@ function route(path: string, query: string, method: string, payload: unknown): u
       Object.fromEntries(
         MOCK_SETTINGS.filter((setting) => setting.isPublic).map((setting) => [
           setting.key,
-          setting.dataType === 'number' ? Number(setting.value) : setting.value,
+          setting.dataType === 'INTEGER' ? Number(setting.value) : setting.value,
         ]),
       ),
     );

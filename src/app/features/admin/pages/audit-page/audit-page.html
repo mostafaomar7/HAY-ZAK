@@ -34,8 +34,8 @@
     </span>
     <span class="cell">{{ row.action }}</span>
     <span class="cell num">{{ row.createdAt | date: 'd MMM y · HH:mm' }}</span>
-    <span class="cell cell--muted num">{{ row.oldValue ?? '—' }}</span>
-    <span class="cell cell--strong num">{{ row.newValue ?? '—' }}</span>
+    <span class="cell cell--muted num">{{ describe(row.oldValue).join(' · ') || '—' }}</span>
+    <span class="cell cell--strong num">{{ describe(row.newValue).join(' · ') || '—' }}</span>
   </ng-template>
 </app-admin-table>
 
@@ -96,11 +96,19 @@
     <div class="diff">
       <div class="diff__box">
         <span class="diff__label">{{ i18n.t('audit.before') }}</span>
-        <span class="diff__value num">{{ entry.oldValue ?? '—' }}</span>
+        @for (line of describe(entry.oldValue); track line) {
+          <span class="diff__value num" dir="ltr">{{ line }}</span>
+        } @empty {
+          <span class="diff__value num">—</span>
+        }
       </div>
       <div class="diff__box diff__box--new">
         <span class="diff__label">{{ i18n.t('audit.after') }}</span>
-        <span class="diff__value num">{{ entry.newValue ?? '—' }}</span>
+        @for (line of describe(entry.newValue); track line) {
+          <span class="diff__value num" dir="ltr">{{ line }}</span>
+        } @empty {
+          <span class="diff__value num">—</span>
+        }
       </div>
     </div>
 

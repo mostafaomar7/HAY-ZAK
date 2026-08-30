@@ -93,7 +93,7 @@ export class AdminUsersPage {
   protected readonly canSubmit = computed(() => !!this.reason().trim() && !this.submitting());
 
   protected readonly awaitingIdentity = computed(
-    () => this.detail()?.verificationStatus === VerificationStatus.Pending,
+    () => this.detail()?.identity?.verificationStatus === VerificationStatus.Pending,
   );
 
   protected readonly columns = computed<AdminColumn[]>(() => [
@@ -303,7 +303,8 @@ export class AdminUsersPage {
     return ACCOUNT_STATUS_DISPLAY[status].tone;
   }
 
-  protected verificationLabel(status: VerificationStatus | null): string {
+  /** "—" for an account that has never submitted a document at all. */
+  protected verificationLabel(status: VerificationStatus | null | undefined): string {
     return status ? statusText(ACCOUNT_VERIFICATION_DISPLAY[status], this.i18n.language()) : '—';
   }
 

@@ -26,8 +26,33 @@ export interface AdminUserRow {
   mobile: string;
   email: string;
   status: AccountStatus;
-  verificationStatus: VerificationStatus | null;
+  /** Null for an account that has never submitted a document. */
+  identity: AdminUserIdentity | null;
+  /** Why, when the account is suspended. Written by whoever suspended it. */
+  suspendedReason: string | null;
   createdAt: string;
+}
+
+/**
+ * The identity document and what was decided about it.
+ *
+ * Only the last four digits are ever sent — the number itself is encrypted and
+ * never leaves the server, which is also why it cannot be searched by part.
+ */
+export interface AdminUserIdentity {
+  idType: string;
+  idNumberLast4: string;
+  verificationStatus: VerificationStatus;
+  /**
+   * `MANUAL` today, `NAFATH` once that is live.
+   *
+   * Worth showing rather than hiding: an identity a person approved by eye is
+   * a different assurance from one Nafath returned, and a reviewer looking
+   * back needs to know which one they are reading.
+   */
+  verificationProvider: string | null;
+  verifiedAt: string | null;
+  rejectionReason: string | null;
 }
 
 /**
@@ -49,16 +74,8 @@ export interface AdminUserActivity {
 
 export interface AdminUserDetail extends AdminUserRow {
   activity: AdminUserActivity;
-  /**
-   * `MANUAL` today; `NAFATH` once the integration is live.
-   *
-   * Worth showing rather than hiding: an identity a person approved by eye is
-   * a different assurance from one Nafath returned, and a reviewer looking
-   * back needs to know which one they are reading.
-   */
-  verificationProvider: string | null;
-  verificationReviewedAt: string | null;
-  verificationRejectionReason: string | null;
+  /** What the account currently holds — server-issued, and empty for a renter. */
+  permissions: readonly string[];
 }
 
 /** `{ reason, force? }`. */
@@ -106,15 +123,14 @@ export interface WireAdminUser {
   mobile: string;
   email: string;
   status: AccountStatus;
-  verificationStatus?: VerificationStatus | null;
+  identity?: AdminUserIdentity | null;
+  suspendedReason?: string | null;
+  permissions?: readonly string[] | null;
   createdAt: string;
 }
 
 export interface WireAdminUserDetail extends WireAdminUser {
   activity?: Partial<AdminUserActivity> | null;
-  verificationProvider?: string | null;
-  verificationReviewedAt?: string | null;
-  verificationRejectionReason?: string | null;
 }
 
 export interface WireAdminUserResponse {
@@ -137,7 +153,8 @@ export function adminUserFromWire(wire: WireAdminUser): AdminUserRow {
     mobile: wire.mobile,
     email: wire.email,
     status: wire.status,
-    verificationStatus: wire.verificationStatus ?? null,
+    identity: wire.identity ?? null,
+    suspendedReason: wire.suspendedReason ?? null,
     createdAt: wire.createdAt,
   };
 }
@@ -156,9 +173,7 @@ export function adminUserDetailFromWire(wire: WireAdminUserDetail): AdminUserDet
       liveBookings: wire.activity?.liveBookings ?? 0,
       openComplaints: wire.activity?.openComplaints ?? 0,
     },
-    verificationProvider: wire.verificationProvider ?? null,
-    verificationReviewedAt: wire.verificationReviewedAt ?? null,
-    verificationRejectionReason: wire.verificationRejectionReason ?? null,
+    permissions: wire.permissions ?? [],
   };
 }
 

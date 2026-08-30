@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import type { ComplaintStatus } from '../enums/complaint.enum';
 import type { PaginatedResponse } from '../models/api-response.model';
@@ -12,6 +12,7 @@ import type {
   ComplaintReplyRequest,
   CreateComplaintRequest,
   WireComplaint,
+  WireComplaintMessageResponse,
   WireComplaintResponse,
 } from '../models/complaint';
 import {
@@ -79,12 +80,19 @@ export class ComplaintsService {
    * `IN_PROGRESS`. The server does that; nothing here should.
    */
   reply(id: string, request: ComplaintReplyRequest): Observable<ComplaintDetail> {
-    return this.api
-      .upload<WireComplaintResponse>(
-        API_ENDPOINTS.me.complaintMessages(id),
-        replyToFormData(request),
-      )
-      .pipe(map((response) => complaintDetailFromWire(response.complaint)));
+    return (
+      this.api
+        .upload<WireComplaintMessageResponse>(
+          API_ENDPOINTS.me.complaintMessages(id),
+          replyToFormData(request),
+        )
+        // The write answers with the **message**, not the complaint — so the
+        // status it may have moved (AWAITING_USER back to IN_PROGRESS, and the
+        // first-response clock) is only visible on a re-read. Chained here so no
+        // caller has to remember, and so the screen never renders a thread that
+        // is one message ahead of the status above it.
+        .pipe(switchMap(() => this.byId(id)))
+    );
   }
 }
 

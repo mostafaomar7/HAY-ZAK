@@ -34,7 +34,28 @@ export class UiComplaintThread {
   readonly showsInternal = input(false, { transform: booleanAttribute });
 
   protected isStray(message: ComplaintMessage): boolean {
-    return !!message.isInternal && !this.showsInternal();
+    return message.isInternal && !this.showsInternal();
+  }
+
+  /**
+   * Who wrote it, by kind.
+   *
+   * There is no name on the wire and there should not be: a renter must not be
+   * shown which operator answered them, and the lessor's name is not theirs to
+   * see (SRS §5). An unfamiliar kind falls back to the raw value rather than
+   * to a blank line.
+   */
+  protected senderLabel(message: ComplaintMessage): string {
+    switch (message.senderType) {
+      case 'ADMIN':
+        return this.i18n.t('complaints.fromSupport');
+      case 'RENTER':
+        return this.i18n.t('complaints.fromRenter');
+      case 'LESSOR':
+        return this.i18n.t('complaints.fromLessor');
+      default:
+        return message.senderType;
+    }
   }
 
   protected sizeLabel(attachment: ComplaintAttachment): string {

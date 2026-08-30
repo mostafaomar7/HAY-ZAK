@@ -910,3 +910,99 @@ already treats any failure the same way and falls back to the bundled copy.
 `/public/settings` returns values **already converted** — numbers as numbers,
 unlike the administrator's string-valued view. Read it instead of hard-coding a
 page size or a hold length.
+
+## Verified 2026-08-30 — where the handover and the server disagree
+
+The server moved to `192.168.1.17:4000`. Everything below was probed live; the
+security behaviour all held, and the shapes did not.
+
+### What was right
+
+`FINANCE` is refused the complaints queue (403) and `OPERATIONS` is not.
+`OPERATIONS` resolving with `REFUND` is a 403 and with `NO_ACTION` is a 200 —
+the permission split inside `resolve` works exactly as described. Resolving
+twice is `COMPLAINT_ALREADY_RESOLVED`. `COMPLAINT_MESSAGE_EMPTY` on an empty
+reply. The 409 on a second complaint carries `meta.complaintId` **and**
+`meta.reference`. **An internal note does not reach `/me`** — checked directly,
+and it is the one thing here worth checking directly.
+
+Notifications are exactly as documented: `unreadOnly`, `unreadCount` on every
+response including the writes, `PUT` (a `POST` is a 404), marking twice is a
+200, and `reference.type: 'complaint'` deep-links.
+
+### Ten places the shapes differ
+
+1. **`POST .../messages` answers `{ message }`, not `{ complaint }`.** The
+   client was reading `response.complaint` and would have thrown on the first
+   reply anybody sent. Both services now re-read the complaint afterwards,
+   which is needed anyway: the status the reply moves (`AWAITING_USER` back to
+   `IN_PROGRESS`) is only visible on a re-read.
+2. **Messages have `senderType`, not `authorName`**, and `createdAt`, not
+   `sentAt`. No name at all — which is right rather than missing: a renter must
+   not be shown which operator answered, and the owner's name is not theirs to
+   see. The thread says "الدعم" / "المستأجر" / "المؤجّر".
+3. **`booking.unit.title`**, nested — not a flat `unitTitle`. The booking also
+   carries its status, dates and total.
+4. **No `isOverdue`.** `?overdue=true` filters on it but the flag is not sent,
+   so the console derives it: `slaDueAt` past with `firstResponseAt` still
+   null. Keyed on the response and not the status, or every old open complaint
+   would read as late forever. **This is the client's arithmetic** and the one
+   field that could disagree with the server's filter.
+5. **No complaint-level `attachments`.** Photos sent when raising it are on the
+   **first message**. Attachment `url` is `/uploads/…`, relative to the API's
+   origin — it needs the same prefixing as unit images.
+6. **No `refunds[]`.** A refund reads as the resolution; nothing here invents a
+   ledger the server does not keep. `assignedToId`, not a name — so a screen
+   can say _whether_ it is assigned, not to whom.
+7. **`multipart` is not mandatory.** JSON is accepted for both writes. The
+   client still sends multipart always, so there is one path rather than two
+   and only one of them exercised.
+8. **Audit `oldValue`/`newValue` are objects**, not rendered text —
+   `{status:'OPEN'}` → `{status:'RESOLVED', resolution:'NO_ACTION', …}`.
+   `{{ oldValue }}` on one is `[object Object]`, so they are rendered as
+   `field: value` lines. `/admin/audit/actions` likewise returns
+   `{action, entityType}` objects, not strings. The route is `/admin/audit`,
+   and there is no per-entry route — the list carries every field.
+9. **Settings**: wrapped in `items`, `dataType` is `INTEGER`/`STRING`/
+   `BOOLEAN` (uppercase, and `INTEGER` not `NUMBER`), and the keys are
+   `commission.default_rate_bps`, `vat.rate_bps`, `complaint.sla_hours`,
+   `booking.hold_minutes` — not the `finance.*` names guessed here. A key that
+   does not match falls silently back to a compiled-in default, so the screen
+   looks right while being stale. Groups present: `booking`, `financial`,
+   `operations`.
+10. **The overview buckets are partial**, not "every key with zeros": `GUEST`
+    never appears under `byRole` and only the booking statuses that exist are
+    listed. Every screen iterates what it is given. `/admin/reports/bookings`
+    answers `bookingsCount` (not `count`) plus `expectedCommissionHalalas`,
+    `lessorShareHalalas`, `averageBookingHalalas`, `averageDays` and
+    `topCities`; `/admin/reports/lessors` rows are
+    `{ lessor: {id, fullName}, units, bookings, grossHalalas, earnedHalalas }`.
+
+### Smaller ones
+
+- `/admin/users` rows carry a nested **`identity`** object
+  (`idNumberLast4`, `verificationStatus`, `verificationProvider`,
+  `rejectionReason`) rather than a flat `verificationStatus`, plus
+  `suspendedReason` and the account's `permissions`. `activity` is on the
+  detail only, as documented.
+- **`/admin/reference` does not return `districts`** — only categories, cities
+  and prohibited items, though the create and update routes for a district
+  exist. Modelled as `null` rather than `[]`, because "the server has none" is
+  a different claim from "the server did not say", and the screen says which.
+- `/admin/cms/pages` and `/public/pages` answer `{ items }`, not `{ pages }`,
+  and both are currently empty — so every content page is still served from the
+  bundle.
+- `/public/settings` is wrapped: `{ settings: { … } }`, values already
+  converted (`booking.hold_minutes: 15` as a number).
+- `expectedCommissionHalalas` on the bookings report is **before** refunds;
+  `commissionHalalas` on the revenue report is net of them. They are different
+  numbers and only the second is revenue.
+
+### Still open
+
+- No `operations.approval_sla_hours` and no payout-cycle setting, so the
+  listing-review deadline and the transfers header run on compiled-in defaults.
+- `isOverdue` would be better sent than derived — the client's answer and
+  `?overdue=true` can disagree.
+- A `senderName` is deliberately absent and should stay absent, but an operator
+  reading the console cannot tell two colleagues apart in a thread.

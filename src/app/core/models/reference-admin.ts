@@ -45,11 +45,18 @@ export interface ProhibitedItem extends ReferenceEntry {
   noteEn: string | null;
 }
 
-/** `GET /admin/reference` — all four at once, active and inactive alike. */
+/**
+ * `GET /admin/reference` — everything the endpoint returns, active and
+ * inactive alike.
+ *
+ * **Districts are not in it.** The routes to create and update one exist, so
+ * the list is presumably still to come; until it does there is nothing to
+ * show, and an empty array here would claim the server said there were none.
+ */
 export interface ReferenceData {
   categories: ReferenceCategory[];
   cities: ReferenceCity[];
-  districts: ReferenceDistrict[];
+  districts: ReferenceDistrict[] | null;
   prohibitedItems: ProhibitedItem[];
 }
 
@@ -112,7 +119,9 @@ export function referenceDataFromWire(wire: WireReferenceData): ReferenceData {
   return {
     categories: wire.categories ?? [],
     cities: wire.cities ?? [],
-    districts: wire.districts ?? [],
+    // Null, not `[]`: the endpoint does not send districts at all, and "the
+    // server has none" is a different claim from "the server did not say".
+    districts: wire.districts ?? null,
     prohibitedItems: wire.prohibitedItems ?? [],
   };
 }

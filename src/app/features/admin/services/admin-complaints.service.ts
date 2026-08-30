@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { ComplaintCategory, ComplaintStatus } from '@core/enums/complaint.enum';
 import type { PaginatedResponse } from '@core/models/api-response.model';
@@ -11,6 +11,7 @@ import type {
   CloseComplaintRequest,
   ResolveComplaintRequest,
   WireComplaint,
+  WireComplaintMessageResponse,
   WireComplaintResponse,
 } from '@core/models/complaint';
 import {
@@ -90,12 +91,16 @@ export class AdminComplaintsService {
     id: string,
     request: ComplaintReplyRequest & { isInternal?: boolean },
   ): Observable<ComplaintDetail> {
-    return this.api
-      .upload<WireComplaintResponse>(
-        API_ENDPOINTS.admin.complaintMessages(id),
-        adminReplyToFormData(request),
-      )
-      .pipe(map((response) => complaintDetailFromWire(response.complaint)));
+    return (
+      this.api
+        .upload<WireComplaintMessageResponse>(
+          API_ENDPOINTS.admin.complaintMessages(id),
+          adminReplyToFormData(request),
+        )
+        // Answers with the message alone; the complaint's status and its
+        // first-response time are only visible on a re-read.
+        .pipe(switchMap(() => this.byId(id)))
+    );
   }
 
   assign(id: string, adminId: string): Observable<ComplaintDetail> {

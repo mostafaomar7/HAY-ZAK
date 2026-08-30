@@ -39,7 +39,7 @@
           <dt>{{ i18n.t('complaints.booking') }}</dt>
           <dd>
             <a [routerLink]="['/my-bookings', c.booking.id]" dir="auto">
-              {{ c.booking.unitTitle }}
+              {{ c.booking.unit.title }}
             </a>
             <span class="fact__ref num" dir="ltr">{{ c.booking.referenceNo }}</span>
           </dd>
@@ -66,39 +66,9 @@
       <app-ui-notice tone="info">{{ i18n.t('complaints.closedNoDecision') }}</app-ui-notice>
     }
 
-    @if (c.refunds.length) {
-      <section class="refunds">
-        <h2 class="refunds__title">{{ i18n.t('complaints.refunds') }}</h2>
-        <ul class="refunds__list">
-          @for (refund of c.refunds; track refund.id) {
-            <li class="refund">
-              <app-ui-money strong [halalas]="refund.amountHalalas" />
-              <span class="refund__method">{{ refundMethodLabel(refund) }}</span>
-              @if (refund.reference) {
-                <span class="refund__ref num" dir="ltr">{{ refund.reference }}</span>
-              }
-              <time class="refund__at num" dir="ltr">{{ refund.refundedAt }}</time>
-            </li>
-          }
-        </ul>
-      </section>
-    }
-
     <section class="original">
       <h2 class="original__title">{{ i18n.t('complaints.whatYouWrote') }}</h2>
       <p class="original__body" dir="auto">{{ c.description }}</p>
-
-      @if (c.attachments.length) {
-        <ul class="files">
-          @for (file of c.attachments; track file.id) {
-            <li>
-              <a class="files__link" [href]="file.url" target="_blank" rel="noopener noreferrer">
-                {{ i18n.t('complaint.attachment') }}
-              </a>
-            </li>
-          }
-        </ul>
-      }
     </section>
 
     @if (awaitingFirstReply()) {

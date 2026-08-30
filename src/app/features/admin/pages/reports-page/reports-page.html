@@ -131,7 +131,7 @@
           <h3 class="card__title">{{ i18n.t('reports.bookingsByStatus') }}</h3>
 
           <div class="figure">
-            <span class="figure__value num">{{ report.count }}</span>
+            <span class="figure__value num">{{ report.bookingsCount }}</span>
             <span class="figure__label">{{ i18n.t('reports.bookingsCount') }}</span>
           </div>
 
@@ -155,6 +155,10 @@
           </div>
 
           <dl class="counts">
+            <div class="count">
+              <dt>{{ i18n.t('reports.collected') }}</dt>
+              <dd><app-ui-money [halalas]="report.collectedHalalas" /></dd>
+            </div>
             <div class="count">
               <dt>{{ i18n.t('reports.netCash') }}</dt>
               <dd><app-ui-money [halalas]="report.netCashHalalas" /></dd>
@@ -199,19 +203,17 @@
               <th class="num">{{ i18n.t('users.units') }}</th>
               <th class="num">{{ i18n.t('reports.bookingsCount') }}</th>
               <th class="num">{{ i18n.t('reports.gross') }}</th>
-              <th class="num">{{ i18n.t('reports.commissionLegend') }}</th>
               <th class="num">{{ i18n.t('reports.netToLessor') }}</th>
             </tr>
           </thead>
           <tbody>
-            @for (row of lessors(); track row.lessorId) {
+            @for (row of lessors(); track row.lessor.id) {
               <tr>
-                <td dir="auto">{{ row.lessorName }}</td>
-                <td class="num">{{ row.unitsCount }}</td>
-                <td class="num">{{ row.bookingsCount }}</td>
+                <td dir="auto">{{ row.lessor.fullName }}</td>
+                <td class="num">{{ row.units }}</td>
+                <td class="num">{{ row.bookings }}</td>
                 <td class="num"><app-ui-money [halalas]="row.grossHalalas" /></td>
-                <td class="num"><app-ui-money [halalas]="row.commissionHalalas" /></td>
-                <td class="num"><app-ui-money [halalas]="row.netToLessorHalalas" /></td>
+                <td class="num"><app-ui-money [halalas]="row.earnedHalalas" /></td>
               </tr>
             }
           </tbody>

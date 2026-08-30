@@ -79,6 +79,10 @@ const ar = {
   'complaint.noMessages': 'لا توجد رسائل بعد.',
 
   'complaints.mine': 'شكاويّ',
+  'complaints.fromSupport': 'الدعم',
+  'complaints.fromRenter': 'المستأجر',
+  'complaints.fromLessor': 'المؤجّر',
+  'complaints.assigned': 'مُسندة',
   'complaints.mineIntro': 'كل شكوى أنت طرف فيها — سواء قدّمتها أو قُدّمت على مساحتك.',
   'complaints.live': 'قيد المتابعة',
   'complaints.settled': 'منتهية',
@@ -165,6 +169,8 @@ const ar = {
   'reference.categories': 'التصنيفات',
   'reference.cities': 'المدن',
   'reference.districts': 'الأحياء',
+  'reference.districtsUnavailable':
+    'لا يرجع السيرفر قائمة الأحياء بعد — الإضافة والتعديل متاحان، والعرض لا.',
   'reference.prohibitedItems': 'المواد الممنوعة',
   'reference.slug': 'المعرّف الثابت',
   'reference.slugHint': 'حروف إنجليزية صغيرة وأرقام وشرطات. لا يتغيّر عند تعديل الاسم.',
@@ -207,6 +213,7 @@ const ar = {
   'reports.grossHint': 'ليس إيراد المنصة — أغلبه مستحق للمؤجّرين.',
   'reports.commission': 'إيراد المنصة (العمولة)',
   'reports.commissionHint': 'بعد خصم المبالغ المستردة. هذا هو الإيراد الفعلي.',
+  'reports.collected': 'إجمالي المحصّل',
   'reports.netCash': 'النقد لدى المنصة',
   'reports.owedToLessors': 'مستحق للمؤجّرين',
   'reports.vatPayable': 'ضريبة مستحقة للهيئة',
@@ -1635,6 +1642,10 @@ const en: Partial<Record<TranslationKey, string>> = {
   'complaint.noMessages': 'No messages yet.',
 
   'complaints.mine': 'My complaints',
+  'complaints.fromSupport': 'Support',
+  'complaints.fromRenter': 'Renter',
+  'complaints.fromLessor': 'Owner',
+  'complaints.assigned': 'Assigned',
   'complaints.mineIntro':
     'Every complaint you are a party to — raised by you, or about your space.',
   'complaints.live': 'In progress',
@@ -1728,6 +1739,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'reference.categories': 'Categories',
   'reference.cities': 'Cities',
   'reference.districts': 'Districts',
+  'reference.districtsUnavailable':
+    'The server does not return the districts list yet — adding and editing work, listing does not.',
   'reference.prohibitedItems': 'Prohibited items',
   'reference.slug': 'Slug',
   'reference.slugHint': 'Lowercase letters, digits and hyphens. Renaming does not change it.',
@@ -1770,6 +1783,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'reports.grossHint': 'Not platform revenue — most of it is owed to lessors.',
   'reports.commission': 'Platform revenue (commission)',
   'reports.commissionHint': 'Net of refunds. This is the actual revenue.',
+  'reports.collected': 'Collected in total',
   'reports.netCash': 'Cash held by the platform',
   'reports.owedToLessors': 'Owed to lessors',
   'reports.vatPayable': 'VAT payable',
