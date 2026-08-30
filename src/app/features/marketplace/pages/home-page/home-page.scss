@@ -4,13 +4,16 @@
 // A photograph under a heavy teal veil, as the design draws it. The veil is a
 // separate layer rather than a gradient baked into the image so the tint stays
 // exactly the brand colour whatever photograph is swapped in behind it.
+// No `overflow: hidden` here, deliberately: the date picker opens out of the
+// search bar and past the bottom of this section, and hiding the overflow cut
+// the calendar off after its first row. Nothing needs the clip — the photo and
+// the veil are `inset: 0` with `object-fit: cover`, so neither can spill.
 .hero {
   position: relative;
   isolation: isolate;
   padding: a.$space-40 a.$space-16;
   background: var(--color-primary);
   color: var(--color-on-primary);
-  overflow: hidden;
 
   @include a.up(md) {
     padding: a.$space-56 a.$space-32;
