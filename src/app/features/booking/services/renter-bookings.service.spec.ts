@@ -14,7 +14,7 @@ function booking(status: BookingStatus): RenterBooking {
     id: 'b',
     referenceNo: 'HZ-1',
     status,
-    unit: { id: 'u', title: 'مستودع', addressLine: 'شارع العليا', city: null },
+    unit: { id: 'u', title: 'مستودع', addressLine: 'شارع العليا', city: null, coverUrl: null },
     startDate: '2026-08-12',
     endDate: '2026-09-11',
     nights: 30,

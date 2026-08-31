@@ -42,6 +42,9 @@ describe('SecurityPage', () => {
     step(): string;
     groupedSecret(): string;
     disableForm: { valid: boolean; setValue(v: { password: string; code: string }): void };
+    regenerateForm: { valid: boolean; setValue(v: { password: string; code: string }): void };
+    startRegenerating(): void;
+    recoveryExhausted(): boolean;
   } {
     return fixture.componentInstance as unknown as ReturnType<typeof page>;
   }
@@ -84,6 +87,40 @@ describe('SecurityPage', () => {
     expect(rendered.length).toBe(page().recoveryCodes()!.length);
     // The warning is the point of the screen, not decoration on it.
     expect(el.textContent).toContain('مرة واحدة');
+  });
+
+  /**
+   * The way out of "nine of my ten are spent". Without it, somebody who runs
+   * the set down and then loses their phone has no route back into the account
+   * from inside the product — which was the most serious gap in the handover.
+   */
+  it('offers a fresh set of recovery codes, needing the same proof as turning it off', async () => {
+    await build();
+    const form = page().regenerateForm;
+
+    form.setValue({ password: '', code: '123456' });
+    expect(form.valid).withContext('code without a password').toBeFalse();
+
+    form.setValue({ password: 'Hayzak@2026', code: '' });
+    expect(form.valid).withContext('password without a code').toBeFalse();
+
+    form.setValue({ password: 'Hayzak@2026', code: '123456' });
+    expect(form.valid).withContext('both together').toBeTrue();
+  });
+
+  it('refuses a recovery code in the field that issues recovery codes', async () => {
+    await build();
+    const form = page().regenerateForm;
+
+    // Ten characters is a recovery code, and this endpoint rejects one — so a
+    // last code cannot be spent to mint ten more. Caught here rather than sent
+    // and refused, because the refusal at that moment reads as "your code is
+    // wrong" to somebody who is already locked out of their authenticator.
+    form.setValue({ password: 'Hayzak@2026', code: 'A7K2M9PQRS' });
+    expect(form.valid).toBeFalse();
+
+    form.setValue({ password: 'Hayzak@2026', code: '123456' });
+    expect(form.valid).toBeTrue();
   });
 
   it('refuses to disable on a code alone, or a password alone', async () => {

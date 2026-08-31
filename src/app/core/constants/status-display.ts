@@ -260,14 +260,14 @@ export const REFUND_METHOD_DISPLAY: Readonly<Record<RefundMethod, StatusDisplay>
  *
  * Keyed by the **wire's** upper-case strings, which are not the values of the
  * `RefundStatus` enum in `payment.enum.ts` — that one is title-case and comes
- * from the payments model. `COMPLETED` is the only one verified against the
- * running server; the rest are the obvious remainder of the same set, and
- * `refundStatusText` falls back to the raw string rather than to a blank, so a
- * value nobody predicted shows as itself instead of disappearing.
+ * from the payments model.
+ *
+ * Three, not four: `PROCESSING` was a guess and the backend confirmed it does
+ * not exist. `refundStatusText` still falls back to the raw string, so a value
+ * nobody predicted shows as itself instead of disappearing.
  */
 export const REFUND_RECORD_STATUS_DISPLAY: Readonly<Record<string, StatusDisplay>> = {
   PENDING: { ar: 'قيد الانتظار', en: 'Pending', tone: 'warning' },
-  PROCESSING: { ar: 'قيد التنفيذ', en: 'Processing', tone: 'info' },
   COMPLETED: { ar: 'تم', en: 'Completed', tone: 'success' },
   FAILED: { ar: 'فشل', en: 'Failed', tone: 'danger' },
 };

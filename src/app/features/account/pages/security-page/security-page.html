@@ -21,10 +21,16 @@
       @if (recoveryCodes(); as codes) {
         <section class="panel panel--codes">
           <h2 class="panel__title">{{ i18n.t('security.recoveryTitle') }}</h2>
-          <!-- The strongest wording on the screen, because it is the only
-               screen in the product where leaving without reading loses
-               something that cannot be reissued. -->
+          <!-- The strongest wording on the screen: leaving without reading
+               loses this set, and the only way back is to replace it again —
+               which needs the authenticator somebody may be about to lose. -->
           <app-ui-notice tone="warning">{{ i18n.t('security.recoveryOnce') }}</app-ui-notice>
+
+          <!-- Said out loud, because the old codes stopped working the moment
+               these appeared and a printed copy elsewhere is now waste paper. -->
+          @if (codesAreReplacement()) {
+            <app-ui-notice tone="info">{{ i18n.t('security.recoveryReplaced') }}</app-ui-notice>
+          }
 
           <ul class="codes">
             @for (code of codes; track code) {
@@ -77,6 +83,57 @@
         <button appUiButton variant="ghost" type="button" (click)="cancel()">
           {{ i18n.t('common.cancel') }}
         </button>
+      </section>
+    } @else if (step() === 'regenerating') {
+      <!-- ── A fresh set of ten ────────────────────────────────────────── -->
+      <section class="panel">
+        <h2 class="panel__title">{{ i18n.t('security.regenerateTitle') }}</h2>
+        <p class="panel__body">{{ i18n.t('security.regenerateBody') }}</p>
+        <app-ui-notice tone="warning">{{ i18n.t('security.regenerateWarn') }}</app-ui-notice>
+
+        <form class="form" [formGroup]="regenerateForm" (ngSubmit)="regenerate()" novalidate>
+          <app-ui-field
+            [label]="i18n.t('security.password')"
+            for="reg-pass"
+            [control]="regenerateForm.controls.password"
+          >
+            <input
+              id="reg-pass"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+            />
+          </app-ui-field>
+
+          <!-- Six digits from the app, and only that: this endpoint refuses a
+               recovery code, so that somebody on their last one cannot spend it
+               to mint ten more. -->
+          <app-ui-field
+            [label]="i18n.t('security.codeLabelApp')"
+            for="reg-code"
+            [control]="regenerateForm.controls.code"
+          >
+            <input
+              id="reg-code"
+              class="num"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              dir="ltr"
+              formControlName="code"
+              autocomplete="one-time-code"
+            />
+          </app-ui-field>
+
+          <div class="form__actions">
+            <button appUiButton variant="primary" type="submit" [disabled]="busy()">
+              {{ i18n.t('security.regenerateAction') }}
+            </button>
+            <button appUiButton variant="ghost" type="button" (click)="cancel()">
+              {{ i18n.t('common.cancel') }}
+            </button>
+          </div>
+        </form>
       </section>
     } @else if (step() === 'disabling') {
       <!-- ── Turning it off ────────────────────────────────────────────── -->
@@ -135,13 +192,23 @@
         @if (state.enabled) {
           <app-ui-notice tone="success">{{ i18n.t('security.on') }}</app-ui-notice>
 
-          <!-- Only ever counts down: there is no route that reissues them. -->
+          <!-- Counts down only. The set is replaced whole or not at all. -->
           <p class="panel__body num">
             {{ i18n.t('security.recoveryLeft', { count: state.recoveryCodesRemaining }) }}
           </p>
-          @if (recoveryLow()) {
+
+          <!-- Two different sentences, because they need two different amounts
+               of urgency: running low is a reminder, and none left means the
+               account has no way back if the phone goes. -->
+          @if (recoveryExhausted()) {
+            <app-ui-notice tone="danger">{{ i18n.t('security.recoveryGone') }}</app-ui-notice>
+          } @else if (recoveryLow()) {
             <app-ui-notice tone="warning">{{ i18n.t('security.recoveryLow') }}</app-ui-notice>
           }
+
+          <button appUiButton variant="outline" type="button" (click)="startRegenerating()">
+            {{ i18n.t('security.regenerateAction') }}
+          </button>
 
           @if (state.required) {
             <!-- Required by policy: offering "turn it off" would be offering an

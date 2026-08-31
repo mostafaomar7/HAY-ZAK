@@ -209,6 +209,22 @@ describe('app routing (smoke)', () => {
     expect(el.querySelector('#d-confirm')).toBeNull();
   });
 
+  /**
+   * The one link in the confirmation email points at `/verify-email?token=…`,
+   * not at `/auth/verify-email`. Without the top-level redirect it lands on
+   * the not-found page — and with a redirect that dropped the query it would
+   * land on the right screen holding nothing to verify, which is worse because
+   * it looks like it worked.
+   */
+  it('carries the emailed token through the top-level verify-email link', async () => {
+    const fixture = await open('/verify-email?token=abc123');
+
+    expect(router.url).toBe('/auth/verify-email?token=abc123');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-verify-email-page'),
+    ).not.toBeNull();
+  });
+
   it('sends an unknown path to the not-found page instead of throwing', async () => {
     const fixture = await open('/does/not/exist');
 

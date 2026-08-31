@@ -122,7 +122,10 @@ export class AdminReviewService {
       areaSqm: unit.areaSqm,
       submittedAt,
       slaDueAt: unit.slaDueAt ?? null,
-      isOverdue: unit.isOverdue ?? false,
+      // `?? null`, never `?? false`: the server answers null for a listing
+      // that has no deadline at all, and flattening that to "on time" is the
+      // same class of mistake as deriving the flag in the first place.
+      isOverdue: unit.isOverdue ?? null,
       waitingHours: submittedAt ? hoursSince(submittedAt) : null,
       isEdit: !!unit.reviewedAt,
     };

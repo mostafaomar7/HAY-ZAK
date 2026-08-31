@@ -207,18 +207,35 @@ function route(path: string, query: string, method: string, payload: unknown): u
       },
     });
   }
+  // Ten codes of ten characters, as the server issues them, with `I`, `O`,
+  // `0` and `1` left out — a code that has to be read off a screen and typed
+  // back cannot afford characters that look like each other.
   if (path === API_ENDPOINTS.me.twoFactorEnable) {
-    // Codes come back once and are never reissued — the fixture sends them so
-    // the screen that has to say so is actually reachable.
     return ok({
       twoFactor: {
         enabled: true,
         enabledAt: new Date().toISOString(),
         setupPending: false,
-        recoveryCodesRemaining: 8,
+        recoveryCodesRemaining: 10,
         required: false,
       },
-      recoveryCodes: ['4F2K-9QMT', '7XPD-2B4V', 'HN63-LT8W', 'ZR91-KD5C'],
+      recoveryCodes: mockRecoveryCodes(),
+      recoveryCodesShownOnce: true,
+    });
+  }
+  // The same shape, because it is the same act: ten new codes, every old one
+  // retired. The only route by which the count ever goes up.
+  if (path === API_ENDPOINTS.me.twoFactorRecoveryCodes) {
+    return ok({
+      twoFactor: {
+        enabled: true,
+        enabledAt: new Date().toISOString(),
+        setupPending: false,
+        recoveryCodesRemaining: 10,
+        required: false,
+      },
+      recoveryCodes: mockRecoveryCodes(),
+      recoveryCodesShownOnce: true,
     });
   }
   if (path === API_ENDPOINTS.me.twoFactorDisable) {
@@ -878,4 +895,21 @@ function mockChallenge() {
     resendAfterSeconds: 60,
     devCode: '000000',
   };
+}
+
+/**
+ * Ten ten-character codes, from the server's own alphabet.
+ *
+ * Generated rather than a fixed list so a regenerated set is visibly different
+ * from the one it replaced — the screen says the old codes have stopped
+ * working, and a mock that returned the same ten would make that a lie nobody
+ * would notice.
+ */
+function mockRecoveryCodes(): string[] {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 10 }, () =>
+    Array.from({ length: 10 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join(
+      '',
+    ),
+  );
 }

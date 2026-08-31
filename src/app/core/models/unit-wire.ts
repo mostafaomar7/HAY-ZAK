@@ -66,8 +66,13 @@ export interface WireUnit {
   submittedAt?: string | null;
   /** When a decision is owed by, from `operations.approval_sla_hours`. */
   slaDueAt?: string | null;
-  /** Past that deadline. The server's answer, not the client's arithmetic. */
-  isOverdue?: boolean;
+  /**
+   * Past that deadline. The server's answer, not the client's arithmetic.
+   *
+   * `null` alongside a null `slaDueAt` — a listing with no deadline is not
+   * "on time", it is outside the question.
+   */
+  isOverdue?: boolean | null;
 
   // Present on the detail projection.
   location?: GeoPoint | null;

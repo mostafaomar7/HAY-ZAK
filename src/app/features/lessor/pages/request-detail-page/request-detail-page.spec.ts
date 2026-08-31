@@ -17,6 +17,7 @@ function makeBooking(status: BookingStatus, renterName?: string): RenterBooking 
       title: 'قراج مغلق — الملقا',
       addressLine: null,
       city: { id: 'riyadh', nameAr: 'الرياض', nameEn: 'Riyadh' },
+      coverUrl: null,
     },
     startDate: '2026-08-12',
     endDate: '2026-09-11',

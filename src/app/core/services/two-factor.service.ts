@@ -7,6 +7,7 @@ import type {
   TwoFactorDisableRequest,
   TwoFactorEnableRequest,
   TwoFactorEnableResult,
+  TwoFactorRecoveryCodesRequest,
   TwoFactorSetup,
   TwoFactorStatus,
   WireTwoFactorEnableResponse,
@@ -60,9 +61,10 @@ export class TwoFactorService {
   /**
    * Turns it on, by proving the secret was stored.
    *
-   * The recovery codes come back **once**. There is no endpoint that re-issues
-   * them, so a screen that does not put them in front of the user here has
-   * lost them for that account permanently.
+   * The recovery codes come back **once** and are stored hashed, so a screen
+   * that does not put them in front of the user here has lost that set. It is
+   * recoverable now — `regenerateRecoveryCodes` replaces the lot — but only
+   * for somebody who is still signed in with their authenticator to hand.
    */
   enable(request: TwoFactorEnableRequest): Observable<TwoFactorEnableResult> {
     return this.api
@@ -71,23 +73,65 @@ export class TwoFactorService {
         request,
       )
       .pipe(
-        map((response) => ({
-          status: response.twoFactor
-            ? twoFactorStatusFromWire(response.twoFactor)
-            : {
-                enabled: true,
-                enabledAt: null,
-                setupPending: false,
-                recoveryCodesRemaining: 0,
-                required: false,
-              },
-          // Null rather than `[]`: "the response carried no codes" is not the
-          // same claim as "this account has none", and only one of them is a
-          // sentence to put on a screen.
-          recoveryCodes: response.recoveryCodes ?? null,
-        })),
+        map((response) => this.enableResult(response, { enabled: true })),
         tap((result) => this.current.set(result.status)),
       );
+  }
+
+  /**
+   * A fresh set of ten, retiring every old one.
+   *
+   * This is the way out of "nine of my ten are spent", and it is the only one:
+   * the count never goes up on its own. Takes the password **and** a current
+   * TOTP code — the same proof as switching the feature off, because handing
+   * over ten new keys to an account is the same size of act.
+   */
+  regenerateRecoveryCodes(
+    request: TwoFactorRecoveryCodesRequest,
+  ): Observable<TwoFactorEnableResult> {
+    return this.api
+      .post<WireTwoFactorEnableResponse, TwoFactorRecoveryCodesRequest>(
+        API_ENDPOINTS.me.twoFactorRecoveryCodes,
+        request,
+      )
+      .pipe(
+        map((response) => this.enableResult(response, { enabled: true })),
+        tap((result) => this.current.set(result.status)),
+      );
+  }
+
+  /**
+   * Both responses have the same shape, and both may omit the status block.
+   *
+   * The fallback keeps whatever is already known rather than inventing a
+   * cleared one: a response that carried codes but no status must not reset
+   * `recoveryCodesRemaining` to zero on the screen that is about to print ten
+   * of them.
+   */
+  private enableResult(
+    response: WireTwoFactorEnableResponse,
+    fallback: Partial<TwoFactorStatus>,
+  ): TwoFactorEnableResult {
+    const known = this.current();
+
+    return {
+      status: response.twoFactor
+        ? twoFactorStatusFromWire(response.twoFactor)
+        : {
+            enabled: known?.enabled ?? false,
+            enabledAt: known?.enabledAt ?? null,
+            setupPending: false,
+            recoveryCodesRemaining:
+              response.recoveryCodes?.length ?? known?.recoveryCodesRemaining ?? 0,
+            required: known?.required ?? false,
+            ...fallback,
+          },
+      // Null rather than `[]`: "the response carried no codes" is not the
+      // same claim as "this account has none", and only one of them is a
+      // sentence to put on a screen.
+      recoveryCodes: response.recoveryCodes ?? null,
+      shownOnce: response.recoveryCodesShownOnce ?? true,
+    };
   }
 
   /**

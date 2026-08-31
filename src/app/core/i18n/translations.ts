@@ -1599,7 +1599,17 @@ const ar = {
   'security.recoverySaved': 'حفظتها',
   'security.recoveryNone': 'فُعّل التحقق بخطوتين. لم يُرسل الخادم رموز استرداد مع هذا الرد.',
   'security.recoveryLeft': 'رموز الاسترداد المتبقية: {count}',
-  'security.recoveryLow': 'الرموز شارفت على الانتهاء، ولا يوجد مسار لإصدار غيرها.',
+  'security.recoveryLow':
+    'رموزك شارفت على الانتهاء. أصدر مجموعة جديدة بينما تطبيق المصادقة ما زال معك.',
+  'security.recoveryGone':
+    'لم يتبقَّ أي رمز استرداد. إن فقدت هاتفك الآن، لن يكون هناك طريق للعودة إلى حسابك.',
+  'security.recoveryReplaced': 'المجموعة السابقة توقّفت عن العمل الآن. أتلف أي نسخة محفوظة منها.',
+  'security.regenerateTitle': 'إصدار رموز استرداد جديدة',
+  'security.regenerateBody': 'تُصدر عشرة رموز جديدة، ويتوقّف كل رمز قديم عن العمل في اللحظة نفسها.',
+  'security.regenerateWarn':
+    'يتطلّب كلمة المرور ورمزًا من تطبيق المصادقة — رمز الاسترداد غير مقبول هنا حتى لا يُصرف آخر رمز للحصول على عشرة.',
+  'security.regenerateAction': 'إصدار رموز جديدة',
+  'security.codeLabelApp': 'رمز تطبيق المصادقة (٦ أرقام)',
   'security.requiredNote': 'التحقق بخطوتين إلزامي على هذا الحساب ولا يمكن إيقافه.',
   'security.requiredUnenrolled':
     'التحقق بخطوتين إلزامي على حسابك ولم تُفعّله بعد — لوحة التحكم مغلقة حتى تفعّله.',
@@ -3224,7 +3234,18 @@ const en: Partial<Record<TranslationKey, string>> = {
   'security.recoveryNone':
     'Two-factor authentication is on. This response carried no recovery codes.',
   'security.recoveryLeft': 'Recovery codes left: {count}',
-  'security.recoveryLow': 'You are nearly out, and there is no route that issues more.',
+  'security.recoveryLow':
+    'You are nearly out. Issue a fresh set while your authenticator is still with you.',
+  'security.recoveryGone':
+    'No recovery codes left. If you lose your phone now, there is no way back into the account.',
+  'security.recoveryReplaced':
+    'Your previous set stopped working just now. Destroy any saved copy.',
+  'security.regenerateTitle': 'Issue new recovery codes',
+  'security.regenerateBody': 'Ten new codes, and every old one stops working at the same moment.',
+  'security.regenerateWarn':
+    'Needs your password and a code from the authenticator app — a recovery code is refused here, so a last one cannot be spent to mint ten more.',
+  'security.regenerateAction': 'Issue new codes',
+  'security.codeLabelApp': 'Authenticator code (6 digits)',
   'security.requiredNote': 'Two-factor authentication is required on this account.',
   'security.requiredUnenrolled':
     'Two-factor authentication is required on your account and is not set up — the console stays closed until it is.',

@@ -23,6 +23,20 @@ export const routes: Routes = [
     loadChildren: () => import('@features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
 
+  /**
+   * The address the emailed confirmation link actually points at.
+   *
+   * The server builds `{WEB_URL}/verify-email?token=…`, not `/auth/verify-email`
+   * — so without this the one link in that email lands on the not-found page.
+   * A redirect rather than a second mounting of the component: one screen, one
+   * place it lives, and `queryParamsHandling` carries the token across.
+   */
+  {
+    path: 'verify-email',
+    redirectTo: 'auth/verify-email',
+    pathMatch: 'full',
+  },
+
   {
     path: 'forbidden',
     title: 'لا تملك صلاحية الوصول',

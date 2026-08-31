@@ -40,8 +40,12 @@ export interface ListingReviewRow {
    * Past that deadline — **the server's answer**, from the same definition
    * that decides `operations.approval_sla_hours`. Not the client comparing an
    * elapsed hour count against a setting it fetched separately.
+   *
+   * `null` wherever `slaDueAt` is: "not late" is an answer about a deadline,
+   * and a published listing does not have one. Three states, and only one of
+   * them paints a row red.
    */
-  isOverdue: boolean;
+  isOverdue: boolean | null;
   /**
    * Whole hours waiting, counted here from the server's `submittedAt`.
    *

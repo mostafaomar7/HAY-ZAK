@@ -1,5 +1,6 @@
 import type { BookingStatus } from '../enums/booking-status.enum';
 import type { ReferenceItem } from './unit.model';
+import { fileUrl } from './unit-wire';
 
 /**
  * A booking as the two party-scoped endpoints send it (FR-BKG, FR-PAY).
@@ -57,6 +58,18 @@ export interface BookingUnitRef {
   /** Released with the contact, at `CONFIRMED`. */
   addressLine: string | null;
   city: ReferenceItem | null;
+  /**
+   * The listing's cover photograph, absolute.
+   *
+   * **Not held back until confirmation, and that is right:** the picture was
+   * public on the marketplace and the renter looked at it before booking.
+   * `addressLine` is the field that waits, because that is the one they could
+   * not already see.
+   *
+   * `null` on a unit with no photographs — which is a real state, not a
+   * failure, and renders as the hatched placeholder.
+   */
+  coverUrl: string | null;
 }
 
 export interface RenterBooking {
@@ -127,7 +140,13 @@ export interface WireBooking {
   id: string;
   referenceNo: string;
   status: BookingStatus;
-  unit: { id: string; title: string; addressLine: string | null; city: ReferenceItem | null };
+  unit: {
+    id: string;
+    title: string;
+    addressLine: string | null;
+    city: ReferenceItem | null;
+    coverUrl?: string | null;
+  };
   startDate: string;
   endDate: string;
   /** The API's name for the count. It is nights; renamed on the way in. */
@@ -158,7 +177,13 @@ export function bookingFromWire(wire: WireBooking): RenterBooking {
     id: wire.id,
     referenceNo: wire.referenceNo,
     status: wire.status,
-    unit: { ...wire.unit },
+    unit: {
+      ...wire.unit,
+      // Absolute already on this projection, but through `fileUrl` regardless:
+      // it passes an absolute URL through untouched and resolves a relative one
+      // against the API's origin, so neither shape can produce a broken image.
+      coverUrl: wire.unit.coverUrl ? fileUrl(wire.unit.coverUrl) : null,
+    },
     startDate: wire.startDate,
     endDate: wire.endDate,
     // `daysCount` is the wire's word for it; the domain says what it counts.

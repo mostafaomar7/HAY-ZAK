@@ -14,7 +14,7 @@ import { UiOtpInput } from '@shared/components/ui-otp-input/ui-otp-input';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 
 /** Where the enrolment has got to. */
-type Step = 'idle' | 'scanning' | 'codes' | 'disabling';
+type Step = 'idle' | 'scanning' | 'codes' | 'disabling' | 'regenerating';
 
 /**
  * Two-factor authentication for the signed-in account (§17).
@@ -60,10 +60,33 @@ export class SecurityPage {
   protected readonly busy = signal(false);
   protected readonly error = signal<ApiError | null>(null);
 
-  /** Password *and* a code — the endpoint refuses either one alone. */
+  /**
+   * Password *and* a code — the endpoint refuses either one alone.
+   *
+   * Six digits exactly, because this endpoint takes a TOTP code and **not** a
+   * recovery code. Recovery gets you into the account; it does not take the
+   * lock off it, and a ten-character value here would be a request that cannot
+   * succeed.
+   */
   protected readonly disableForm = this.fb.nonNullable.group({
     password: ['', [Validators.required]],
-    code: ['', [Validators.required, Validators.minLength(6)]],
+    code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
+  });
+
+  /**
+   * Same proof as disabling, and a separate form on purpose.
+   *
+   * Sharing one would carry a half-typed password between two different acts,
+   * and the failure of one would surface as an error under the other.
+   *
+   * Six digits exactly: a recovery code is **refused** by this endpoint, so
+   * accepting a ten-character value here would send a request that cannot
+   * succeed. Somebody down to their last code cannot spend it to mint ten
+   * more — which is the whole reason the set can run out at all.
+   */
+  protected readonly regenerateForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required]],
+    code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
   });
 
   /**
@@ -78,13 +101,28 @@ export class SecurityPage {
     return (secret.match(/.{1,4}/g) ?? []).join(' ');
   });
 
-  /** Fewer than three left is worth saying out loud, not just counting. */
+  /**
+   * Three or fewer left is worth saying out loud, not just counting.
+   *
+   * The threshold is where there is still something to do about it: the codes
+   * cannot be topped up, only replaced wholesale, and replacing them needs the
+   * authenticator that somebody spending recovery codes may be about to lose.
+   */
   protected readonly recoveryLow = computed(() => {
     const status = this.status();
     return (
-      !!status?.enabled && status.recoveryCodesRemaining > 0 && status.recoveryCodesRemaining < 3
+      !!status?.enabled && status.recoveryCodesRemaining > 0 && status.recoveryCodesRemaining <= 3
     );
   });
+
+  /** None left at all — a different sentence, and a more urgent one. */
+  protected readonly recoveryExhausted = computed(() => {
+    const status = this.status();
+    return !!status?.enabled && status.recoveryCodesRemaining === 0;
+  });
+
+  /** Whether the codes on screen replaced an older set or are the first. */
+  protected readonly codesAreReplacement = signal(false);
 
   constructor() {
     this.load();
@@ -143,6 +181,7 @@ export class SecurityPage {
         this.status.set(result.status);
         this.setup.set(null);
         this.recoveryCodes.set(result.recoveryCodes);
+        this.codesAreReplacement.set(false);
         // Straight to the codes, even when the server sent none: the screen has
         // to say which of those happened rather than closing on both.
         this.step.set('codes');
@@ -178,9 +217,48 @@ export class SecurityPage {
     });
   }
 
+  /**
+   * Replaces the whole set, retiring every old code.
+   *
+   * The only way the count ever goes up. Lands on the same "here are your
+   * codes" screen as enrolling did, so there is one place in the product that
+   * shows a code and one place that has to be got right.
+   */
+  protected regenerate(): void {
+    if (this.regenerateForm.invalid || this.busy()) {
+      this.regenerateForm.markAllAsTouched();
+      return;
+    }
+
+    this.busy.set(true);
+    this.error.set(null);
+
+    this.twoFactor.regenerateRecoveryCodes(this.regenerateForm.getRawValue()).subscribe({
+      next: (result) => {
+        this.busy.set(false);
+        this.status.set(result.status);
+        this.regenerateForm.reset();
+        this.recoveryCodes.set(result.recoveryCodes);
+        this.codesAreReplacement.set(true);
+        this.step.set('codes');
+      },
+      error: (failure: unknown) => {
+        this.busy.set(false);
+        if (isApiError(failure)) this.error.set(failure);
+      },
+    });
+  }
+
+  protected startRegenerating(): void {
+    this.error.set(null);
+    this.regenerateForm.reset();
+    this.step.set('regenerating');
+  }
+
   /** Leaves the codes screen. They are gone from here on. */
   protected acknowledgeCodes(): void {
     this.recoveryCodes.set(null);
+    this.codesAreReplacement.set(false);
     this.step.set('idle');
   }
 
@@ -188,6 +266,7 @@ export class SecurityPage {
     this.setup.set(null);
     this.error.set(null);
     this.disableForm.reset();
+    this.regenerateForm.reset();
     this.step.set('idle');
   }
 

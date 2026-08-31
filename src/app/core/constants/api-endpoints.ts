@@ -507,6 +507,15 @@ export const API_ENDPOINTS = {
     twoFactorSetup: '/me/2fa/setup',
     twoFactorEnable: '/me/2fa/enable',
     twoFactorDisable: '/me/2fa/disable',
+    /**
+     * A fresh set of ten, invalidating every old one in the same transaction.
+     *
+     * Takes the same proof as `disable` — the password **and** a current TOTP
+     * code. A recovery code is deliberately **not** accepted: somebody down to
+     * their last one could otherwise spend it to mint ten more, and a set that
+     * is supposed to run out never would.
+     */
+    twoFactorRecoveryCodes: '/me/2fa/recovery-codes',
 
     /** 60-second cooldown; a second call inside it is a 429. */
     sendEmailVerification: '/me/email/send-verification',
