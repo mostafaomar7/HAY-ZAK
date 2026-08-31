@@ -36,7 +36,7 @@
 
       <span class="bar__rule" aria-hidden="true"></span>
 
-      <div class="bar__field bar__field--wide">
+      <div class="bar__field bar__field--compact">
         <div class="bar__head">
           <label class="bar__label" [attr.for]="calendar() === 'hijri' ? null : 'h-start'">
             {{ i18n.t('home.startDate') }}
@@ -103,7 +103,7 @@
 
       <span class="bar__rule" aria-hidden="true"></span>
 
-      <div class="bar__field">
+      <div class="bar__field bar__field--compact">
         <label class="bar__label" for="h-days">{{ i18n.t('home.duration') }}</label>
 
         <div class="days">

@@ -109,6 +109,26 @@
   }
 }
 
+/**
+ * Sized by its contents, and not allowed to shrink below them.
+ *
+ * The date input and the duration stepper are fixed-size controls, not text
+ * that can wrap or ellipsis. Left flexible with `min-width: 0` they were free
+ * to shrink under their own contents, and the stepper — whose buttons cannot
+ * shrink — spilled out of its box and ran underneath the search button.
+ *
+ * It only showed in English, which is why it survived: "Duration · days ·
+ * Search" is wider than "المدة · يومًا · ابحث", so the row went over its
+ * width only after the switch. The two selects absorb the slack instead;
+ * their contents are names, which is what an ellipsis is for.
+ */
+.bar__field--compact {
+  @include a.up(lg) {
+    flex: none;
+    min-width: max-content;
+  }
+}
+
 .bar__head {
   @include a.flex(row, $align: center, $gap: a.$space-8);
 }
@@ -117,6 +137,9 @@
   font-size: a.$fs-label;
   font-weight: a.$fw-semibold;
   color: var(--color-text-heading);
+  // "Start date" broke onto two lines and pushed the row taller than the pill
+  // it sits in. Every one of these is two words at most.
+  white-space: nowrap;
 }
 
 // Borderless by design: the bar itself is the field, and four bordered inputs
