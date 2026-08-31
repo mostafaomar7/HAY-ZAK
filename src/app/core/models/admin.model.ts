@@ -1,4 +1,3 @@
-import type { EarningsBucket } from './earnings.model';
 import type { BookingStatus } from '../enums/booking-status.enum';
 import type { LegalDocumentType } from '../enums/operations.enum';
 import type { AccountStatus, AdminRole, UserRole } from '../enums/user-role.enum';
@@ -121,25 +120,100 @@ export enum RejectionReasonCode {
 // ── Payments and payouts (FR-PAY) ────────────────────────────────────────
 
 /** One row of "متابعة المدفوعات" — a collected booking and its onward transfer. */
-export interface PaymentTrackingRow {
+/**
+ * A booking as payment tracking reads it (FR-PAY-08) — one row of
+ * `GET /admin/bookings`.
+ *
+ * It replaced `PaymentTrackingRow`, which was modelled on `/admin/payments` —
+ * an endpoint that has never existed, so the screen showed "تعذّر تحميل
+ * المعاملات" and nothing else for as long as it has been there. Every figure it
+ * needed is on this row instead.
+ *
+ * `isRefunded` and the payout bucket are **not** here and are not invented.
+ * Whether money went back out is on the booking's own detail, and which bucket
+ * a lessor's share sits in is a property of a payout run — which covers several
+ * bookings and does not exist until an operator approves one. That question is
+ * answered on the transfers screen, where the payout is.
+ */
+export interface AdminBookingRow {
   id: string;
-  bookingReferenceNo: string;
-  renterName: string;
-  lessorName: string;
-  unitTitle: string;
+  referenceNo: string;
+  status: BookingStatus;
+  startDate: string;
+  /** Half-open — the day of departure, not the last night. */
+  endDate: string;
+  nights: number;
+  /** What the renter paid. Not revenue: most of it is owed onward. */
   totalHalalas: number;
   commissionHalalas: number;
-  netHalalas: number;
-  /** Whether the money reached the platform, and whether it left again. */
-  isRefunded: boolean;
-  /**
-   * Where this booking's share of the lessor's money sits.
-   *
-   * Not a `PayoutStatus`: a payout covers several bookings and does not exist
-   * until an operator approves one, so a booking cannot have one of its own.
-   */
-  bucket: EarningsBucket;
-  bankReference?: string;
+  netToLessorHalalas: number;
+  /** The lessor's share is frozen — an open complaint, usually. */
+  payoutHeld: boolean;
+  unit: { id: string; title: string };
+  renter: AdminBookingParty;
+  lessor: AdminBookingParty;
+  createdAt: string;
+  /** Null until it is paid for; payment is what confirms a booking. */
+  confirmedAt: string | null;
+}
+
+export interface AdminBookingParty {
+  id: string;
+  fullName: string;
+  mobile: string;
+}
+
+/** What `/admin/bookings` narrows by, and nothing else — a fifth is a 422. */
+export interface AdminBookingQuery {
+  status?: BookingStatus;
+  /** Reference number, either party, or the listing's title. */
+  search?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+}
+
+// ── Wire ──────────────────────────────────────────────────────────────────
+
+export interface WireAdminBooking {
+  id: string;
+  referenceNo: string;
+  status: BookingStatus;
+  startDate: string;
+  endDate: string;
+  /** Nights. Renamed on the way in, as everywhere else. */
+  daysCount: number;
+  totalHalalas: number;
+  commissionHalalas: number;
+  netToLessorHalalas: number;
+  payoutHeld?: boolean | null;
+  unit: { id: string; title: string };
+  renter: AdminBookingParty;
+  lessor: AdminBookingParty;
+  createdAt: string;
+  confirmedAt?: string | null;
+}
+
+export function adminBookingFromWire(wire: WireAdminBooking): AdminBookingRow {
+  return {
+    id: wire.id,
+    referenceNo: wire.referenceNo,
+    status: wire.status,
+    startDate: wire.startDate,
+    endDate: wire.endDate,
+    nights: wire.daysCount,
+    totalHalalas: wire.totalHalalas,
+    commissionHalalas: wire.commissionHalalas,
+    netToLessorHalalas: wire.netToLessorHalalas,
+    // A hold is a fact about money and reads as false only when the server
+    // said so; a missing key is the same as no hold on this endpoint.
+    payoutHeld: wire.payoutHeld ?? false,
+    unit: { ...wire.unit },
+    renter: { ...wire.renter },
+    lessor: { ...wire.lessor },
+    createdAt: wire.createdAt,
+    confirmedAt: wire.confirmedAt ?? null,
+  };
 }
 
 export interface LessorBankDetails {

@@ -260,7 +260,10 @@ export const API_ENDPOINTS = {
     retryPayout: (id: string) => `/admin/payouts/${id}/retry`,
 
     // ── Not shipped yet.
-    tracking: '/admin/payments',
+    // `tracking: '/admin/payments'` is gone. It never existed on any version of
+    // the API and the screen named after it now reads `/admin/bookings`, which
+    // carries the same figures. Keeping the name would have left one more
+    // address in this file that answers 404.
     refunds: '/admin/refunds',
     demandBankDetails: (lessorId: string) => `/admin/lessors/${lessorId}/bank-details-demand`,
     ledger: '/admin/ledger',
@@ -378,6 +381,27 @@ export const API_ENDPOINTS = {
     invoices: '/admin/invoices',
 
     unitReviewById: (id: string) => `/admin/units/${id}/review-detail`,
+
+    /**
+     * FR-PAY-08 — every booking on the platform, with its money on the row.
+     *
+     * `?status=&search=&from=&to=&page=&pageSize=`, and nothing else. `search`
+     * covers the reference number, the two parties and the listing's title.
+     *
+     * This is what payment tracking is built on. `/admin/payments` has never
+     * existed and is still queued; every figure that screen needs — what the
+     * renter paid, the commission, the lessor's net, and whether the payout is
+     * held — is already on this row.
+     *
+     * Two things it does **not** carry, and the screen says so rather than
+     * guessing: whether a refund was issued, and which payout bucket the
+     * lessor's share sits in. The second is a property of a payout run, which
+     * covers several bookings and does not exist until an operator approves
+     * one — so it belongs on the transfers screen, not here.
+     */
+    bookings: '/admin/bookings',
+    /** The same booking in full: status history, payments, refunds, invoices. */
+    bookingById: (id: string) => `/admin/bookings/${id}`,
 
     bookingReviewById: (id: string) => `/admin/bookings/${id}/review-detail`,
 

@@ -25,43 +25,44 @@
   [total]="list.total()"
   [page]="list.page()"
   [pageSize]="list.pageSize"
-  [sort]="list.sort()"
   [emptyTitle]="i18n.t('payments.empty')"
   [emptyHint]="i18n.t('payments.emptyHint')"
   [errorTitle]="i18n.t('payments.error')"
   [errorHint]="i18n.t('payments.errorHint')"
   errorRef="ERR-5112"
-  (sortChange)="onSort($event)"
   (pageChange)="onPage($event)"
   (retried)="fetch()"
   (clearedFilters)="onReset()"
 >
   <ng-template #row let-row>
     <span class="cell cell--stack">
-      <span class="cell--strong">{{ row.renterName }}</span>
-      <span class="cell__sub num" dir="ltr">{{ row.bookingReferenceNo }}</span>
+      <span class="cell--strong">{{ row.renter.fullName }}</span>
+      <span class="cell__sub num" dir="ltr">{{ row.referenceNo }}</span>
     </span>
-    <span class="cell">{{ row.lessorName }}</span>
-    <span class="cell cell--muted">{{ row.unitTitle }}</span>
+    <span class="cell">{{ row.lessor.fullName }}</span>
+    <span class="cell cell--muted" dir="auto">{{ row.unit.title }}</span>
     <span class="cell num">
       {{ row.totalHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
     </span>
     <span class="cell cell--muted num">{{ row.commissionHalalas }}</span>
     <span class="cell cell--strong num">
-      {{ row.netHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
-    </span>
-    <span class="cell">
-      <app-ui-badge [tone]="row.isRefunded ? 'warning' : 'success'">
-        {{ row.isRefunded ? i18n.t('payments.refunded') : i18n.t('payments.collected') }}
-      </app-ui-badge>
+      {{ row.netToLessorHalalas }} <span class="unit">{{ i18n.t('admin.sar') }}</span>
     </span>
     <span class="cell cell--stack">
-      <app-ui-badge [tone]="bucketDisplay(row.bucket).tone">
-        {{ bucketLabel(row.bucket) }}
-      </app-ui-badge>
-      @if (row.bankReference) {
-        <span class="cell__sub num" dir="ltr">{{ row.bankReference }}</span>
+      <app-ui-badge [tone]="statusTone(row.status)">{{ statusLabel(row.status) }}</app-ui-badge>
+      <!-- A hold is why the lessor's share has not moved, and it is the one
+           thing on this row somebody acts on. -->
+      @if (row.payoutHeld) {
+        <span class="cell__sub cell__sub--alert">{{ i18n.t('payments.payoutHeld') }}</span>
       }
     </span>
   </ng-template>
 </app-admin-table>
+
+<!-- Where the money went, rather than a column of guesses about it. A payout
+     covers several bookings and does not exist until an operator approves one,
+     so no booking row can carry its state. -->
+<p class="note">
+  {{ i18n.t('payments.transfersNote') }}
+  <a routerLink="/admin/transfers">{{ i18n.t('adminNav.transfers') }}</a>
+</p>

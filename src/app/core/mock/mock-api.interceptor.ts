@@ -25,7 +25,7 @@ import {
   MOCK_COMPLAINTS,
   MOCK_COMPLAINT_DETAIL,
   MOCK_REVIEW_UNITS,
-  MOCK_PAYMENT_ROWS,
+  MOCK_ADMIN_BOOKINGS,
   MOCK_ELIGIBLE_PAYOUTS,
   MOCK_PAYOUTS,
   MOCK_REFERENCE_DATA,
@@ -347,7 +347,12 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
   if (/^\/admin\/bookings\/[^/]+\/(approve|reject)$/.test(path)) return ok(null);
 
-  if (path === API_ENDPOINTS.payments.tracking) return paginate(MOCK_PAYMENT_ROWS);
+  // `/admin/payments` has never existed; payment tracking reads the bookings.
+  if (path === API_ENDPOINTS.admin.bookings) return paginate(MOCK_ADMIN_BOOKINGS);
+  if (/^\/admin\/bookings\/[^/]+$/.test(path) && method === 'GET') {
+    const id = path.split('/')[3];
+    return ok({ ...(MOCK_ADMIN_BOOKINGS.find((b) => b.id === id) ?? MOCK_ADMIN_BOOKINGS[0]) });
+  }
   if (path === API_ENDPOINTS.payments.eligiblePayouts) return paginate(MOCK_ELIGIBLE_PAYOUTS);
   // Approving answers with the payout it created, so the screen refreshes from
   // the response rather than guessing what the server made.

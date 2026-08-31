@@ -1,8 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { PaginatedResponse } from '@core/models/api-response.model';
-import type { PaymentTrackingRow } from '@core/models/admin.model';
+import type {
+  AdminBookingQuery,
+  AdminBookingRow,
+  WireAdminBooking,
+} from '@core/models/admin.model';
+import { adminBookingFromWire } from '@core/models/admin.model';
 import type { PayoutStatus } from '@core/enums/payment.enum';
 import type {
   EligiblePayout,
@@ -17,10 +23,35 @@ import { ApiService } from '@core/services/api.service';
 export class AdminFinanceService {
   private readonly api = inject(ApiService);
 
-  payments(params: Record<string, string>): Observable<PaginatedResponse<PaymentTrackingRow>> {
-    return this.api.list<PaymentTrackingRow>(API_ENDPOINTS.payments.tracking, {
-      params,
-    });
+  /**
+   * FR-PAY-08 — payment tracking, read off the bookings.
+   *
+   * `/admin/payments` has never existed; this screen asked for it and showed an
+   * error box for as long as it has been there. `/admin/bookings` is shipped and
+   * carries every figure that screen needs on the row — what the renter paid,
+   * the commission, the lessor's net, and whether the payout is held.
+   *
+   * Read-only, like everything else on that screen: every number here is the
+   * consequence of something that already happened, and the place to change any
+   * of them is the screen that performs the act.
+   */
+  bookings(query: AdminBookingQuery = {}): Observable<PaginatedResponse<AdminBookingRow>> {
+    return this.api
+      .list<WireAdminBooking>(API_ENDPOINTS.admin.bookings, {
+        params: {
+          status: query.status,
+          search: query.search?.trim() || undefined,
+          from: query.from,
+          to: query.to,
+          page: query.page,
+        },
+      })
+      .pipe(
+        map((page) => ({
+          items: page.items.map(adminBookingFromWire),
+          pagination: page.pagination,
+        })),
+      );
   }
 
   /**

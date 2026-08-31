@@ -13,7 +13,7 @@ import type {
   LessorBankDetails,
   ListingReviewDetail,
   ListingReviewRow,
-  PaymentTrackingRow,
+  WireAdminBooking,
   TermsApprovalRow,
   TermsVersionRow,
 } from '../models/admin.model';
@@ -309,56 +309,67 @@ export const MOCK_ADMIN_KPIS: AdminDashboardKpis = {
 
 // ── Payments and payouts ─────────────────────────────────────────────────
 
-export const MOCK_PAYMENT_ROWS: PaymentTrackingRow[] = [
+/**
+ * What `/admin/bookings` sends, in the wire shape — `daysCount`, the parties
+ * nested, `payoutHeld` — so the adapter is exercised rather than bypassed.
+ *
+ * The three cover the states payment tracking is read for: money collected and
+ * free, money collected and frozen behind a complaint, and a booking that never
+ * paid at all.
+ */
+export const MOCK_ADMIN_BOOKINGS: WireAdminBooking[] = [
   {
-    id: 'pay-1',
-    bookingReferenceNo: 'HZ-2026-00981',
-    renterName: 'عبدالله القحطاني',
-    lessorName: 'سعود العنزي',
-    unitTitle: 'مستودع مكيّف — النرجس',
+    id: 'bk-1',
+    referenceNo: 'HZ-2026-00981',
+    status: BookingStatus.Completed,
+    startDate: '2026-08-05',
+    endDate: '2026-08-12',
+    daysCount: 7,
     totalHalalas: 52500,
     commissionHalalas: 2625,
-    netHalalas: 49875,
-    isRefunded: false,
-    bucket: 'PAID',
-    bankReference: 'TRF-20260812',
+    netToLessorHalalas: 49875,
+    payoutHeld: false,
+    unit: { id: 'u-1', title: 'مستودع مكيّف — النرجس' },
+    renter: { id: 'r-1', fullName: 'عبدالله القحطاني', mobile: '+966500000001' },
+    lessor: { id: 'l-1', fullName: 'سعود العنزي', mobile: '+966500000002' },
+    createdAt: '2026-08-04T09:00:00.000Z',
+    confirmedAt: '2026-08-04T09:04:00.000Z',
   },
   {
-    id: 'pay-2',
-    bookingReferenceNo: 'HZ-2026-01004',
-    renterName: 'سارة العتيبي',
-    lessorName: 'سعود العنزي',
-    unitTitle: 'غرفة تخزين نظيفة — الياسمين',
+    id: 'bk-2',
+    referenceNo: 'HZ-2026-01004',
+    status: BookingStatus.Active,
+    startDate: '2026-08-20',
+    endDate: '2026-08-27',
+    daysCount: 7,
     totalHalalas: 31500,
     commissionHalalas: 1575,
-    netHalalas: 29925,
-    isRefunded: false,
-    bucket: 'RELEASABLE',
+    netToLessorHalalas: 29925,
+    // Frozen behind an open complaint — the one thing on a row somebody acts on.
+    payoutHeld: true,
+    unit: { id: 'u-2', title: 'غرفة تخزين نظيفة — الياسمين' },
+    renter: { id: 'r-2', fullName: 'سارة العتيبي', mobile: '+966500000005' },
+    lessor: { id: 'l-1', fullName: 'سعود العنزي', mobile: '+966500000002' },
+    createdAt: '2026-08-19T11:00:00.000Z',
+    confirmedAt: '2026-08-19T11:06:00.000Z',
   },
   {
-    id: 'pay-3',
-    bookingReferenceNo: 'HZ-2026-01021',
-    renterName: 'نورة الشمري',
-    lessorName: 'فهد بن سعد العمري',
-    unitTitle: 'قراج مغلق — الملقا',
+    id: 'bk-3',
+    referenceNo: 'HZ-2026-01021',
+    status: BookingStatus.Expired,
+    startDate: '2026-09-01',
+    endDate: '2026-09-08',
+    daysCount: 7,
     totalHalalas: 42000,
     commissionHalalas: 2100,
-    netHalalas: 39900,
-    isRefunded: false,
-    bucket: 'PENDING',
-  },
-  {
-    id: 'pay-4',
-    bookingReferenceNo: 'HZ-2026-01033',
-    renterName: 'ماجد الدوسري',
-    lessorName: 'فهد بن سعد العمري',
-    unitTitle: 'مستودع أرضي — الصحافة',
-    totalHalalas: 66500,
-    commissionHalalas: 3325,
-    netHalalas: 63175,
-    isRefunded: true,
-    bucket: 'PENDING',
-    bankReference: 'TRF-20260805',
+    netToLessorHalalas: 39900,
+    payoutHeld: false,
+    unit: { id: 'u-3', title: 'قراج مغلق — الملقا' },
+    renter: { id: 'r-3', fullName: 'نورة الشمري', mobile: '+966500000006' },
+    lessor: { id: 'l-2', fullName: 'فهد بن سعد العمري', mobile: '+966500000007' },
+    createdAt: '2026-08-29T14:00:00.000Z',
+    // Never paid for, so never confirmed — payment is what confirms.
+    confirmedAt: null,
   },
 ];
 
