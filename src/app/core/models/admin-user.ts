@@ -94,6 +94,51 @@ export interface ActivateUserRequest {
 }
 
 /**
+ * What creating an administrator takes — and there is deliberately no
+ * `password` on it.
+ *
+ * The account is created without one and the new administrator sets theirs
+ * through the reset flow, so no credential is ever known by two people. The
+ * server strips a `password` sent anyway rather than refusing it, which means a
+ * client that offered the field would appear to work and would be handing out
+ * passwords that do nothing.
+ */
+export interface CreateAdminRequest {
+  fullName: string;
+  /** Local or `+966` — the server normalises and answers with `+966…`. */
+  mobile: string;
+  adminRole: AdminRole;
+  email?: string;
+}
+
+/**
+ * How the new administrator gets in, in the server's own words.
+ *
+ * Shown verbatim rather than rewritten here: this is the one screen where an
+ * operator has to tell somebody else what to do next, and the day the flow
+ * changes the sentence has to change with it — which it cannot if the sentence
+ * lives in this repository.
+ */
+export interface AdminActivation {
+  /** `PASSWORD_RESET` today. A discriminant, so read it rather than assume. */
+  method: string;
+  mobile: string;
+  instructionAr: string;
+  instructionEn: string;
+}
+
+export interface WireCreateAdminResponse {
+  user: WireAdminUserDetail;
+  activation?: AdminActivation | null;
+}
+
+export interface CreatedAdmin {
+  user: AdminUserDetail;
+  /** Null if the server stopped sending it — the screen says less, not wrongly. */
+  activation: AdminActivation | null;
+}
+
+/**
  * `{ adminRole, reason }` — both required, and the reason is not a courtesy.
  *
  * Changing what an administrator may do is recorded in the audit trail, and a

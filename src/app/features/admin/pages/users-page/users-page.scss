@@ -31,3 +31,54 @@
     @include a.numeric;
   }
 }
+
+// ── Create an administrator ──────────────────────────────────────────────
+.pageActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.createForm {
+  @include a.stack(a.$space-14);
+}
+
+.createForm__note {
+  margin: 0;
+  font-size: a.$fs-xs;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+/**
+ * What to tell the new administrator, once the account exists.
+ *
+ * It replaces the form rather than appearing under it: the operator's job at
+ * this point is to relay one sentence to another person, and leaving the
+ * fields on screen invites them to press the button again.
+ */
+.activation {
+  @include a.stack(a.$space-6);
+
+  padding: a.$space-14 a.$space-16;
+  border: 1px solid var(--color-primary);
+  border-radius: a.$radius-lg;
+  background: var(--color-primary-soft);
+}
+
+.activation__text {
+  margin: 0;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.activation__mobile {
+  @include a.numeric;
+
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}

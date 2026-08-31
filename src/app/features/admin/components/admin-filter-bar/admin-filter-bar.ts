@@ -55,6 +55,16 @@ export class AdminFilterBar {
   readonly selects = input<readonly AdminFilterSelect[]>([]);
   /** The applied values, so the bar can be re-seeded from the URL. */
   readonly values = input<AdminFilterValues>({});
+  /**
+   * Draws "تصدير التقرير".
+   *
+   * **Only the component library sets it.** No console screen has an export
+   * endpoint behind it — the audit trail deliberately has none, and the backend
+   * asked to be consulted before one is built — so the button was drawn on two
+   * screens where pressing it emitted an output nobody had bound. It stayed
+   * here rather than being deleted because the control itself is fine; what was
+   * wrong was offering it with nothing behind it.
+   */
   readonly exportable = input(false, { transform: booleanAttribute });
 
   readonly applied = output<AdminFilterValues>();

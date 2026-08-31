@@ -11,10 +11,13 @@ import type {
   AdminUserQuery,
   AdminUserRow,
   ChangeAdminRoleRequest,
+  CreateAdminRequest,
+  CreatedAdmin,
   ReviewIdentityRequest,
   SuspendUserRequest,
   WireAdminUser,
   WireAdminUserResponse,
+  WireCreateAdminResponse,
 } from '@core/models/admin-user';
 import { adminUserDetailFromWire, adminUserFromWire } from '@core/models/admin-user';
 import { ApiService } from '@core/services/api.service';
@@ -22,12 +25,19 @@ import { ApiService } from '@core/services/api.service';
 /**
  * User administration (FR-ADM-04) — `users:manage`.
  *
- * Four verbs, not one status setter. The endpoints are genuinely different
- * actions rather than four ways of writing a field: suspending takes a reason
+ * Five verbs, not one status setter. The endpoints are genuinely different
+ * actions rather than five ways of writing a field: suspending takes a reason
  * and can be refused over live bookings, activating takes a reason and cannot,
- * reviewing an identity is about a document rather than an account state, and
- * changing an administrator's kind needs a permission none of the others do.
- * A single `setStatus` would have had to invent a shared shape for all four.
+ * reviewing an identity is about a document rather than an account state,
+ * changing an administrator's kind needs a permission none of the others do,
+ * and creating one takes no password at all. A single `setStatus` would have
+ * had to invent a shared shape for all five.
+ *
+ * **Only `byId` answers with the `activity` block.** The four action endpoints
+ * return the entity they changed, not a detail read — five counting queries per
+ * button press would be the alternative. So a screen keeps the counts it
+ * already read, or re-reads deliberately; it never takes an action's response
+ * as the whole record.
  *
  * There is deliberately **no method that edits a name, a mobile or an email**.
  * The endpoint does not exist, and it does not exist because an administrator
@@ -94,6 +104,25 @@ export class AdminUsersService {
   }
 
   /**
+   * FR-ADM-04 — creates an administrator. `admins:manage`.
+   *
+   * No password is sent and none comes back. What does come back is
+   * `activation`: the sentence to read out to the new administrator, written by
+   * the server, and the only thing on this screen that tells the operator what
+   * happens next. It is passed through untouched.
+   */
+  createAdmin(payload: CreateAdminRequest): Observable<CreatedAdmin> {
+    return this.api
+      .post<WireCreateAdminResponse, CreateAdminRequest>(API_ENDPOINTS.admin.createAdmin, payload)
+      .pipe(
+        map((response) => ({
+          user: adminUserDetailFromWire(response.user),
+          activation: response.activation ?? null,
+        })),
+      );
+  }
+
+  /**
    * FR-ADM-04 — moves an administrator between the three kinds.
    *
    * `admins:manage`, so the system administrator alone; every other operator
@@ -101,12 +130,12 @@ export class AdminUsersService {
    * holds is a 409 `ADMIN_USER_ALREADY_IN_STATE`, which is why the current one
    * is left out of the picker rather than offered and refused.
    *
-   * The response is a `WireAdminUserDetail` **without its `activity` block**,
-   * unlike suspend and activate. Left to the caller to merge rather than
-   * papered over here: `adminUserDetailFromWire` zeroes what is missing, and
-   * five counts silently becoming zero beside a suspend button is a worse
-   * answer than none. A role change cannot alter them, so the ones already on
-   * screen are still true.
+   * Like suspend and activate, the response is a `WireAdminUserDetail`
+   * **without its `activity` block** — only `byId` carries those counts, by
+   * design. Left to the caller to merge rather than papered over here:
+   * `adminUserDetailFromWire` zeroes what is missing, and five counts silently
+   * becoming zero beside a suspend button is a worse answer than none. A role
+   * change cannot alter them, so the ones already on screen are still true.
    */
   changeAdminRole(id: string, adminRole: AdminRole, reason: string): Observable<AdminUserDetail> {
     return this.api

@@ -1,5 +1,14 @@
+<!-- `admins:manage`, the system administrator's alone. Absent rather than
+     disabled for everyone else: the endpoint answers them 403. -->
+@if (canCreateAdmin()) {
+  <div class="pageActions">
+    <button appUiButton variant="primary" type="button" (click)="openCreate()">
+      {{ i18n.t('users.createAdmin') }}
+    </button>
+  </div>
+}
+
 <app-admin-filter-bar
-  exportable
   [searchPlaceholder]="i18n.t('users.searchPlaceholder')"
   [selects]="selects()"
   [values]="list.filters()"
@@ -326,5 +335,102 @@
     >
       {{ i18n.t('users.rejectIdentity') }}
     </button>
+  </ng-container>
+</app-ui-modal>
+
+<!-- ── Create an administrator (FR-ADM-04) ─────────────────────────────── -->
+<!-- There is no password field, and its absence is the design: the account is
+     created without one and the new administrator sets theirs through the
+     reset flow, so no credential is ever known by two people. A password box
+     here would be stripped by the server in silence — it would look like it
+     worked and hand out something that opened nothing. -->
+<app-ui-modal
+  [open]="createOpen()"
+  [showIcon]="false"
+  [title]="i18n.t('users.createAdmin')"
+  (dismissed)="closeCreate()"
+>
+  @if (activation(); as done) {
+    <!-- The server's own sentence, not ours. The day the activation flow
+         changes, the instruction changes with it — which it could not if this
+         screen wrote its own copy. -->
+    <div class="activation">
+      <p class="activation__text" dir="auto">{{ activationText(done) }}</p>
+      <p class="activation__mobile num" dir="ltr">{{ done.mobile }}</p>
+    </div>
+  } @else {
+    <div class="createForm">
+      <label class="field">
+        <span class="field__label">{{ i18n.t('users.name') }}</span>
+        <input
+          class="field__input"
+          type="text"
+          dir="auto"
+          [value]="newAdmin().fullName"
+          (input)="setNewAdmin('fullName', $any($event.target).value)"
+        />
+      </label>
+
+      <label class="field">
+        <span class="field__label">{{ i18n.t('users.mobile') }}</span>
+        <input
+          class="field__input num"
+          type="tel"
+          dir="ltr"
+          inputmode="tel"
+          [value]="newAdmin().mobile"
+          (input)="setNewAdmin('mobile', $any($event.target).value)"
+        />
+        <span class="field__hint">{{ i18n.t('users.createAdminMobileHint') }}</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">{{ i18n.t('users.emailOptional') }}</span>
+        <input
+          class="field__input"
+          type="email"
+          dir="ltr"
+          [value]="newAdmin().email"
+          (input)="setNewAdmin('email', $any($event.target).value)"
+        />
+      </label>
+
+      <label class="field">
+        <span class="field__label">{{ i18n.t('users.newRole') }}</span>
+        <select
+          class="field__input"
+          [value]="newAdmin().adminRole"
+          (change)="setNewAdmin('adminRole', $any($event.target).value)"
+        >
+          <option value="">{{ i18n.t('users.newRolePlaceholder') }}</option>
+          @for (option of adminRoles; track option) {
+            <option [value]="option">{{ adminRoleLabel(option) }}</option>
+          }
+        </select>
+      </label>
+
+      <p class="createForm__note">{{ i18n.t('users.createAdminNote') }}</p>
+    </div>
+  }
+
+  <ng-container slot="actions">
+    @if (activation()) {
+      <button appUiButton variant="primary" type="button" (click)="closeCreate()">
+        {{ i18n.t('common.close') }}
+      </button>
+    } @else {
+      <button appUiButton variant="outline" type="button" (click)="closeCreate()">
+        {{ i18n.t('common.cancel') }}
+      </button>
+      <button
+        appUiButton
+        variant="primary"
+        type="button"
+        [disabled]="!canSubmitNewAdmin()"
+        (click)="createAdmin()"
+      >
+        {{ i18n.t('users.createAdmin') }}
+      </button>
+    }
   </ng-container>
 </app-ui-modal>

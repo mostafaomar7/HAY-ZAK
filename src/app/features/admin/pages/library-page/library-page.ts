@@ -99,10 +99,10 @@ export class AdminLibraryPage {
     },
     {
       key: 'c',
-      label: this.i18n.t('dash.occupancy'),
-      value: '63',
-      unit: this.i18n.t('admin.percent'),
-      delta: this.i18n.t('dash.publishedNow'),
+      label: this.i18n.t('dash.openComplaints'),
+      value: '4',
+      unit: this.i18n.t('dash.complaint'),
+      delta: this.i18n.t('dash.liveOnly'),
       icon: 'grid' as const,
     },
   ]);

@@ -1,24 +1,42 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { API_ENDPOINTS } from '@core/constants/api-endpoints';
+import { ComplaintStatus, SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
+import { UnitStatus } from '@core/enums/unit-status.enum';
 import { LanguageService } from '@core/i18n/language.service';
-import type { AdminDashboardKpis } from '@core/models/operations.model';
+import type { AdminOverview, RevenueReport } from '@core/models/admin-reports';
 import type { ListingReviewRow } from '@core/models/admin.model';
-import { ApiService } from '@core/services/api.service';
+import { halalasToSar } from '@core/utils/money.utils';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { AdminKpiCard } from '../../components/admin-kpi-card/admin-kpi-card';
+import { AdminReportsService } from '../../services/admin-reports.service';
 import { AdminReviewService } from '../../services/admin-review.service';
-import { AdminSettingsStore } from '../../services/admin-settings.store';
 
 /**
  * ADM-01 — the operations dashboard (FR-ADM-01).
  *
- * Six indicators over the two live queues. The queues are the point of the
- * screen, so they are lists of real rows a click away from their review, not
- * counters: a number tells an operator there is work, a list tells them which
- * work and how late it is.
+ * **There is no `/admin/dashboard`.** It answered 404 for as long as this
+ * screen existed, so the first thing every administrator saw after signing in
+ * was "تعذّر تحميل المؤشرات". The figures live in `/admin/reports/overview` and
+ * `/admin/reports/revenue`, both shipped, both already read by the reports
+ * screen — the same numbers under another name.
+ *
+ * Two indicators went in the move and neither is missed.
+ *
+ * `slaBreaches` counted "bookings past the approval SLA", and there is no
+ * approval step: payment is what confirms a booking, so nothing can be late for
+ * a decision nobody makes. The overdue count that does mean something is
+ * `complaints.overdue`, and that is what took its place.
+ *
+ * `occupancyRate` has no source on the API at all. It was being read off an
+ * endpoint that never answered, which is to say it was never a real number —
+ * and an occupancy figure this screen computed for itself would be exactly the
+ * kind of statistic that ends up in a board pack with nobody able to re-derive
+ * it. It is absent rather than invented.
+ *
+ * The queue below is still the point of the screen: a number says there is
+ * work, a list says which work and how late it is.
  */
 @Component({
   selector: 'app-admin-dashboard-page',
@@ -28,16 +46,16 @@ import { AdminSettingsStore } from '../../services/admin-settings.store';
   styleUrl: './dashboard-page.scss',
   // The queue below the indicators is the same queue the review screen shows,
   // read through the same service so the two cannot disagree about it.
-  providers: [AdminReviewService],
+  providers: [AdminReviewService, AdminReportsService],
 })
 export class AdminDashboardPage {
-  private readonly api = inject(ApiService);
   private readonly review = inject(AdminReviewService);
+  private readonly reports = inject(AdminReportsService);
 
   protected readonly i18n = inject(LanguageService);
-  protected readonly settings = inject(AdminSettingsStore);
 
-  protected readonly kpis = signal<AdminDashboardKpis | null>(null);
+  protected readonly overview = signal<AdminOverview | null>(null);
+  protected readonly revenue = signal<RevenueReport | null>(null);
   protected readonly listings = signal<ListingReviewRow[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly failed = signal(false);
@@ -45,50 +63,64 @@ export class AdminDashboardPage {
   /** The four newest of each queue — the rest is one click away. */
   protected readonly topListings = computed(() => this.listings().slice(0, 4));
 
-  protected readonly cards = computed(() => {
-    const kpis = this.kpis();
-    if (!kpis) return [];
+  /** Live complaints — the settled two are not work waiting on anybody. */
+  protected readonly openComplaints = computed(() => {
+    const complaints = this.overview()?.complaints;
+    if (!complaints) return 0;
+    return Object.values(ComplaintStatus)
+      .filter((status) => !SETTLED_COMPLAINT_STATUSES.includes(status))
+      .reduce((total, status) => total + (complaints[status] ?? 0), 0);
+  });
 
-    const sla = this.settings.approvalSlaHours();
+  protected readonly cards = computed(() => {
+    const overview = this.overview();
+    if (!overview) return [];
+
+    const revenue = this.revenue();
     return [
       {
         key: 'pendingListings',
         label: this.i18n.t('dash.pendingListings'),
-        value: format(kpis.pendingListings),
+        value: format(overview.units[UnitStatus.PendingReview] ?? 0),
         unit: this.i18n.t('dash.unit'),
         delta: this.i18n.t('dash.awaitingDecision'),
         icon: 'box' as const,
       },
       {
-        key: 'slaBreaches',
-        label: this.i18n.t('dash.slaBreaches'),
-        value: format(kpis.slaBreaches),
-        unit: this.i18n.t('dash.booking'),
-        delta: this.i18n.t('dash.slaNote', { hours: sla }),
-        icon: 'clock' as const,
-      },
-      {
-        key: 'gross',
-        label: this.i18n.t('dash.gross'),
-        value: format(kpis.grossCollection),
-        unit: this.i18n.t('admin.sar'),
-        delta: this.i18n.t('dash.thisMonth'),
-        icon: 'card' as const,
-      },
-      {
-        key: 'commission',
-        label: this.i18n.t('dash.commission'),
-        value: format(kpis.totalCommission),
-        unit: this.i18n.t('admin.sar'),
-        delta: this.i18n.t('dash.thisMonth'),
+        key: 'openComplaints',
+        label: this.i18n.t('dash.openComplaints'),
+        value: format(this.openComplaints()),
+        unit: this.i18n.t('dash.complaint'),
+        delta: this.i18n.t('dash.liveOnly'),
         icon: 'file' as const,
       },
       {
-        key: 'occupancy',
-        label: this.i18n.t('dash.occupancy'),
-        value: format(kpis.occupancyRate),
-        unit: this.i18n.t('admin.percent'),
-        delta: this.i18n.t('dash.publishedNow'),
+        // Replaces the old booking "SLA breaches": nothing approves a booking,
+        // so nothing could be late for it. A complaint past its reply deadline
+        // is the lateness an operations lead actually acts on.
+        key: 'overdueComplaints',
+        label: this.i18n.t('dash.overdueComplaints'),
+        value: format(overview.complaints.overdue),
+        unit: this.i18n.t('dash.complaint'),
+        delta: this.i18n.t('dash.pastDeadline'),
+        icon: 'clock' as const,
+      },
+      {
+        // What renters paid, and labelled as that. Most of it is owed onward.
+        key: 'collected',
+        label: this.i18n.t('dash.gross'),
+        value: revenue ? format(halalasToSar(revenue.collectedHalalas)) : '—',
+        unit: this.i18n.t('admin.sar'),
+        delta: this.i18n.t('dash.grossNote'),
+        icon: 'card' as const,
+      },
+      {
+        // The only figure on this row that the platform keeps.
+        key: 'commission',
+        label: this.i18n.t('dash.commission'),
+        value: revenue ? format(halalasToSar(revenue.commissionHalalas)) : '—',
+        unit: this.i18n.t('admin.sar'),
+        delta: this.i18n.t('dash.commissionNote'),
         icon: 'grid' as const,
       },
     ];
@@ -102,15 +134,23 @@ export class AdminDashboardPage {
     this.failed.set(false);
     this.isLoading.set(true);
 
-    this.api.get<AdminDashboardKpis>(API_ENDPOINTS.admin.dashboard).subscribe({
-      next: (kpis) => {
-        this.kpis.set(kpis);
+    this.reports.overview().subscribe({
+      next: (overview) => {
+        this.overview.set(overview);
         this.isLoading.set(false);
       },
       error: () => {
         this.failed.set(true);
         this.isLoading.set(false);
       },
+    });
+
+    // The money is a second report and fails on its own: a revenue call that
+    // breaks must not blank the queue counts beside it, which are the half of
+    // this screen somebody acts on.
+    this.reports.revenue().subscribe({
+      next: (report) => this.revenue.set(report),
+      error: () => this.revenue.set(null),
     });
 
     // The queue fails independently of the indicators above it: a broken

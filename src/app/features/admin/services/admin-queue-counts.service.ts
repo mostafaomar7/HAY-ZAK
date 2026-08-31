@@ -1,10 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
-import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import type { AdminDashboardKpis } from '@core/models/operations.model';
-import type { WireComplaint } from '@core/models/complaint';
-import { SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
-import { ApiService } from '@core/services/api.service';
+import { ComplaintStatus, SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
+import { UnitStatus } from '@core/enums/unit-status.enum';
+import { AdminReportsService } from './admin-reports.service';
 
 /**
  * How much work is waiting, for the sidebar badges.
@@ -12,10 +9,21 @@ import { ApiService } from '@core/services/api.service';
  * Fetched once by the shell rather than by each queue page. Two places counting
  * the same queue is how a badge ends up saying 12 while the table under it shows
  * 8 — and the badge is the number an operator plans their day around.
+ *
+ * **One request, not two.** This used to call `/admin/dashboard` for the
+ * listings and page through `/admin/complaints` for the rest; the first has
+ * never existed and answered 404, so the listings badge was permanently zero
+ * and an operator was never told a review was waiting. Both counts are in
+ * `/admin/reports/overview`, which is shipped — and taking them from one
+ * response means the two numbers cannot be read from different moments.
+ *
+ * Counting complaints by paging the queue was also wrong beyond the extra
+ * request: it counted the rows on the first page, so a badge for a queue of
+ * eighty said twenty.
  */
 @Injectable()
 export class AdminQueueCountsService {
-  private readonly api = inject(ApiService);
+  private readonly reports = inject(AdminReportsService);
 
   private readonly listings = signal(0);
   private readonly complaints = signal(0);
@@ -26,18 +34,16 @@ export class AdminQueueCountsService {
   }));
 
   refresh(): void {
-    forkJoin({
-      kpis: this.api.get<AdminDashboardKpis>(API_ENDPOINTS.admin.dashboard),
-      complaints: this.api.list<WireComplaint>(API_ENDPOINTS.admin.complaints),
-    }).subscribe({
-      next: ({ kpis, complaints }) => {
-        this.listings.set(kpis.pendingListings);
+    this.reports.overview().subscribe({
+      next: (overview) => {
+        this.listings.set(overview.units[UnitStatus.PendingReview] ?? 0);
         // Settled complaints are not work; only the live ones belong on a
         // badge. Both terminal states count as settled — a duplicate that was
         // closed without a decision is no more outstanding than a resolved one.
         this.complaints.set(
-          complaints.items.filter((item) => !SETTLED_COMPLAINT_STATUSES.includes(item.status))
-            .length,
+          Object.values(ComplaintStatus)
+            .filter((status) => !SETTLED_COMPLAINT_STATUSES.includes(status))
+            .reduce((total, status) => total + (overview.complaints[status] ?? 0), 0),
         );
       },
       // A failed count is not worth an error toast on every screen; the badges

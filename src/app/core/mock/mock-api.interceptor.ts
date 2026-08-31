@@ -400,6 +400,33 @@ function route(path: string, query: string, method: string, payload: unknown): u
   }
 
   // ── Users ──────────────────────────────────────────────────────────────
+  // No password in either direction, and the `activation` block is what the
+  // screen shows afterwards — sent here too, or the one thing the operator has
+  // to relay is never exercised offline.
+  if (path === API_ENDPOINTS.admin.createAdmin && method === 'POST') {
+    const draft = (payload ?? {}) as Record<string, string>;
+    const mobile = draft['mobile'] ?? '0500000000';
+    return ok({
+      user: {
+        ...adminUserDetail('new-admin'),
+        id: 'new-admin',
+        fullName: draft['fullName'],
+        mobile,
+        email: draft['email'] ?? '',
+        role: 'ADMIN',
+        adminRole: draft['adminRole'],
+        mobileVerifiedAt: null,
+      },
+      activation: {
+        method: 'PASSWORD_RESET',
+        mobile,
+        instructionAr:
+          'الحساب اتعمل من غير كلمة مرور. قوله يستخدم «نسيت كلمة المرور» برقم الجوال ده.',
+        instructionEn:
+          'The account has no password. Tell them to use "forgot password" with this mobile number.',
+      },
+    });
+  }
   if (/^\/admin\/users\/[^/]+\/(suspend|activate|identity)$/.test(path)) {
     return ok({ user: adminUserDetail(path.split('/')[3]) });
   }

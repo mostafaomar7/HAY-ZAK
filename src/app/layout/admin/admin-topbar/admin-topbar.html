@@ -11,17 +11,6 @@
   <h1 class="bar__title">{{ title() }}</h1>
 
   <div class="bar__tools">
-    <label class="search">
-      <span class="sr-only">{{ i18n.t('admin.globalSearch') }}</span>
-      <app-ui-icon class="search__icon" name="search" [size]="16" />
-      <input
-        class="search__input"
-        type="search"
-        [placeholder]="i18n.t('admin.globalSearch')"
-        (change)="searched.emit($any($event.target).value)"
-      />
-    </label>
-
     <button
       class="bar__icon"
       type="button"

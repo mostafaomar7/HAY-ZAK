@@ -15,12 +15,17 @@ import { ClickOutsideDirective } from '@shared/directives/click-outside.directiv
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
 
 /**
- * The admin topbar: page title, a global search box, language switch, the
- * notification bell and the account menu.
+ * The admin topbar: page title, language switch, the notification bell and the
+ * account menu.
  *
- * Search is an output rather than a route: what "بحث شامل" means differs per
- * screen, and a global box that always jumped to one results page would be
- * wrong on eleven of the fourteen.
+ * **There is no global search, and there was never a working one.** The box
+ * that used to sit here emitted a `searched` output no parent ever bound, so
+ * every operator who typed into it and pressed Enter got nothing back and no
+ * reason why. There is no endpoint behind it either: the API has no search
+ * across units, bookings and users, and each console screen searches its own
+ * list where its own endpoint supports it. A box that cannot answer is worse
+ * than no box — it reads as a feature that is broken rather than one that does
+ * not exist.
  */
 @Component({
   selector: 'app-admin-topbar',
@@ -38,7 +43,6 @@ export class AdminTopbar {
   readonly unreadCount = input(0);
 
   readonly openMenu = output<void>();
-  readonly searched = output<string>();
   readonly loggedOut = output<void>();
 
   protected readonly accountOpen = signal(false);

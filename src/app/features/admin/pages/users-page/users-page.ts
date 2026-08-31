@@ -10,7 +10,7 @@ import { Permission } from '@core/constants/permissions';
 import { AccountStatus, AdminRole, UserRole, VerificationStatus } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import { ApiError } from '@core/models/api-error.model';
-import type { AdminUserDetail, AdminUserRow } from '@core/models/admin-user';
+import type { AdminActivation, AdminUserDetail, AdminUserRow } from '@core/models/admin-user';
 import { canActOnUser } from '@core/models/admin-user';
 import { AuthService } from '@core/services/auth.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -131,6 +131,32 @@ export class AdminUsersPage {
   protected readonly canChangeRoleSubmit = computed(
     () => !!this.nextAdminRole() && this.canSubmit(),
   );
+
+  // ── Creating an administrator ───────────────────────────────────────────
+
+  protected readonly createOpen = signal(false);
+  protected readonly newAdmin = signal({ fullName: '', mobile: '', email: '', adminRole: '' });
+
+  /**
+   * The server's own sentence about how the new account gets a password.
+   *
+   * Held after a successful create so the form is replaced by it rather than
+   * closing: this is the one thing on the screen the operator has to pass on to
+   * another person, and a toast that vanishes is the wrong place for it.
+   */
+  protected readonly activation = signal<AdminActivation | null>(null);
+
+  protected readonly canCreateAdmin = computed(() => this.permissions.can(Permission.ManageAdmins));
+
+  /** The three fields the endpoint requires; the email is optional. */
+  protected readonly canSubmitNewAdmin = computed(() => {
+    const draft = this.newAdmin();
+    return (
+      !!draft.fullName.trim() && !!draft.mobile.trim() && !!draft.adminRole && !this.submitting()
+    );
+  });
+
+  protected readonly adminRoles = Object.values(AdminRole);
 
   protected readonly awaitingIdentity = computed(
     () => this.detail()?.identity?.verificationStatus === VerificationStatus.Pending,
@@ -297,6 +323,67 @@ export class AdminUsersPage {
         this.notifications.error(failure.message);
       },
     });
+  }
+
+  // ── Creating an administrator ───────────────────────────────────────────
+
+  protected openCreate(): void {
+    this.newAdmin.set({ fullName: '', mobile: '', email: '', adminRole: '' });
+    this.activation.set(null);
+    this.createOpen.set(true);
+  }
+
+  protected closeCreate(): void {
+    this.createOpen.set(false);
+    this.activation.set(null);
+  }
+
+  protected setNewAdmin(field: 'fullName' | 'mobile' | 'email' | 'adminRole', value: string): void {
+    this.newAdmin.update((draft) => ({ ...draft, [field]: value }));
+  }
+
+  /**
+   * Creates the account. **There is no password field, and that is the design.**
+   *
+   * The server makes the account without one and answers with the sentence to
+   * read out; the new administrator sets their own through the reset flow, so
+   * the credential is never known by two people. A password box here would be
+   * stripped in silence by the server's mass-assignment guard — it would look
+   * like it worked and hand somebody a password that opened nothing.
+   */
+  protected createAdmin(): void {
+    const draft = this.newAdmin();
+    if (!this.canSubmitNewAdmin()) return;
+
+    this.submitting.set(true);
+    this.users
+      .createAdmin({
+        fullName: draft.fullName.trim(),
+        mobile: draft.mobile.trim(),
+        adminRole: draft.adminRole as AdminRole,
+        ...(draft.email.trim() ? { email: draft.email.trim() } : {}),
+      })
+      .subscribe({
+        next: (created) => {
+          this.submitting.set(false);
+          // The dialog stays open on the instruction rather than closing on a
+          // toast: the operator has to relay it before it is any use.
+          this.activation.set(created.activation);
+          this.notifications.success(this.i18n.t('users.adminCreated'));
+          this.fetch();
+        },
+        error: (failure: unknown) => {
+          this.submitting.set(false);
+          this.notifications.error(
+            failure instanceof ApiError ? failure.message : this.i18n.t('admin.actionFailed'),
+          );
+        },
+      });
+  }
+
+  /** The instruction in the language on screen, from the server either way. */
+  protected activationText(activation: AdminActivation): string {
+    return this.i18n.language() === 'en' ? activation.instructionEn : activation.instructionAr;
   }
 
   /**

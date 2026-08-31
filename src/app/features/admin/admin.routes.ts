@@ -3,6 +3,7 @@ import { Permission } from '@core/constants/permissions';
 import { guestGuard } from '@core/guards/guest.guard';
 import { permissionGuard } from '@core/guards/permission.guard';
 import { AdminQueueCountsService } from './services/admin-queue-counts.service';
+import { AdminReportsService } from './services/admin-reports.service';
 import { AdminSettingsService } from './services/admin-settings.service';
 import { AdminSettingsStore } from './services/admin-settings.store';
 
@@ -34,7 +35,12 @@ export const ADMIN_ROUTES: Routes = [
 
   {
     path: '',
-    providers: [AdminSettingsStore, AdminSettingsService, AdminQueueCountsService],
+    providers: [
+      AdminSettingsStore,
+      AdminSettingsService,
+      AdminQueueCountsService,
+      AdminReportsService,
+    ],
     loadComponent: () => import('@layout/admin/admin-shell').then((m) => m.AdminShell),
     children: [
       {

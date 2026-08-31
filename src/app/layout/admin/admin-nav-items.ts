@@ -100,11 +100,16 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         permission: Permission.ManageCms,
       },
       { route: '/admin/audit', labelKey: 'adminNav.audit', permission: Permission.ViewAuditLog },
-      {
-        route: '/admin/library',
-        labelKey: 'adminNav.library',
-        permission: Permission.ManageCms,
-      },
+      // The component library is a review surface for us, not a screen an
+      // operator has any use for — and it renders every component in its fake
+      // error and empty states, which is alarming to meet from a sidebar.
+      // The route stays live at `/admin/library` for whoever needs it; only the
+      // link is gone.
+      // {
+      //   route: '/admin/library',
+      //   labelKey: 'adminNav.library',
+      //   permission: Permission.ManageCms,
+      // },
     ],
   },
 ];

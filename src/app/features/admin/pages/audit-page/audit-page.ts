@@ -104,6 +104,13 @@ export class AdminAuditPage {
       .list({
         action: filters['action'] || undefined,
         entityType: filters['entityType'] || undefined,
+        // The box typed into is this, not a `search`. `/admin/audit` takes
+        // `action`, `entityType`, `entityId`, `actorUserId`, `from`, `to` and
+        // the page — and a fifth parameter is a 422 naming those. The search
+        // value was being collected and never sent, so the field did nothing
+        // at all. An exact entity id is also the question this trail is
+        // actually asked: "everything that happened to this listing".
+        entityId: filters['search']?.trim() || undefined,
         from: filters['from'] || undefined,
         to: filters['to'] || undefined,
         page: this.list.page(),

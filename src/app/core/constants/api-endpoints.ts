@@ -313,6 +313,26 @@ export const API_ENDPOINTS = {
     /** `{ reason }`. */
     activateUser: (id: string) => `/admin/users/${id}/activate`,
     /**
+     * FR-ADM-04 — creates an administrator. `admins:manage`.
+     *
+     * `{ fullName, mobile, adminRole, email? }` and **nothing else**. There is
+     * no password field in either direction: the account is created without one
+     * and the new administrator sets theirs through the existing reset flow, so
+     * the credential is never known by two people. A `password` sent anyway is
+     * stripped in silence by the mass-assignment guard rather than refused —
+     * so a client that sent one would look like it had worked.
+     *
+     * The response carries `{ user, activation }`. `activation` is the sentence
+     * to read out to the new administrator, in both languages, from the server:
+     * the account has no password and they must use "forgot password" with the
+     * mobile shown. Render it rather than writing our own — the day the flow
+     * changes, the instruction changes with it.
+     *
+     * `mobile` comes back normalised to `+966…` and `mobileVerifiedAt` is null,
+     * so the first sign-in still goes through the OTP.
+     */
+    createAdmin: '/admin/users/admins',
+    /**
      * `{ adminRole, reason }` — a `PUT`, and `admins:manage` alone, so only the
      * system administrator reaches it. Both fields are required.
      *
