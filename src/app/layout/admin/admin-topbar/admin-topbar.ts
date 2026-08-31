@@ -13,6 +13,7 @@ import { AuthService } from '@core/services/auth.service';
 import { RouterLink } from '@angular/router';
 import { ClickOutsideDirective } from '@shared/directives/click-outside.directive';
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
+import { UiNotificationBell } from '@shared/components/ui-notification-bell/ui-notification-bell';
 
 /**
  * The admin topbar: page title, language switch, the notification bell and the
@@ -30,7 +31,7 @@ import { UiIcon } from '@shared/components/ui-icon/ui-icon';
 @Component({
   selector: 'app-admin-topbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ClickOutsideDirective, UiIcon],
+  imports: [RouterLink, ClickOutsideDirective, UiIcon, UiNotificationBell],
   host: { '(document:keydown.escape)': 'closeAll()' },
   templateUrl: './admin-topbar.html',
   styleUrl: './admin-topbar.scss',
@@ -40,7 +41,6 @@ export class AdminTopbar {
   protected readonly auth = inject(AuthService);
 
   readonly title = input.required<string>();
-  readonly unreadCount = input(0);
 
   readonly openMenu = output<void>();
   readonly loggedOut = output<void>();

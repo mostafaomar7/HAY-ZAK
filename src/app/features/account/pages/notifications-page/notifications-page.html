@@ -23,7 +23,12 @@
       [title]="i18n.t('notifications.empty')"
       [hint]="i18n.t('notifications.emptyHint')"
     >
-      <a appUiButton variant="accent" routerLink="/units">{{ i18n.t('result.exploreSpaces') }}</a>
+      <!-- Only for somebody who can act on it. This screen is also the
+           console's inbox, and "استكشاف المساحات" is not an administrator's
+           next step from an empty list. -->
+      @if (canBrowse()) {
+        <a appUiButton variant="accent" routerLink="/units">{{ i18n.t('result.exploreSpaces') }}</a>
+      }
     </app-ui-empty-state>
   } @else {
     @for (group of groups(); track group.key) {

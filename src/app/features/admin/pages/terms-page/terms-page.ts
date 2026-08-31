@@ -4,20 +4,30 @@ import { ROLE_DISPLAY, TERMS_STATUS_DISPLAY, statusText } from '@core/constants/
 import { LegalDocumentType } from '@core/enums/operations.enum';
 import type { UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
+import type { StaticPage, StaticPageSlug } from '@core/models/content.model';
 import type { TermsApprovalRow, TermsVersionRow } from '@core/models/admin.model';
 import { TermsVersionStatus } from '@core/models/admin.model';
 import { NotificationService } from '@core/services/notification.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
+import { UiNotice } from '@shared/components/ui-notice/ui-notice';
 import { UiModal } from '@shared/components/ui-modal/ui-modal';
 import { UiSkeleton } from '@shared/components/ui-skeleton/ui-skeleton';
 import { UiTabs } from '@shared/components/ui-tabs/ui-tabs';
 import type { TabItem } from '@shared/components/ui-tabs/ui-tabs';
+import { ContentService } from '@features/content/services/content.service';
 import { AdminContentService } from '../../services/admin-content.service';
 
 /** Which dialog is open over the version list. */
 type Dialog = 'none' | 'approvals' | 'publish' | 'archive';
+
+/** Which published document each tab is about. */
+const SLUGS: Record<LegalDocumentType, StaticPageSlug> = {
+  [LegalDocumentType.TermsOfUse]: 'terms',
+  [LegalDocumentType.PrivacyPolicy]: 'privacy',
+  [LegalDocumentType.RefundPolicy]: 'refund-policy',
+};
 
 /**
  * ADM-12 — legal document versions (FR-ADM-07).
@@ -32,13 +42,14 @@ type Dialog = 'none' | 'approvals' | 'publish' | 'archive';
 @Component({
   selector: 'app-admin-terms-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminContentService],
-  imports: [DatePipe, UiBadge, UiButton, UiEmptyState, UiModal, UiSkeleton, UiTabs],
+  providers: [AdminContentService, ContentService],
+  imports: [DatePipe, UiBadge, UiButton, UiEmptyState, UiNotice, UiModal, UiSkeleton, UiTabs],
   templateUrl: './terms-page.html',
   styleUrl: './terms-page.scss',
 })
 export class AdminTermsPage {
   private readonly content = inject(AdminContentService);
+  private readonly published = inject(ContentService);
   private readonly notifications = inject(NotificationService);
 
   protected readonly i18n = inject(LanguageService);
@@ -51,6 +62,21 @@ export class AdminTermsPage {
 
   protected readonly dialog = signal<Dialog>('none');
   protected readonly target = signal<TermsVersionRow | null>(null);
+
+  /**
+   * The document as it stands today, shown when version management is not
+   * there to show instead.
+   *
+   * `/admin/terms` and its three siblings answer 404 — the module is real but
+   * unbuilt, and the backend has it queued. Until it lands this screen used to
+   * be a red error box on all three tabs, which reads as a broken console
+   * rather than as a feature still coming. The text itself is not missing:
+   * the terms come from `GET /auth/terms`, which is shipped and is the version
+   * every registration records consent against, and the other two ship inside
+   * the bundle. So the screen shows the live document, read-only, and says
+   * plainly that publishing a new version is not available yet.
+   */
+  protected readonly current = signal<StaticPage | null>(null);
 
   protected readonly tabs = computed<TabItem<LegalDocumentType>[]>(() => [
     { value: LegalDocumentType.TermsOfUse, label: this.i18n.t('terms.docTerms') },
@@ -82,12 +108,30 @@ export class AdminTermsPage {
       error: () => {
         this.failed.set(true);
         this.isLoading.set(false);
+        this.readCurrent();
       },
     });
   }
 
   protected setDocument(document: LegalDocumentType): void {
     this.document.set(document);
+    if (this.failed()) this.readCurrent();
+  }
+
+  /**
+   * Reads the published document behind the active tab.
+   *
+   * Through `ContentService`, which already knows that the terms live at
+   * `/auth/terms` rather than in the CMS and that all three fall back to the
+   * copy in the bundle. Duplicating that here would be a second answer to
+   * "what do the terms say", and the two would drift.
+   */
+  private readCurrent(): void {
+    this.current.set(null);
+    this.published.page(SLUGS[this.document()]).subscribe({
+      next: (page) => this.current.set(page),
+      error: () => this.current.set(null),
+    });
   }
 
   protected statusLabel(status: TermsVersionStatus): string {

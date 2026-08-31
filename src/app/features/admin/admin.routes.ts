@@ -149,6 +149,25 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./pages/terms-page/terms-page').then((m) => m.AdminTermsPage),
       },
       {
+        /**
+         * The inbox behind the bell — the renter's screen, unchanged.
+         *
+         * `/me/notifications` is the same endpoint for every account, and this
+         * list is a list of notifications whoever is reading it. Guarded on
+         * `reports:view` only because every administrator holds it and the
+         * console's routes each declare one; the notifications themselves are
+         * scoped to the caller by the server, not by this guard.
+         */
+        path: 'notifications',
+        title: 'الإشعارات',
+        data: { titleKey: 'topbar.notifications' },
+        canActivate: [permissionGuard([Permission.ViewReports])],
+        loadComponent: () =>
+          import('@features/account/pages/notifications-page/notifications-page').then(
+            (m) => m.RenterNotificationsPage,
+          ),
+      },
+      {
         path: 'audit',
         title: 'سجل التدقيق',
         data: { titleKey: 'adminNav.audit' },

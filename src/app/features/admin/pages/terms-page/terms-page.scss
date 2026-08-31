@@ -116,3 +116,77 @@
   font-weight: a.$fw-semibold;
   color: var(--color-text-muted);
 }
+
+// ── The document in force, shown while version management is unbuilt ──────
+.doc {
+  @include a.surface(a.$radius-lg);
+  @include a.stack(a.$space-16);
+
+  padding: a.$space-20 a.$space-24 a.$space-24;
+  // Legal prose is read, not scanned; a full-width column of it is not.
+  max-width: 78ch;
+}
+
+.doc__head {
+  display: flex;
+  align-items: baseline;
+  gap: a.$space-12;
+  flex-wrap: wrap;
+  padding-block-end: a.$space-12;
+  border-block-end: 1px solid var(--color-border-divider);
+}
+
+.doc__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.doc__version {
+  @include a.numeric;
+  @include a.pill(a.$badge-height-sm, a.$space-10);
+
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.doc__intro {
+  margin: 0;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.doc__section {
+  @include a.stack(a.$space-6);
+}
+
+.doc__sectionTitle {
+  margin: 0;
+  font-size: a.$fs-lg;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: balance;
+}
+
+.doc__body {
+  margin: 0;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.doc__items {
+  margin: 0;
+  padding-inline-start: a.$space-20;
+  font-size: a.$fs-md;
+  line-height: a.$lh-base;
+  color: var(--color-text);
+
+  li {
+    margin-block-end: a.$space-4;
+  }
+}

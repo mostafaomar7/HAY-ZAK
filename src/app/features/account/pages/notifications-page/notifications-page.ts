@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Permission } from '@core/constants/permissions';
 import { LanguageService } from '@core/i18n/language.service';
 import type { AppNotification } from '@core/models/operations.model';
 import { NotificationInboxService } from '@core/services/notification-inbox.service';
+import { PermissionService } from '@core/services/permission.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiEmptyState } from '@shared/components/ui-empty-state/ui-empty-state';
 import { UiPager } from '@shared/components/ui-pager/ui-pager';
@@ -32,8 +34,12 @@ interface NotificationGroup {
 })
 export class RenterNotificationsPage {
   private readonly inbox = inject(NotificationInboxService);
+  private readonly permissions = inject(PermissionService);
 
   protected readonly i18n = inject(LanguageService);
+
+  /** Whether the empty state's "browse spaces" is this reader's next step. */
+  protected readonly canBrowse = computed(() => this.permissions.can(Permission.CreateBooking));
 
   protected readonly isLoading = this.inbox.isLoading;
   protected readonly unreadCount = this.inbox.unreadCount;

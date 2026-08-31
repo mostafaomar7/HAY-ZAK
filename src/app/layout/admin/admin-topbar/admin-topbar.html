@@ -21,16 +21,10 @@
       <span class="bar__lang">{{ i18n.language() === 'ar' ? 'AR' : 'EN' }}</span>
     </button>
 
-    <a
-      class="bar__icon"
-      routerLink="/admin/dashboard"
-      [attr.aria-label]="i18n.t('topbar.notifications')"
-    >
-      <app-ui-icon name="bell" [size]="20" />
-      @if (unreadCount() > 0) {
-        <span class="bar__count num">{{ unreadCount() }}</span>
-      }
-    </a>
+    <!-- The real one. What used to sit here was an icon linking to the
+         dashboard with a badge counting listings awaiting review — labelled
+         "الإشعارات", and it had never shown one. -->
+    <app-ui-notification-bell allRoute="/admin/notifications" />
 
     <span class="bar__rule" aria-hidden="true"></span>
 

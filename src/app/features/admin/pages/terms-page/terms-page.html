@@ -18,15 +18,54 @@
   @if (isLoading()) {
     <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
   } @else if (failed()) {
-    <app-ui-empty-state
-      tone="error"
-      [title]="i18n.t('terms.error')"
-      [hint]="i18n.t('terms.errorHint')"
-    >
-      <button appUiButton variant="primary" type="button" (click)="fetch()">
-        {{ i18n.t('common.retry') }}
-      </button>
-    </app-ui-empty-state>
+    <!-- Version management is not built yet, but the document is not missing:
+         the terms come from `GET /auth/terms`, which is what every
+         registration records consent against. So the screen shows what is in
+         force today, read-only, instead of a red box that reads as a broken
+         console rather than a feature still coming. -->
+    <app-ui-notice tone="info">{{ i18n.t('terms.notLiveYet') }}</app-ui-notice>
+
+    @if (current(); as page) {
+      <article class="doc">
+        <header class="doc__head">
+          <h3 class="doc__title">{{ page.title }}</h3>
+          @if (page.version) {
+            <span class="doc__version num" dir="ltr">
+              {{ page.version.versionNo }}
+            </span>
+          }
+        </header>
+
+        @if (page.intro) {
+          <p class="doc__intro" dir="auto">{{ page.intro }}</p>
+        }
+
+        @for (section of page.sections; track section.id) {
+          <section class="doc__section">
+            <h4 class="doc__sectionTitle" dir="auto">
+              @if (section.number) {
+                <span class="num">{{ section.number }}.</span>
+              }
+              {{ section.title }}
+            </h4>
+            <p class="doc__body" dir="auto">{{ section.body }}</p>
+            @if (section.items?.length) {
+              <ul class="doc__items">
+                @for (item of section.items; track item) {
+                  <li dir="auto">{{ item }}</li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      </article>
+    } @else {
+      <app-ui-skeleton [count]="3" [label]="i18n.t('common.loading')" />
+    }
+
+    <button appUiButton variant="outline" type="button" (click)="fetch()">
+      {{ i18n.t('common.retry') }}
+    </button>
   } @else if (rows().length === 0) {
     <app-ui-empty-state [title]="i18n.t('terms.empty')" [hint]="i18n.t('terms.emptyHint')">
       <button appUiButton variant="primary" type="button" (click)="createVersion()">

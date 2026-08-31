@@ -1,0 +1,66 @@
+<div class="bell" (appClickOutside)="close()">
+  <!-- The count rides on the label, not on a hidden span beside the badge:
+       a screen reader announces "الإشعارات، ٣ غير مقروءة" as one thing. -->
+  <button
+    type="button"
+    class="bell__trigger"
+    [attr.aria-label]="label()"
+    [attr.aria-expanded]="open()"
+    (click)="toggle()"
+  >
+    <app-ui-icon name="bell" [size]="20" />
+    @if (unreadCount() > 0) {
+      <span class="bell__count num" dir="ltr" aria-hidden="true">{{ unreadCount() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="dropdown" role="dialog" [attr.aria-label]="i18n.t('topbar.notifications')">
+      <div class="dropdown__header">
+        <span>{{ i18n.t('topbar.notifications') }}</span>
+        @if (unreadCount() > 0) {
+          <button type="button" class="dropdown__markAll" (click)="markAllRead()">
+            {{ i18n.t('public.markAllRead') }}
+          </button>
+        }
+      </div>
+
+      <div class="dropdown__body">
+        @for (item of notifications(); track item.id) {
+          <!-- A link only when the notification is about something. It used to
+               fall back to /my-bookings, which sent a lessor whose listing was
+               approved to a screen they do not have. -->
+          @if (item.targetUrl) {
+            <a
+              class="notif"
+              [class.notif--unread]="!item.isRead"
+              [routerLink]="item.targetUrl"
+              (click)="openNotification(item)"
+            >
+              <span class="notif__dot" aria-hidden="true"></span>
+              <span class="notif__title">{{ item.title }}</span>
+            </a>
+          } @else {
+            <button
+              type="button"
+              class="notif"
+              [class.notif--unread]="!item.isRead"
+              (click)="openNotification(item)"
+            >
+              <span class="notif__dot" aria-hidden="true"></span>
+              <span class="notif__title">{{ item.title }}</span>
+            </button>
+          }
+        } @empty {
+          <p class="dropdown__empty">{{ i18n.t('topbar.noNotifications') }}</p>
+        }
+      </div>
+
+      @if (allRoute(); as route) {
+        <a class="dropdown__all" [routerLink]="route" (click)="close()">
+          {{ i18n.t('topbar.viewAllNotifications') }}
+        </a>
+      }
+    </div>
+  }
+</div>

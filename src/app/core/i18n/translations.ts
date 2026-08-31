@@ -1501,6 +1501,8 @@ const ar = {
   'terms.notPublished': 'لم يُنشر بعد',
   'terms.empty': 'لا توجد إصدارات بعد',
   'terms.emptyHint': 'أنشئ الإصدار الأول ثم انشره ليصبح ساريًا على المستخدمين.',
+  'terms.notLiveYet':
+    'إدارة الإصدارات غير متاحة بعد. هذا هو النص المعمول به الآن — وهو النص نفسه الذي تُسجَّل موافقة كل حساب جديد عليه — ويُعرض للقراءة فقط.',
   'terms.error': 'تعذّر تحميل الإصدارات',
   'terms.errorHint': 'لم يتغيّر الإصدار المنشور حاليًا، ويمكن إعادة المحاولة الآن.',
   'terms.approvalsTitle': 'موافقات الإصدار {version}',
@@ -3184,6 +3186,8 @@ const en: Partial<Record<TranslationKey, string>> = {
   'terms.notPublished': 'Not published yet',
   'terms.empty': 'No versions yet',
   'terms.emptyHint': 'Create the first version, then publish it to make it binding.',
+  'terms.notLiveYet':
+    'Version management is not available yet. This is the text in force — the same text every new account records consent against — shown read-only.',
   'terms.error': 'The versions could not be loaded',
   'terms.errorHint': 'The published version is unchanged; try again.',
   'terms.approvalsTitle': 'Acceptances of version {version}',

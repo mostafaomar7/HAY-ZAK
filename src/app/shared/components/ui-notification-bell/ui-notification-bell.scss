@@ -1,0 +1,167 @@
+@use 'abstracts' as a;
+
+:host {
+  display: contents;
+}
+
+.bell {
+  position: relative;
+  display: flex;
+}
+
+/**
+ * The trigger takes its colour from the bar it sits in.
+ *
+ * `color: inherit` rather than a token, because the two shells paint their
+ * topbars differently — the public one on the primary colour, the console on
+ * its own dark ground — and a bell that hard-coded either would be invisible
+ * in the other.
+ */
+.bell__trigger {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  position: relative;
+  width: 40px;
+  height: 40px;
+  min-width: a.$control-touch-min;
+  min-height: a.$control-touch-min;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color a.$transition-fast;
+
+  &:hover {
+    background: var(--hover-overlay);
+  }
+}
+
+.bell__count {
+  @include a.flex-center;
+
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: a.$radius-pill;
+  background: var(--color-danger-strong);
+  color: var(--color-text-inverse);
+  font-size: a.$fs-2xs;
+  font-weight: a.$fw-bold;
+}
+
+// ── Notifications dropdown ───────────────────────────────────────────────
+.dropdown {
+  position: absolute;
+  top: 48px;
+  // Opens toward the page centre; the bell sits at the inline start of the bar.
+  inset-inline-end: 0;
+  z-index: 5;
+  width: min(340px, calc(100vw - #{a.$space-32}));
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-xl;
+  box-shadow: var(--shadow-dropdown);
+  color: var(--color-text);
+}
+
+.dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: a.$space-12;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-primary);
+}
+
+.dropdown__markAll {
+  @include a.focus-ring;
+
+  border: 0;
+  background: transparent;
+  color: var(--color-link);
+  font-family: inherit;
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  cursor: pointer;
+}
+
+.dropdown__body {
+  max-height: 60vh;
+  overflow-y: auto;
+
+  @include a.scrollbar;
+}
+
+.dropdown__empty {
+  margin: 0;
+  padding: a.$space-20 a.$space-16;
+  font-size: a.$fs-md;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.notif {
+  display: flex;
+  gap: a.$space-10;
+  padding: a.$space-12 a.$space-16;
+  border-bottom: 1px solid var(--color-border-divider);
+  color: var(--color-text);
+  font-size: a.$fs-sm;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+}
+
+.notif--unread {
+  background: var(--color-primary-soft);
+
+  .notif__dot {
+    background: var(--color-accent);
+  }
+
+  .notif__title {
+    font-weight: a.$fw-semibold;
+  }
+}
+
+.notif__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  margin-top: 7px;
+  border-radius: a.$radius-pill;
+  background: transparent;
+}
+
+.notif__title {
+  text-wrap: pretty;
+}
+
+.dropdown__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: a.$control-touch-min;
+  border-top: 1px solid var(--color-border-divider);
+  color: var(--color-link);
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-link-hover);
+  }
+}
