@@ -3,6 +3,16 @@ import { BookingStatus } from '@core/enums/booking-status.enum';
 import { ComplaintStatus } from '@core/enums/complaint.enum';
 import { UnitStatus } from '@core/enums/unit-status.enum';
 import { AccountStatus, UserRole } from '@core/enums/user-role.enum';
+import {
+  ACCOUNT_STATUS_DISPLAY,
+  BOOKING_STATUS_DISPLAY,
+  COMPLAINT_STATUS_ADMIN_DISPLAY,
+  PAYOUT_STATUS_DISPLAY,
+  ROLE_DISPLAY,
+  UNIT_STATUS_DISPLAY,
+  statusText,
+} from '@core/constants/status-display';
+import type { StatusDisplay } from '@core/constants/status-display';
 import { LanguageService } from '@core/i18n/language.service';
 import type {
   AdminOverview,
@@ -70,15 +80,27 @@ export class AdminReportsPage {
   protected readonly from = signal('');
   protected readonly to = signal('');
 
-  protected readonly unitRows = computed(() => toRows(this.overview()?.units, UNIT_STATUSES));
+  protected readonly unitRows = computed(() =>
+    toRows(this.overview()?.units, UNIT_STATUSES, UNIT_STATUS_DISPLAY, this.i18n.language()),
+  );
   protected readonly bookingRows = computed(() =>
-    toRows(this.overview()?.bookings, BOOKING_STATUSES),
+    toRows(
+      this.overview()?.bookings,
+      BOOKING_STATUSES,
+      BOOKING_STATUS_DISPLAY,
+      this.i18n.language(),
+    ),
   );
   protected readonly usersByRole = computed(() =>
-    toRows(this.overview()?.users.byRole, ACCOUNT_ROLES),
+    toRows(this.overview()?.users.byRole, ACCOUNT_ROLES, ROLE_DISPLAY, this.i18n.language()),
   );
   protected readonly usersByStatus = computed(() =>
-    toRows(this.overview()?.users.byStatus, ACCOUNT_STATUSES),
+    toRows(
+      this.overview()?.users.byStatus,
+      ACCOUNT_STATUSES,
+      ACCOUNT_STATUS_DISPLAY,
+      this.i18n.language(),
+    ),
   );
 
   /**
@@ -92,7 +114,14 @@ export class AdminReportsPage {
     const complaints = this.overview()?.complaints;
     if (!complaints) return [];
     const { overdue: _overdue, ...statuses } = complaints;
-    return toRows(statuses, COMPLAINT_STATUSES);
+    return toRows(
+      statuses,
+      COMPLAINT_STATUSES,
+      // The administrator's wording, not the complainant's: this screen is read
+      // beside the queue, and the two must call a state the same thing.
+      COMPLAINT_STATUS_ADMIN_DISPLAY,
+      this.i18n.language(),
+    );
   });
 
   protected readonly overdueComplaints = computed(() => this.overview()?.complaints.overdue ?? 0);
@@ -104,6 +133,7 @@ export class AdminReportsPage {
     // `count` at all, which rendered as an empty cell rather than as nothing.
     return (['APPROVED', 'PAID', 'FAILED'] as const).map((key) => ({
       key,
+      label: statusText(PAYOUT_STATUS_DISPLAY[key], this.i18n.language()),
       ...(payouts[key] ?? EMPTY_PAYOUT_BUCKET),
     }));
   });
@@ -192,13 +222,26 @@ const ACCOUNT_STATUSES = [
  * `DELETED` is a real account status this build has no enum for, and hiding
  * a real count is worse than showing an untranslated key.
  */
-function toRows(counts: Record<string, number> | undefined, vocabulary: string[]): CountRow[] {
+function toRows(
+  counts: Record<string, number> | undefined,
+  vocabulary: string[],
+  display: Readonly<Record<string, StatusDisplay>>,
+  lang: 'ar' | 'en',
+): CountRow[] {
   if (!counts) return [];
 
-  const known = vocabulary.map((key) => ({ key, label: key, value: counts[key] ?? 0 }));
+  const name = (key: string) => {
+    const known = display[key];
+    // The raw key, deliberately, for a status this build has no word for.
+    // `DELETED` is a real account status and printing `DELETED` beside its
+    // count is worse-looking and better than hiding the row.
+    return known ? statusText(known, lang) : key;
+  };
+
+  const known = vocabulary.map((key) => ({ key, label: name(key), value: counts[key] ?? 0 }));
   const extra = Object.entries(counts)
     .filter(([key]) => !vocabulary.includes(key))
-    .map(([key, value]) => ({ key, label: key, value }));
+    .map(([key, value]) => ({ key, label: name(key), value }));
 
   return [...known, ...extra];
 }

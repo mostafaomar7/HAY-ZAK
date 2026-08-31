@@ -92,7 +92,7 @@
           @for (bucket of payoutBuckets(); track bucket.key) {
             <div class="count">
               <dt>
-                {{ bucket.key }} <span class="num">({{ bucket.count }})</span>
+                {{ bucket.label }} <span class="num">({{ bucket.count }})</span>
               </dt>
               <dd><app-ui-money [halalas]="bucket.totalHalalas" /></dd>
             </div>

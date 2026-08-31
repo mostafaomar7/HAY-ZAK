@@ -1,96 +1,250 @@
 @use 'abstracts' as a;
 
+// The stylesheet this replaced was written for a markup that no longer exists
+// — `.table__head`, `.table__row`, `.table__cell`, none of them in the
+// template any more. The reports were rebuilt around the server's real shapes
+// and the CSS was left behind, so every card, count and figure below rendered
+// as bare `dt`/`dd` with no box around it. Class names here track the template.
+
 :host {
   display: contents;
 }
 
-.head {
-  @include a.surface(a.$radius-lg);
+// ── Section ──────────────────────────────────────────────────────────────
+.section {
+  @include a.stack(a.$space-14);
+}
 
+.section__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: a.$space-12 a.$space-20;
+}
+
+.section__title {
+  margin: 0;
+  font-size: a.$fs-2xl;
+  font-weight: a.$fw-bold;
+  color: var(--color-text-heading);
+}
+
+.section__hint {
+  margin: 0;
+  max-width: 60ch;
+  font-size: a.$fs-xs;
+  line-height: a.$lh-base;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+// ── Cards ────────────────────────────────────────────────────────────────
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: a.$space-14;
+  align-items: start;
+}
+
+.card {
+  @include a.surface(a.$radius-lg);
+  @include a.stack(a.$space-12);
+
+  padding: a.$space-16 a.$space-18 a.$space-18;
+}
+
+/**
+ * The commission card, and the only one tinted.
+ *
+ * This is the number that is actually the platform's, sitting on a screen full
+ * of money that is not. One card carries the emphasis so "which of these is
+ * revenue" is answered before anything is read.
+ */
+.card--revenue {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.card__title {
+  margin: 0;
+  padding-block-end: a.$space-10;
+  border-block-end: 1px solid var(--color-border-divider);
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+// ── Count rows ───────────────────────────────────────────────────────────
+.counts {
+  @include a.stack(0);
+
+  margin: 0;
+}
+
+.count {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: a.$space-12;
-  padding: a.$space-8 a.$space-12;
+  padding-block: a.$space-8;
+  border-block-end: 1px dashed var(--color-border-divider);
+
+  &:last-child {
+    border-block-end: 0;
+    padding-block-end: 0;
+  }
+
+  dt {
+    min-width: 0;
+    font-size: a.$fs-sm;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+  }
+
+  dd {
+    @include a.numeric;
+
+    margin: 0;
+    flex: none;
+    font-size: a.$fs-lg;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text-heading);
+    // The figures sit in one column whatever the label's length, so the eye
+    // reads down the numbers instead of hunting for where each one starts.
+    font-variant-numeric: tabular-nums;
+  }
 }
 
-.head__exports {
+/** Overdue complaints — a count nobody should have to look for. */
+.count--alert dd {
+  color: var(--color-danger-fg);
+}
+
+/**
+ * Money the platform is holding for somebody else.
+ *
+ * Marked rather than merely listed: an amount owed onward printed in the same
+ * weight as the commission above it reads as more income, which is the one
+ * misreading this whole screen exists to prevent.
+ */
+.count--liability {
+  dt {
+    color: var(--color-text);
+  }
+
+  dd {
+    color: var(--color-warning-fg);
+  }
+}
+
+.count__note {
+  display: block;
+  font-size: a.$fs-2xs;
+  color: var(--color-text-faint);
+}
+
+// ── Headline figures ─────────────────────────────────────────────────────
+.figure {
+  @include a.stack(a.$space-2);
+
+  padding-block: a.$space-6;
+}
+
+.figure__value {
+  @include a.numeric;
+
+  font-size: a.$fs-4xl;
+  font-weight: a.$fw-bold;
+  line-height: a.$lh-tight;
+  color: var(--color-text-heading);
+}
+
+.figure__label {
+  font-size: a.$fs-label;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-muted);
+}
+
+.figure__note {
+  font-size: a.$fs-2xs;
+  line-height: a.$lh-base;
+  color: var(--color-text-faint);
+  text-wrap: pretty;
+}
+
+// ── Date range ───────────────────────────────────────────────────────────
+.range {
   display: flex;
-  gap: a.$space-8;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: a.$space-10;
 }
 
-// ── Report table ─────────────────────────────────────────────────────────
-// A grid, like every other table in the console. The column count differs per
-// report, so the track list is a modifier rather than a single shared value.
-.table {
-  @include a.surface(a.$radius-lg);
-  @include a.scrollbar(6px);
-
-  overflow-x: auto;
-}
-
-.table__head,
-.table__row {
-  display: grid;
-  align-items: center;
-  min-width: 640px;
-}
-
-.table__head {
-  grid-template-columns: 1.4fr 1fr 1.2fr;
-  border-bottom: 1px solid var(--color-border-divider);
-  background: var(--color-bg);
+.range__field {
+  @include a.stack(a.$space-4);
 
   span {
-    padding: a.$space-10 a.$space-16;
     font-size: a.$fs-2xs;
     font-weight: a.$fw-semibold;
     color: var(--color-text-muted);
   }
-}
 
-.table__head--4 {
-  grid-template-columns: 1.6fr 1fr 1fr 1fr;
-}
+  input {
+    @include a.control;
 
-.table__head--5 {
-  grid-template-columns: 1fr 1.4fr 1fr 1.2fr 1fr;
-}
-
-.table__row {
-  grid-template-columns: 1.4fr 1fr 1.2fr;
-  border-bottom: 1px solid var(--color-border-divider);
-
-  &:last-child {
-    border-bottom: 0;
+    // A date input is a fixed-size control: letting it shrink to its content's
+    // width clips the calendar button off the end.
+    width: auto;
+    min-width: 9.5rem;
+    font-size: a.$fs-sm;
   }
 }
 
-.table__row--4 {
-  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+// ── Lessors table ────────────────────────────────────────────────────────
+.scroller {
+  @include a.surface(a.$radius-lg);
+  @include a.scrollbar(6px);
+
+  // Its own scroll container, so a wide table never pushes the page sideways.
+  overflow-x: auto;
 }
 
-.table__row--5 {
-  grid-template-columns: 1.4fr 1.1fr 1fr 1fr 1.1fr;
-}
+.table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: a.$fs-sm;
 
-.table__cell {
-  padding: a.$space-12 a.$space-16;
-  min-width: 0;
-  font-size: a.$fs-label;
+  th,
+  td {
+    padding: a.$space-12 a.$space-16;
+    text-align: start;
+  }
+
+  th {
+    border-block-end: 1px solid var(--color-border-divider);
+    background: var(--color-bg);
+    font-size: a.$fs-2xs;
+    font-weight: a.$fw-semibold;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  td {
+    border-block-end: 1px solid var(--color-border-divider);
+    color: var(--color-text);
+  }
+
+  tbody tr:last-child td {
+    border-block-end: 0;
+  }
 
   .num {
     @include a.numeric;
+
+    font-variant-numeric: tabular-nums;
+    text-align: end;
   }
-}
-
-.table__cell--stack {
-  display: flex;
-  flex-direction: column;
-}
-
-.table__cell--good {
-  color: var(--color-success-fg);
-  font-weight: a.$fw-semibold;
 }

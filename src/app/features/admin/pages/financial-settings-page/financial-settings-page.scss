@@ -1,252 +1,209 @@
 @use 'abstracts' as a;
 
+// Like the reports screen, this stylesheet had drifted off its template
+// entirely — `.card`, `.field`, `.tiers`, `.cycle`, `.diff`, none of them in
+// the markup any more. The settings were rebuilt around the server's real
+// key/value rows and the CSS was never rewritten, so every setting rendered as
+// an unstyled list item with its key run into its label.
+
 :host {
   display: contents;
 }
 
-.card {
-  @include a.surface(a.$radius-lg);
+.page {
   @include a.stack(a.$space-16);
-
-  max-width: 1100px;
-  padding: a.$space-18;
 }
 
-.card--compact {
-  gap: a.$space-10;
+.head {
+  @include a.stack(a.$space-4);
 }
 
-.card--switch {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: a.$space-24;
-  border-width: 2px;
-  border-color: var(--color-primary);
-}
-
-.card__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: a.$space-20;
-}
-
-.card__text {
-  @include a.stack(a.$space-6);
-
-  max-width: 640px;
-}
-
-.card__title {
+.head__title {
   margin: 0;
-  font-size: a.$fs-sm;
+  font-size: a.$fs-3xl;
   font-weight: a.$fw-bold;
-  color: var(--color-primary);
+  color: var(--color-text-heading);
 }
 
-.card__hint {
+.head__sub {
   margin: 0;
-  font-size: a.$fs-xs;
+  max-width: 68ch;
+  font-size: a.$fs-sm;
+  line-height: a.$lh-base;
   color: var(--color-text-muted);
-}
-
-.card__body {
-  margin: 0;
-  font-size: a.$fs-xs;
-  line-height: 1.9;
-  color: var(--color-text);
   text-wrap: pretty;
 }
 
-.card__state {
-  margin: 0;
-  font-size: a.$fs-xs;
-  color: var(--color-text-muted);
-}
-
-.card__state--on {
-  color: var(--color-warning-fg);
-}
-
-.card__value {
-  display: flex;
-  align-items: center;
-  gap: a.$space-12;
-}
-
-.figure {
-  @include a.numeric;
-
-  font-size: a.$fs-3xl;
-  font-weight: a.$fw-bold;
-  color: var(--color-primary);
-}
-
-.figure__unit {
-  font-size: a.$fs-xs;
-  font-weight: a.$fw-regular;
-  color: var(--color-text-muted);
-}
-
-.cycle {
-  @include a.numeric;
-
-  font-size: a.$fs-sm;
-  font-weight: a.$fw-semibold;
-}
-
-.pair {
-  display: grid;
-  gap: a.$space-14;
-  max-width: 1100px;
-
-  @include a.up(lg) {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-// ── Commission exceptions ────────────────────────────────────────────────
-.ex {
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: a.$radius-sm;
-}
-
-.ex__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: a.$space-12;
-  padding: a.$space-10 a.$space-16;
-  border-bottom: 1px solid var(--color-border-divider);
-  background: var(--color-bg);
-}
-
-.ex__title {
-  font-size: a.$fs-xs;
-  font-weight: a.$fw-semibold;
-  color: var(--color-primary);
-
-  .num {
-    @include a.numeric;
-
-    font-weight: a.$fw-regular;
-    color: var(--color-text-muted);
-  }
-}
-
-.ex__row {
-  display: grid;
-  grid-template-columns: 0.8fr 2fr 0.9fr 1fr;
-  align-items: center;
-  gap: a.$space-8;
-  padding: a.$space-10 a.$space-16;
-  border-bottom: 1px solid var(--color-border-divider);
-  font-size: a.$fs-label;
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  .num {
-    @include a.numeric;
-  }
-}
-
-.ex__row--head {
-  background: var(--color-bg);
-  font-size: a.$fs-2xs;
-  font-weight: a.$fw-semibold;
-  color: var(--color-text-muted);
-}
-
-// ── Refund tiers ─────────────────────────────────────────────────────────
-.tiers {
-  @include a.stack(a.$space-8);
+// ── The rows ─────────────────────────────────────────────────────────────
+.list {
+  @include a.stack(a.$space-10);
 
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.tiers__item {
-  @include a.numeric;
+/**
+ * One setting: what it is on one side, what it is set to on the other.
+ *
+ * A row rather than a stack at width, because the operator is scanning for the
+ * one value they came to change and a column of prose puts every control a
+ * paragraph apart. Below `md` it folds, since the control would otherwise be
+ * squeezed against a label that needs the whole line.
+ */
+.setting {
+  @include a.surface(a.$radius-lg);
 
-  padding: a.$space-12 a.$space-14;
-  border-radius: a.$radius-sm;
-  background: var(--color-bg);
-  font-size: a.$fs-label;
-  line-height: 1.9;
-}
-
-// ── Confirmation dialog ──────────────────────────────────────────────────
-.diff {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: a.$space-12;
+  padding: a.$space-14 a.$space-16;
+
+  @include a.up(md) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: a.$space-24;
+  }
 }
 
-.diff__box {
-  @include a.stack(a.$space-6);
+.setting__text {
+  @include a.stack(a.$space-4);
 
-  padding: a.$space-14;
-  border: 1px solid var(--color-border);
-  border-radius: a.$radius-sm;
-  background: var(--color-bg);
+  min-width: 0;
+  max-width: 62ch;
 }
 
-.diff__box--new {
-  border-color: var(--color-primary);
-  background: var(--color-surface);
+.setting__label {
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text-heading);
+  text-wrap: pretty;
 }
 
-.diff__label {
+/**
+ * The wire key, on its own line and in a mono face.
+ *
+ * It used to sit inline against the Arabic label, where the bidi algorithm ran
+ * the two together — `commission.default_rate_bps` closed straight onto the
+ * first Arabic word with nothing between them. It is a different kind of thing
+ * from the label and now reads as one: an identifier the operator quotes when
+ * asking the backend about a value, not part of the sentence.
+ */
+.setting__key {
+  @include a.numeric;
+
+  align-self: flex-start;
   font-size: a.$fs-2xs;
-  font-weight: a.$fw-semibold;
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
+  letter-spacing: 0.01em;
 }
 
-.diff__value {
-  @include a.numeric;
-
-  font-size: a.$fs-sm;
-  font-weight: a.$fw-semibold;
-  line-height: 1.8;
-}
-
-.diff__input {
-  @include a.control;
-  @include a.numeric;
-
-  font-size: a.$fs-sm;
-  font-weight: a.$fw-semibold;
-  color: var(--color-primary);
-}
-
-.note {
-  margin: 0;
+.setting__hint {
   font-size: a.$fs-xs;
-  line-height: 1.9;
+  line-height: a.$lh-base;
   color: var(--color-text-muted);
+  text-wrap: pretty;
 }
 
-.fields {
-  @include a.stack(a.$space-12);
+// ── The control ──────────────────────────────────────────────────────────
+.setting__control {
+  display: flex;
+  align-items: center;
+  gap: a.$space-8;
+  flex: none;
+
+  @include a.up(md) {
+    // Fixed rather than fluid, so the inputs line up down the column and the
+    // eye can compare two values without tracking back to the start of a line.
+    width: 17rem;
+    justify-content: flex-end;
+  }
 }
 
-.field {
-  @include a.stack(a.$space-6);
-}
-
-.field__label {
-  font-size: a.$fs-xs;
-  font-weight: a.$fw-semibold;
-}
-
-.field__input {
+.setting__input {
   @include a.control;
 
-  font-size: a.$fs-label;
+  // The one flexible item in the row; the save button keeps its size.
+  flex: 1;
+  min-width: 0;
+  font-size: a.$fs-sm;
+}
+
+.setting__value {
+  @include a.numeric;
+
+  flex: 1;
+  min-width: 0;
+  font-size: a.$fs-md;
+  font-weight: a.$fw-semibold;
+  color: var(--color-text);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+// ── Boolean toggle ───────────────────────────────────────────────────────
+/**
+ * A real switch rather than a bare checkbox.
+ *
+ * A boolean here is not a form field somebody submits at the end — it is one
+ * of the settings that "يسري فورًا على كل المنصة", and a 13-pixel default
+ * checkbox reads as neither important nor currently-on-or-off at a glance.
+ */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: a.$radius-pill;
+    background: var(--color-border-strong);
+    transition: background a.$transition-fast;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: a.$radius-pill;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    transition: translate a.$transition-fast;
+  }
+
+  // Logical, so the knob travels the right way in both directions.
+  &:has(input:checked)::before {
+    background: var(--color-primary);
+  }
+
+  &:has(input:checked)::after {
+    translate: 18px 0;
+  }
+
+  :host-context([dir='rtl']) &:has(input:checked)::after {
+    translate: -18px 0;
+  }
+
+  &:has(input:focus-visible)::before {
+    box-shadow: var(--focus-ring);
+  }
 }
