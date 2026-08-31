@@ -93,6 +93,18 @@ export interface ActivateUserRequest {
   reason: string;
 }
 
+/**
+ * `{ adminRole, reason }` — both required, and the reason is not a courtesy.
+ *
+ * Changing what an administrator may do is recorded in the audit trail, and a
+ * record of "somebody was made a finance officer" with no stated reason is a
+ * rumour rather than evidence.
+ */
+export interface ChangeAdminRoleRequest {
+  adminRole: AdminRole;
+  reason: string;
+}
+
 /** `{ approve, reason? }` — the reason is required to reject and refused otherwise. */
 export interface ReviewIdentityRequest {
   approve: boolean;

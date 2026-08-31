@@ -408,19 +408,6 @@ export const MOCK_BANK_ACCOUNTS: LessorBankAccount[] = [
 ];
 
 /** FR-ADM-05 — the Saudi bank list from the design's dropdown. */
-export const MOCK_BANKS: ReferenceItem[] = [
-  'مصرف الراجحي',
-  'البنك الأهلي السعودي',
-  'بنك الرياض',
-  'بنك البلاد',
-  'مصرف الإنماء',
-  'البنك السعودي الأول',
-  'البنك السعودي الفرنسي',
-  'البنك العربي الوطني',
-  'بنك الجزيرة',
-  'بنك الخليج الدولي',
-].map((name, i) => ({ id: `bank-${i + 1}`, nameAr: name, nameEn: name }));
-
 /**
  * The three buckets, in the shape `/lessor/earnings` sends them.
  *

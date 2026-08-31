@@ -207,10 +207,67 @@
       </ng-container>
     }
 
-    @if (!canAct()) {
-      <!-- An administrator, or the person reading the screen. The server
-           refuses both; the button is absent rather than disabled, because a
-           greyed control still reads as "one day". -->
+    <!-- ── Administrator kind (FR-ADM-04) ──────────────────────────────── -->
+    <!-- The mirror of the block above: that one is for everybody who is not an
+         administrator, this one only for those who are, so the reason field is
+         shared between them rather than duplicated. -->
+    @if (canChangeRole()) {
+      <section class="block">
+        <h3 class="block__title">{{ i18n.t('users.changeRole') }}</h3>
+        <p class="block__note">{{ i18n.t('users.changeRoleHint') }}</p>
+
+        <label class="field">
+          <span class="field__label">{{ i18n.t('users.newRole') }}</span>
+          <select
+            class="field__input"
+            [value]="nextAdminRole()"
+            (change)="nextAdminRole.set($any($event.target).value)"
+          >
+            <option value="">{{ i18n.t('users.newRolePlaceholder') }}</option>
+            <!-- The current kind is absent: picking it is a 409, and a control
+                 whose only outcome is a refusal should not be drawn. -->
+            @for (option of adminRoleOptions(); track option) {
+              <option [value]="option">{{ adminRoleLabel(option) }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">{{ i18n.t('users.reason') }}</span>
+          <textarea
+            class="field__input"
+            rows="2"
+            dir="auto"
+            [value]="reason()"
+            (input)="reason.set($any($event.target).value)"
+          ></textarea>
+          <span class="field__hint">{{ i18n.t('users.roleReasonHint') }}</span>
+        </label>
+      </section>
+    }
+
+    @if (canChangeRole()) {
+      <!-- Its own block for the same reason as the suspend action above: a
+           projected slot that is not the only root node of its control flow is
+           silently dropped, and the button vanishes from the panel footer. -->
+      <ng-container panelActions>
+        <button
+          appUiButton
+          variant="primary"
+          type="button"
+          fullWidth
+          [disabled]="!canChangeRoleSubmit()"
+          (click)="changeAdminRole()"
+        >
+          {{ i18n.t('users.changeRole') }}
+        </button>
+      </ng-container>
+    }
+
+    @if (!canAct() && !canChangeRole()) {
+      <!-- An administrator this operator may not move, or the person reading
+           the screen. The server refuses both; the button is absent rather than
+           disabled, because a greyed control still reads as "one day". -->
       <p class="block__note">{{ i18n.t('users.cannotAct') }}</p>
     }
   </app-admin-panel>

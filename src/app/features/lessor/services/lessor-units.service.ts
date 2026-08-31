@@ -183,6 +183,26 @@ export class LessorUnitsService {
   }
 
   /**
+   * FR-UNT-03 — the order the images are shown in, first one being the cover.
+   *
+   * Takes **every** image on the unit, each exactly once; a partial list is a
+   * 422. So the caller sends the whole list it is displaying rather than the
+   * pair it just swapped, which is also what makes two rapid moves land as one
+   * final order instead of racing.
+   *
+   * Answers with the images already re-numbered, like the upload does — the
+   * screen re-seeds from the response and never renumbers locally.
+   */
+  reorderImages(unitId: string, imageIds: readonly string[]): Observable<UnitImage[]> {
+    return this.api
+      .put<{ images: WireUnitImage[] }, { imageIds: readonly string[] }>(
+        API_ENDPOINTS.lessor.unitImageOrder(unitId),
+        { imageIds },
+      )
+      .pipe(map((result) => result.images.map(imageFromWire)));
+  }
+
+  /**
    * FR-UNT-08 — a manual block by the lessor, outside any booking.
    *
    * Plain `YYYY-MM-DD` and half-open: `endDate` is the first free day again, so

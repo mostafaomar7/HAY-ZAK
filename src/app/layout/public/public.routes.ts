@@ -1,4 +1,5 @@
 import type { Routes } from '@angular/router';
+import { authGuard } from '@core/guards/auth.guard';
 
 /**
  * Everything that lives inside the renter-facing shell.
@@ -12,7 +13,7 @@ import type { Routes } from '@angular/router';
  *
  * No guard sits on the shell: browsing and search are open (FR-MKT-02, design
  * rule 1). The guards live on the individual features that need them — booking,
- * my-bookings and account.
+ * my-bookings, my-invoices and account.
  */
 export const PUBLIC_ROUTES: Routes = [
   {
@@ -54,6 +55,16 @@ export const PUBLIC_ROUTES: Routes = [
         path: 'my-complaints',
         loadChildren: () =>
           import('@features/complaints/complaints.routes').then((m) => m.COMPLAINTS_ROUTES),
+      },
+      {
+        // Top-level for the same reason as `my-complaints`: `/me/invoices`
+        // answers both parties, and a lessor reading the commission they were
+        // billed has no "حجوزاتي" to reach it through.
+        path: 'my-invoices',
+        canActivate: [authGuard],
+        title: 'فواتيري',
+        loadComponent: () =>
+          import('@features/account/pages/invoices-page/invoices-page').then((m) => m.InvoicesPage),
       },
       {
         path: 'pages',

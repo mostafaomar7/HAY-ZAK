@@ -41,6 +41,15 @@ export const LESSOR_NAV: readonly NavItem[] = [
     permission: Permission.ViewOwnFinancialReports,
   },
   {
+    // The commission invoices the platform billed this lessor. Top-level for
+    // the same reason as complaints: `/me/invoices` is one endpoint for both
+    // parties, and a lessor has no "حجوزاتي" to reach an invoice through.
+    route: '/my-invoices',
+    labelKey: 'invoices.title',
+    icon: 'card',
+    permission: Permission.ViewOwnFinancialReports,
+  },
+  {
     // The lessor reads and answers complaints about their own spaces, so this
     // is not a renter-only screen. Guarded on the same permission as the rest
     // of the portal rather than on a complaint-specific one: there is none,

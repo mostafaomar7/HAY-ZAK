@@ -121,6 +121,43 @@
   color: var(--color-warning-fg);
 }
 
+.images__order {
+  display: flex;
+  gap: a.$space-6;
+}
+
+.images__move {
+  @include a.focus-ring;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: a.$control-touch-min;
+  min-height: a.$control-touch-min;
+  border: 1px solid var(--color-border);
+  border-radius: a.$radius-md;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: a.$fs-md;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// The glyphs are written for LTR; RTL reverses the row, so the arrow that
+// means "towards the cover" has to turn with it.
+:host-context([dir='rtl']) .images__move span[aria-hidden='true'] {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
 .images__remove {
   @include a.focus-ring;
 
@@ -133,6 +170,11 @@
   font-size: a.$fs-sm;
   font-weight: a.$fw-semibold;
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
 }
 
 .images__add {

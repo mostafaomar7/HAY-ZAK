@@ -485,6 +485,7 @@ export const MOCK_BOOKING_HISTORY: BookingStatusHistoryEntry[] = [
 export const MOCK_INVOICE: WireTaxInvoice = {
   id: 'inv-1',
   invoiceNo: 'INV-2026-04871',
+  type: 'BOOKING',
   issuedAt: '2026-08-12T09:20:00.000Z',
   taxableHalalas: 180000,
   vatHalalas: 0,
@@ -502,6 +503,40 @@ export const MOCK_INVOICE: WireTaxInvoice = {
     unit: { id: 'u-1', title: 'مستودع مكيّف في حي العليا' },
   },
 };
+
+/**
+ * What `/me/invoices` answers with — **both kinds against one booking**.
+ *
+ * The pair is the point of the fixture. The same reference number carries a
+ * booking invoice for what the renter paid and a commission invoice for what
+ * the platform billed the lessor out of it, with different totals and different
+ * VAT. A single-row fixture would let a screen that never renders `type` pass.
+ *
+ * The commission one charges VAT at 15% because the running server does; the
+ * booking one does not, because rent is not being taxed today.
+ */
+export const MOCK_MY_INVOICES: WireTaxInvoice[] = [
+  MOCK_INVOICE,
+  {
+    id: 'inv-2',
+    invoiceNo: 'INV-2026-04872',
+    type: 'COMMISSION',
+    issuedAt: '2026-08-12T09:20:04.000Z',
+    taxableHalalas: 23478,
+    vatHalalas: 3522,
+    totalHalalas: 27000,
+    vatRateBps: 1500,
+    qrCode: 'AQdIQVktWkFLAg8zMDAxMjQ1Nzg5MDAwMDM=',
+    booking: {
+      id: 'rb-1',
+      referenceNo: 'HZ-2026-000481',
+      startDate: '2026-08-12',
+      endDate: '2026-09-11',
+      daysCount: 30,
+      unit: { id: 'u-1', title: 'مستودع مكيّف في حي العليا' },
+    },
+  },
+];
 
 export const MOCK_ALTERNATIVES: AlternativePeriod[] = [
   { startDate: '2026-09-15', endDate: '2026-10-14', daysCount: 30, totalHalalas: 225000 },

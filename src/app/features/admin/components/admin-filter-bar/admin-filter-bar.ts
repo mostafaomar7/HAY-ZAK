@@ -8,6 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { LanguageService } from '@core/i18n/language.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 
@@ -39,7 +40,11 @@ export type AdminFilterValues = Readonly<Record<string, string>>;
 @Component({
   selector: 'app-admin-filter-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UiButton],
+  // `FormsModule` is what supplies `NgForm`, and `NgForm` is what turns
+  // `(ngSubmit)` into an event at all. Without it the binding listens for a DOM
+  // event no browser fires, the native submission is never intercepted, and
+  // pressing "تطبيق الفلاتر" reloads the console instead of filtering it.
+  imports: [FormsModule, UiButton],
   templateUrl: './admin-filter-bar.html',
   styleUrl: './admin-filter-bar.scss',
 })

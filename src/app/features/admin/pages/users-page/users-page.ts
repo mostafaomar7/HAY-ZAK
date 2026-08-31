@@ -6,6 +6,7 @@ import {
   statusText,
   userRoleDisplay,
 } from '@core/constants/status-display';
+import { Permission } from '@core/constants/permissions';
 import { AccountStatus, AdminRole, UserRole, VerificationStatus } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import { ApiError } from '@core/models/api-error.model';
@@ -13,6 +14,7 @@ import type { AdminUserDetail, AdminUserRow } from '@core/models/admin-user';
 import { canActOnUser } from '@core/models/admin-user';
 import { AuthService } from '@core/services/auth.service';
 import { NotificationService } from '@core/services/notification.service';
+import { PermissionService } from '@core/services/permission.service';
 import { UiBadge } from '@shared/components/ui-badge/ui-badge';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiModal } from '@shared/components/ui-modal/ui-modal';
@@ -63,6 +65,7 @@ export class AdminUsersPage {
   private readonly users = inject(AdminUsersService);
   private readonly notifications = inject(NotificationService);
   private readonly auth = inject(AuthService);
+  private readonly permissions = inject(PermissionService);
 
   protected readonly i18n = inject(LanguageService);
   protected readonly list = new AdminListState();
@@ -91,6 +94,43 @@ export class AdminUsersPage {
   });
 
   protected readonly canSubmit = computed(() => !!this.reason().trim() && !this.submitting());
+
+  /** The kind being moved to. Empty until the system administrator picks one. */
+  protected readonly nextAdminRole = signal<AdminRole | ''>('');
+
+  /**
+   * Whether the kind of administrator this account is may be changed here.
+   *
+   * The mirror image of `canAct()`: that one covers everybody who is *not* an
+   * administrator, this one covers only administrators — so the two blocks are
+   * mutually exclusive and share the one reason field between them.
+   *
+   * Nobody may change their own kind (`ADMIN_CANNOT_ACT_ON_SELF`), and the
+   * endpoint needs `admins:manage`, which only the system administrator holds.
+   * Both are the server's refusals; this decides whether to draw a control that
+   * would meet one.
+   */
+  protected readonly canChangeRole = computed(() => {
+    const detail = this.detail();
+    return (
+      !!detail &&
+      detail.role === UserRole.Admin &&
+      detail.id !== this.auth.user()?.id &&
+      this.permissions.can(Permission.ManageAdmins)
+    );
+  });
+
+  /**
+   * The kinds this account is not already. Offering the current one would be a
+   * control whose only outcome is 409 `ADMIN_USER_ALREADY_IN_STATE`.
+   */
+  protected readonly adminRoleOptions = computed(() =>
+    Object.values(AdminRole).filter((role) => role !== this.detail()?.adminRole),
+  );
+
+  protected readonly canChangeRoleSubmit = computed(
+    () => !!this.nextAdminRole() && this.canSubmit(),
+  );
 
   protected readonly awaitingIdentity = computed(
     () => this.detail()?.identity?.verificationStatus === VerificationStatus.Pending,
@@ -259,6 +299,37 @@ export class AdminUsersPage {
     });
   }
 
+  /**
+   * Moves an administrator between the three kinds (FR-ADM-04).
+   *
+   * The permissions the account holds are re-issued by the server, so the
+   * response is the authority on what it may now do — but it arrives **without
+   * the `activity` block**, and a role change cannot alter those five counts.
+   * They are carried over rather than allowed to read as five zeros.
+   */
+  protected changeAdminRole(): void {
+    const current = this.detail();
+    const next = this.nextAdminRole();
+    if (!current || !next || !this.canChangeRoleSubmit()) return;
+
+    this.submitting.set(true);
+    this.users.changeAdminRole(current.id, next, this.reason().trim()).subscribe({
+      next: (updated) =>
+        this.afterAction(
+          { ...updated, activity: current.activity },
+          this.i18n.t('users.roleChanged'),
+        ),
+      error: (failure: unknown) => {
+        this.submitting.set(false);
+        // The server's own message, including the 409 for a kind the account
+        // already holds — which the picker should have made unreachable.
+        this.notifications.error(
+          failure instanceof ApiError ? failure.message : this.i18n.t('admin.actionFailed'),
+        );
+      },
+    });
+  }
+
   protected approveIdentity(): void {
     const id = this.detail()?.id;
     if (!id) return;
@@ -295,6 +366,12 @@ export class AdminUsersPage {
     return statusText(userRoleDisplay(role, adminRole), this.i18n.language());
   }
 
+  /** The kind alone — "مشرف العمليات". Same table the row and the filter read,
+   * so the picker cannot end up naming a role differently from the list. */
+  protected adminRoleLabel(adminRole: AdminRole): string {
+    return statusText(userRoleDisplay(UserRole.Admin, adminRole), this.i18n.language());
+  }
+
   protected statusLabel(status: AccountStatus): string {
     return statusText(ACCOUNT_STATUS_DISPLAY[status], this.i18n.language());
   }
@@ -312,11 +389,11 @@ export class AdminUsersPage {
     return this.detail()?.status === AccountStatus.Suspended;
   }
 
-  private afterAction(detail: AdminUserDetail): void {
+  private afterAction(detail: AdminUserDetail, message?: string): void {
     this.submitting.set(false);
     this.detail.set(detail);
     this.resetInputs();
-    this.notifications.success(this.i18n.t('users.statusChanged'));
+    this.notifications.success(message ?? this.i18n.t('users.statusChanged'));
     this.fetch();
   }
 
@@ -327,6 +404,7 @@ export class AdminUsersPage {
 
   private resetInputs(): void {
     this.reason.set('');
+    this.nextAdminRole.set('');
     this.liveBookings.set(null);
     this.confirmSuspend.set(false);
     this.rejectOpen.set(false);

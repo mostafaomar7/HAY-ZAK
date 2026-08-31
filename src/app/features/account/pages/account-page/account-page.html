@@ -169,6 +169,17 @@
         }
       </section>
 
+      <!-- ── Invoices ──────────────────────────────────────────────────── -->
+      <!-- Its own screen rather than a list here: `/me/invoices` is paged, and
+           an account that has both rented and let holds two kinds. -->
+      <section class="panel" id="invoices">
+        <h2 class="panel__title">{{ i18n.t('invoices.title') }}</h2>
+        <p class="panel__hint">{{ i18n.t('invoices.subtitle') }}</p>
+        <a appUiButton variant="outline" routerLink="/my-invoices">
+          {{ i18n.t('invoices.open') }}
+        </a>
+      </section>
+
       <!-- ── Password ──────────────────────────────────────────────────── -->
       <!-- Its own screen: enrolment is a sequence with a point of no return in
            the middle, and the recovery codes are shown once. -->

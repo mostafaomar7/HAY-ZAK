@@ -15,7 +15,7 @@ import { type Observable, of } from 'rxjs';
 import { finalize, map, switchMap, tap } from 'rxjs/operators';
 import { LanguageService } from '@core/i18n/language.service';
 import { APP } from '@core/constants/app.constants';
-import type { ReferenceItem, UnitRequest, VisitWindow } from '@core/models/unit.model';
+import type { ReferenceItem, UnitImage, UnitRequest, VisitWindow } from '@core/models/unit.model';
 import { dailySchedule } from '@core/models/unit-wire';
 import { NotificationService } from '@core/services/notification.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
@@ -100,6 +100,20 @@ export class UnitFormPage {
   protected readonly cities = signal<ReferenceItem[]>([]);
   protected readonly districts = signal<ReferenceItem[]>([]);
   protected readonly images = signal<PendingImage[]>([]);
+
+  /**
+   * The images already on the server, in the order it holds them.
+   *
+   * Kept apart from `images` rather than merged into one list, because the two
+   * are not the same thing: a pending file has no id and cannot be reordered
+   * or deleted server-side, and a saved image has no `File` to upload again.
+   * Only the saved list has a cover — the first of it — and only once there is
+   * one does the pending list stop being the front of the gallery.
+   */
+  protected readonly savedImages = signal<readonly UnitImage[]>([]);
+
+  /** Blocks the arrows and the remove buttons while a call is in flight. */
+  protected readonly imageBusy = signal(false);
 
   /** The id of the draft this form is editing — set after the first save. */
   private draftId = signal<string | undefined>(undefined);
@@ -213,9 +227,19 @@ export class UnitFormPage {
   });
 
   /** FR-UNT-02 — at least two photographs before the unit can be submitted. */
-  protected readonly imagesValid = computed(() => this.images().length >= this.imageRules.min);
+  /**
+   * Saved and pending together — the count the unit will have once this form
+   * is submitted, which is the count the server checks.
+   *
+   * Counting only the pending files was the bug this replaced: editing a listing
+   * with four photos already on it showed an empty grid, "تحتاج ٣ صور على الأقل"
+   * and a disabled submit, on a unit that had never been short of images.
+   */
+  protected readonly imageCount = computed(() => this.savedImages().length + this.images().length);
 
-  protected readonly canAddMoreImages = computed(() => this.images().length < this.imageRules.max);
+  protected readonly imagesValid = computed(() => this.imageCount() >= this.imageRules.min);
+
+  protected readonly canAddMoreImages = computed(() => this.imageCount() < this.imageRules.max);
 
   constructor() {
     this.reference.categories().subscribe((list) => this.categories.set(list));
@@ -251,6 +275,9 @@ export class UnitFormPage {
         addressLine: unit.addressLine ?? '',
         postalCode: unit.postalCode ?? '',
       });
+      // The detail carries the images nested, so the gallery fills from the
+      // same request as the rest of the form rather than a second one.
+      this.savedImages.set(unit.images);
       this.setSchedule(unit.visitSchedule);
       // Load the district list without clearing the value patchValue just set.
       this.loadDistricts(unit.cityId);
@@ -307,7 +334,7 @@ export class UnitFormPage {
     input.value = '';
 
     for (const file of files) {
-      if (this.images().length >= this.imageRules.max) {
+      if (this.imageCount() >= this.imageRules.max) {
         this.notifications.warning(`الحد الأقصى ${this.imageRules.max} صور.`);
         break;
       }
@@ -326,6 +353,65 @@ export class UnitFormPage {
     const removed = this.images()[index];
     if (removed) URL.revokeObjectURL(removed.previewUrl);
     this.images.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  /**
+   * Deletes an image that is already on the server. Immediate, and there is no
+   * undo — the file is gone from storage, not marked for removal on save.
+   */
+  protected removeSavedImage(imageId: string): void {
+    const unitId = this.draftId();
+    if (!unitId || this.imageBusy()) return;
+
+    this.imageBusy.set(true);
+    this.units.deleteImage(unitId, imageId).subscribe({
+      next: () => {
+        this.savedImages.update((list) => list.filter((image) => image.id !== imageId));
+        this.imageBusy.set(false);
+      },
+      error: () => {
+        this.notifications.error('تعذّر حذف الصورة، حاول مرة أخرى.');
+        this.imageBusy.set(false);
+      },
+    });
+  }
+
+  /**
+   * Moves a saved image one place, `-1` earlier or `+1` later.
+   *
+   * Arrows rather than drag-and-drop: this is the only reordering control in
+   * the product, it has to work on a phone and with a keyboard, and a drag
+   * surface that does neither would be worse than no control at all.
+   *
+   * The whole list goes to the server — that is what the endpoint takes — and
+   * the response is what the screen re-seeds from, so the numbering on screen
+   * is the server's rather than one this page computed and hoped matched.
+   */
+  protected moveSavedImage(index: number, delta: -1 | 1): void {
+    const unitId = this.draftId();
+    const list = this.savedImages();
+    const target = index + delta;
+    if (!unitId || this.imageBusy() || target < 0 || target >= list.length) return;
+
+    const reordered = [...list];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+
+    this.imageBusy.set(true);
+    this.units
+      .reorderImages(
+        unitId,
+        reordered.map((image) => image.id),
+      )
+      .subscribe({
+        next: (images) => {
+          this.savedImages.set(images);
+          this.imageBusy.set(false);
+        },
+        error: () => {
+          this.notifications.error('تعذّر تغيير ترتيب الصور، حاول مرة أخرى.');
+          this.imageBusy.set(false);
+        },
+      });
   }
 
   /** SRS §2.2 — the journey must survive interruption, from any step. */
@@ -390,9 +476,13 @@ export class UnitFormPage {
         pending.map((image) => image.file),
       )
       .pipe(
-        tap(() => {
+        tap((images) => {
           pending.forEach((image) => URL.revokeObjectURL(image.previewUrl));
           this.images.set([]);
+          // The endpoint answers with the unit's complete list in the order it
+          // assigned, so the uploaded files become saved ones here and the
+          // arrows work on them without a re-read.
+          this.savedImages.set(images);
         }),
       );
   }

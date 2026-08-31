@@ -120,6 +120,19 @@ export const API_ENDPOINTS = {
     /** Multipart, field name `images`, several files per call. */
     unitImages: (id: string) => `/lessor/units/${id}/images`,
     unitImageById: (unitId: string, imageId: string) => `/lessor/units/${unitId}/images/${imageId}`,
+    /**
+     * `{ imageIds }` — **every** image on the unit, each exactly once.
+     *
+     * A partial list is a 422 rather than a move of the ids that were sent:
+     * "put these two first" and "these are all the images" cannot both be read
+     * off the same array, so the endpoint only accepts the unambiguous one.
+     * Answers with the images in their new order, like the upload does.
+     *
+     * The first image is the cover, and the cover is what the search results
+     * and "حجوزاتي" show — which is why ordering is a listing control rather
+     * than a nicety.
+     */
+    unitImageOrder: (id: string) => `/lessor/units/${id}/images/order`,
     /** Draft or rejected to PENDING_REVIEW. Refused under two images. */
     submitUnit: (id: string) => `/lessor/units/${id}/submit`,
     archiveUnit: (id: string) => `/lessor/units/${id}/archive`,
@@ -299,12 +312,43 @@ export const API_ENDPOINTS = {
     suspendUser: (id: string) => `/admin/users/${id}/suspend`,
     /** `{ reason }`. */
     activateUser: (id: string) => `/admin/users/${id}/activate`,
+    /**
+     * `{ adminRole, reason }` — a `PUT`, and `admins:manage` alone, so only the
+     * system administrator reaches it. Both fields are required.
+     *
+     * Answers `{ user }` **without the `activity` block** that `GET
+     * /admin/users/:id` carries, so a screen that replaces its detail with this
+     * response loses the five counts. Merge rather than replace.
+     *
+     * Setting the role the account already holds is a 409
+     * `ADMIN_USER_ALREADY_IN_STATE` — which is why the current role is not
+     * offered in the picker rather than being offered and refused.
+     *
+     * There is deliberately no companion that *creates* an administrator: no
+     * route exists for it, so today the first account of a new operator is made
+     * in the database. Raised with the backend.
+     */
+    changeAdminRole: (id: string) => `/admin/users/${id}/admin-role`,
     /** `{ approve, reason? }` — the reason is required to reject. */
     reviewUserIdentity: (id: string) => `/admin/users/${id}/identity`,
 
     // No route edits a user's name, mobile or email, on purpose: an
     // administrator changing somebody's phone number is the shape of an
     // account takeover. Nothing on this side should offer the control.
+
+    /**
+     * FR-PAY-09 — every tax document the platform has issued, both kinds.
+     *
+     * `?from=&to=&type=&page=&pageSize=` and nothing else; an unknown query
+     * parameter is a 422. Any administrator may read it — operations, finance
+     * and the system administrator all answer 200, which is why it is guarded
+     * on `reports:view` like payment tracking rather than on a money permission.
+     *
+     * A row carries the invoice, its type and its booking — but **not who it
+     * was issued to**, so the register is searchable by booking reference and
+     * not by person. Raised with the backend.
+     */
+    invoices: '/admin/invoices',
 
     unitReviewById: (id: string) => `/admin/units/${id}/review-detail`,
 
@@ -440,14 +484,12 @@ export const API_ENDPOINTS = {
     lessors: '/admin/reports/lessors',
   },
 
-  /** Reference data — FR-ADM-05 */
-  reference: {
-    categories: '/reference/categories',
-    cities: '/reference/cities',
-    districts: (cityId: string) => `/reference/cities/${cityId}/districts`,
-    prohibitedItems: '/reference/prohibited-items',
-    banks: '/reference/banks',
-  },
+  // There is no `reference: { … }` group. Those five paths all answered 404 and
+  // duplicated `public.*`, which is shipped and is what the screens read. The
+  // bank list in particular is not owed by anyone: the API resolves the bank
+  // from the IBAN and ignores any `bankName` sent, so there is no bank to
+  // choose. Deleted rather than left named, so this file stays a list of routes
+  // that exist.
 
   /**
    * The signed-in account itself.
@@ -526,6 +568,11 @@ export const API_ENDPOINTS = {
      * booking invoice they were charged and the commission invoice they were
      * billed. Render `type`, or two rows show different totals for one booking
      * with no stated reason.
+     *
+     * `?page=&pageSize=` only — **no `type` filter here**, unlike the
+     * administrator's register. So the list is not filtered at all: filtering
+     * the page in hand would narrow a page rather than the set, and label a
+     * partial answer as a complete one.
      */
     invoices: '/me/invoices',
     invoiceById: (id: string) => `/me/invoices/${id}`,

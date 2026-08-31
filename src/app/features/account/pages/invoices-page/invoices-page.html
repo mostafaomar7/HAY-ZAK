@@ -1,0 +1,90 @@
+<section class="page">
+  <header class="page__head">
+    <h1 class="page__title">{{ i18n.t('invoices.title') }}</h1>
+    <p class="page__sub">{{ i18n.t('invoices.subtitle') }}</p>
+  </header>
+
+  @if (isLoading()) {
+    <app-ui-skeleton [count]="4" [label]="i18n.t('common.loading')" />
+  } @else if (failed()) {
+    <app-ui-empty-state
+      tone="error"
+      [title]="i18n.t('invoices.error')"
+      [hint]="i18n.t('invoices.errorHint')"
+    >
+      <button appUiButton variant="primary" type="button" (click)="load(page())">
+        {{ i18n.t('common.retry') }}
+      </button>
+    </app-ui-empty-state>
+  } @else if (rows().length === 0) {
+    <app-ui-empty-state [title]="i18n.t('invoices.empty')" [hint]="i18n.t('invoices.emptyHint')">
+      <a appUiButton variant="accent" routerLink="/units">{{ i18n.t('result.exploreSpaces') }}</a>
+    </app-ui-empty-state>
+  } @else {
+    <ul class="list">
+      @for (invoice of rows(); track invoice.id) {
+        <li class="row">
+          <div class="row__head">
+            <span class="row__no num" dir="ltr">{{ invoice.invoiceNo }}</span>
+            <app-ui-badge [tone]="typeTone(invoice.type)">
+              {{ typeLabel(invoice.type) }}
+            </app-ui-badge>
+            <span class="row__date num">{{ issuedAt(invoice) }}</span>
+          </div>
+
+          <p class="row__unit" dir="auto">{{ invoice.booking.unit.title }}</p>
+
+          <dl class="row__facts">
+            <div class="fact">
+              <dt class="fact__label">{{ i18n.t('invoices.bookingRef') }}</dt>
+              <dd class="fact__value num" dir="ltr">{{ invoice.booking.referenceNo }}</dd>
+            </div>
+            <div class="fact">
+              <dt class="fact__label">{{ i18n.t('booking.period') }}</dt>
+              <dd class="fact__value num" dir="ltr">
+                {{ invoice.booking.startDate }} — {{ invoice.booking.endDate }}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="row__foot">
+            <div class="row__total">
+              <span class="row__totalLabel">{{ i18n.t('invoices.total') }}</span>
+              <app-ui-money strong [halalas]="invoice.totalHalalas" />
+              <!-- The rate this document was issued under, not today's setting:
+                   a re-read invoice must still state the VAT it was charged. -->
+              @if (showsVat(invoice)) {
+                <span class="row__vat">
+                  {{ i18n.t('invoices.includingVat') }}
+                  <app-ui-money [halalas]="invoice.vatHalalas" />
+                </span>
+              } @else {
+                <span class="row__vat">{{ i18n.t('invoices.noVat') }}</span>
+              }
+            </div>
+
+            <!-- Only the booking document has a printable page, and only an
+                 account that may reach it is offered the link. -->
+            @if (invoice.type === 'BOOKING' && canOpenBooking()) {
+              <a
+                appUiButton
+                variant="outline"
+                [routerLink]="['/my-bookings', invoice.booking.id, 'invoice']"
+              >
+                {{ i18n.t('invoices.open') }}
+              </a>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    <app-ui-pager
+      [total]="total()"
+      [page]="page()"
+      [pageSize]="pageSize"
+      [shown]="shown()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</section>

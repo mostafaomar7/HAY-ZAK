@@ -71,6 +71,10 @@ describe('LessorShell (integration)', () => {
       'المساحات المسجّلة',
       'الطلبات',
       'المستحقات',
+      // The commission invoices the platform billed this lessor. Beside the
+      // earnings rather than inside the account screen: it answers the same
+      // question — "what did this cost me" — from the other side.
+      'فواتيري',
       'شكاويّ',
       'حسابي',
     ]);

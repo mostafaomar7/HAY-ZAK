@@ -64,6 +64,11 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         permission: Permission.ExecutePayouts,
       },
       {
+        route: '/admin/invoices',
+        labelKey: 'adminNav.invoices',
+        permission: Permission.ViewReports,
+      },
+      {
         route: '/admin/reports',
         labelKey: 'adminNav.reports',
         permission: Permission.ViewReports,

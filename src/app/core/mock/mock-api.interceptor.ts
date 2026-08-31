@@ -39,7 +39,6 @@ import {
 } from './admin.fixtures';
 import {
   MOCK_AVAILABILITY,
-  MOCK_BANKS,
   MOCK_BANK_ACCOUNTS,
   MOCK_BOOKINGS,
   MOCK_CATEGORIES,
@@ -57,6 +56,7 @@ import {
   MOCK_INVOICE,
   MOCK_MARKET_AVAILABILITY,
   MOCK_MARKET_UNITS,
+  MOCK_MY_INVOICES,
   MOCK_NAFATH_SESSION,
   MOCK_SIGNUP_TERMS,
   MOCK_PREFERENCES,
@@ -119,12 +119,6 @@ function route(path: string, query: string, method: string, payload: unknown): u
     return paginate(MOCK_CITIES.map((city) => ({ ...city, districts: MOCK_DISTRICTS })));
   }
   if (path === API_ENDPOINTS.public.prohibitedItems) return paginate(MOCK_PROHIBITED_ITEMS);
-
-  if (path === API_ENDPOINTS.reference.categories) return ok(MOCK_CATEGORIES);
-  if (path === API_ENDPOINTS.reference.cities) return ok(MOCK_CITIES);
-  if (path === API_ENDPOINTS.reference.banks) return ok(MOCK_BANKS);
-  if (/^\/reference\/cities\/[^/]+\/districts$/.test(path)) return ok(MOCK_DISTRICTS);
-  if (path === API_ENDPOINTS.reference.prohibitedItems) return ok(MOCK_PROHIBITED_ITEMS);
 
   // ── Public catalogue (FR-MKT) ──────────────────────────────────────────
   // The wire projection, not the fixtures: the public shape withholds the
@@ -312,6 +306,16 @@ function route(path: string, query: string, method: string, payload: unknown): u
   if (/^\/bookings\/[^/]+\/history$/.test(path)) return ok(MOCK_BOOKING_HISTORY);
   if (/^\/renter\/bookings\/[^/]+\/invoice$/.test(path)) return ok({ invoice: MOCK_INVOICE });
 
+  // Both kinds, so a screen that never renders `type` shows one reference with
+  // two totals here too rather than only against the real server.
+  if (path === API_ENDPOINTS.me.invoices) return paginate(MOCK_MY_INVOICES);
+  if (/^\/me\/invoices\/[^/]+$/.test(path)) {
+    const id = path.split('/')[3];
+    const invoice = MOCK_MY_INVOICES.find((i) => i.id === id) ?? MOCK_MY_INVOICES[0];
+    return ok({ invoice });
+  }
+  if (path === API_ENDPOINTS.admin.invoices) return paginate(MOCK_MY_INVOICES);
+
   // ── Admin panel (FR-ADM, FR-RPT) ───────────────────────────────────────
   // A decision verb returns the row it acted on rather than a bare 204: the
   // table refreshes from the response, so the screen and the server cannot
@@ -398,6 +402,13 @@ function route(path: string, query: string, method: string, payload: unknown): u
   // ── Users ──────────────────────────────────────────────────────────────
   if (/^\/admin\/users\/[^/]+\/(suspend|activate|identity)$/.test(path)) {
     return ok({ user: adminUserDetail(path.split('/')[3]) });
+  }
+  // Answers with the account carrying its new kind. The server sends no
+  // `activity` block on this one, which the fixture matches by not having one
+  // — the screen keeps the counts it already read rather than zeroing them.
+  if (/^\/admin\/users\/[^/]+\/admin-role$/.test(path) && method === 'PUT') {
+    const { adminRole } = (payload ?? {}) as { adminRole?: string };
+    return ok({ user: { ...adminUserDetail(path.split('/')[3]), adminRole } });
   }
   if (path === API_ENDPOINTS.admin.users) return paginate(MOCK_ADMIN_USERS);
   if (/^\/admin\/users\/[^/]+$/.test(path)) {
@@ -566,6 +577,17 @@ function route(path: string, query: string, method: string, payload: unknown): u
         note: block.note ?? null,
       }),
     );
+  }
+  if (/^\/lessor\/units\/[^/]+\/images\/order$/.test(path) && method === 'PUT') {
+    // Answers with the images in the order that was asked for, re-numbered —
+    // the same shape the upload sends, and what the screen re-seeds from.
+    const images = toWireUnit(unitById(path.split('/')[3]), { detail: true }).images ?? [];
+    const { imageIds } = (payload ?? {}) as { imageIds?: string[] };
+    const ordered = (imageIds ?? [])
+      .map((id) => images.find((image) => image.id === id))
+      .filter((image) => image !== undefined)
+      .map((image, index) => ({ ...image, sortOrder: index }));
+    return ok({ images: ordered.length ? ordered : images });
   }
   if (/^\/lessor\/units\/[^/]+\/images\/[^/]+$/.test(path) && method === 'DELETE') {
     return ok(null);

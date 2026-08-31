@@ -14,10 +14,22 @@ import type { BookingUnitRef } from './renter-booking';
  * but the legal artefact is still owed, and it is open item 21 with the
  * backend. Nothing here should link to a file that does not exist.
  */
+/**
+ * Which of the two documents a booking produces.
+ *
+ * `BOOKING` is what the renter paid; `COMMISSION` is what the platform billed
+ * the lessor out of it. **The same booking has one of each**, with different
+ * totals, and `/me/invoices` returns both to whichever party they are addressed
+ * to — so a screen that lists invoices without rendering this shows two
+ * conflicting amounts for one reference number and explains neither.
+ */
+export type InvoiceType = 'BOOKING' | 'COMMISSION';
+
 export interface TaxInvoice {
   id: string;
   /** `INV-2026-000041`. Quoted on correspondence about the payment. */
   invoiceNo: string;
+  type: InvoiceType;
   /** An instant, not a plain date — the moment of issue. */
   issuedAt: string;
   /** The amount VAT is charged on, before it. */
@@ -61,6 +73,7 @@ export interface TaxInvoiceBooking {
 export interface WireTaxInvoice {
   id: string;
   invoiceNo: string;
+  type: InvoiceType;
   issuedAt: string;
   taxableHalalas: number;
   vatHalalas: number;
@@ -88,6 +101,7 @@ export function taxInvoiceFromWire(wire: WireTaxInvoice): TaxInvoice {
   return {
     id: wire.id,
     invoiceNo: wire.invoiceNo,
+    type: wire.type,
     issuedAt: wire.issuedAt,
     taxableHalalas: wire.taxableHalalas,
     vatHalalas: wire.vatHalalas,

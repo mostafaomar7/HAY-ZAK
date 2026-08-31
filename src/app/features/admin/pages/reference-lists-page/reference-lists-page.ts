@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { LanguageService } from '@core/i18n/language.service';
 import { ApiError } from '@core/models/api-error.model';
 import type {
@@ -45,7 +46,9 @@ import {
   selector: 'app-admin-reference-lists-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [AdminReferenceService],
-  imports: [UiBadge, UiButton, UiEmptyState, UiNotice, UiSkeleton, UiTabs],
+  // `FormsModule` for `NgForm`: `(ngSubmit)` is its output, and without it the
+  // add form submits natively and reloads the console instead of adding a row.
+  imports: [FormsModule, UiBadge, UiButton, UiEmptyState, UiNotice, UiSkeleton, UiTabs],
   templateUrl: './reference-lists-page.html',
   styleUrl: './reference-lists-page.scss',
 })

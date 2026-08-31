@@ -275,15 +275,62 @@
         </p>
 
         <div class="images">
+          <!-- The images already stored, in the server's order. First is the
+               cover — it is what the search results and «حجوزاتي» show, which
+               is why the arrows are here rather than in a settings screen. -->
+          @for (image of savedImages(); track image.id; let i = $index, first = $first) {
+            <figure class="images__item">
+              <app-ui-thumbnail [src]="image.url" alt="" size="md" />
+              @if (first) {
+                <figcaption class="images__primary">الصورة الرئيسية</figcaption>
+              }
+
+              <!-- Arrows, not drag-and-drop: this has to work on a phone and
+                   from the keyboard, and a drag surface does neither. -->
+              <div class="images__order">
+                <button
+                  type="button"
+                  class="images__move"
+                  [disabled]="first || imageBusy()"
+                  (click)="moveSavedImage(i, -1)"
+                >
+                  <span aria-hidden="true">←</span>
+                  <span class="sr-only">تقديم الصورة {{ i + 1 }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="images__move"
+                  [disabled]="i === savedImages().length - 1 || imageBusy()"
+                  (click)="moveSavedImage(i, 1)"
+                >
+                  <span aria-hidden="true">→</span>
+                  <span class="sr-only">تأخير الصورة {{ i + 1 }}</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="images__remove"
+                [disabled]="imageBusy()"
+                (click)="removeSavedImage(image.id)"
+              >
+                حذف
+                <span class="sr-only">الصورة {{ i + 1 }}</span>
+              </button>
+            </figure>
+          }
+
+          <!-- Picked but not uploaded yet: no id, so nothing to reorder or
+               delete on the server — they are removed from the selection. -->
           @for (image of images(); track image.previewUrl; let i = $index) {
             <figure class="images__item">
               <app-ui-thumbnail [src]="image.previewUrl" alt="" size="md" />
-              @if (i === 0) {
+              @if (i === 0 && savedImages().length === 0) {
                 <figcaption class="images__primary">الصورة الرئيسية</figcaption>
               }
               <button type="button" class="images__remove" (click)="removeImage(i)">
                 إزالة
-                <span class="sr-only">الصورة {{ i + 1 }}</span>
+                <span class="sr-only">الصورة {{ savedImages().length + i + 1 }}</span>
               </button>
             </figure>
           }

@@ -154,6 +154,12 @@ const ar = {
   'users.suspendLive': 'لدى هذا الحساب {count} حجز قائم. الإيقاف سيؤثر عليها.',
   'users.suspendAnyway': 'أوقف الحساب على أي حال',
   'users.cannotAct': 'لا يمكن إيقاف حساب إداري، ولا إيقاف حسابك أنت.',
+  'users.changeRole': 'تغيير نوع الإداري',
+  'users.changeRoleHint':
+    'يتغيّر ما يستطيع هذا الإداري الوصول إليه فورًا، وتُلغى صلاحياته السابقة في اللحظة نفسها.',
+  'users.newRole': 'النوع الجديد',
+  'users.newRolePlaceholder': 'اختر النوع',
+  'users.roleReasonHint': 'يُسجَّل في سجل التدقيق مع النوع القديم والجديد.',
   'users.noEditing': 'لا يمكن تعديل الاسم أو الجوال أو البريد من هنا. رقم الهوية مشفّر ولا يُعرض.',
   'audit.requestId': 'معرّف الطلب',
   'audit.allEntities': 'كل الكيانات',
@@ -891,6 +897,36 @@ const ar = {
   'invoice.notReady': 'الفاتورة غير متاحة بعد',
   'invoice.notReadyHint': 'تصدر الفاتورة الضريبية بعد استلام الدفع.',
 
+  // ── My invoices (FR-PAY-09) — the renter's and the lessor's, one screen ──
+  'invoices.title': 'فواتيري',
+  'invoices.subtitle':
+    'كل فاتورة ضريبية صادرة باسمك: فواتير الحجوزات التي دفعتها وفواتير عمولة المنصة على مساحاتك.',
+  'invoices.typeBooking': 'فاتورة حجز',
+  'invoices.typeCommission': 'فاتورة عمولة',
+  'invoices.bookingRef': 'رقم الحجز',
+  'invoices.total': 'الإجمالي',
+  'invoices.includingVat': 'منها ضريبة قيمة مضافة',
+  'invoices.noVat': 'بدون ضريبة قيمة مضافة',
+  'invoices.open': 'عرض الفاتورة',
+  'invoices.empty': 'لا توجد فواتير بعد',
+  'invoices.emptyHint': 'تصدر الفاتورة الضريبية بعد تأكيد الحجز واستلام الدفع.',
+  'invoices.error': 'تعذّر تحميل الفواتير',
+  'invoices.errorHint': 'تحقّق من الاتصال ثم أعد المحاولة.',
+
+  // ── Invoice register (FR-PAY-09) — the console's read-only ledger ───────
+  'adminInvoices.title': 'سجل الفواتير',
+  'adminInvoices.number': 'رقم الفاتورة',
+  'adminInvoices.kind': 'النوع',
+  'adminInvoices.allKinds': 'كل الأنواع',
+  'adminInvoices.allPeriods': 'كل الفترات',
+  'adminInvoices.issuedAt': 'تاريخ الإصدار',
+  'adminInvoices.taxable': 'الوعاء الضريبي',
+  'adminInvoices.vat': 'ضريبة القيمة المضافة',
+  'adminInvoices.empty': 'لا توجد فواتير في هذه الفترة',
+  'adminInvoices.emptyHint': 'وسّع الفترة أو أزل الفلاتر.',
+  'adminInvoices.error': 'تعذّر تحميل سجل الفواتير',
+  'adminInvoices.errorHint': 'أعد المحاولة، وإن تكرر الخطأ أبلغ الدعم بالرقم المرجعي.',
+
   // ── Cancellation (RNT-08) ──────────────────────────────────────────────
 
   // ── Renter account (RNT-09) ────────────────────────────────────────────
@@ -1064,6 +1100,7 @@ const ar = {
   'adminNav.payments': 'متابعة المدفوعات',
   'adminNav.transfers': 'التحويلات',
   'adminNav.reports': 'التقارير',
+  'adminNav.invoices': 'سجل الفواتير',
   'adminNav.financialSettings': 'الإعدادات المالية',
   'adminNav.users': 'المستخدمون',
   'adminNav.referenceLists': 'القوائم المرجعية',
@@ -1391,6 +1428,7 @@ const ar = {
   'users.suspend': 'إيقاف',
   'users.verify': 'توثيق',
   'users.statusChanged': 'حُدّثت حالة الحساب وسُجّل الإجراء في سجل التدقيق.',
+  'users.roleChanged': 'تغيّر نوع الإداري وسُجّل الإجراء في سجل التدقيق.',
   'users.suspendTitle': 'إيقاف الحساب',
   'users.suspendBody':
     'يفقد صاحب الحساب القدرة على الدخول وعلى إنشاء أي حجز أو إعلان جديد. لا تتأثر الحجوزات القائمة ولا التحويلات المستحقة.',
@@ -1794,6 +1832,12 @@ const en: Partial<Record<TranslationKey, string>> = {
   'users.suspendLive': 'This account has {count} live bookings. Suspending affects them.',
   'users.suspendAnyway': 'Suspend anyway',
   'users.cannotAct': 'An administrator cannot be suspended, and neither can your own account.',
+  'users.changeRole': 'Change administrator kind',
+  'users.changeRoleHint':
+    'What this administrator can reach changes immediately, and the previous permissions are revoked at the same moment.',
+  'users.newRole': 'New kind',
+  'users.newRolePlaceholder': 'Choose a kind',
+  'users.roleReasonHint': 'Recorded in the audit trail with the old and the new kind.',
   'users.noEditing':
     'Names, mobiles and emails cannot be edited here. The national id is encrypted and not shown.',
   'audit.requestId': 'Request id',
@@ -2526,6 +2570,34 @@ const en: Partial<Record<TranslationKey, string>> = {
   'invoice.notReady': 'The invoice is not available yet',
   'invoice.notReadyHint': 'A tax invoice is issued once payment is received.',
 
+  'invoices.title': 'My invoices',
+  'invoices.subtitle':
+    'Every tax document issued in your name: the booking invoices you paid, and the platform commission invoices for your spaces.',
+  'invoices.typeBooking': 'Booking invoice',
+  'invoices.typeCommission': 'Commission invoice',
+  'invoices.bookingRef': 'Booking reference',
+  'invoices.total': 'Total',
+  'invoices.includingVat': 'of which VAT',
+  'invoices.noVat': 'No VAT charged',
+  'invoices.open': 'View invoice',
+  'invoices.empty': 'No invoices yet',
+  'invoices.emptyHint': 'A tax invoice is issued once a booking is confirmed and paid.',
+  'invoices.error': 'The invoices could not be loaded',
+  'invoices.errorHint': 'Check your connection and try again.',
+
+  'adminInvoices.title': 'Invoice register',
+  'adminInvoices.number': 'Invoice no.',
+  'adminInvoices.kind': 'Kind',
+  'adminInvoices.allKinds': 'All kinds',
+  'adminInvoices.allPeriods': 'All periods',
+  'adminInvoices.issuedAt': 'Issued',
+  'adminInvoices.taxable': 'Taxable amount',
+  'adminInvoices.vat': 'VAT',
+  'adminInvoices.empty': 'No invoices in this period',
+  'adminInvoices.emptyHint': 'Widen the period or clear the filters.',
+  'adminInvoices.error': 'The invoice register could not be loaded',
+  'adminInvoices.errorHint': 'Try again, and quote the reference if it keeps failing.',
+
   'account.title': 'My account',
   'account.role': 'Renter',
   'account.mobileVerified': 'Mobile verified',
@@ -2694,6 +2766,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'adminNav.payments': 'Payment tracking',
   'adminNav.transfers': 'Transfers',
   'adminNav.reports': 'Reports',
+  'adminNav.invoices': 'Invoice register',
   'adminNav.financialSettings': 'Financial settings',
   'adminNav.users': 'Users',
   'adminNav.referenceLists': 'Reference lists',
@@ -3021,6 +3094,7 @@ const en: Partial<Record<TranslationKey, string>> = {
   'users.suspend': 'Suspend',
   'users.verify': 'Verify',
   'users.statusChanged': 'The account status was updated and recorded in the audit trail.',
+  'users.roleChanged': 'The administrator kind was changed and recorded in the audit trail.',
   'users.suspendTitle': 'Suspend the account',
   'users.suspendBody':
     'The account holder loses the ability to sign in and to create any new booking or listing. Existing bookings and due transfers are unaffected.',

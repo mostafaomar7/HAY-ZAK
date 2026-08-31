@@ -21,7 +21,6 @@ export class ReferenceDataService {
 
   private categories$?: Observable<ReferenceItem[]>;
   private cities$?: Observable<CityWithDistricts[]>;
-  private banks$?: Observable<ReferenceItem[]>;
 
   categories(): Observable<ReferenceItem[]> {
     this.categories$ ??= this.api
@@ -37,14 +36,6 @@ export class ReferenceDataService {
       .pipe(map((page) => page.items))
       .pipe(shareReplay({ bufferSize: 1, refCount: false }));
     return this.cities$;
-  }
-
-  /** FR-LSR-02 — bank list for the account-holder form. */
-  banks(): Observable<ReferenceItem[]> {
-    this.banks$ ??= this.api
-      .get<ReferenceItem[]>(API_ENDPOINTS.reference.banks)
-      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-    return this.banks$;
   }
 
   /**
@@ -74,6 +65,5 @@ export class ReferenceDataService {
   invalidate(): void {
     this.categories$ = undefined;
     this.cities$ = undefined;
-    this.banks$ = undefined;
   }
 }

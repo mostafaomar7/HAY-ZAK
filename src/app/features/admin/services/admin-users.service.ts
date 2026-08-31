@@ -4,11 +4,13 @@ import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { ApiError } from '@core/models/api-error.model';
 import type { PaginatedResponse } from '@core/models/api-response.model';
+import type { AdminRole } from '@core/enums/user-role.enum';
 import type {
   ActivateUserRequest,
   AdminUserDetail,
   AdminUserQuery,
   AdminUserRow,
+  ChangeAdminRoleRequest,
   ReviewIdentityRequest,
   SuspendUserRequest,
   WireAdminUser,
@@ -20,11 +22,12 @@ import { ApiService } from '@core/services/api.service';
 /**
  * User administration (FR-ADM-04) — `users:manage`.
  *
- * Three verbs, not one status setter. The endpoints are genuinely different
- * actions rather than three ways of writing a field: suspending takes a reason
+ * Four verbs, not one status setter. The endpoints are genuinely different
+ * actions rather than four ways of writing a field: suspending takes a reason
  * and can be refused over live bookings, activating takes a reason and cannot,
- * and reviewing an identity is about a document rather than an account state.
- * A single `setStatus` would have had to invent a shared shape for all three.
+ * reviewing an identity is about a document rather than an account state, and
+ * changing an administrator's kind needs a permission none of the others do.
+ * A single `setStatus` would have had to invent a shared shape for all four.
  *
  * There is deliberately **no method that edits a name, a mobile or an email**.
  * The endpoint does not exist, and it does not exist because an administrator
@@ -85,6 +88,30 @@ export class AdminUsersService {
   activate(id: string, reason: string): Observable<AdminUserDetail> {
     return this.api
       .post<WireAdminUserResponse, ActivateUserRequest>(API_ENDPOINTS.admin.activateUser(id), {
+        reason,
+      })
+      .pipe(map((response) => adminUserDetailFromWire(response.user)));
+  }
+
+  /**
+   * FR-ADM-04 — moves an administrator between the three kinds.
+   *
+   * `admins:manage`, so the system administrator alone; every other operator
+   * gets a 403 and never sees the control. Setting the kind the account already
+   * holds is a 409 `ADMIN_USER_ALREADY_IN_STATE`, which is why the current one
+   * is left out of the picker rather than offered and refused.
+   *
+   * The response is a `WireAdminUserDetail` **without its `activity` block**,
+   * unlike suspend and activate. Left to the caller to merge rather than
+   * papered over here: `adminUserDetailFromWire` zeroes what is missing, and
+   * five counts silently becoming zero beside a suspend button is a worse
+   * answer than none. A role change cannot alter them, so the ones already on
+   * screen are still true.
+   */
+  changeAdminRole(id: string, adminRole: AdminRole, reason: string): Observable<AdminUserDetail> {
+    return this.api
+      .put<WireAdminUserResponse, ChangeAdminRoleRequest>(API_ENDPOINTS.admin.changeAdminRole(id), {
+        adminRole,
         reason,
       })
       .pipe(map((response) => adminUserDetailFromWire(response.user)));

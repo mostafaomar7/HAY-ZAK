@@ -80,6 +80,17 @@ export const ADMIN_ROUTES: Routes = [
           import('./pages/transfers-page/transfers-page').then((m) => m.AdminTransfersPage),
       },
       {
+        // `reports:view`, not a money permission: the server answers 200 to all
+        // three administrator kinds, and guarding it tighter than the API would
+        // hide a register from somebody the API lets read it.
+        path: 'invoices',
+        title: 'سجل الفواتير',
+        data: { titleKey: 'adminNav.invoices' },
+        canActivate: [permissionGuard([Permission.ViewReports])],
+        loadComponent: () =>
+          import('./pages/invoices-page/invoices-page').then((m) => m.AdminInvoicesPage),
+      },
+      {
         path: 'reports',
         title: 'التقارير',
         data: { titleKey: 'adminNav.reports' },
