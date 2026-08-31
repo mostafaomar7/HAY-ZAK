@@ -21,7 +21,7 @@ import { NotificationService } from '@core/services/notification.service';
 import { ReferenceDataService } from '@core/services/reference-data.service';
 import { markFormTouched } from '@core/utils/form.utils';
 import { halalasToSar, sarToHalalas } from '@core/utils/money.utils';
-import { isValidWindow } from '@core/utils/schedule.utils';
+import { isValidTimeRange } from '@core/utils/schedule.utils';
 import { controlChanges } from '@core/utils/form-signals';
 import { LessorUnitsService } from '../../services/lessor-units.service';
 import { UiButton } from '@shared/components/ui-button/ui-button';
@@ -51,7 +51,10 @@ type VisitHoursGroup = FormGroup<{ from: FormControl<string>; to: FormControl<st
  */
 function visitHoursValidator(control: AbstractControl): ValidationErrors | null {
   const { from, to } = (control as VisitHoursGroup).getRawValue();
-  return isValidWindow({ days: [], from, to }) ? null : { visitHours: true };
+  // The times only. `isValidWindow` also demands at least one day, and this
+  // form has none to give — the API stores one window covering every day — so
+  // asking it here was a check that could never pass.
+  return isValidTimeRange(from, to) ? null : { visitHours: true };
 }
 
 /**

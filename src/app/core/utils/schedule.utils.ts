@@ -68,14 +68,28 @@ export function uncoveredDays(windows: readonly VisitWindow[]): Weekday[] {
 }
 
 /**
- * A window is usable when it names at least one day and closes after it opens.
+ * The two times on their own: both filled in, and the closing one after the
+ * opening one.
+ *
+ * Separate from `isValidWindow` because a caller can have no days to give it.
+ * The unit form is exactly that: the API stores one window that applies to
+ * every day and has no day list at all, so the form used to ask
+ * `isValidWindow({ days: [], from, to })` — which is false by definition, since
+ * that rule requires at least one day. The visiting-hours group was therefore
+ * permanently invalid and **no lessor could get past step two of adding a
+ * space**, whatever times they entered.
  *
  * String comparison is safe and deliberate: the format is zero-padded 24-hour,
  * so "09:00" < "21:00" lexically as well as chronologically, and no Date is
  * built for a value that carries no date.
  */
+export function isValidTimeRange(from: string, to: string): boolean {
+  return !!from && !!to && from < to;
+}
+
+/** A window is usable when it names at least one day and closes after it opens. */
 export function isValidWindow(window: VisitWindow): boolean {
-  return window.days.length > 0 && !!window.from && !!window.to && window.from < window.to;
+  return window.days.length > 0 && isValidTimeRange(window.from, window.to);
 }
 
 /** "09:00" reads as an hour; "9:00" is how the design writes it. */

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
+import type { FormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import { UnitStatus } from '@core/enums/unit-status.enum';
@@ -138,5 +139,62 @@ describe('UnitFormPage — saved images', () => {
     expect((first[0] as HTMLButtonElement).disabled).toBeTrue();
     expect((first[1] as HTMLButtonElement).disabled).toBeFalse();
     expect((last[1] as HTMLButtonElement).disabled).toBeTrue();
+  });
+});
+
+/**
+ * The wizard's step gate (FR-UNT-06).
+ *
+ * Written after a total blocker: the visiting-hours group asked
+ * `isValidWindow({ days: [], … })`, which requires at least one day and so was
+ * false whatever times were entered. Step two never validated, and **no lessor
+ * could add a space at all** — the form said "اختر وقت إغلاق بعد وقت الفتح"
+ * about a window that closed nine hours after it opened.
+ */
+describe('UnitFormPage — visiting hours', () => {
+  let fixture: ComponentFixture<UnitFormPage>;
+  let http: HttpTestingController;
+
+  /** The group, reached the way the template's validator reaches it. */
+  function hours() {
+    return (fixture.componentInstance as unknown as { form: FormGroup }).form.get('visitHours')!;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UnitFormPage],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UnitFormPage);
+    http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.match(() => true).forEach((r) => r.flush({ success: true, data: { items: [] } }));
+  });
+
+  afterEach(() => http.verify());
+
+  it('accepts the window the form opens with', () => {
+    expect(hours().getRawValue()).toEqual({ from: '09:00', to: '21:00' });
+    expect(hours().valid).toBeTrue();
+  });
+
+  it('accepts a window that opens after midnight and closes in the evening', () => {
+    hours().setValue({ from: '01:06', to: '18:06' });
+    expect(hours().valid).toBeTrue();
+  });
+
+  /** The rule this control actually exists for. */
+  it('rejects a closing time at or before the opening time', () => {
+    hours().setValue({ from: '21:00', to: '09:00' });
+    expect(hours().valid).toBeFalse();
+
+    hours().setValue({ from: '09:00', to: '09:00' });
+    expect(hours().valid).toBeFalse();
+  });
+
+  it('rejects a half-filled window rather than reading it as open all day', () => {
+    hours().setValue({ from: '09:00', to: '' });
+    expect(hours().valid).toBeFalse();
   });
 });
