@@ -162,7 +162,7 @@ const ar = {
     'لا يُنشأ الحساب بكلمة مرور. يحدّدها صاحبه بنفسه عبر «نسيت كلمة المرور»، فلا تمرّ كلمة المرور على أحد غيره.',
   'users.adminCreated': 'أُنشئ الحساب الإداري وسُجّل الإجراء في سجل التدقيق.',
   'users.changeRoleHint':
-    'يتغيّر ما يستطيع هذا الإداري الوصول إليه فورًا، وتُلغى صلاحياته السابقة في اللحظة نفسها.',
+    'تتغيّر صلاحياته على الخادم فورًا، لكن جلسته المفتوحة تظل تعمل بصلاحياتها القديمة حتى تنتهي — نصف ساعة على الأكثر — ثم يتعذّر تجديدها ويُسجَّل خروجه.',
   'users.newRole': 'النوع الجديد',
   'users.newRolePlaceholder': 'اختر النوع',
   'users.roleReasonHint': 'يُسجَّل في سجل التدقيق مع النوع القديم والجديد.',
@@ -1520,7 +1520,14 @@ const ar = {
   'audit.readOnly':
     'سجل التدقيق للقراءة فقط، ولا يقبل التعديل أو الحذف من أي دور. تُحفظ القيود مدة عشر سنوات وتُصدَّر عند الطلب النظامي.',
   'audit.title': 'قيود التدقيق',
-  'audit.searchPlaceholder': 'معرّف العنصر المستهدف (مطابقة كاملة)',
+  'audit.searchPlaceholder': 'معرّف العنصر، أو اسم/جوال/بريد مستخدم',
+  'audit.subject': 'نوع السؤال',
+  'audit.subjectEntity': 'ما جرى له',
+  'audit.subjectActor': 'ما قام به',
+  'audit.resolvedEntity': 'يُعرض كل ما جرى لحساب {name}.',
+  'audit.resolvedActor': 'يُعرض كل ما قام به {name}.',
+  'audit.unresolved':
+    'لا يوجد مستخدم مطابق لـ «{term}». جرّب الاسم كاملاً أو رقم الجوال، أو ألصق معرّف العنصر مباشرة.',
   'audit.user': 'المستخدم',
   'audit.allUsers': 'كل المستخدمين',
   'audit.action': 'الإجراء',
@@ -1850,7 +1857,7 @@ const en: Partial<Record<TranslationKey, string>> = {
     'The account is created without a password. They set their own through "forgot password", so the credential never passes through anybody else.',
   'users.adminCreated': 'The administrator account was created and recorded in the audit trail.',
   'users.changeRoleHint':
-    'What this administrator can reach changes immediately, and the previous permissions are revoked at the same moment.',
+    'Their permissions change on the server at once, but an open session keeps its old ones until it expires — half an hour at most — after which it cannot be renewed and they are signed out.',
   'users.newRole': 'New kind',
   'users.newRolePlaceholder': 'Choose a kind',
   'users.roleReasonHint': 'Recorded in the audit trail with the old and the new kind.',
@@ -3196,7 +3203,14 @@ const en: Partial<Record<TranslationKey, string>> = {
   'audit.readOnly':
     'The audit trail is read-only and accepts no edit or deletion from any role. Entries are kept for ten years and exported on lawful request.',
   'audit.title': 'Audit entries',
-  'audit.searchPlaceholder': 'Target entity id (exact match)',
+  'audit.searchPlaceholder': 'Entity id, or a name / mobile / email',
+  'audit.subject': 'Question',
+  'audit.subjectEntity': 'What happened to them',
+  'audit.subjectActor': 'What they did',
+  'audit.resolvedEntity': 'Showing everything that happened to {name}.',
+  'audit.resolvedActor': 'Showing everything {name} did.',
+  'audit.unresolved':
+    'No user matches "{term}". Try the full name or the mobile number, or paste the entity id directly.',
   'audit.user': 'User',
   'audit.allUsers': 'All users',
   'audit.action': 'Action',

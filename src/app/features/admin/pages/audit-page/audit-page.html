@@ -8,6 +8,18 @@
   (cleared)="onReset()"
 />
 
+<!-- The two-step made visible. The operator typed a name or a number; this
+     says which person it landed on, and which of the two questions is being
+     answered — "what happened to them" reads nothing like "what they did". -->
+@if (resolvedLabel()) {
+  <app-ui-notice tone="info">{{ resolvedLabel() }}</app-ui-notice>
+}
+@if (unresolved()) {
+  <app-ui-notice tone="warning">
+    {{ i18n.t('audit.unresolved', { term: unresolved() }) }}
+  </app-ui-notice>
+}
+
 <app-admin-table
   [columns]="columns()"
   [rows]="rows()"

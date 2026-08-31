@@ -13,6 +13,13 @@ import { AdminTable } from '../../components/admin-table/admin-table';
 import type { AdminColumn } from '../../components/admin-table/admin-table';
 import { AdminListState } from '../../services/admin-list-state';
 import { AdminAuditService } from '../../services/admin-audit.service';
+import { AdminUsersService } from '../../services/admin-users.service';
+
+/** Whether the person named is the one acted on, or the one who acted. */
+type Subject = 'entity' | 'actor';
+
+/** A UUID goes straight through; anything else is a person to look up first. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * ADM-13 — the audit trail (FR-ADM-09), `audit:view` and nobody else.
@@ -35,13 +42,14 @@ import { AdminAuditService } from '../../services/admin-audit.service';
 @Component({
   selector: 'app-admin-audit-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminAuditService],
+  providers: [AdminAuditService, AdminUsersService],
   imports: [DatePipe, AdminFilterBar, AdminPanel, AdminTable, UiNotice],
   templateUrl: './audit-page.html',
   styleUrl: './audit-page.scss',
 })
 export class AdminAuditPage {
   private readonly audit = inject(AdminAuditService);
+  private readonly users = inject(AdminUsersService);
 
   protected readonly i18n = inject(LanguageService);
   protected readonly list = new AdminListState();
@@ -49,6 +57,18 @@ export class AdminAuditPage {
   protected readonly rows = signal<AuditEntry[]>([]);
   protected readonly detail = signal<AuditEntry | null>(null);
   protected readonly actions = signal<AuditAction[]>([]);
+
+  /**
+   * Whose id the typed value resolved to, when it was not already one.
+   *
+   * Shown above the table so the two-step is visible rather than magic: the
+   * operator typed a mobile number and is looking at one person's trail, and
+   * they should be able to see which person was picked.
+   */
+  protected readonly resolved = signal<{ name: string; subject: Subject } | null>(null);
+
+  /** The lookup found nobody, so there is no id to filter on and no rows. */
+  protected readonly unresolved = signal('');
 
   protected readonly columns = computed<AdminColumn[]>(() => [
     { key: 'actor', label: this.i18n.t('audit.user'), width: '1.2fr' },
@@ -75,6 +95,23 @@ export class AdminAuditPage {
       ],
     },
     {
+      /**
+       * Which of the two questions is being asked.
+       *
+       * "What happened to this account" and "what did this account do" are
+       * different questions with different answers, and the trail keeps them in
+       * different columns — `entityId` against `actorUserId`. One box that
+       * silently picked for the operator would answer whichever it chose and
+       * look like it had answered the other.
+       */
+      key: 'subject',
+      label: this.i18n.t('audit.subject'),
+      options: [
+        { value: 'entity', label: this.i18n.t('audit.subjectEntity') },
+        { value: 'actor', label: this.i18n.t('audit.subjectActor') },
+      ],
+    },
+    {
       key: 'entityType',
       label: this.i18n.t('audit.entity'),
       options: [
@@ -96,21 +133,72 @@ export class AdminAuditPage {
     });
   }
 
+  /**
+   * Reads the trail, resolving a person to an id first when it has to.
+   *
+   * `/admin/audit` has no free-text search and will not be given one: both
+   * value columns are JSON, so searching inside them is a sequential scan of a
+   * table that only ever grows — and it would turn the audit trail into a
+   * search index over personal data, which is the opposite of why those columns
+   * store only the fields that changed.
+   *
+   * So the backend's two-step is what runs here: look the person up in
+   * `/admin/users`, which is indexed for exactly that, then filter the trail by
+   * the id it returns. The operator types a mobile number and sees a trail;
+   * the two requests are theirs to notice, not to make.
+   */
   protected fetch(): void {
     this.list.begin();
     const filters = this.list.filters();
+    const typed = filters['search']?.trim() ?? '';
+    const subject: Subject = filters['subject'] === 'actor' ? 'actor' : 'entity';
 
+    if (!typed) {
+      this.resolved.set(null);
+      this.unresolved.set('');
+      this.read(filters, {});
+      return;
+    }
+
+    // Already an id — no lookup, and none is possible: an `entityId` may be a
+    // unit or a booking, and neither is in `/admin/users`.
+    if (UUID.test(typed)) {
+      this.resolved.set(null);
+      this.unresolved.set('');
+      this.read(filters, subject === 'actor' ? { actorUserId: typed } : { entityId: typed });
+      return;
+    }
+
+    this.users.list({ search: typed }).subscribe({
+      next: (page) => {
+        const person = page.items[0];
+        if (!person) {
+          // No id means no filter, and reading unfiltered here would answer a
+          // different question with a full trail — which reads as a result.
+          this.resolved.set(null);
+          this.unresolved.set(typed);
+          this.rows.set([]);
+          this.list.succeed(0, 0);
+          return;
+        }
+
+        this.unresolved.set('');
+        this.resolved.set({ name: person.fullName, subject });
+        this.read(
+          filters,
+          subject === 'actor' ? { actorUserId: person.id } : { entityId: person.id },
+        );
+      },
+      error: () => this.list.fail(),
+    });
+  }
+
+  private read(filters: AdminFilterValues, who: { entityId?: string; actorUserId?: string }): void {
     this.audit
       .list({
         action: filters['action'] || undefined,
         entityType: filters['entityType'] || undefined,
-        // The box typed into is this, not a `search`. `/admin/audit` takes
-        // `action`, `entityType`, `entityId`, `actorUserId`, `from`, `to` and
-        // the page — and a fifth parameter is a 422 naming those. The search
-        // value was being collected and never sent, so the field did nothing
-        // at all. An exact entity id is also the question this trail is
-        // actually asked: "everything that happened to this listing".
-        entityId: filters['search']?.trim() || undefined,
+        ...who,
         from: filters['from'] || undefined,
         to: filters['to'] || undefined,
         page: this.list.page(),
@@ -137,6 +225,15 @@ export class AdminAuditPage {
   protected onPage(page: number): void {
     this.list.setPage(page);
     this.fetch();
+  }
+
+  /** "كل ما فعله فلان" or "كل ما جرى لفلان" — never both at once. */
+  protected resolvedLabel(): string {
+    const found = this.resolved();
+    if (!found) return '';
+    return found.subject === 'actor'
+      ? this.i18n.t('audit.resolvedActor', { name: found.name })
+      : this.i18n.t('audit.resolvedEntity', { name: found.name });
   }
 
   protected openRow(row: AuditEntry): void {

@@ -337,8 +337,15 @@ export const API_ENDPOINTS = {
      * system administrator reaches it. Both fields are required.
      *
      * Answers `{ user }` **without the `activity` block** that `GET
-     * /admin/users/:id` carries, so a screen that replaces its detail with this
-     * response loses the five counts. Merge rather than replace.
+     * /admin/users/:id` carries — as `suspend` and `activate` also do, so this
+     * is the rule for an action's response rather than an exception. Merge
+     * rather than replace; only `byId` counts.
+     *
+     * **It revokes the refresh tokens, not the live access token.** So the
+     * administrator is not ejected: their open session keeps the *old*
+     * permissions until it expires — thirty minutes at most — and only then
+     * fails to renew. Nothing on screen may say "their sessions have ended",
+     * because for up to half an hour they have not.
      *
      * Setting the role the account already holds is a 409
      * `ADMIN_USER_ALREADY_IN_STATE` — which is why the current role is not
