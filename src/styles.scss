@@ -6,9 +6,16 @@
 @use 'styles/base';
 
 html {
-  // Arabic is the default and the interface direction is RTL (SRS §2.5).
-  // LanguageService rewrites this pair when the user switches to English.
-  direction: rtl;
+  // No `direction` here, deliberately. Arabic is the default and the interface
+  // is RTL (SRS §2.5), but that is stated by `dir="rtl"` on the element in
+  // index.html and rewritten by LanguageService when the language changes.
+  //
+  // A `direction` *declaration* in this file would override the attribute
+  // rather than seed it: `dir` works through a user-agent rule, and any author
+  // rule outranks one. The page then translated into English and stayed laid
+  // out right-to-left — full stops rendered at the start of the line, the
+  // brand pinned to the right, the three "how it works" cards counting
+  // backwards. Everything looked switched except the switching.
   scroll-behavior: smooth;
 }
 
