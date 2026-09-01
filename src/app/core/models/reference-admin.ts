@@ -70,8 +70,10 @@ export interface ReferenceData {
 
 // ── Requests ──────────────────────────────────────────────────────────────
 //
-// Creating requires the names; updating is a partial, so a rename does not
-// have to resend an icon key nobody touched.
+// **`PUT` is a full replace, not a patch.** Sending `{ isActive: false }` alone
+// is a 422 naming `nameAr` and `nameEn` — and `cityId` too, on a district. So
+// every update resends the whole entry, and `requestFor()` below is what builds
+// one from a row so no caller has to remember which fields its kind needs.
 
 export interface CategoryRequest {
   slug: string;
@@ -103,6 +105,52 @@ export interface ProhibitedItemRequest {
   noteEn?: string;
   sortOrder?: number;
   isActive?: boolean;
+}
+
+export type ReferenceRow = ReferenceCategory | ReferenceCity | ReferenceDistrict | ProhibitedItem;
+
+export type ReferenceRequest =
+  CategoryRequest | CityRequest | DistrictRequest | ProhibitedItemRequest;
+
+/**
+ * The whole entry as the server wants it back, with `changes` applied.
+ *
+ * Every `PUT` on these lists is a full replace: `{ isActive: false }` on its
+ * own is a 422 asking for the names it was not sent. Deactivating a city, a
+ * district or a prohibited item therefore has to resend everything the row
+ * already had — which nobody was doing, so the toggle simply failed on three of
+ * the four tabs.
+ *
+ * Built from the row rather than from the form, so an untouched field goes back
+ * exactly as it came. The kind is read off the row's own shape: a category has
+ * a `slug`, a district a `cityId`, a prohibited item its notes.
+ */
+export function requestFor(row: ReferenceRow, changes: Partial<ReferenceEntry> = {}) {
+  const base = {
+    nameAr: row.nameAr,
+    nameEn: row.nameEn,
+    sortOrder: row.sortOrder,
+    isActive: row.isActive,
+    ...changes,
+  };
+
+  if ('slug' in row) {
+    return { ...base, slug: row.slug, iconKey: row.iconKey ?? undefined } as CategoryRequest;
+  }
+  if ('cityId' in row) {
+    // A district has no `sortOrder` on the wire and the endpoint does not take
+    // one; sending it would be an unknown field rather than a harmless extra.
+    const { sortOrder: _sortOrder, ...rest } = base;
+    return { ...rest, cityId: row.cityId } as DistrictRequest;
+  }
+  if ('noteAr' in row) {
+    return {
+      ...base,
+      noteAr: row.noteAr ?? undefined,
+      noteEn: row.noteEn ?? undefined,
+    } as ProhibitedItemRequest;
+  }
+  return base as CityRequest;
 }
 
 // ── Wire ──────────────────────────────────────────────────────────────────

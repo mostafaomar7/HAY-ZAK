@@ -4,18 +4,14 @@ import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { ApiError } from '@core/models/api-error.model';
 import type {
-  CategoryRequest,
-  CityRequest,
-  DistrictRequest,
-  ProhibitedItemRequest,
   ReferenceData,
   ReferenceKind,
+  ReferenceRequest,
+  ReferenceRow,
   WireReferenceData,
 } from '@core/models/reference-admin';
-import { referenceDataFromWire } from '@core/models/reference-admin';
+import { referenceDataFromWire, requestFor } from '@core/models/reference-admin';
 import { ApiService } from '@core/services/api.service';
-
-type ReferenceRequest = CategoryRequest | CityRequest | DistrictRequest | ProhibitedItemRequest;
 
 /**
  * The reference lists (FR-ADM-05) — `reference:manage`, held by the system
@@ -46,13 +42,14 @@ export class AdminReferenceService {
   }
 
   /**
-   * A partial update — every field is optional.
+   * **A full replace, not a patch.**
    *
-   * So renaming a category does not resend its icon and its sort order, which
-   * is what makes two people editing different fields of the same row a
-   * non-event rather than a lost change.
+   * This used to be typed and documented as a partial, and it is not: the
+   * endpoint answers `{ isActive: false }` with a 422 naming `nameAr` and
+   * `nameEn`, and a district's `cityId` besides. The request must therefore
+   * carry the whole entry, which `requestFor()` builds from the row.
    */
-  update<T extends Partial<ReferenceRequest>>(
+  update<T extends ReferenceRequest>(
     kind: ReferenceKind,
     id: string,
     request: T,
@@ -63,11 +60,16 @@ export class AdminReferenceService {
   /**
    * Turning an entry off, which is the strongest thing that can happen to one.
    *
+   * Takes the **row**, not an id: the update replaces the entry, so everything
+   * it already had has to go back with the flag. Sending the flag alone is what
+   * made this fail on the cities, the districts and the prohibited items —
+   * every tab except the one whose form happened to resend its fields.
+   *
    * A category with published listings under it refuses even this — see
    * `listingsBlockingDeactivation`.
    */
-  setActive(kind: ReferenceKind, id: string, isActive: boolean): Observable<void> {
-    return this.update(kind, id, { isActive });
+  setActive(kind: ReferenceKind, row: ReferenceRow, isActive: boolean): Observable<void> {
+    return this.update(kind, row.id, requestFor(row, { isActive }));
   }
 }
 

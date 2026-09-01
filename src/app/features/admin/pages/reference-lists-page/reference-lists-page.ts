@@ -8,6 +8,7 @@ import type {
   ReferenceData,
   ReferenceDistrict,
   ReferenceEntry,
+  ReferenceRow,
   ReferenceKind,
   ProhibitedItem,
 } from '@core/models/reference-admin';
@@ -80,7 +81,14 @@ export class AdminReferenceListsPage {
     { value: 'prohibited-items', label: this.i18n.t('reference.prohibitedItems') },
   ]);
 
-  protected readonly rows = computed<ReferenceEntry[]>(() => {
+  /**
+   * The rows as their real kinds, not flattened to `ReferenceEntry`.
+   *
+   * The narrower type was what let `toggle` send an id and a flag: with a
+   * category typed as a bare entry, nothing on this side knew the update had a
+   * slug and an icon to resend.
+   */
+  protected readonly rows = computed<ReferenceRow[]>(() => {
     const data = this.data();
     if (!data) return [];
 
@@ -176,11 +184,13 @@ export class AdminReferenceListsPage {
    * A refusal is not a failure to report: the server says how many published
    * listings are in the way, and that number is the answer the operator needs.
    */
-  protected toggle(row: ReferenceEntry): void {
+  protected toggle(row: ReferenceRow): void {
     this.blockedBy.set(null);
     this.saving.set(true);
 
-    this.reference.setActive(this.kind(), row.id, !row.isActive).subscribe({
+    // The whole row, not its id: the endpoint replaces the entry, so the
+    // fields nobody touched have to go back with the flag.
+    this.reference.setActive(this.kind(), row, !row.isActive).subscribe({
       next: () => {
         this.saving.set(false);
         this.load();

@@ -103,9 +103,23 @@ export interface AdminContact {
  * audit trail, the notification template and any later report can group by. The
  * note is an addition for the recipient, not a substitute (FR-ADM-09).
  */
+/**
+ * What the console collects when an operator rejects something.
+ *
+ * **Not what goes on the wire.** `POST /admin/units/:id/reject` takes a single
+ * `reason` string; this pair is joined into it. The code stays because it is
+ * what the audit trail groups by and what the picker is built from — but a
+ * request carrying `reasonCode` is one the server strips and then refuses for
+ * having no reason, which is how rejection came to fail entirely.
+ */
 export interface ReviewDecision {
   reasonCode: RejectionReasonCode;
   note?: string;
+}
+
+/** The wire's shape: one sentence, and it must not be empty. */
+export interface RejectUnitRequest {
+  reason: string;
 }
 
 export enum RejectionReasonCode {

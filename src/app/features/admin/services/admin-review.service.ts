@@ -3,12 +3,14 @@ import type { Observable } from 'rxjs';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
+import { REJECTION_REASONS } from '@core/constants/rejection-reasons';
 import { UnitStatus } from '@core/enums/unit-status.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import type { PaginatedResponse } from '@core/models/api-response.model';
 import type {
   ListingReviewDetail,
   ListingReviewRow,
+  RejectUnitRequest,
   ReviewDecision,
 } from '@core/models/admin.model';
 import type { WireUnit } from '@core/models/unit-wire';
@@ -59,8 +61,36 @@ export class AdminReviewService {
     return this.api.post<void>(API_ENDPOINTS.admin.approveUnit(id));
   }
 
+  /**
+   * Rejects a listing. **The wire takes `reason`, one string.**
+   *
+   * The console picks a code and adds a note, which is right — the code is what
+   * the audit trail groups by and what a "why are we rejecting so much" report
+   * counts. But it was being posted as `{ reasonCode, note }`, and the server
+   * has no such fields: the mass-assignment guard stripped both and answered
+   * "سبب الرفض مطلوب", so **no listing could be rejected at all**.
+   *
+   * The two are joined into the sentence the lessor reads on their rejected
+   * listing. The code stays in the picker, where it does its work; it is the
+   * prose that goes on the wire, because prose is what `rejectionReason` shows.
+   */
   rejectListing(id: string, decision: ReviewDecision): Observable<void> {
-    return this.api.post<void, ReviewDecision>(API_ENDPOINTS.admin.rejectUnit(id), decision);
+    return this.api.post<void, RejectUnitRequest>(API_ENDPOINTS.admin.rejectUnit(id), {
+      reason: this.reasonText(decision),
+    });
+  }
+
+  /**
+   * "الصور غير واضحة — الصورة الثانية مظلمة".
+   *
+   * The label in the operator's language, then their note when they wrote one.
+   * A code alone would reach the lessor as `UnclearPhotos`.
+   */
+  private reasonText(decision: ReviewDecision): string {
+    const label = REJECTION_REASONS.find((r) => r.code === decision.reasonCode)?.labelKey;
+    const head = label ? this.i18n.t(label) : decision.reasonCode;
+    const note = decision.note?.trim();
+    return note ? `${head} — ${note}` : head;
   }
 
   /**
