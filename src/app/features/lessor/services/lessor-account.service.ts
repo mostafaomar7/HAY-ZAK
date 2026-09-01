@@ -4,8 +4,6 @@ import { map } from 'rxjs/operators';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
 import type { LessorDashboard, LessorEarnings } from '@core/models';
 import { ApiService } from '@core/services/api.service';
-import { saveBlob } from '@core/utils/file.utils';
-import type { EarningsResponse } from '@core/models/earnings.model';
 
 /**
  * Dashboard, earnings and bank details — FR-LSR-01, FR-LSR-02, FR-LSR-08.
@@ -30,7 +28,8 @@ export class LessorAccountService {
    * FR-LSR-08 — the three money buckets and the rule that separates them.
    *
    * Takes no date range: the buckets are the current position of the account,
-   * not a period's activity. The per-booking history is `earningsTable()`.
+   * not a period's activity. The per-booking history is `/lessor/bookings`,
+   * which the same screen reads beside this.
    */
   earnings(): Observable<LessorEarnings> {
     return this.api
@@ -38,25 +37,9 @@ export class LessorAccountService {
       .pipe(map((result) => result.earnings));
   }
 
-  /**
-   * LSR-07 — the dues table. Separate from `earnings()` because the screen needs
-   * the per-booking rows joined with their commission and payout, which the
-   * summary endpoint does not carry.
-   */
-  earningsTable(fromDate: string, toDate: string): Observable<EarningsResponse> {
-    return this.api.get<EarningsResponse>(API_ENDPOINTS.lessor.earningsTable, {
-      params: { fromDate, toDate },
-    });
-  }
-
-  /** FR-LSR-10 — PDF earnings statement for a period. */
-  downloadStatement(fromDate: string, toDate: string): Observable<Blob> {
-    return this.api.download(API_ENDPOINTS.lessor.earningsStatement, {
-      params: { fromDate, toDate },
-    });
-  }
-
-  saveStatement(blob: Blob, fromDate: string, toDate: string): void {
-    saveBlob(blob, `hayzak-earnings-${fromDate}-${toDate}.pdf`);
-  }
+  // `earningsTable()` and `downloadStatement()` are gone with the screen that
+  // called them: `/lessor/earnings/rows` and `/lessor/earnings/statement` have
+  // never existed, so the table showed an error box and the export button did
+  // nothing. The rows come from `/lessor/bookings` now, and there is no
+  // statement to offer until there is an endpoint that produces one.
 }

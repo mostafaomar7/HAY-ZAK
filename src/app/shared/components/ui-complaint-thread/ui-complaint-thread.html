@@ -3,12 +3,15 @@
     @for (message of messages(); track message.id) {
       <li
         class="msg"
+        [class.msg--support]="isSupport(message)"
         [class.msg--internal]="message.isInternal"
         [class.msg--stray]="isStray(message)"
       >
         <div class="msg__head">
           <span class="msg__author">{{ senderLabel(message) }}</span>
-          <time class="msg__time num" dir="ltr">{{ message.createdAt }}</time>
+          <time class="msg__time num" [attr.datetime]="message.createdAt">
+            {{ at(message.createdAt) }}
+          </time>
         </div>
 
         @if (message.isInternal) {
@@ -31,6 +34,7 @@
             @for (file of message.attachments; track file.id) {
               <li>
                 <a class="files__link" [href]="file.url" target="_blank" rel="noopener noreferrer">
+                  <span class="files__icon" aria-hidden="true">&#128206;</span>
                   <span class="files__name">{{ i18n.t('complaint.attachment') }}</span>
                   <span class="files__size num" dir="ltr">{{ sizeLabel(file) }}</span>
                 </a>

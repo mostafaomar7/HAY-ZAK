@@ -6,6 +6,19 @@
   [attr.aria-labelledby]="'modal-title'"
   (cancel)="onCancel($event)"
 >
+  <!-- Every dialog gets a way out that is visible.
+       Escape closed it and the action buttons closed it, but a dialog whose
+       only actions are "طباعة" — the invoice preview — had no button that
+       meant "leave", so the only exit was a key a phone does not have. -->
+  <button
+    type="button"
+    class="modal__close"
+    [attr.aria-label]="i18n.t('common.close')"
+    (click)="dismissed.emit()"
+  >
+    <span aria-hidden="true">&times;</span>
+  </button>
+
   <div class="modal__body">
     @if (showIcon()) {
       <span class="modal__icon" aria-hidden="true">{{ tone() === 'danger' ? '!' : 'i' }}</span>

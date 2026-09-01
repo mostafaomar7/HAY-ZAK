@@ -198,3 +198,47 @@ describe('UnitFormPage — visiting hours', () => {
     expect(hours().valid).toBeFalse();
   });
 });
+
+/**
+ * The area field (FR-UNT-04).
+ *
+ * There was a `Validators.max(5000)` on it — a guess this side made about how
+ * large a storage space can be. The server has no such rule, so a lessor with a
+ * bigger warehouse was told a true number was invalid and could not list it.
+ */
+describe('UnitFormPage — area', () => {
+  let fixture: ComponentFixture<UnitFormPage>;
+  let http: HttpTestingController;
+
+  function area() {
+    return (fixture.componentInstance as unknown as { form: FormGroup }).form.get('areaSqm')!;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UnitFormPage],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UnitFormPage);
+    http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.match(() => true).forEach((r) => r.flush({ success: true, data: { items: [] } }));
+  });
+
+  afterEach(() => http.verify());
+
+  it('accepts a warehouse larger than the old five-thousand cap', () => {
+    area().setValue(100_000);
+    expect(area().valid).toBeTrue();
+  });
+
+  /** Still a real number, though: zero square metres is not a space. */
+  it('still refuses nothing, and refuses zero', () => {
+    area().setValue(null);
+    expect(area().valid).toBeFalse();
+
+    area().setValue(0);
+    expect(area().valid).toBeFalse();
+  });
+});

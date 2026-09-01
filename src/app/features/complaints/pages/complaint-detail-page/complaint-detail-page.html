@@ -47,7 +47,14 @@
         @if (c.slaDueAt && !isSettled()) {
           <div class="fact">
             <dt>{{ i18n.t('complaints.slaDue') }}</dt>
-            <dd class="num" dir="ltr">{{ c.slaDueAt }}</dd>
+            <!-- A deadline the reader is waiting on, so it says how long is
+                 left as well as when — a date alone makes them do the sum. -->
+            <dd class="num">
+              {{ at(c.slaDueAt) }}
+              @if (dueIn(c.slaDueAt); as left) {
+                <span class="fact__sub">{{ left }}</span>
+              }
+            </dd>
           </div>
         }
       </dl>

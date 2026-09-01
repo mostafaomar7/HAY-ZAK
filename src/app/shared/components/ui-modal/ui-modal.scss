@@ -1,6 +1,8 @@
 @use 'abstracts' as a;
 
 .modal {
+  // The close button is absolute against this.
+  position: relative;
   width: min(460px, calc(100vw - #{a.$space-32}));
   max-height: calc(100vh - #{a.$space-56});
   padding: 0;
@@ -68,5 +70,36 @@
     > * {
       flex: 1;
     }
+  }
+}
+
+/**
+ * The way out, in the corner every dialog puts one.
+ *
+ * Positioned against the dialog rather than in the body flow so it does not
+ * shift the title, and given the full touch target even though the glyph is
+ * small — it is the control somebody reaches for when they are done reading.
+ */
+.modal__close {
+  @include a.flex-center;
+  @include a.focus-ring;
+
+  position: absolute;
+  inset-block-start: a.$space-8;
+  inset-inline-end: a.$space-8;
+  min-width: a.$control-touch-min;
+  min-height: a.$control-touch-min;
+  border: 0;
+  border-radius: a.$radius-pill;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: a.$fs-2xl;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color a.$transition-fast;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 }

@@ -153,10 +153,10 @@ export class UnitFormPage {
     categoryId: ['', Validators.required],
     title: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(90)]],
     description: ['', [Validators.required, Validators.minLength(30), Validators.maxLength(600)]],
-    areaSqm: [
-      null as number | null,
-      [Validators.required, Validators.min(1), Validators.max(5000)],
-    ],
+    // No upper bound. 5,000 m² was a guess this side made about what a
+    // storage space can be, and the server has no such rule — a lessor with a
+    // warehouse larger than that was told a true number was invalid.
+    areaSqm: [null as number | null, [Validators.required, Validators.min(1)]],
     // Riyals: it is what the lessor types, and what the field's label says.
     // Converted to halalas once, in `payload()`.
     dailyPriceSar: [

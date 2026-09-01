@@ -4,24 +4,35 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { API_ENDPOINTS } from '@core/constants/api-endpoints';
-import type { EarningsResponse, EarningsRow } from '@core/models/earnings.model';
+import { BookingStatus } from '@core/enums/booking-status.enum';
 import type { LessorEarnings } from '@core/models/payment.model';
 import { environment } from '../../../../../environments/environment';
 import { EarningsPage } from './earnings-page';
 
-function row(overrides: Partial<EarningsRow> = {}): EarningsRow {
+/** A booking as `/lessor/bookings` sends one — the lessor's view, with the
+ * commission on it. The renter's response carries no `commission` at all. */
+function booking(overrides: Record<string, unknown> = {}) {
   return {
-    bookingId: 'bk-1',
-    bookingReferenceNo: 'HZ-2026-01042',
-    unitTitle: 'مستودع مكيّف — النرجس',
+    id: 'bk-1',
+    referenceNo: 'HZ-2026-01042',
+    status: BookingStatus.Completed,
+    unit: { id: 'u-1', title: 'مستودع مكيّف — النرجس', addressLine: null, coverUrl: null },
     startDate: '2026-08-05',
     endDate: '2026-08-12',
-    grossHalalas: 52500,
-    commissionHalalas: 2625,
-    netHalalas: 49875,
-    bucket: 'PAID',
-    bankReference: 'TRF-88214',
-    transferredAt: '2026-08-13',
+    daysCount: 7,
+    price: {
+      dailyPriceHalalas: 7500,
+      subtotalHalalas: 52500,
+      vatHalalas: 0,
+      totalHalalas: 52500,
+      commissionRateBps: 500,
+      commissionHalalas: 2625,
+      netToLessorHalalas: 49875,
+    },
+    goodsDescription: 'أثاث منزلي',
+    contact: null,
+    confirmedAt: '2026-08-04T09:04:00.000Z',
+    createdAt: '2026-08-04T09:00:00.000Z',
     ...overrides,
   };
 }
@@ -31,22 +42,33 @@ describe('EarningsPage (LSR-07)', () => {
   let http: HttpTestingController;
   let el: HTMLElement;
 
-  const url = `${environment.apiUrl}${API_ENDPOINTS.lessor.earningsTable}`;
+  const bookingsUrl = `${environment.apiUrl}${API_ENDPOINTS.bookings.forLessor}`;
   const bucketsUrl = `${environment.apiUrl}${API_ENDPOINTS.lessor.earnings}`;
 
   /**
    * The screen makes two requests, and they answer different questions: the
-   * table is a period the lessor chose, the buckets are the account's position
-   * now. Both are answered here so no test has to know which one it wanted.
+   * table is a page of bookings, the buckets are the account's position now.
+   * Both are answered here so no test has to know which one it wanted.
    */
-  function flush(rows: EarningsRow[], totalEarnings = 2707.5) {
-    const body: EarningsResponse = {
-      summary: { totalEarnings, transferred: 0, pending: 0, onHold: 0 },
-      rows,
-    };
-    http.expectOne((r) => r.url === url).flush({ data: body, success: true });
+  function flush(rows: Record<string, unknown>[] = [booking()]) {
+    const request = http.expectOne((r) => r.url === bookingsUrl);
+    request.flush({
+      success: true,
+      data: {
+        items: rows,
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: rows.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+    });
     flushBuckets();
     fixture.detectChanges();
+    return request;
   }
 
   function flushBuckets(overrides: Partial<LessorEarnings> = {}) {
@@ -80,7 +102,21 @@ describe('EarningsPage (LSR-07)', () => {
 
   it('shows a skeleton, not a bare line of text, while loading', () => {
     expect(el.querySelector('app-ui-skeleton')).not.toBeNull();
-    flush([]);
+    flush();
+  });
+
+  /**
+   * The regression this was written for: the table read
+   * `/lessor/earnings/rows`, which has never existed, so the screen showed the
+   * three buckets above a red "تعذّر تحميل المستحقات" — the money on screen and
+   * none of the bookings behind it.
+   */
+  it('reads the bookings endpoint, never `/lessor/earnings/rows`', () => {
+    const request = flush([booking(), booking({ id: 'bk-2', referenceNo: 'HZ-2026-01043' })]);
+
+    expect(request.request.url).toBe(bookingsUrl);
+    expect(el.querySelectorAll('.table__row').length).toBe(2);
+    expect(el.textContent).toContain('HZ-2026-01042');
   });
 
   /**
@@ -88,16 +124,14 @@ describe('EarningsPage (LSR-07)', () => {
    * and "how much can reach my bank this week" are different questions, and
    * only the second is actionable.
    */
-  it('renders the three buckets and one row per booking', () => {
-    flush([row(), row({ bookingId: 'bk-2', bucket: 'RELEASABLE' })]);
+  it('renders the three buckets beside the table', () => {
+    flush();
 
     const tiles = Array.from(el.querySelectorAll('app-ui-stat-tile')).map((t) => t.textContent);
     expect(tiles.length).toBe(3);
     expect(tiles[0]).toContain('جاهز للتحويل');
     expect(tiles[1]).toContain('قيد الانتظار');
     expect(tiles[2]).toContain('حُوِّل');
-
-    expect(el.querySelectorAll('.table__row').length).toBe(2);
   });
 
   /**
@@ -106,85 +140,86 @@ describe('EarningsPage (LSR-07)', () => {
    * the page does not answer it.
    */
   it('says in words why money is not releasable yet', () => {
-    flush([row()]);
+    flush();
     expect(el.textContent).toContain('بعد ٢٤ ساعة من بداية الحجز');
   });
 
-  /** A rule this build has not heard of gets no sentence, not a guessed one. */
-  it('explains nothing rather than guessing at an unknown release rule', () => {
-    http
-      .expectOne((r) => r.url === url)
-      .flush({
-        data: { summary: { totalEarnings: 0, transferred: 0, pending: 0, onHold: 0 }, rows: [] },
-        success: true,
-      });
-    flushBuckets({ releaseRule: 'after_some_rule_this_build_does_not_know' });
+  /** The lessor's half of the money, which only their own view carries. */
+  it('shows the commission and the net from the booking', () => {
+    flush();
+
+    const row = el.querySelector('.table__row')!.textContent ?? '';
+    expect(row).toContain('525'); // gross, 52,500 halalas
+    expect(row).toContain('498'); // net, 49,875 halalas
+  });
+
+  /**
+   * `/lessor/bookings` takes `status`, `page` and `pageSize` and nothing else.
+   * The period and unit filters that used to sit here narrowed the rows already
+   * loaded — a page of twenty out of two hundred, presented as the whole set.
+   */
+  it('offers only the filter the endpoint actually takes', () => {
+    flush();
+
+    const selects = el.querySelectorAll('.page__toolbar select');
+    expect(selects.length).toBe(1);
+
+    const select = selects[0] as HTMLSelectElement;
+    select.value = BookingStatus.Completed;
+    select.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    expect(el.querySelector('.page__rule')).toBeNull();
-  });
-
-  it('offers a way to the requests screen when there is nothing to show', () => {
-    flush([]);
-
-    expect(el.textContent).toContain('لا توجد مستحقات مسجّلة حتى الآن');
-    expect(el.querySelector('a[href="/lessor/requests"]')?.textContent).toContain('عرض الطلبات');
-  });
-
-  // UC-04 — a frozen payout is only actionable if it points at the screen that
-  // actually fixes it, which is the bank details, not the profile.
-  it('sends a frozen payout to the bank-details screen', () => {
-    flush([row({ bucket: 'PENDING', holdReason: 'الآيبان لا يطابق اسمك.' })]);
-
-    const hold = el.querySelector('.hold');
-    expect(hold).not.toBeNull();
-    expect(hold?.textContent).toContain('الآيبان لا يطابق اسمك.');
-
-    const action = hold?.querySelector('a');
-    expect(action?.textContent).toContain('تصحيح البيانات البنكية');
-    expect(action?.getAttribute('href')).toBe('/lessor/bank-account');
-  });
-
-  it('explains when a transfer is still in progress', () => {
-    flush([row({ bucket: 'RELEASABLE', bankReference: undefined })]);
-
-    expect(el.querySelector('.note')?.textContent).toContain('خلال يومي عمل');
-  });
-
-  it('adds no note or hold panel to a completed transfer', () => {
-    flush([row()]);
-
-    expect(el.querySelector('.note')).toBeNull();
-    expect(el.querySelector('.hold')).toBeNull();
-    expect(el.textContent).toContain('TRF-88214');
-  });
-
-  it('filters by unit without issuing another request', () => {
-    flush([row(), row({ bookingId: 'bk-2', unitTitle: 'قراج مغلق — الملقا' })]);
-
-    fixture.componentInstance['onUnit']('قراج مغلق — الملقا');
-    fixture.detectChanges();
-
-    expect(el.querySelectorAll('.table__row').length).toBe(1);
-    http.expectNone((r) => r.url === url);
-  });
-
-  it('refetches when the period changes', () => {
-    flush([row()]);
-
-    fixture.componentInstance['onPeriod']('month');
-    fixture.detectChanges();
-
-    const request = http.expectOne((r) => r.url === url);
-    expect(request.request.params.has('fromDate')).toBeTrue();
-    expect(request.request.params.has('toDate')).toBeTrue();
+    const request = http.expectOne((r) => r.url === bookingsUrl);
+    expect(request.request.params.get('status')).toBe(BookingStatus.Completed);
     request.flush({
-      data: { summary: { totalEarnings: 0, transferred: 0, pending: 0, onHold: 0 }, rows: [] },
       success: true,
+      data: {
+        items: [],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
     });
-
-    // The buckets are refetched too — they are the account's position, and a
-    // stale one beside a fresh table is the disagreement this avoids.
     flushBuckets();
+    fixture.detectChanges();
+  });
+
+  /** A statement of account with no endpoint behind it is a button that lies. */
+  it('offers no statement export', () => {
+    flush();
+    expect(el.textContent).not.toContain('تصدير');
+  });
+
+  /**
+   * The buckets answer the account's position and the table answers a page.
+   * One failing must not blank the other.
+   */
+  it('keeps the table when the buckets fail', () => {
+    http
+      .expectOne((r) => r.url === bookingsUrl)
+      .flush({
+        success: true,
+        data: {
+          items: [booking()],
+          pagination: {
+            page: 1,
+            pageSize: 20,
+            total: 1,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false,
+          },
+        },
+      });
+    http.expectOne((r) => r.url === bucketsUrl).error(new ProgressEvent('failed'));
+    fixture.detectChanges();
+
+    expect(el.querySelectorAll('app-ui-stat-tile').length).toBe(0);
+    expect(el.querySelectorAll('.table__row').length).toBe(1);
   });
 });

@@ -106,3 +106,27 @@
   font-size: a.$fs-sm;
   color: var(--color-text-muted);
 }
+
+/**
+ * The platform's side of the conversation.
+ *
+ * The only asymmetry in this thread worth drawing: every message rendered as
+ * the same grey card, so the reader had to check the author label on each line
+ * to tell their own words from an answer to them. A tint and a rail on the
+ * inline start are enough — a chat-bubble layout would be the wrong register
+ * for a record somebody may have to read back during a dispute.
+ */
+.msg--support {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: var(--color-primary-soft);
+  border-inline-start: 3px solid var(--color-primary);
+
+  .msg__author {
+    color: var(--color-primary);
+  }
+}
+
+.files__icon {
+  font-size: a.$fs-sm;
+  line-height: 1;
+}

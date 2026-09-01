@@ -24,10 +24,21 @@
   color: var(--color-text);
 }
 
+/**
+ * The header is a card rather than loose rows.
+ *
+ * The reference, the state, the booking and the deadline are the four things
+ * somebody opening a complaint checks before reading a word of it. Loose on the
+ * page they read as four unrelated lines; boxed, they read as the summary they
+ * are.
+ */
 .head {
+  @include a.surface(a.$radius-lg);
+
   display: flex;
   flex-direction: column;
-  gap: a.$space-12;
+  gap: a.$space-14;
+  padding: a.$space-16 a.$space-18;
 }
 
 .head__row {
@@ -47,9 +58,13 @@
 
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: a.$space-12;
+  // Narrower tracks than before: at 14rem the three facts stretched the width
+  // of the page and each label sat a long way from its own value.
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: a.$space-16;
   margin: 0;
+  padding-block-start: a.$space-14;
+  border-block-start: 1px solid var(--color-border-divider);
 }
 
 .fact {
@@ -71,9 +86,15 @@
   }
 }
 
-.fact__ref {
+.fact__ref,
+.fact__sub {
   font-size: a.$fs-xs;
   color: var(--color-text-muted);
+}
+
+.fact dt {
+  font-weight: a.$fw-semibold;
+  letter-spacing: 0.01em;
 }
 
 .outcome__title {

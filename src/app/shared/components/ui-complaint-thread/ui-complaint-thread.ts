@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, input } from '@angular/core';
 import { LanguageService } from '@core/i18n/language.service';
+import { formatInstant } from '@core/utils/date.utils';
 import type { ComplaintAttachment, ComplaintMessage } from '@core/models/complaint';
 import { inject } from '@angular/core';
 
@@ -33,6 +34,18 @@ export class UiComplaintThread {
    */
   readonly showsInternal = input(false, { transform: booleanAttribute });
 
+  /**
+   * Whether the platform wrote it.
+   *
+   * The one asymmetry worth drawing in this thread. Every message used to
+   * render as the same grey card, so a conversation read as an undifferentiated
+   * list and the reader had to check the label on each line to know whether
+   * they were reading their own words or an answer to them.
+   */
+  protected isSupport(message: ComplaintMessage): boolean {
+    return message.senderType === 'ADMIN';
+  }
+
   protected isStray(message: ComplaintMessage): boolean {
     return message.isInternal && !this.showsInternal();
   }
@@ -56,6 +69,17 @@ export class UiComplaintThread {
       default:
         return message.senderType;
     }
+  }
+
+  /**
+   * The moment, read the way a person writes one.
+   *
+   * It used to print `createdAt` straight into the template, so every message
+   * in the thread was headed `2026-08-31T07:11:21.888Z` — a machine's timestamp
+   * on the one screen where somebody is reading a conversation.
+   */
+  protected at(iso: string): string {
+    return formatInstant(iso);
   }
 
   protected sizeLabel(attachment: ComplaintAttachment): string {

@@ -8,6 +8,7 @@ import {
 } from '@core/constants/status-display';
 import { ComplaintStatus, SETTLED_COMPLAINT_STATUSES } from '@core/enums/complaint.enum';
 import { LanguageService } from '@core/i18n/language.service';
+import { formatInstant, secondsUntil } from '@core/utils/date.utils';
 import { ApiError } from '@core/models/api-error.model';
 import type { ComplaintDetail } from '@core/models/complaint';
 import { MAX_COMPLAINT_ATTACHMENTS } from '@core/models/complaint';
@@ -56,6 +57,25 @@ export class ComplaintDetailPage {
 
   protected readonly body = signal('');
   protected readonly files = signal<readonly File[]>([]);
+
+  /** The moment, in the platform's timezone and the reader's language. */
+  protected at(iso: string): string {
+    return formatInstant(iso);
+  }
+
+  /**
+   * How long is left on the reply deadline, in words.
+   *
+   * The date alone made the reader do the arithmetic, on the one screen where
+   * they are waiting. Empty once it has passed — an overdue complaint is the
+   * team's problem to say something about, not a countdown to run backwards.
+   */
+  protected dueIn(iso: string): string {
+    const hours = Math.floor(secondsUntil(iso) / 3600);
+    if (hours <= 0) return '';
+    if (hours < 24) return this.i18n.t('complaints.dueInHours', { hours });
+    return this.i18n.t('complaints.dueInDays', { days: Math.floor(hours / 24) });
+  }
 
   protected readonly isSettled = computed(() => {
     const status = this.complaint()?.status;
