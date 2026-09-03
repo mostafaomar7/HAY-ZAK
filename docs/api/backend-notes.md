@@ -1009,28 +1009,44 @@ response including the writes, `PUT` (a `POST` is a 404), marking twice is a
 
 ## 2026-09-03 — the public host
 
-The server moved off the LAN to `http://179.198.199.243/api/v1`, which is the
-only line `environment.local-api.ts` should ever need to change.
+The server moved off the LAN to `179.198.199.243`. **Both** environments now
+point at it — `environment.ts` as well as `environment.local-api.ts`.
 
-Probed the day it arrived, and **it does not answer yet**: `/` serves the
-default nginx welcome page and every `/api/v1/…` path is nginx's own 404, so
-the reverse proxy is not routing to the application. Port 4000 refuses the
-connection.
+It came up during the morning it was handed over: the first probe got nginx's
+default welcome page and its own HTML 404 on every `/api/v1/…` path, and an
+hour later `/health` answered 200 and `/api/v1/public/cities` returned data.
+The certificate is timestamped inside that window.
 
-Three things follow from the origin, and each fails quietly rather than loudly:
+### The address is a `sslip.io` name, and that is not cosmetic
+
+    https://179-198-199-243.sslip.io/api/v1
+
+The Let's Encrypt certificate covers `179-198-199-243.sslip.io` and carries no
+IP SAN:
+
+    subject = CN = 179-198-199-243.sslip.io
+    SAN: DNS:179-198-199-243.sslip.io
+
+So `https://179.198.199.243` fails verification in **every** browser —
+`ERR_CERT_COMMON_NAME_INVALID`, refused before a request is sent. `curl` gives
+exit 60 on it and 200 on the name. `sslip.io` resolves the name back to that
+same IP, so it is the identical server reached by the one name its certificate
+vouches for.
+
+`http://179.198.199.243` also answers and must not be used: a client served
+over https cannot call http at all — mixed content is blocked before the
+request leaves and reported only in the console — and the token and the
+password would travel in the clear.
+
+Two things that still fail quietly:
 
 - **`/uploads` is on the same origin.** `fileUrl()` builds it off the API's
-  origin, not off `/api/v1`, so nginx has to serve both or every photo in the
+  origin, not off `/api/v1`, so it has to be proxied too or every photo in the
   product is a broken image that reads as an upload fault.
-- **It is `http`.** A client served over `https` cannot reach it at all — the
-  browser blocks mixed content before the request is made and reports it only
-  in the console. The token and the password also travel in the clear, which is
-  acceptable for testing and not past it.
 - **CORS has to name `http://localhost:4200`**, with `Authorization` allowed.
 
-`environment.ts` still points at `https://api.hayzak.sa/api/v1`. It has been
-left alone deliberately: an http IP is not what a production build should ship
-against, and a build serving the app over https could not call it anyway.
+`api.hayzak.sa` replaces this in both files the day that domain has a
+certificate, and nothing else changes.
 
 ### The return URL carries the booking id
 

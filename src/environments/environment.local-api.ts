@@ -11,23 +11,19 @@ import type { Environment } from './environment.model';
  * `ng test`: a suite pointed at a server that is sometimes off would fail for
  * reasons that are not the code's.
  *
- * The host used to be a colleague's laptop on the LAN and is now a public one,
- * so it stops changing every morning — but it is still the only line here
- * anybody should need to edit. Check `http://<host>/api/v1/reference/cities`
- * answers 200 before debugging anything in the client.
+ * Same address as production — see `environment.ts` for why it is a
+ * `sslip.io` name and not the bare IP. Check
+ * `https://179-198-199-243.sslip.io/health` answers 200 before debugging
+ * anything in the client.
  *
- * Two things follow from the origin being `http://179.198.199.243` rather than
- * `localhost`, and both bite silently:
- *
- * - `fileUrl()` builds `/uploads/…` off this origin, so unit photos and
- *   complaint attachments are served by that host too, not by the API port.
- * - It is **http**. A client served over https cannot call it at all — the
- *   browser blocks mixed content before the request leaves, and the console
- *   says so where nobody is looking. Serve the dev client over http.
+ * One thing that follows from the origin and fails quietly: `fileUrl()` builds
+ * `/uploads/…` off it rather than off `/api/v1`, so unit photos and complaint
+ * attachments are served by this host too. If that path stops being proxied,
+ * every image in the product breaks in a way that reads as an upload fault.
  */
 export const environment: Environment = {
   production: false,
-  apiUrl: 'http://179.198.199.243/api/v1',
+  apiUrl: 'https://179-198-199-243.sslip.io/api/v1',
   appName: 'HAY-ZAK (API)',
   version: '1.0.0-api',
   defaultLang: 'ar',
