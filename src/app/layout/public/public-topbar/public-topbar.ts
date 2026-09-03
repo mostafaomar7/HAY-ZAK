@@ -3,7 +3,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { UserRole } from '@core/enums/user-role.enum';
 import { LanguageService } from '@core/i18n/language.service';
 import { AuthService } from '@core/services/auth.service';
-import { ClickOutsideDirective } from '@shared/directives/click-outside.directive';
 import { UiNotificationBell } from '@shared/components/ui-notification-bell/ui-notification-bell';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { UiIcon } from '@shared/components/ui-icon/ui-icon';
@@ -19,14 +18,7 @@ import { UiIcon } from '@shared/components/ui-icon/ui-icon';
 @Component({
   selector: 'app-public-topbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterLink,
-    RouterLinkActive,
-    ClickOutsideDirective,
-    UiButton,
-    UiIcon,
-    UiNotificationBell,
-  ],
+  imports: [RouterLink, RouterLinkActive, UiButton, UiIcon, UiNotificationBell],
   templateUrl: './public-topbar.html',
   styleUrl: './public-topbar.scss',
 })
