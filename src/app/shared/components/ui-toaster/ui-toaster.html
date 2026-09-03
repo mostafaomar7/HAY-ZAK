@@ -1,0 +1,48 @@
+<!--
+  Two regions, because `aria-live` is read when a region is created rather than
+  when its contents change — a single region cannot be polite for a save and
+  assertive for a failure.
+-->
+<div class="toaster" aria-live="polite" aria-relevant="additions">
+  @for (toast of toasts(); track toast.id) {
+    @if (!isUrgent(toast.type)) {
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: toast }" />
+    }
+  }
+</div>
+
+<div class="toaster" aria-live="assertive" aria-relevant="additions">
+  @for (toast of toasts(); track toast.id) {
+    @if (isUrgent(toast.type)) {
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: toast }" />
+    }
+  }
+</div>
+
+<ng-template #card let-toast>
+  <div
+    class="toast"
+    [class]="'toast--' + toast.type"
+    [attr.role]="isUrgent(toast.type) ? 'alert' : 'status'"
+  >
+    <span class="toast__icon" aria-hidden="true">
+      <app-ui-icon [name]="icon(toast.type)" [size]="18" />
+    </span>
+
+    <div class="toast__text">
+      @if (toast.title) {
+        <strong class="toast__title">{{ toast.title }}</strong>
+      }
+      <span class="toast__message">{{ toast.message }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="toast__close"
+      [attr.aria-label]="i18n.t('common.close')"
+      (click)="dismiss(toast.id)"
+    >
+      <app-ui-icon name="close" [size]="16" />
+    </button>
+  </div>
+</ng-template>

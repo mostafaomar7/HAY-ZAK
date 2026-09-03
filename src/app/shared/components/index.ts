@@ -25,5 +25,6 @@ export * from './ui-stat-tile/ui-stat-tile';
 export * from './ui-stepper/ui-stepper';
 export * from './ui-tabs/ui-tabs';
 export * from './ui-thumbnail/ui-thumbnail';
+export * from './ui-toaster/ui-toaster';
 export * from './ui-toggle/ui-toggle';
 export * from './ui-wizard-steps/ui-wizard-steps';

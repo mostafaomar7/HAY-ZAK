@@ -1,1 +1,8 @@
 <router-outlet />
+
+<!--
+  Mounted here rather than in a shell so it survives navigation: the actions
+  most worth confirming are the ones that redirect afterwards, and a toaster
+  that unmounts mid-redirect drops exactly those messages.
+-->
+<app-ui-toaster />

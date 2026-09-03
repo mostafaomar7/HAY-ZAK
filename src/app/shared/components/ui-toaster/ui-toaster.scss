@@ -1,0 +1,149 @@
+@use 'abstracts' as a;
+
+// Above the modal (60) on purpose: a save that fails from inside a dialog must
+// be readable without closing the dialog first.
+.toaster {
+  position: fixed;
+  inset-block-end: a.$space-20;
+  // The end side, because the dashboard sidebar sits at the start side in both
+  // directions — a toast in that corner lands on top of the navigation.
+  inset-inline-end: a.$space-20;
+  z-index: 70;
+
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-10;
+
+  width: min(380px, calc(100vw - #{a.$space-32}));
+  // The corner stays clickable while a message is up; each toast takes the
+  // pointer back for itself.
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+
+  display: flex;
+  align-items: flex-start;
+  gap: a.$space-10;
+  padding: a.$space-12 a.$space-14;
+
+  border: 1px solid transparent;
+  border-radius: a.$radius-lg;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dropdown);
+
+  animation: toast-in 180ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: a.$radius-pill;
+}
+
+.toast__text {
+  display: flex;
+  flex-direction: column;
+  gap: a.$space-2;
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.toast__title {
+  font-size: a.$fs-sm;
+  font-weight: a.$fw-semibold;
+}
+
+.toast__message {
+  font-size: a.$fs-md;
+  color: var(--color-text);
+  // Server messages are sentences, not labels — they wrap rather than truncate,
+  // and a truncated reason is worse than none.
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.toast__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: a.$radius-sm;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.toast--success {
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+
+  .toast__icon,
+  .toast__title {
+    color: var(--color-success-fg);
+  }
+}
+
+.toast--error {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+
+  .toast__icon,
+  .toast__title {
+    color: var(--color-danger-fg);
+  }
+}
+
+.toast--warning {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+
+  .toast__icon,
+  .toast__title {
+    color: var(--color-warning-fg);
+  }
+}
+
+.toast--info {
+  background: var(--color-info-bg);
+  border-color: var(--color-border);
+
+  .toast__icon,
+  .toast__title {
+    color: var(--color-info-fg);
+  }
+}
+
+// A phone has no room for a 380px column in a corner: full width, and at the
+// bottom where the thumb is.
+@media (max-width: a.$bp-sm) {
+  .toaster {
+    inset-inline: a.$space-12;
+    inset-block-end: a.$space-12;
+    width: auto;
+  }
+}
