@@ -1033,10 +1033,10 @@ exit 60 on it and 200 on the name. `sslip.io` resolves the name back to that
 same IP, so it is the identical server reached by the one name its certificate
 vouches for.
 
-`http://179.198.199.243` also answers and must not be used: a client served
-over https cannot call http at all — mixed content is blocked before the
-request leaves and reported only in the console — and the token and the
-password would travel in the clear.
+`http://179.198.199.243` is **not** the API. It serves the built frontend, with
+an SPA fallback that answers `200 text/html` for every path — `/api/v1/…` and
+`/uploads/…` included. Any probe against it looks like it succeeded and is
+reading `index.html`. The API is only ever on the sslip name.
 
 Two things that still fail quietly:
 
@@ -1104,3 +1104,24 @@ and a booking reference is served over an open connection, and the browser says
   `redirectUrl` is read, and the extra block is harmless.
 - A unit needs **two images before `submit`** — `UNIT_IMAGES_REQUIRED`, 422.
 - `statusHistory` is still absent from `/renter/bookings/:id`.
+
+### CORS is keyed on the deployed origin, and the deployed origin is not listed
+
+The build is served from `http://179.198.199.243` and calls the API on the
+sslip name, so every request is cross-origin. The same preflight, varying only
+`Origin`:
+
+    http://localhost:4200              204, Access-Control-Allow-Origin present
+    https://179-198-199-243.sslip.io   204, Access-Control-Allow-Origin present
+    http://179.198.199.243             200 text/plain, no Access-Control-* at all
+
+Local origins are allowed automatically and public ones are not, so the origin
+the browser actually sends is the one that is missing. It reads as a CORS
+failure because it is one.
+
+Serving the frontend from `https://179-198-199-243.sslip.io` fixes it without a
+server-side list at all: it is already allowed, it is **same-origin** with the
+API so no preflight happens, it puts the login form on https instead of an open
+connection, and `/uploads` resolves with no extra configuration. That is the
+recommendation; allowlisting `http://179.198.199.243` is the one-line
+alternative.
