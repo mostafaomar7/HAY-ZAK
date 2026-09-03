@@ -1058,3 +1058,49 @@ nothing to read and renders its error state after the money has moved**. Tap
 appends its own charge reference on the way back, never ours. The fixtures did
 append `bookingId`, and the routing spec opened the URL with it already there,
 which is why a flow that could not work in production had passing tests over it.
+
+## 2026-09-03 — the payment cycle, walked end to end
+
+The database was reset that morning: users, roles and reference data survived,
+and the catalogue was empty — zero units and zero bookings across renter,
+lessor and admin. A probe listing was created, published, booked, paid,
+declined and archived to test the cycle.
+
+Everything holds. `POST /renter/bookings` → `AWAITING_PAYMENT` with a
+fifteen-minute hold; `/pay` → a `redirectUrl` **on the public host**, no longer
+`localhost`; the simulator's "ادفع الآن" settles to `CONFIRMED` with two
+invoices — `BOOKING` to the renter, `COMMISSION` to the lessor — and opens the
+contact block, which reads `null` before payment. `pendingHalalas` came to
+19,125 on a 22,500 booking against a 3,375 commission, which is the arithmetic
+the earnings screen shows.
+
+"ارفض البطاقة" leaves the booking `AWAITING_PAYMENT` with its hold intact and
+the contact still `null`, and calling `/pay` again returns **the same charge**
+rather than a second one — so "try another card" on the return page is a retry,
+which is what that screen assumes.
+
+`/uploads` is proxied on the API origin: two images uploaded and fetched back
+`200 image/png`. `fileUrl()` is correct to build off the origin.
+
+### Two things the walk settled
+
+**The `returnUrl` query survives.** We sent `?bookingId=…` and the redirect
+came back carrying it, plus the gateway's own `status` and `charge`. This is
+what makes the return page work at all — it reads the booking rather than
+believing `status`, so without the id it has nothing to read.
+
+**`redirectUrl` is `http`, while the form inside the page posts to `https`.**
+Not a blocker: a top-level navigation to http from an https document is
+permitted, unlike a subresource. But a page showing an amount, a customer name
+and a booking reference is served over an open connection, and the browser says
+"not secure" at the one moment it matters most.
+
+### Shapes worth recording
+
+- Login takes **`identifier`**, not `mobile`, and answers
+  `data.tokens.accessToken` — not `data.accessToken`.
+- Creating a booking takes **`prohibitedAck`**. The client already sends this.
+- `/pay` answers `{ payment: { id, status, amountHalalas }, redirectUrl }`. Only
+  `redirectUrl` is read, and the extra block is harmless.
+- A unit needs **two images before `submit`** — `UNIT_IMAGES_REQUIRED`, 422.
+- `statusHistory` is still absent from `/renter/bookings/:id`.
