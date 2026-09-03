@@ -56,18 +56,17 @@
 
       <form class="form__body" [formGroup]="form" (ngSubmit)="submit()">
         <app-ui-field
-          [label]="i18n.t('adminAuth.email')"
-          for="adm-email"
-          [control]="form.controls.email"
+          [label]="i18n.t('adminAuth.identifier')"
+          for="adm-identifier"
+          [control]="form.controls.identifier"
         >
           <input
-            id="adm-email"
-            class="input num"
-            type="email"
-            dir="ltr"
+            id="adm-identifier"
+            class="input"
+            type="text"
+            dir="auto"
             autocomplete="username"
-            inputmode="email"
-            formControlName="email"
+            formControlName="identifier"
           />
         </app-ui-field>
 

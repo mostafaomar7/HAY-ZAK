@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { REGEX } from '@core/constants/app.constants';
 import { LanguageService } from '@core/i18n/language.service';
 import { isApiError } from '@core/models/api-error.model';
 import { isTwoFactorChallenge } from '@core/models/two-factor';
@@ -15,10 +14,22 @@ import { UiOtpInput } from '@shared/components/ui-otp-input/ui-otp-input';
  * The console's own entrance (design: "تسجيل دخول الإدارة").
  *
  * Separate from `/auth/login` because it is a different door with different
- * rules: email rather than mobile, two-factor from an authenticator app rather
- * than an SMS code, and every attempt written to the audit trail. Sharing one
- * form would mean the renter's login carrying admin-only copy about session
- * length and MFA that means nothing to them.
+ * rules: two-factor from an authenticator app rather than an SMS code, and
+ * every attempt written to the audit trail. Sharing one form would mean the
+ * renter's login carrying admin-only copy about session length and MFA that
+ * means nothing to them.
+ *
+ * **It takes a mobile number or an email, not an email alone.** This field was
+ * `Validators.pattern(REGEX.email)`, which refused every administrator whose
+ * credential is a mobile number — the seeded operations accounts among them —
+ * with "القيمة غير صحيحة" on a credential the API accepts. `/auth/login` takes
+ * one `identifier` and decides for itself which it was given; the door does not
+ * change what the account is.
+ *
+ * There is no format check for the same reason `/auth/login` has none: a
+ * pattern here can only ever be narrower than the server's, and when it is
+ * narrower it locks somebody out of their own console. The server is the one
+ * that knows.
  *
  * The second factor is asked for by the **server**, when the account has one.
  * This screen used to route every successful sign-in to the mobile OTP page on
@@ -43,7 +54,7 @@ export class AdminLoginPage {
   protected readonly failed = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.pattern(REGEX.email)]],
+    identifier: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     rememberDevice: [false],
   });
@@ -57,8 +68,8 @@ export class AdminLoginPage {
     this.submitting.set(true);
     this.failed.set(false);
 
-    const { email, password, rememberDevice } = this.form.getRawValue();
-    this.auth.login({ identifier: email, password, rememberMe: rememberDevice }).subscribe({
+    const { identifier, password, rememberDevice } = this.form.getRawValue();
+    this.auth.login({ identifier, password, rememberMe: rememberDevice }).subscribe({
       next: (result) => {
         this.submitting.set(false);
 
