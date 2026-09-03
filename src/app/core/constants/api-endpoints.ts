@@ -215,7 +215,9 @@ export const API_ENDPOINTS = {
      * Send the browser to `redirectUrl` — the whole browser. 3-D Secure does
      * not run inside an iframe, and a fetch cannot carry a challenge.
      * `returnUrl` must be on this application's own origin or it is a 422; an
-     * open return is a phishing tool. Safe to call twice: the same charge
+     * open return is a phishing tool. It carries `?bookingId=` — the gateway
+     * sends back its own charge reference and never ours, and the return page
+     * has nothing to read without it. Safe to call twice: the same charge
      * comes back rather than a second one.
      */
     pay: (id: string) => `/renter/bookings/${id}/pay`,

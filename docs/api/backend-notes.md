@@ -1006,3 +1006,39 @@ response including the writes, `PUT` (a `POST` is a 404), marking twice is a
   `?overdue=true` can disagree.
 - A `senderName` is deliberately absent and should stay absent, but an operator
   reading the console cannot tell two colleagues apart in a thread.
+
+## 2026-09-03 — the public host
+
+The server moved off the LAN to `http://179.198.199.243/api/v1`, which is the
+only line `environment.local-api.ts` should ever need to change.
+
+Probed the day it arrived, and **it does not answer yet**: `/` serves the
+default nginx welcome page and every `/api/v1/…` path is nginx's own 404, so
+the reverse proxy is not routing to the application. Port 4000 refuses the
+connection.
+
+Three things follow from the origin, and each fails quietly rather than loudly:
+
+- **`/uploads` is on the same origin.** `fileUrl()` builds it off the API's
+  origin, not off `/api/v1`, so nginx has to serve both or every photo in the
+  product is a broken image that reads as an upload fault.
+- **It is `http`.** A client served over `https` cannot reach it at all — the
+  browser blocks mixed content before the request is made and reports it only
+  in the console. The token and the password also travel in the clear, which is
+  acceptable for testing and not past it.
+- **CORS has to name `http://localhost:4200`**, with `Authorization` allowed.
+
+`environment.ts` still points at `https://api.hayzak.sa/api/v1`. It has been
+left alone deliberately: an http IP is not what a production build should ship
+against, and a build serving the app over https could not call it anyway.
+
+### The return URL carries the booking id
+
+`pay()` now sends `…/bookings/return?bookingId=<id>` rather than the bare path.
+
+The return page does not believe the gateway's `status` — it reads the booking
+and re-reads it while the webhook is in flight — so **without an id it has
+nothing to read and renders its error state after the money has moved**. Tap
+appends its own charge reference on the way back, never ours. The fixtures did
+append `bookingId`, and the routing spec opened the URL with it already there,
+which is why a flow that could not work in production had passing tests over it.

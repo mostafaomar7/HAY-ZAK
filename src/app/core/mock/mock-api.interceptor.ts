@@ -287,9 +287,19 @@ function route(path: string, query: string, method: string, payload: unknown): u
     // The real one hands back a gateway URL and the browser leaves. There is
     // nowhere for the mock to send it, so it names the fake checkout it would
     // have gone to and the screen's own redirect is what does not happen.
-    return ok({
-      redirectUrl: `${window.location.origin}/bookings/return?bookingId=mock&status=paid`,
-    });
+    //
+    // It echoes the `returnUrl` it was handed rather than composing its own,
+    // which is the one thing a gateway is trusted to do. Inventing
+    // `?bookingId=mock` here hid a real gap for months: the client was not
+    // sending the id at all, and the fixture supplied what only the fixture
+    // knew.
+    const returnUrl = new URL(
+      ((payload ?? {}) as { returnUrl?: string }).returnUrl ?? '/bookings/return',
+      window.location.origin,
+    );
+    returnUrl.searchParams.set('status', 'paid');
+
+    return ok({ redirectUrl: returnUrl.toString() });
   }
   if (/^\/renter\/bookings\/[^/]+$/.test(path)) {
     const id = path.split('/')[3];

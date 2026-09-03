@@ -103,14 +103,25 @@ export class RenterBookingsService {
    * Built here rather than configured, so the address is always the one the
    * visitor is actually on.
    *
+   * **`bookingId` goes in the query string, and it has to come from us.** The
+   * return page reads the booking rather than believing the gateway's verdict,
+   * so without an id it has nothing to read and renders its error state — the
+   * money has moved and the screen says something went wrong. Tap appends its
+   * own charge reference on the way back, not ours, so waiting for the gateway
+   * to supply it is waiting for something that never arrives. The fixtures did
+   * append it, which is why every test passed over a flow that could not work.
+   *
    * Calling it twice is safe and returns the same charge, which matters after
    * a declined card: the booking is still held and the retry is a retry, not a
    * second attempt to pay for the same nights.
    */
   pay(id: string, returnPath = '/bookings/return'): Observable<string> {
+    const returnUrl = new URL(returnPath, window.location.origin);
+    returnUrl.searchParams.set('bookingId', id);
+
     return this.api
       .post<WirePaymentSession, { returnUrl: string }>(API_ENDPOINTS.bookings.pay(id), {
-        returnUrl: `${window.location.origin}${returnPath}`,
+        returnUrl: returnUrl.toString(),
       })
       .pipe(map((session) => session.redirectUrl));
   }

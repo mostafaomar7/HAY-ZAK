@@ -136,8 +136,25 @@ describe('RenterBookingsService', () => {
     const body = request.request.body as { returnUrl: string };
     request.flush({ success: true, data: { redirectUrl: 'https://gateway.example/checkout/x' } });
 
-    expect(body.returnUrl.startsWith(window.location.origin)).toBeTrue();
-    expect(body.returnUrl.endsWith('/bookings/return')).toBeTrue();
+    const returnUrl = new URL(body.returnUrl);
+    expect(returnUrl.origin).toBe(window.location.origin);
+    expect(returnUrl.pathname).toBe('/bookings/return');
+  });
+
+  /**
+   * The return page reads the booking instead of believing the gateway, so an
+   * id it does not have is an error screen shown after the money moved. The
+   * gateway sends back its own charge reference, never ours — this is the only
+   * place the id can be put.
+   */
+  it('carries the booking id back in the returnUrl', () => {
+    service.pay('b-1').subscribe();
+
+    const request = http.expectOne((r) => r.url.endsWith('/renter/bookings/b-1/pay'));
+    const body = request.request.body as { returnUrl: string };
+    request.flush({ success: true, data: { redirectUrl: 'https://gateway.example/checkout/x' } });
+
+    expect(new URL(body.returnUrl).searchParams.get('bookingId')).toBe('b-1');
   });
 
   it('unwraps the invoice and reads its daysCount as nights', () => {
